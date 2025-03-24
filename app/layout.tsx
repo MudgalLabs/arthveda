@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Karla, Poppins } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-    variable: "--font-inter",
+const karla = Karla({
+    variable: "--font-karla",
     subsets: ["latin"],
 });
+
+const poppins = Poppins({
+    variable: "--font-poppins",
+    subsets: ["latin"],
+    weight: ["400", "700"]
+});
+
 
 export const metadata: Metadata = {
     title: "Arthveda",
@@ -19,7 +26,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${inter.variable} ${inter.variable} antialiased`}>
+            <body className={`${karla.variable} ${poppins.variable} antialiased bg-background-1`}>
                 {children}
             </body>
         </html>
