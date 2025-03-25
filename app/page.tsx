@@ -7,6 +7,10 @@ export default function Home() {
       <div className="flex gap-10">
         <Button>Primary</Button>
         <Button>Secondary</Button>
+        <Button>Primary Active</Button>
+        <Button>Primary Disabled</Button>
+        <Button>Primary Small</Button>
+        <Button>Primary Large</Button>
       </div>
     </div>
   );
