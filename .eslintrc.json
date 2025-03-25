@@ -4,6 +4,7 @@
     "next/typescript",
     "plugin:prettier/recommended",
     "plugin:jsx-a11y/recommended",
+    "plugin:storybook/recommended",
     "plugin:storybook/recommended"
   ],
   "plugins": [
