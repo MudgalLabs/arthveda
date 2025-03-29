@@ -3,14 +3,17 @@ import { Karla, Poppins } from "next/font/google";
 import "./globals.css";
 
 const karla = Karla({
-  variable: "--font-karla",
   subsets: ["latin"],
+  variable: "--font-karla",
+  weight: ["400", "700"],
+  display: "swap",
 });
 
 const poppins = Poppins({
-  variable: "--font-poppins",
   subsets: ["latin"],
+  variable: "--font-poppins",
   weight: ["400", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -24,12 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${karla.variable} ${poppins.variable} bg-background-1 antialiased`}
-      >
-        {children}
-      </body>
+    <html lang="en" className={`${karla.variable} ${poppins.variable} `}>
+      <body className="bg-background-1 antialiased">{children}</body>
     </html>
   );
 }

@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
 
-import { Button } from "./Button";
+import { Button } from "@/s8ly";
 
 /**
  * Leaving storybook boiler template comments in here so that we can later come back here if we need it.

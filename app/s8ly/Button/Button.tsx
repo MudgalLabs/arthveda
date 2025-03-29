@@ -11,30 +11,29 @@ const variants = cva(
     "relative",
     "transition",
     "rounded-xl",
-    "disabled:cursor-not-allowed",
     "tracking-wide",
     "outline-none",
+    "font-poppins",
+    "font-bold",
   ],
   {
     variants: {
       variant: {
         primary: [
-          "font-semibold",
-          "bg-primary",
-          "text-foreground-knight",
-          "disabled:bg-primary-disabled",
-          "active:bg-primary",
+          "bg-primary-500",
+          "text-primary-50",
+          "disabled:bg-primary-950",
+          "disabled:text-primary-700",
           "focus-visible:outline-2",
           "focus-visible:outline-offset-3",
           "focus-visible:outline-solid",
-          "focus-visible:outline-primary-border",
+          "focus-visible:outline-primary-400",
         ],
         secondary: [
-          "font-semibold",
-          "bg-secondary",
-          "text-foreground-primary",
-          "disabled:bg-secondary-disabled",
-          "active:bg-secondary",
+          "bg-secondary-500",
+          "text-secondary-950",
+          "disabled:bg-secondary-950",
+          "disabled:text-secondary-700",
           "focus-visible:outline-2",
           "focus-visible:outline-offset-3",
           "focus-visible:outline-solid",
@@ -57,8 +56,8 @@ const variants = cva(
 const loading = cva(["absolute", "inline-flex", "items-center"], {
   variants: {
     variant: {
-      primary: ["border-black"],
-      secondary: ["border-white"],
+      primary: ["border-primary-50"],
+      secondary: ["border-primary-950"],
     },
   },
 });
@@ -96,10 +95,15 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(variants({ variant, size, className }), {
           "active:scale-[0.98]": !loading && !disabled,
           "cursor-pointer": !loading,
-          "hover:bg-primary-hover":
+          "hover:bg-primary-400":
             !loading && !disabled && variant === "primary",
-          "hover:bg-secondary-hover":
+          "active:bg-primary-600":
+            !loading && !disabled && variant === "primary",
+          "hover:bg-secondary-400":
             !loading && !disabled && variant === "secondary",
+          "active:bg-secondary-600":
+            !loading && !disabled && variant === "secondary",
+          "cursor-not-allowed": loading || disabled,
         })}
         disabled={disabled}
         {...rest}
@@ -118,7 +122,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   },
 );
 
-Button.displayName = "Button";
+Button.displayName = "s8ly_Button";
 
 export { Button };
 export type { ButtonProps };
