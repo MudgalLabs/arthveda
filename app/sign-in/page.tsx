@@ -1,7 +1,7 @@
 import { Button, TextInput } from "@/s8ly";
 import { TextLink } from "../components/TextLink/TextLink";
 
-export default function SignIn() {
+export default function Signin() {
   return (
     <main className="flex h-screen flex-col items-center justify-center">
       <h1 className="font-poppins mb-8 text-[32px]">Sign in to Arthveda</h1>
@@ -14,7 +14,7 @@ export default function SignIn() {
         </TextLink>
 
         <Button className="mb-4" variant="secondary">
-          Sign In
+          Sign in
         </Button>
       </form>
 
