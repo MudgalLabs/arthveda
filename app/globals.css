@@ -1,37 +1,3 @@
-/**
-    font-size: 0.875rem;
-    border-radius: 4px;
-    padding: 0.875em;
-    border: none;
-    background: ${(props) => props.theme.color.disabledPrimary};
-    border: 2px solid transparent;
-    transition: border 200ms ease-out, background-color 200ms ease-out;
-    box-sizing: border-box;
-    font-family: Poppins, sans-serif;
-    color: ${(props) => props.theme.color.textPrimary};
-    text-align: ${(props) => props.type === 'number' && 'center'};
-
-    width: ${(props) => props.width};
-
-    &::placeholder {
-        color: ${(props) => props.theme.color.onDisabled};
-    }
-
-    &:hover {
-        border: 2px solid ${(props) => props.theme.color.borderOnDisabled};
-    }
-
-    &:focus::placeholder {
-        color: ${(props) => props.theme.color.onDisabled};
-    }
-
-    &:focus {
-        border: 2px solid ${(props) => props.theme.color.primary};
-        background: #000000;
-        outline: none;
-        color: ${(props) => props.theme.color.textPrimary};
-    }
-*/
 @import "tailwindcss";
 
 @theme {
