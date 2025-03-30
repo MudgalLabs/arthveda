@@ -15,18 +15,18 @@ const buttonVariants = cva(
     "outline-none",
     "font-poppins",
     "font-bold",
+    "focus-visible:outline-3",
+    "focus-visible:outline-offset-3",
+    "focus-visible:outline-solid",
   ],
   {
     variants: {
       variant: {
         primary: [
           "bg-primary-500",
-          "text-primary-50",
+          "text-primary-950",
           "disabled:bg-primary-950",
           "disabled:text-primary-700",
-          "focus-visible:outline-2",
-          "focus-visible:outline-offset-3",
-          "focus-visible:outline-solid",
           "focus-visible:outline-primary-400",
         ],
         secondary: [
@@ -34,14 +34,17 @@ const buttonVariants = cva(
           "text-secondary-950",
           "disabled:bg-secondary-950",
           "disabled:text-secondary-700",
-          "focus-visible:outline-2",
-          "focus-visible:outline-offset-3",
-          "focus-visible:outline-solid",
-          "focus-visible:outline-secondary-border",
+          "focus-visible:outline-secondary-400",
         ],
       },
       size: {
-        small: ["text-sm", "py-2", "px-6"],
+        small: [
+          "text-sm",
+          "py-2",
+          "px-6",
+          "focus-visible:outline-2",
+          "focus-visible:outline-offset-2",
+        ],
         default: ["text-base", "py-3", "px-9"],
         large: ["text-lg", "py-4", "px-16"],
       },
@@ -104,7 +107,7 @@ Button.displayName = "s8ly_Button";
 const loadingVariant = cva(["absolute", "inline-flex", "items-center"], {
   variants: {
     variant: {
-      primary: ["border-primary-50"],
+      primary: ["border-seondary-950"],
       secondary: ["border-primary-950"],
     },
   },
