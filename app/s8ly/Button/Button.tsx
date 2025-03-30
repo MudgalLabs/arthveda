@@ -1,9 +1,9 @@
-import { forwardRef, FC } from "react";
+import { FC, ComponentProps } from "react";
 
 import { VariantProps, cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const variants = cva(
+const buttonVariants = cva(
   [
     "inline-flex",
     "items-center",
@@ -53,7 +53,55 @@ const variants = cva(
   },
 );
 
-const loading = cva(["absolute", "inline-flex", "items-center"], {
+interface ButtonProps
+  extends ComponentProps<"button">,
+    VariantProps<typeof buttonVariants> {
+  loading?: boolean;
+}
+
+const Button: FC<ButtonProps> = (props) => {
+  const {
+    className,
+    children,
+    disabled,
+    loading = false,
+    size = "default",
+    variant = "primary",
+    ...rest
+  } = props;
+
+  return (
+    <button
+      className={cn(buttonVariants({ variant, size, className }), {
+        "active:scale-[0.98]": !loading && !disabled,
+        "cursor-pointer": !loading,
+        "hover:bg-primary-400": !loading && !disabled && variant === "primary",
+        "active:bg-primary-600": !loading && !disabled && variant === "primary",
+        "hover:bg-secondary-400":
+          !loading && !disabled && variant === "secondary",
+        "active:bg-secondary-600":
+          !loading && !disabled && variant === "secondary",
+        "cursor-not-allowed": loading || disabled,
+      })}
+      disabled={disabled}
+      {...rest}
+    >
+      {loading && <Loading variant={variant} />}
+      <span
+        className={cn("transition", {
+          "opacity-0": loading,
+          "opacity-100": !loading,
+        })}
+      >
+        {children}
+      </span>
+    </button>
+  );
+};
+
+Button.displayName = "s8ly_Button";
+
+const loadingVariant = cva(["absolute", "inline-flex", "items-center"], {
   variants: {
     variant: {
       primary: ["border-primary-50"],
@@ -62,67 +110,13 @@ const loading = cva(["absolute", "inline-flex", "items-center"], {
   },
 });
 
-const Loading: FC<VariantProps<typeof loading>> = ({ variant }) => {
+const Loading: FC<VariantProps<typeof loadingVariant>> = ({ variant }) => {
   return (
-    <div className={loading({ variant })}>
+    <div className={loadingVariant({ variant })}>
       <div className="h-6 w-6 animate-spin rounded-full border-3 border-[inherit] border-b-transparent" />
     </div>
   );
 };
-
-interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof variants> {
-  loading?: boolean;
-}
-
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      className,
-      children,
-      disabled,
-      loading = false,
-      size = "default",
-      variant = "primary",
-      ...rest
-    },
-    ref,
-  ) => {
-    return (
-      <button
-        ref={ref}
-        className={cn(variants({ variant, size, className }), {
-          "active:scale-[0.98]": !loading && !disabled,
-          "cursor-pointer": !loading,
-          "hover:bg-primary-400":
-            !loading && !disabled && variant === "primary",
-          "active:bg-primary-600":
-            !loading && !disabled && variant === "primary",
-          "hover:bg-secondary-400":
-            !loading && !disabled && variant === "secondary",
-          "active:bg-secondary-600":
-            !loading && !disabled && variant === "secondary",
-          "cursor-not-allowed": loading || disabled,
-        })}
-        disabled={disabled}
-        {...rest}
-      >
-        {loading && <Loading variant={variant} />}
-        <span
-          className={cn("transition", {
-            "opacity-0": loading,
-            "opacity-100": !loading,
-          })}
-        >
-          {children}
-        </span>
-      </button>
-    );
-  },
-);
-
-Button.displayName = "s8ly_Button";
 
 export { Button };
 export type { ButtonProps };
