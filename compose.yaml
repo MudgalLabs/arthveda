@@ -1,41 +1,41 @@
 services:
-  nextapp:
-    container_name: nextapp
-    image: nextapp:1.0.0
-    build:
-      context: ./frontend
-      dockerfile: next.dockerfile
-    ports:
-      - 3000:3000
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
-    depends_on:
-      - goapp
+    frontend:
+        container_name: frontend
+        image: frontend:1.0.0
+        build:
+            context: ./frontend
+            dockerfile: next.dockerfile
+        ports:
+            - 3000:3000
+        environment:
+            - NEXT_PUBLIC_API_URL=http://localhost:3000
+        depends_on:
+            - backend
 
-  goapp:
-    container_name: goapp
-    image: goapp:1.0.0
-    build:
-      context: ./backend
-      dockerfile: go.dockerfile
-    environment:
-      DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres?sslmode=disable"
-    ports:
-      - 6969:6969
-    depends_on:
-      - db
+    backend:
+        container_name: backend
+        image: backend:1.0.0
+        build:
+            context: ./backend
+            dockerfile: go.dockerfile
+        environment:
+            DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres?sslmode=disable"
+        ports:
+            - 6969:6969
+        depends_on:
+            - database
 
-  db:
-    container_name: db
-    image: postgres:17.4
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    ports:
-      - 5432:5432
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    database:
+        container_name: database
+        image: postgres:17.4
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: postgres
+        ports:
+            - 5432:5432
+        volumes:
+            - database_data:/var/lib/postgresql/data
 
 volumes:
-  pgdata: {}
+    database_data: {}
