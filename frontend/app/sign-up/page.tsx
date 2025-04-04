@@ -1,5 +1,4 @@
-import { Button, TextInput } from "@/s8ly";
-import { TextLink } from "../components/TextLink/TextLink";
+import { Button, TextInput, Link } from "@/s8ly";
 
 export default function Signup() {
   return (
@@ -17,9 +16,9 @@ export default function Signup() {
 
       <p className="text-sm">
         Already have an account?{" "}
-        <TextLink className="text-sm" href="/sign-in">
+        <Link className="text-sm" href="/sign-in">
           Sign in
-        </TextLink>
+        </Link>
       </p>
     </main>
   );

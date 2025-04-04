@@ -102,8 +102,6 @@ const Button: FC<ButtonProps> = (props) => {
   );
 };
 
-Button.displayName = "s8ly_Button";
-
 const loadingVariant = cva(["absolute", "inline-flex", "items-center"], {
   variants: {
     variant: {
@@ -120,6 +118,8 @@ const Loading: FC<VariantProps<typeof loadingVariant>> = ({ variant }) => {
     </div>
   );
 };
+
+Button.displayName = "s8ly_Button";
 
 export { Button };
 export type { ButtonProps };

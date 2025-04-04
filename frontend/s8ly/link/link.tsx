@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 import { ComponentProps, FC } from "react";
 
-type TextLinkProps = ComponentProps<"a">;
+type LinkProps = ComponentProps<"a">;
 
-const TextLink: FC<TextLinkProps> = ({ children, className, ...props }) => {
+const Link: FC<LinkProps> = ({ children, className, ...props }) => {
   return (
     <a
       className={cn(
@@ -17,7 +17,7 @@ const TextLink: FC<TextLinkProps> = ({ children, className, ...props }) => {
   );
 };
 
-TextLink.displayName = "TextLink";
+Link.displayName = "s8ly_Link";
 
-export { TextLink };
-export type { TextLinkProps };
+export { Link };
+export type { LinkProps };

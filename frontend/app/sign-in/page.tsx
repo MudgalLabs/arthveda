@@ -1,5 +1,4 @@
-import { Button, TextInput } from "@/s8ly";
-import { TextLink } from "../components/TextLink/TextLink";
+import { Button, TextInput, Link } from "@/s8ly";
 
 export default function Signin() {
   return (
@@ -9,9 +8,9 @@ export default function Signin() {
         <TextInput className="mb-4" placeholder="Username" />
         <TextInput className="mb-3" placeholder="Password" />
 
-        <TextLink className="mb-8" href="/forgot-password">
+        <Link className="mb-8" href="/forgot-password">
           Forgot password?
-        </TextLink>
+        </Link>
 
         <Button className="mb-4" variant="secondary">
           Sign in
@@ -20,10 +19,10 @@ export default function Signin() {
 
       <p className="text-sm">
         No account?{" "}
-        <TextLink className="text-sm" href="/sign-up">
+        <Link className="text-sm" href="/sign-up">
           Sign up
-        </TextLink>{" "}
-        or continue with <TextLink className="text-sm">Google</TextLink>
+        </Link>{" "}
+        or continue with <Link className="text-sm">Google</Link>
       </p>
     </main>
   );

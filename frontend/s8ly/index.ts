@@ -1,4 +1,6 @@
-export { Button } from "./Button/Button";
-export type { ButtonProps } from "./Button/Button";
-export { TextInput } from "./TextInput/TextInput";
-export type { TextInputProps } from "./TextInput/TextInput";
+export { Button } from "./button/button";
+export type { ButtonProps } from "./button/button";
+export { TextInput } from "./text-input/text-input";
+export type { TextInputProps } from "./text-input/text-input";
+export { Link } from "./link/link";
+export type { LinkProps } from "./link/link";
