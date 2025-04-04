@@ -8,8 +8,8 @@ COPY . .
 RUN go get -d -v ./...
 
 # Build the go app
-RUN go build -o api .
+RUN go build -o bin/arthveda cmd/api/main.go
 
 EXPOSE 6969
 
-CMD ["./api"]
+CMD ["./bin/arthveda"]
