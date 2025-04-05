@@ -1,10 +1,10 @@
 package main
 
 import (
-	"arthveda/internal/auth"
 	"arthveda/internal/db"
 	"arthveda/internal/logger"
 	"arthveda/internal/routes"
+	"arthveda/internal/session"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +24,7 @@ func main() {
 
 	defer db.Db.Close()
 
-	auth.InitSessions()
+	session.Init()
 
 	ginEngine := gin.Default()
 

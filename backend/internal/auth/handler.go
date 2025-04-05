@@ -2,6 +2,7 @@ package auth
 
 import (
 	"arthveda/internal/logger"
+	"arthveda/internal/session"
 	"arthveda/internal/user"
 	"net/http"
 
@@ -76,17 +77,14 @@ func HandleSignin(c *gin.Context) {
 		return
 	}
 
-	session, _ := SessionStore.Get(c.Request, "session")
-	state := sessionState{
-		UserID: u.ID,
-		Email:  u.Email,
-	}
-	session.Values["state"] = state
+	session, _ := session.Store.Get(c.Request, "session")
+	session.Values["user_id"] = u.ID
+	session.Values["user_email"] = u.Email
 	session.Save(c.Request, c.Writer)
 }
 
 func HandleSignout(c *gin.Context) {
-	session, err := SessionStore.Get(c.Request, "session")
+	session, err := session.Store.Get(c.Request, "session")
 	if err != nil {
 		logger.Log.Error().Msg(err.Error())
 		// I'm assuming that the session is already invalid if we failed to decode it.

@@ -2,6 +2,8 @@ package routes
 
 import (
 	"arthveda/internal/auth"
+	"arthveda/internal/session"
+	"arthveda/internal/user"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,5 +23,12 @@ func SetupRoutes(ginEngine *gin.Engine) {
 		authGroup.POST("/signup", auth.HandleSignup)
 		authGroup.POST("/signin", auth.HandleSignin)
 		authGroup.POST("/signout", auth.HandleSignout)
+	}
+
+	api.Use(session.Middleware)
+
+	userGroup := api.Group("/user")
+	{
+		userGroup.GET("/me", user.HandleGetMe)
 	}
 }
