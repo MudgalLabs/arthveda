@@ -20,5 +20,5 @@ func Init() {
 	}
 
 	Log = zerolog.New(output).With().Timestamp().Logger()
-	Log.Trace().Msg("Logger initialized")
+	Log.Debug().Msg("Logger initialized")
 }

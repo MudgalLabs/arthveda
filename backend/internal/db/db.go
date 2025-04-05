@@ -1,6 +1,7 @@
 package db
 
 import (
+	"arthveda/internal/logger"
 	"fmt"
 	"os"
 
@@ -23,15 +24,19 @@ var Db *sqlx.DB
 func Init() error {
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
+	name := os.Getenv("DB_NAME")
+	host := os.Getenv("DB_HOST")
 
-	db, err := sqlx.Connect(
-		"postgres",
-		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbName),
-	)
+	connectionStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable host=%s", user, password, name, host)
+
+	logger.Log.Debug().Msg("Connecting to database...")
+
+	db, err := sqlx.Connect("postgres", connectionStr)
 	if err != nil {
 		return err
 	}
+
+	logger.Log.Debug().Msg("Connected to database!")
 
 	// Quick way to create tables in the DB.
 	db.MustExec(schema)
