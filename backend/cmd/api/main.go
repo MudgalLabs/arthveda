@@ -4,7 +4,7 @@ import (
 	"arthveda/internal/auth"
 	"arthveda/internal/db"
 	"arthveda/internal/logger"
-	"net/http"
+	"arthveda/internal/routes"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -26,24 +26,11 @@ func main() {
 
 	auth.InitSessions()
 
-	route := gin.Default()
+	ginEngine := gin.Default()
 
-	api := route.Group("/api/v1")
+	routes.SetupRoutes(ginEngine)
 
-	api.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-
-	authGroup := api.Group("/auth")
-	{
-		authGroup.POST("/signup", auth.HandleSignup)
-		authGroup.POST("/signin", auth.HandleSignin)
-		authGroup.POST("/signout", auth.HandleSignout)
-	}
-
-	err = route.Run(os.Getenv("LISTEN_PORT"))
+	err = ginEngine.Run(os.Getenv("LISTEN_PORT"))
 	if err != nil {
 		panic(err)
 	}

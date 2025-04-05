@@ -43,3 +43,17 @@ func Create(data CreateData) (Model, error) {
 
 	return user, nil
 }
+
+// REFACTOR: Create a general function to get a User row by passing WHERE clauses in a map.
+func GetByEmail(email string) (Model, error) {
+	var user Model
+
+	sqlStr := `SELECT id, email, password_hash, created_at, updated_at FROM users WHERE email = $1`
+	row := db.Db.QueryRowx(sqlStr, email)
+	err := row.StructScan(&user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}

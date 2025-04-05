@@ -11,7 +11,7 @@ import (
 var SessionStore *sessions.CookieStore
 
 type sessionState struct {
-	UserID int    `json:"user_id"`
+	UserID int64  `json:"user_id"`
 	Email  string `json:"email"`
 }
 
@@ -20,6 +20,7 @@ func InitSessions() {
 
 	SessionStore.Options.HttpOnly = true
 	SessionStore.Options.Secure = utils.IsProd()
+	SessionStore.Options.MaxAge = 86400 * 30 // 30 days
 
 	gob.Register(&sessionState{})
 }
