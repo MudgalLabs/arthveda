@@ -1,15 +1,13 @@
-import Signin from "./features/sign-in/page";
-import Signup from "./features/sign-up/page";
+import { Fragment } from "react";
+import { Outlet, ScrollRestoration } from "react-router-dom";
 
-function App() {
+import "./index.css";
+
+export default function App() {
     return (
-        <>
-            <div>
-                <Signup />
-                <Signin />
-            </div>
-        </>
+        <Fragment>
+            <Outlet />
+            <ScrollRestoration />
+        </Fragment>
     );
 }
-
-export default App;

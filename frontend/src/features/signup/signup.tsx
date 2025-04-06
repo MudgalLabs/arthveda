@@ -1,12 +1,19 @@
-import { Button, TextInput } from "../../s8ly";
+import { FormEvent } from "react";
+import { Link } from "react-router-dom";
+
+import { Button, TextInput } from "@/s8ly";
 
 export default function Signup() {
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+    };
+
     return (
         <main className="flex h-screen flex-col items-center justify-center">
             <h1 className="font-poppins mb-8 text-[32px]">
                 Sign up for Arthveda
             </h1>
-            <form className="flex flex-col">
+            <form className="flex flex-col" onSubmit={handleSubmit}>
                 <TextInput id="email" name="email" placeholder="Email" />
                 <div className="mb-3"></div>
 
@@ -25,7 +32,7 @@ export default function Signup() {
             </form>
 
             <p className="text-sm">
-                Already have an account? <a href="/sign-in">Sign in</a>
+                Already have an account? <Link to="/signin">Sign in</Link>
             </p>
         </main>
     );

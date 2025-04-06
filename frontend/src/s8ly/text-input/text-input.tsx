@@ -1,6 +1,6 @@
 import { FC, ComponentProps } from "react";
 
-import { cn } from "../../lib/utils";
+import { cn } from "@/lib/utils";
 
 interface TextInputProps extends ComponentProps<"input"> {
     type?: "email" | "number" | "password" | "search" | "tel" | "text" | "url";

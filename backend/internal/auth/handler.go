@@ -73,7 +73,7 @@ func HandleSignin(c *gin.Context) {
 	err = bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(body.Password))
 	if err != nil {
 		logger.Log.Error().Msg(err.Error())
-		c.JSON(http.StatusBadRequest, "Signin failed. Check email & password.")
+		c.JSON(http.StatusBadRequest, "Signin failed. Check email and password.")
 		return
 	}
 
@@ -81,6 +81,8 @@ func HandleSignin(c *gin.Context) {
 	session.Values["user_id"] = u.ID
 	session.Values["user_email"] = u.Email
 	session.Save(c.Request, c.Writer)
+
+	c.JSON(http.StatusOK, "Signed in successfully")
 }
 
 func HandleSignout(c *gin.Context) {

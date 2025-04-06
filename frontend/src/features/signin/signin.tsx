@@ -1,0 +1,75 @@
+import { FormEvent, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+
+import { apiHooks } from "@/hooks/apiHooks";
+import { Button, TextInput } from "@/s8ly";
+import { useQueryClient } from "@tanstack/react-query";
+
+export default function Signin() {
+    const client = useQueryClient();
+    const navigate = useNavigate();
+    const [search] = useSearchParams();
+
+    const { mutate, isPending } = apiHooks.auth.useSignin({
+        onSuccess: () => {
+            client.invalidateQueries({
+                queryKey: ["get-me"],
+                exact: true,
+            });
+
+            navigate(search.get("from") || "/dashboard");
+        },
+    });
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        mutate({
+            email,
+            password,
+        });
+    };
+
+    return (
+        <main className="flex h-screen flex-col items-center justify-center">
+            <h1 className="font-poppins mb-8 text-[32px]">
+                Sign in to Arthveda
+            </h1>
+            <form className="flex flex-col" onSubmit={handleSubmit}>
+                <TextInput
+                    className="mb-4"
+                    placeholder="Email"
+                    name="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <TextInput
+                    className="mb-3"
+                    placeholder="Password"
+                    name="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+
+                <Link className="mb-9" to="/forgot-password">
+                    Forgot password?
+                </Link>
+
+                <Button
+                    className="mb-4"
+                    variant="secondary"
+                    loading={isPending}
+                >
+                    Sign in
+                </Button>
+            </form>
+
+            <p className="text-sm">
+                No account? <Link to="/signup">Sign up</Link>
+            </p>
+        </main>
+    );
+}

@@ -1,7 +1,6 @@
 package session
 
 import (
-	"arthveda/internal/utils"
 	"errors"
 	"net/http"
 	"os"
@@ -21,8 +20,8 @@ func Init() {
 	Store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
 	Store.Options.HttpOnly = true
-	Store.Options.Secure = utils.IsProd()
-	Store.Options.MaxAge = 86400 * 1 // 1 day
+	Store.Options.Secure = true
+	Store.Options.MaxAge = 86400 * 7 // 7 day
 }
 
 func Middleware(c *gin.Context) {

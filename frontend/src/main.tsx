@@ -1,10 +1,40 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App.tsx";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import appRoutes from "@/app-routes";
+import App from "@/App";
+import { Error } from "@/features/error/error";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthenticationProvider } from "./context/authentication-context";
 
-createRoot(document.getElementById("root")!).render(
+const container = document.getElementById("root") as HTMLElement;
+
+const root = createRoot(container);
+
+const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <App />,
+        children: appRoutes,
+        errorElement: Error,
+    },
+]);
+
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: false,
+            refetchOnWindowFocus: false,
+        },
+    },
+});
+
+root.render(
     <StrictMode>
-        <App />
+        <QueryClientProvider client={queryClient}>
+            <AuthenticationProvider>
+                <RouterProvider router={router} />
+            </AuthenticationProvider>
+        </QueryClientProvider>
     </StrictMode>
 );

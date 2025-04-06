@@ -18,11 +18,12 @@ services:
             dockerfile: go.dockerfile
         environment:
             APP_ENV: production
-            LISTEN_PORT: :6969
+            FRONTEND_URL: http://localhost:1337
+            DB_HOST: host.docker.internal
             DB_NAME: postgres
             DB_USER: postgres
             DB_PASSWORD: postgres
-            DB_HOST: host.docker.internal
+            LISTEN_PORT: :6969
             SESSION_KEY: super_secret_session_key_for_signing
         ports:
             - 6969:6969
