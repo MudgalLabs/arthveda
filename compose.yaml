@@ -4,11 +4,9 @@ services:
         image: frontend:1.0.0
         build:
             context: ./frontend
-            dockerfile: next.dockerfile
+            dockerfile: react.dockerfile
         ports:
-            - 3000:3000
-        environment:
-            - NEXT_PUBLIC_API_URL=http://localhost:3000
+            - 1337:1337
         depends_on:
             - backend
 
@@ -19,7 +17,13 @@ services:
             context: ./backend
             dockerfile: go.dockerfile
         environment:
-            DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres?sslmode=disable"
+            APP_ENV: production
+            LISTEN_PORT: :6969
+            DB_NAME: postgres
+            DB_USER: postgres
+            DB_PASSWORD: postgres
+            DB_HOST: host.docker.internal
+            SESSION_KEY: super_secret_session_key_for_signing
         ports:
             - 6969:6969
         depends_on:

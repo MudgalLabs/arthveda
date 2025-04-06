@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+@font-face{
+  font-family: Poppins;
+  src:url('./assets/fonts/Poppins-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face{
+  font-family: Poppins;
+  src:url('./assets/fonts/Poppins-Bold.ttf');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face{
+  font-family: Karla;
+  src:url('./assets/fonts/Karla.ttf');
+}
+
+
 @theme {
   --color-background-1: #000A14;
   --color-background-2: #001429;
@@ -35,6 +55,8 @@
   --color-secondary-950: #481f00;
 
   --color-disabled: #464646;
+  --color-error: #FF718B;
+  --color-success: #7FE47E;
 
   --font-poppins: Poppins;
   --font-karla: Karla;
@@ -44,4 +66,8 @@ body {
   background: var(--color-background-1);
   color: var(--color-foreground-1);
   font-family: Karla, Arial, Helvetica, sans-serif;
+}
+
+a {
+  @apply text-primary-500 text-right text-sm font-bold
 }
