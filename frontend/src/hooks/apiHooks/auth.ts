@@ -1,7 +1,16 @@
 import { useMutation, AnyUseMutationOptions } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
-import { SigninRequestBody } from "@/lib/api/types";
+import { SigninRequestBody, SignupRequestBody } from "@/lib/api/types";
+
+export function useSignup(options: AnyUseMutationOptions = {}) {
+    return useMutation({
+        mutationFn: (body: SignupRequestBody) => {
+            return api.auth.signup(body);
+        },
+        ...options,
+    });
+}
 
 export function useSignin(options: AnyUseMutationOptions = {}) {
     return useMutation({

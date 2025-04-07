@@ -10,7 +10,7 @@ export default function Signin() {
     const navigate = useNavigate();
     const [search] = useSearchParams();
 
-    const { mutate, isPending } = apiHooks.auth.useSignin({
+    const { mutate: signin, isPending } = apiHooks.auth.useSignin({
         onSuccess: () => {
             client.invalidateQueries();
             navigate(search.get("from") || "/dashboard");
@@ -22,7 +22,7 @@ export default function Signin() {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        mutate({
+        signin({
             email,
             password,
         });
@@ -38,6 +38,7 @@ export default function Signin() {
                     className="mb-4"
                     placeholder="Email"
                     name="email"
+                    disabled={isPending}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
@@ -46,6 +47,7 @@ export default function Signin() {
                     placeholder="Password"
                     name="password"
                     type="password"
+                    disabled={isPending}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
@@ -58,6 +60,7 @@ export default function Signin() {
                     className="mb-4"
                     variant="secondary"
                     loading={isPending}
+                    disabled={!email || !password}
                 >
                     Sign in
                 </Button>

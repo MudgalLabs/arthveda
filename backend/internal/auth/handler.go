@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/logger"
 	"arthveda/internal/user"
 	"arthveda/internal/utils"
+	"database/sql"
 	"net/http"
 	"os"
 	"time"
@@ -69,6 +70,12 @@ func HandleSignin(c *gin.Context) {
 	u, err := user.GetByEmail(body.Email)
 	if err != nil {
 		logger.Log.Error().Msg("(auth.HandleSignin) user.GetByEmail: " + err.Error())
+
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, "No account exists with the email "+body.Email)
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, "Something went wrong. Please try again.")
 		return
 	}

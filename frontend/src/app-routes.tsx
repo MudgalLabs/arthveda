@@ -34,11 +34,14 @@ export const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
         return children;
     }
 
-    if (
-        !isAuthenticated &&
-        (pathname === "/" || !publicRoutes.includes(pathname))
-    ) {
-        return <Navigate to={`/signin?from=${pathname}`} />;
+    if (!isAuthenticated && !publicRoutes.includes(pathname)) {
+        let url = "/signin";
+
+        if (pathname !== "/") {
+            url += `?from=${pathname}`;
+        }
+
+        return <Navigate to={url} />;
     }
 
     return children;

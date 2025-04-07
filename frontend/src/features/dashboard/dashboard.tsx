@@ -11,7 +11,7 @@ export const Dashboard = () => {
     const client = useQueryClient();
     const navigate = useNavigate();
 
-    const { mutate, isPending } = apiHooks.auth.useSignout({
+    const { mutate: signout, isPending } = apiHooks.auth.useSignout({
         onSuccess: () => {
             client.invalidateQueries();
             navigate("/");
@@ -24,7 +24,7 @@ export const Dashboard = () => {
             <p className="mb-10">You are logged in with email: {userEmail}</p>
             <Button
                 variant="secondary"
-                onClick={() => mutate(undefined)}
+                onClick={() => signout(undefined)}
                 loading={isPending}
             >
                 Signout

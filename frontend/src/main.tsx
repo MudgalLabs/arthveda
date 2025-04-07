@@ -5,6 +5,8 @@ import appRoutes from "@/app-routes";
 import App from "@/App";
 import { Error } from "@/features/error/error";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ToastContainer } from "react-toastify";
+
 import { AuthenticationProvider } from "./context/authentication-context";
 
 const container = document.getElementById("root") as HTMLElement;
@@ -34,6 +36,7 @@ root.render(
         <QueryClientProvider client={queryClient}>
             <AuthenticationProvider>
                 <RouterProvider router={router} />
+                <ToastContainer position="top-right" theme="dark" />
             </AuthenticationProvider>
         </QueryClientProvider>
     </StrictMode>
