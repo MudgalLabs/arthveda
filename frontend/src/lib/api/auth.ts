@@ -9,3 +9,7 @@ export function signin(body: SigninRequestBody) {
         body
     );
 }
+
+export function signout() {
+    return client.post(API_ROUTES.auth.signout);
+}

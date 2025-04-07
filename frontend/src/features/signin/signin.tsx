@@ -12,11 +12,7 @@ export default function Signin() {
 
     const { mutate, isPending } = apiHooks.auth.useSignin({
         onSuccess: () => {
-            client.invalidateQueries({
-                queryKey: ["get-me"],
-                exact: true,
-            });
-
+            client.invalidateQueries();
             navigate(search.get("from") || "/dashboard");
         },
     });

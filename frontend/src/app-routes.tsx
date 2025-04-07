@@ -8,7 +8,7 @@ const Signin = lazy(() => import("@/features/signin/signin"));
 const Signup = lazy(() => import("@/features/signup/signup"));
 
 // Protected
-const Dashboard = lazy(() => import("@/features/dashboard/page"));
+const Dashboard = lazy(() => import("@/features/dashboard/dashboard"));
 
 export const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuthentication();
