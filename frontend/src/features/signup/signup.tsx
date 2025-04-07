@@ -25,6 +25,11 @@ interface FormErrors {
     password: string[];
 }
 
+const defaultFormErrors: FormErrors = {
+    email: [],
+    password: [],
+};
+
 export default function Signup() {
     const client = useQueryClient();
     const navigate = useNavigate();
@@ -39,14 +44,12 @@ export default function Signup() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
-    const [formErrors, setFormErrors] = useState<FormErrors>({
-        email: [],
-        password: [],
-    });
+    const [formErrors, setFormErrors] = useState(defaultFormErrors);
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+
+        setFormErrors(defaultFormErrors);
 
         const validatedFields = SignupFormSchema.safeParse({
             email,
