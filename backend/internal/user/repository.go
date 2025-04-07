@@ -19,13 +19,13 @@ func Create(data CreateData) (Model, error) {
 
 	sqlStr := `INSERT INTO users (email, password_hash, created_at) VALUES (:email, :password_hash, :created_at)`
 
-	_, err := db.Db.NamedExec(sqlStr, user)
+	_, err := db.DB.NamedExec(sqlStr, user)
 	if err != nil {
 		return user, err
 	}
 
 	var id int64
-	rows, err := db.Db.NamedQuery(`SELECT id FROM users WHERE email = :email`, user)
+	rows, err := db.DB.NamedQuery(`SELECT id FROM users WHERE email = :email`, user)
 	if err != nil {
 		return user, err
 	}
@@ -49,7 +49,7 @@ func GetByEmail(email string) (Model, error) {
 	var user Model
 
 	sqlStr := `SELECT id, email, password_hash, created_at, updated_at FROM users WHERE email = $1`
-	row := db.Db.QueryRowx(sqlStr, email)
+	row := db.DB.QueryRowx(sqlStr, email)
 	err := row.StructScan(&user)
 	if err != nil {
 		return user, err

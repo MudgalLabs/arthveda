@@ -4,7 +4,6 @@ import (
 	"arthveda/internal/db"
 	"arthveda/internal/logger"
 	"arthveda/internal/routes"
-	"arthveda/internal/session"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -22,9 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	defer db.Db.Close()
-
-	session.Init()
+	defer db.DB.Close()
 
 	ginEngine := gin.Default()
 

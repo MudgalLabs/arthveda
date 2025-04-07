@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 `
 
-var Db *sqlx.DB
+var DB *sqlx.DB
 
 func Init() error {
 	user := os.Getenv("DB_USER")
@@ -42,7 +42,7 @@ func Init() error {
 	db.MustExec(schema)
 
 	// Set it to global variable.
-	Db = db
+	DB = db
 
 	return nil
 }

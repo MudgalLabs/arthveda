@@ -2,7 +2,6 @@ package routes
 
 import (
 	"arthveda/internal/auth"
-	"arthveda/internal/session"
 	"arthveda/internal/user"
 	"net/http"
 	"os"
@@ -15,13 +14,13 @@ import (
 func SetupRoutes(ginEngine *gin.Engine) {
 	// NOTE: Cors middleware needs to be here. Anywhere else just breaks it somehow.
 	ginEngine.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{os.Getenv("FRONTEND_URL")},
+		AllowOrigins:     []string{(os.Getenv("ALLOWED_ORIGINS"))},
 		AllowMethods:     []string{"*"},
 		AllowHeaders:     []string{"content-type"},
 		ExposeHeaders:    []string{"*"},
 		AllowCredentials: true,
 		AllowOriginFunc: func(origin string) bool {
-			return origin == os.Getenv("FRONTEND_URL")
+			return true
 		},
 		MaxAge: 12 * time.Hour,
 	}))
@@ -41,7 +40,7 @@ func SetupRoutes(ginEngine *gin.Engine) {
 		authGroup.POST("/signout", auth.HandleSignout)
 	}
 
-	api.Use(session.Middleware)
+	api.Use(auth.Middleware)
 
 	userGroup := api.Group("/user")
 	{
