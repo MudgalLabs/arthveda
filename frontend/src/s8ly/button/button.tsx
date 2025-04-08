@@ -78,13 +78,13 @@ const Button: FC<ButtonProps> = (props) => {
             className={cn(buttonVariants({ variant, size, className }), {
                 "active:scale-[0.98]": !loading && !disabled,
                 "cursor-pointer": !loading,
-                "hover:bg-primary-400":
+                "hover:bg-primary-600":
                     !loading && !disabled && variant === "primary",
-                "active:bg-primary-600":
+                "active:bg-primary-500":
                     !loading && !disabled && variant === "primary",
-                "hover:bg-secondary-400":
+                "hover:bg-secondary-600":
                     !loading && !disabled && variant === "secondary",
-                "active:bg-secondary-600":
+                "active:bg-secondary-500":
                     !loading && !disabled && variant === "secondary",
                 "cursor-not-allowed": loading || disabled,
             })}

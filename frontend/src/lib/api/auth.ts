@@ -5,7 +5,6 @@ import {
     ApiRes,
     GetMeResponseBody,
     SigninRequestBody,
-    SigninResponseBody,
     SignupRequestBody,
 } from "@/lib/api/types";
 
