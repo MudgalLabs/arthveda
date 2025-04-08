@@ -6,6 +6,7 @@ import { toast } from "@/components/toast";
 
 import { Button, TextInput } from "@/s8ly";
 import { apiHooks } from "@/hooks/api-hooks";
+import { AuthLayout } from "@/components/auth-layout";
 
 export const SignupFormSchema = z.object({
     email: z.string().email({ message: "Please enter a valid email." }).trim(),
@@ -76,61 +77,63 @@ export default function Signup() {
     };
 
     return (
-        <main className="flex h-screen flex-col items-center justify-center">
-            <h1 className="font-poppins mb-8 text-[32px]">
-                Sign up for Arthveda
-            </h1>
+        <AuthLayout>
+            <main className="flex flex-col items-center justify-center">
+                <h1 className="font-poppins mb-8 text-[32px]">
+                    Sign up for Arthveda
+                </h1>
 
-            <form className="flex flex-col" onSubmit={handleSubmit}>
-                <TextInput
-                    id="email"
-                    name="email"
-                    placeholder="Email"
-                    disabled={isPending}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                {formErrors.email?.length > 0 && (
-                    <p className="text-error mt-2 text-sm">
-                        {formErrors.email}
-                    </p>
-                )}
-                <div className="mb-3"></div>
+                <form className="flex flex-col" onSubmit={handleSubmit}>
+                    <TextInput
+                        id="email"
+                        name="email"
+                        placeholder="Email"
+                        disabled={isPending}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    {formErrors.email?.length > 0 && (
+                        <p className="text-error mt-2 text-sm">
+                            {formErrors.email}
+                        </p>
+                    )}
+                    <div className="mb-3"></div>
 
-                <TextInput
-                    id="password"
-                    name="password"
-                    placeholder="Password"
-                    type="password"
-                    disabled={isPending}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                {formErrors.password?.length > 0 && (
-                    <div className="text-error mt-2 text-sm">
-                        <p>Password must:</p>
-                        <ul>
-                            {formErrors.password.map((error) => (
-                                <li key={error}>- {error}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-                <div className="mb-8"></div>
+                    <TextInput
+                        id="password"
+                        name="password"
+                        placeholder="Password"
+                        type="password"
+                        disabled={isPending}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    {formErrors.password?.length > 0 && (
+                        <div className="text-error mt-2 text-sm">
+                            <p>Password must:</p>
+                            <ul>
+                                {formErrors.password.map((error) => (
+                                    <li key={error}>- {error}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                    <div className="mb-8"></div>
 
-                <Button
-                    className="mb-4"
-                    variant="secondary"
-                    loading={isPending}
-                    disabled={!email || !password}
-                >
-                    Sign up
-                </Button>
-            </form>
+                    <Button
+                        className="mb-4"
+                        variant="secondary"
+                        loading={isPending}
+                        disabled={!email || !password}
+                    >
+                        Sign up
+                    </Button>
+                </form>
 
-            <p className="text-sm">
-                Already have an account? <Link to="/signin">Sign in</Link>
-            </p>
-        </main>
+                <p className="text-sm">
+                    Already have an account? <Link to="/signin">Sign in</Link>
+                </p>
+            </main>
+        </AuthLayout>
     );
 }
