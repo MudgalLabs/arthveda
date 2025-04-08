@@ -3,6 +3,7 @@ package routes
 import (
 	"arthveda/internal/auth"
 	"arthveda/internal/user"
+	apires "arthveda/internal/utils/apires"
 	"net/http"
 	"os"
 	"time"
@@ -25,12 +26,14 @@ func SetupRoutes(ginEngine *gin.Engine) {
 		MaxAge: 12 * time.Hour,
 	}))
 
+	ginEngine.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, apires.Success("Hi! Welcome to Arthveda API. Don't be naughty.", nil))
+	})
+
 	api := ginEngine.Group("/api/v1")
 
 	api.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
+		c.JSON(http.StatusOK, apires.Success("Pong", nil))
 	})
 
 	authGroup := api.Group("/auth")

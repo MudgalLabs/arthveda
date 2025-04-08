@@ -2,6 +2,7 @@ package user
 
 import (
 	"arthveda/internal/logger"
+	"arthveda/internal/utils/apires"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,10 +14,10 @@ func HandleGetMe(c *gin.Context) {
 	u, err := GetByEmail(email)
 	if err != nil {
 		logger.Log.Error().Msg("(user.HandleGetMe) user.GetByEmail: " + err.Error())
-		c.JSON(http.StatusInternalServerError, "Something went wrong. Please try again.")
+		c.JSON(http.StatusInternalServerError, apires.Internal())
 		return
 	}
 
 	userRes := ModelToResponse(u)
-	c.JSON(http.StatusOK, userRes)
+	c.JSON(http.StatusOK, apires.Success("", userRes))
 }
