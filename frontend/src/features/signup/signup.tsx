@@ -2,10 +2,10 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { toast } from "react-toastify";
+import { toast } from "@/components/toast";
 
 import { Button, TextInput } from "@/s8ly";
-import { apiHooks } from "@/hooks/apiHooks";
+import { apiHooks } from "@/hooks/api-hooks";
 
 export const SignupFormSchema = z.object({
     email: z.string().email({ message: "Please enter a valid email." }).trim(),
@@ -37,8 +37,14 @@ export default function Signup() {
     const { mutate: signup, isPending } = apiHooks.auth.useSignup({
         onSuccess: () => {
             client.invalidateQueries();
-            toast.success("Account has been created");
             navigate("/signin");
+            toast.success("Account created. Please signin.", {
+                autoClose: 3000,
+            });
+        },
+        onError: (error) => {
+            const errorMsg = error.response.data.message;
+            toast.error(errorMsg);
         },
     });
 

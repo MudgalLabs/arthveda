@@ -5,7 +5,7 @@ import appRoutes from "@/app-routes";
 import App from "@/App";
 import { Error } from "@/features/error/error";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer } from "@/components/toast";
 
 import { AuthenticationProvider } from "./context/authentication-context";
 

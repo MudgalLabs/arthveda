@@ -1,9 +1,10 @@
 import { useAuthentication } from "@/context/authentication-context";
 import { useQueryClient } from "@tanstack/react-query";
-
-import { apiHooks } from "@/hooks/apiHooks";
-import { Button } from "@/s8ly";
 import { useNavigate } from "react-router-dom";
+
+import { apiHooks } from "@/hooks/api-hooks";
+import { toast } from "@/components/toast";
+import { Button } from "@/s8ly";
 
 export const Dashboard = () => {
     const { userEmail } = useAuthentication();
@@ -15,6 +16,10 @@ export const Dashboard = () => {
         onSuccess: () => {
             client.invalidateQueries();
             navigate("/");
+            toast("Good bye 👋. We will miss you.", {
+                autoClose: 2000,
+                hideProgressBar: true,
+            });
         },
     });
 

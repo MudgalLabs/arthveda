@@ -46,7 +46,7 @@ func HandleSignup(c *gin.Context) {
 	}
 
 	if userByEmail.ID > 0 {
-		c.JSON(http.StatusBadRequest, apires.Error("An account with this email already exists.", nil))
+		c.JSON(http.StatusBadRequest, apires.Error("Account already exists", nil))
 		return
 	}
 
@@ -63,7 +63,7 @@ func HandleSignup(c *gin.Context) {
 	}
 
 	userRes := user.ModelToResponse(u)
-	c.JSON(http.StatusCreated, apires.Success("Signup successfull", userRes))
+	c.JSON(http.StatusCreated, apires.Success("Signup successful", userRes))
 }
 
 type signinRequestBody struct {
@@ -86,7 +86,7 @@ func HandleSignin(c *gin.Context) {
 		logger.Log.Error().Msg("(auth.HandleSignin) user.GetByEmail: " + err.Error())
 
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, apires.Error("No account exists with the email "+body.Email, nil))
+			c.JSON(http.StatusNotFound, apires.Error("Account does not exist", nil))
 			return
 		}
 
@@ -97,7 +97,7 @@ func HandleSignin(c *gin.Context) {
 	err = bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(body.Password))
 	if err != nil {
 		logger.Log.Error().Msg(err.Error())
-		c.JSON(http.StatusBadRequest, apires.Error("Invalid credentials. Check email and password.", nil))
+		c.JSON(http.StatusBadRequest, apires.Error("Password is incorrect", nil))
 		return
 	}
 
@@ -121,10 +121,10 @@ func HandleSignin(c *gin.Context) {
 	data := map[string]any{
 		"user": userRes,
 	}
-	c.JSON(http.StatusOK, apires.Success("Signin successfull", data))
+	c.JSON(http.StatusOK, apires.Success("Signin successful", data))
 }
 
 func HandleSignout(c *gin.Context) {
 	c.SetCookie("Authentication", "", -1, "", "", false, false)
-	c.JSON(http.StatusOK, apires.Success("Signout successfull", nil))
+	c.JSON(http.StatusOK, apires.Success("Signout successful", nil))
 }

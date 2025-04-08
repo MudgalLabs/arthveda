@@ -1,4 +1,4 @@
-import { apiHooks } from "@/hooks/apiHooks";
+import { apiHooks } from "@/hooks/api-hooks";
 import { createContext, FC, PropsWithChildren, useContext } from "react";
 
 interface AuthenticationContextType {
@@ -23,8 +23,8 @@ export const AuthenticationProvider: FC<PropsWithChildren> = ({ children }) => {
     const value = {
         isAuthenticated: isSuccess,
         isLoading,
-        userID: data?.id || 0,
-        userEmail: data?.email || "",
+        userID: data?.data?.id || 0,
+        userEmail: data?.data?.email || "",
     };
 
     return (

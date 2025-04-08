@@ -11,15 +11,15 @@ const (
 )
 
 type ApiResError struct {
-	Message     string
-	Description string
+	Message     string `json:"message"`
+	Description string `json:"description"`
 }
 
 type ApiRes struct {
 	Status  ApiResStatus  `json:"status"`
 	Message string        `json:"message"`
 	Errors  []ApiResError `json:"errors,omitempty"`
-	Data    any           `json:"data,omitempty"` // Pointer so that it can be nil
+	Data    any           `json:"data,omitempty"`
 }
 
 func New(status ApiResStatus, message string, errors []ApiResError, data any) ApiRes {

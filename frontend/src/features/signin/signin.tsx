@@ -1,9 +1,10 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
-import { apiHooks } from "@/hooks/apiHooks";
+import { apiHooks } from "@/hooks/api-hooks";
 import { Button, TextInput } from "@/s8ly";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/components/toast";
 
 export default function Signin() {
     const client = useQueryClient();
@@ -14,6 +15,11 @@ export default function Signin() {
         onSuccess: () => {
             client.invalidateQueries();
             navigate(search.get("from") || "/dashboard");
+            toast("Welcome back!", { autoClose: 2000, hideProgressBar: true });
+        },
+        onError: (error) => {
+            const errorMsg = error.response.data.message;
+            toast.error(errorMsg);
         },
     });
 

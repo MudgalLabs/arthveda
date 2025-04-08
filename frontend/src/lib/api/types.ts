@@ -1,3 +1,15 @@
+interface ApiResError {
+    message: string;
+    description: string;
+}
+
+export interface ApiRes<T = unknown> {
+    status: "success" | "error";
+    message: string;
+    errors: ApiResError[];
+    data: T;
+}
+
 export interface SignupRequestBody {
     email: string;
     password: string;
