@@ -29,11 +29,11 @@ services:
         environment:
             APP_ENV: production
             DB_HOST: database
-            DB_PORT: 5432
+            DB_PORT: ${POSTGRES_PORT}
             DB_NAME: ${POSTGRES_DB}
             DB_USER: ${POSTGRES_USER}
             DB_PASSWORD: ${POSTGRES_PASSWORD}
-            LISTEN_PORT: :6969
+            LISTEN_PORT: ${GO_PORT}
             JWT_SECRET: ${JWT_SECRET}
         depends_on:
             database:
