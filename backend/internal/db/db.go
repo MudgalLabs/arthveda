@@ -22,15 +22,15 @@ CREATE TABLE IF NOT EXISTS users (
 var DB *sqlx.DB
 
 func Init() error {
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
-	name := os.Getenv("DB_NAME")
-	host := os.Getenv("DB_HOST")
-
-	connectionStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable host=%s", user, password, name, host)
 
 	logger.Log.Debug().Msg("Connecting to database...")
 
+	connectionStr := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s  sslmode=disable", host, port, dbName, user, password)
 	db, err := sqlx.Connect("postgres", connectionStr)
 	if err != nil {
 		return err

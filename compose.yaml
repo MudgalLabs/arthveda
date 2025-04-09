@@ -1,4 +1,14 @@
 services:
+    nginx:
+        image: nginx:1.27
+        volumes:
+            - "./nginx.conf:/etc/nginx/nginx.conf"
+        ports:
+            - 80:80
+        depends_on:
+            frontend:
+                condition: service_started
+
     frontend:
         container_name: frontend
         image: frontend:1.0.0
@@ -8,7 +18,8 @@ services:
         ports:
             - 1337:1337
         depends_on:
-            - backend
+            backend:
+                condition: service_started
 
     backend:
         container_name: backend
@@ -18,29 +29,40 @@ services:
             dockerfile: go.dockerfile
         environment:
             APP_ENV: production
-            ALLOWED_ORIGINS: http://localhost:1337
-            DB_HOST: host.docker.internal
-            DB_NAME: postgres
-            DB_USER: postgres
-            DB_PASSWORD: postgres
+            DB_HOST: database
+            DB_PORT: 5432
+            DB_NAME: ${POSTGRES_DB}
+            DB_USER: ${POSTGRES_USER}
+            DB_PASSWORD: ${POSTGRES_PASSWORD}
             LISTEN_PORT: :6969
-            JWT_SECRET: super_secret_session_key_for_signing
+            JWT_SECRET: ${JWT_SECRET}
         ports:
             - 6969:6969
         depends_on:
-            - database
+            database:
+                condition: service_healthy
+                restart: true
 
     database:
         container_name: database
         image: postgres:17.4
         environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
-            POSTGRES_DB: postgres
+            POSTGRES_DB: ${POSTGRES_DB}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         ports:
             - 5432:5432
         volumes:
             - database_data:/var/lib/postgresql/data
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}",
+                ]
+            interval: 10s
+            retries: 5
+            timeout: 10s
 
 volumes:
     database_data: {}

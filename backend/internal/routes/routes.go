@@ -5,7 +5,6 @@ import (
 	"arthveda/internal/user"
 	apires "arthveda/internal/utils/apires"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -15,7 +14,7 @@ import (
 func SetupRoutes(ginEngine *gin.Engine) {
 	// NOTE: Cors middleware needs to be here. Anywhere else just breaks it somehow.
 	ginEngine.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{(os.Getenv("ALLOWED_ORIGINS"))},
+		AllowOrigins:     []string{"http://localhost"},
 		AllowMethods:     []string{"*"},
 		AllowHeaders:     []string{"content-type"},
 		ExposeHeaders:    []string{"*"},
@@ -26,11 +25,11 @@ func SetupRoutes(ginEngine *gin.Engine) {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	ginEngine.GET("/", func(c *gin.Context) {
+	api := ginEngine.Group("/api/v1")
+
+	api.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, apires.Success("Hi! Welcome to Arthveda API. Don't be naughty.", nil))
 	})
-
-	api := ginEngine.Group("/api/v1")
 
 	api.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, apires.Success("Pong", nil))

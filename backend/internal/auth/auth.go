@@ -2,6 +2,7 @@ package auth
 
 import (
 	"arthveda/internal/logger"
+	"arthveda/internal/utils/apires"
 	"net/http"
 	"os"
 
@@ -15,7 +16,7 @@ func Middleware(c *gin.Context) {
 	tokenString, err := c.Cookie("Authentication")
 	if err != nil {
 		logger.Log.Debug().Msg("(auth.Middleware) while reading the cookie: " + err.Error())
-		c.AbortWithStatusJSON(http.StatusUnauthorized, errorMsg)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, apires.Error(errorMsg, nil))
 		return
 	}
 
@@ -25,7 +26,7 @@ func Middleware(c *gin.Context) {
 
 	if err != nil {
 		logger.Log.Debug().Msg("(auth.Middleware) while parsing the token: " + err.Error())
-		c.AbortWithStatusJSON(http.StatusUnauthorized, errorMsg)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, apires.Error(errorMsg, nil))
 		return
 	}
 
@@ -37,7 +38,7 @@ func Middleware(c *gin.Context) {
 		c.Set("user_email", userEmail)
 	} else {
 		logger.Log.Debug().Msg("(auth.Middleware) while checking claims in the token")
-		c.AbortWithStatusJSON(http.StatusUnauthorized, errorMsg)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, apires.Error(errorMsg, nil))
 		return
 	}
 
