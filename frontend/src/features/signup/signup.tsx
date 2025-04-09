@@ -97,7 +97,7 @@ export default function Signup() {
                             {formErrors.email}
                         </p>
                     )}
-                    <div className="mb-3"></div>
+                    <div className="mb-4"></div>
 
                     <TextInput
                         id="password"

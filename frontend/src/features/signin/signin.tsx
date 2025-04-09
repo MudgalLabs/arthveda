@@ -51,7 +51,7 @@ export default function Signin() {
                         onChange={(e) => setEmail(e.target.value)}
                     />
                     <TextInput
-                        className="mb-3"
+                        className="mb-2"
                         placeholder="Password"
                         name="password"
                         type="password"
@@ -60,7 +60,7 @@ export default function Signin() {
                         onChange={(e) => setPassword(e.target.value)}
                     />
 
-                    <Link className="mb-9" to="/forgot-password">
+                    <Link className="mb-8" to="/forgot-password">
                         Forgot password?
                     </Link>
 
