@@ -2,12 +2,15 @@ import { FC, PropsWithChildren } from "react";
 import { FaGithub } from "react-icons/fa";
 
 import { Logo } from "@/components/logo";
+import { Link } from "react-router-dom";
 
 export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
     return (
         <div className="flex h-screen flex-col items-center justify-between">
             <div className="w-full pt-6 pl-6">
-                <Logo />
+                <Link to="/">
+                    <Logo />
+                </Link>
             </div>
             {children}
             <div className="mb-3 flex w-full flex-row items-center justify-center gap-x-1 text-sm">
