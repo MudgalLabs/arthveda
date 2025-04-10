@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 import { apiHooks } from "@/hooks/api-hooks";
 import { toast } from "@/components/toast";
-import { Button } from "@/s8ly";
 
 export const Dashboard = () => {
     const { userEmail } = useAuthentication();
@@ -27,13 +26,6 @@ export const Dashboard = () => {
         <>
             <h1>Dashboard</h1>
             <p className="mb-10">You are logged in with email: {userEmail}</p>
-            <Button
-                variant="secondary"
-                onClick={() => signout(undefined)}
-                loading={isPending}
-            >
-                Signout
-            </Button>
         </>
     );
 };

@@ -1,3 +1,3 @@
 # Arthveda
 
-Your trading analytics dashboard, journal & more
+Your Trading Companion

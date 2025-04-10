@@ -69,5 +69,5 @@ body {
 }
 
 a {
-  @apply text-primary-500 text-right text-sm font-bold
+  @apply text-[12px] text-primary-500 text-right font-bold sm:text-sm
 }

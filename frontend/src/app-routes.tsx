@@ -1,6 +1,5 @@
-import { lazy, Suspense, FC, PropsWithChildren } from "react";
-import { type RouteObject, Navigate, useLocation } from "react-router-dom";
-import { useAuthentication } from "./context/authentication-context";
+import { lazy, Suspense } from "react";
+import { type RouteObject } from "react-router-dom";
 
 // Public
 const NotFound = lazy(() => import("@/features/not-found/not-found"));
@@ -9,77 +8,66 @@ const Signup = lazy(() => import("@/features/signup/signup"));
 
 // Protected
 const Dashboard = lazy(() => import("@/features/dashboard/dashboard"));
+const Trades = lazy(() => import("@/features/trades/trades"));
+const Journal = lazy(() => import("@/features/journal/journal"));
 
-export const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
-    const { isAuthenticated, isLoading } = useAuthentication();
-    const { pathname } = useLocation();
+export const APP_ROUTES = {
+    // Routes that will be shown if a user is *NOT* signed in.
+    signin: "/signin",
+    signup: "/signup",
 
-    if (isLoading) {
-        return (
-            <div className="flex h-screen w-screen items-center justify-center">
-                <div className="border-primary-500">
-                    <div className="h-6 w-6 animate-spin rounded-full border-3 border-[inherit] border-b-transparent" />
-                </div>
-            </div>
-        );
-    }
-
-    const publicRoutes = ["/signin", "/signup"];
-
-    if (isAuthenticated) {
-        if (pathname === "/" || publicRoutes.includes(pathname)) {
-            return <Navigate to="/dashboard" />;
-        }
-
-        return children;
-    }
-
-    if (!isAuthenticated && !publicRoutes.includes(pathname)) {
-        let url = "/signin";
-
-        if (pathname !== "/") {
-            url += `?from=${pathname}`;
-        }
-
-        return <Navigate to={url} />;
-    }
-
-    return children;
+    // Routes that will be shown if a user is signed in.
+    dashboard: "/dashboard",
+    trades: "/trades",
+    journal: "/journal",
 };
+
+export const APP_ROUTES_PUBLIC = [APP_ROUTES.signin, APP_ROUTES.signup, "*"];
+export const APP_ROUTES_PROTECTED = [APP_ROUTES.dashboard];
 
 export const appRoutes: Array<RouteObject> = [
     {
         index: true,
-        element: <RouteHandler>{null}</RouteHandler>,
+        element: null,
     },
     {
-        path: "/signin",
+        path: APP_ROUTES.signin,
         element: (
-            <RouteHandler>
-                <Suspense>
-                    <Signin />
-                </Suspense>
-            </RouteHandler>
+            <Suspense>
+                <Signin />
+            </Suspense>
         ),
     },
     {
-        path: "/signup",
+        path: APP_ROUTES.signup,
         element: (
-            <RouteHandler>
-                <Suspense>
-                    <Signup />
-                </Suspense>
-            </RouteHandler>
+            <Suspense>
+                <Signup />
+            </Suspense>
         ),
     },
     {
-        path: "/dashboard",
+        path: APP_ROUTES.dashboard,
         element: (
-            <RouteHandler>
-                <Suspense>
-                    <Dashboard />
-                </Suspense>
-            </RouteHandler>
+            <Suspense>
+                <Dashboard />
+            </Suspense>
+        ),
+    },
+    {
+        path: APP_ROUTES.trades,
+        element: (
+            <Suspense>
+                <Trades />
+            </Suspense>
+        ),
+    },
+    {
+        path: APP_ROUTES.journal,
+        element: (
+            <Suspense>
+                <Journal />
+            </Suspense>
         ),
     },
     {

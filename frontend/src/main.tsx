@@ -1,11 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
 import appRoutes from "@/app-routes";
 import App from "@/App";
 import { Error } from "@/features/error/error";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastContainer } from "@/components/toast";
+import { TooltipProvider } from "@/components/tooltip";
 
 import { AuthenticationProvider } from "./context/authentication-context";
 
@@ -35,8 +37,10 @@ root.render(
     <StrictMode>
         <QueryClientProvider client={queryClient}>
             <AuthenticationProvider>
-                <RouterProvider router={router} />
-                <ToastContainer position="top-right" theme="dark" />
+                <TooltipProvider>
+                    <RouterProvider router={router} />
+                    <ToastContainer position="top-right" theme="dark" />
+                </TooltipProvider>
             </AuthenticationProvider>
         </QueryClientProvider>
     </StrictMode>
