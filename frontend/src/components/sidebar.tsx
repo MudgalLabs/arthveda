@@ -21,7 +21,7 @@ import { APP_ROUTES } from "@/app-routes";
 export const Sidebar = () => {
     const { pathname } = useLocation();
 
-    const [open, setOpen] = useState(
+    const [open, setOpen] = useState<boolean>(
         JSON.parse(loadFromLocalStorage(LocalStorageKey.SIDEBAR_OPEN)) ?? false
     );
     const [activeRoute, setActiveRoute] = useState(pathname);
@@ -40,26 +40,7 @@ export const Sidebar = () => {
     return (
         <div className="bg-background-2 relative flex h-dvh flex-col px-3">
             <div>
-                <div
-                    className={cn(
-                        "mt-6 flex w-full items-center justify-center",
-                        {
-                            "gap-3": open,
-                        }
-                    )}
-                >
-                    <Logo height={32} />
-                    <p
-                        className={cn("hidden", {
-                            "font-poppins text-primary-500 inline-block items-center text-2xl font-bold":
-                                open,
-                        })}
-                    >
-                        Arthveda
-                    </p>
-                </div>
-
-                <div className="absolute top-17 right-[-9px] opacity-50 transition-opacity hover:opacity-100">
+                <div className="absolute top-4 right-[-9px] opacity-50 transition-opacity hover:opacity-100">
                     <button
                         className="text-primary-400 cursor-pointer"
                         onClick={() => setOpen((prev) => !prev)}
@@ -82,6 +63,25 @@ export const Sidebar = () => {
                             </Tooltip>
                         )}
                     </button>
+                </div>
+
+                <div
+                    className={cn(
+                        "mt-12 flex w-full items-center justify-center",
+                        {
+                            "gap-3": open,
+                        }
+                    )}
+                >
+                    <Logo height={32} />
+                    <p
+                        className={cn("hidden", {
+                            "font-poppins text-primary-500 inline-block items-center text-2xl font-bold":
+                                open,
+                        })}
+                    >
+                        Arthveda
+                    </p>
                 </div>
 
                 <div className="mt-12 flex flex-col items-center gap-y-2">
