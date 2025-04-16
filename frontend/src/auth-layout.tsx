@@ -1,11 +1,23 @@
 import { FC, PropsWithChildren } from "react";
 import { FaGithub } from "react-icons/fa";
+import { Branding } from "./components/branding";
 
-export const PublicRouteLayout: FC<PropsWithChildren> = ({ children }) => {
+export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
     return (
         <div className="flex h-screen flex-col items-center justify-between">
             <div />
-            {children}
+            <div className="flex w-[85%] items-center justify-center md:justify-between lg:w-[70%] xl:w-[55%]">
+                <main className="flex flex-col items-start justify-center">
+                    <Branding className="mb-12 h-[64px] md:hidden" />
+
+                    {/* Here is where we will render sign-in, sign-up, forgot-password forms. */}
+                    {/* Maybe even reset-password too? */}
+                    {children}
+                </main>
+
+                <Branding className="hidden h-[64px] md:inline-block" />
+            </div>
+
             <div className="mb-3 flex w-full flex-row items-center justify-center gap-x-1 text-sm">
                 <p className="text-sm">
                     Dreamed at{" "}

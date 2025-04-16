@@ -2,43 +2,56 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { toast } from "@/components/toast";
 
+import { toast } from "@/components/toast";
 import { Button, TextInput } from "@/s8ly";
 import { apiHooks } from "@/hooks/api-hooks";
+import { ROUTES } from "@/routes";
+import { ContinueWithGoogle } from "@/components/continue-with-google";
 
-export const SignupFormSchema = z.object({
-    email: z.string().email({ message: "Please enter a valid email." }).trim(),
-    password: z
-        .string()
-        .min(8, { message: "Be at least 8 characters long" })
-        .regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
-        .regex(/[0-9]/, { message: "Contain at least one number." })
-        .regex(/[^a-zA-Z0-9]/, {
-            message: "Contain at least one special character.",
-        })
-        .trim(),
-});
+export const SignupFormSchema = z
+    .object({
+        email: z
+            .string()
+            .email({ message: "Please enter a valid email." })
+            .trim(),
+        password: z
+            .string()
+            .min(8, { message: "Be at least 8 characters long" })
+            .regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
+            .regex(/[0-9]/, { message: "Contain at least one number." })
+            .regex(/[^a-zA-Z0-9]/, {
+                message: "Contain at least one special character.",
+            })
+            .trim(),
+        confirmPassword: z.string().trim(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        path: ["confirmPassword"],
+        message: "Passwords does not match",
+    });
 
 interface FormErrors {
     email: string[];
     password: string[];
+    confirmPassword: string[];
 }
 
 const defaultFormErrors: FormErrors = {
     email: [],
     password: [],
+    confirmPassword: [],
 };
 
-export default function Signup() {
+export default function SignUp() {
     const client = useQueryClient();
     const navigate = useNavigate();
 
     const { mutate: signup, isPending } = apiHooks.auth.useSignup({
         onSuccess: () => {
             client.invalidateQueries();
-            navigate("/signin");
-            toast.success("Account created. Please signin.", {
+            navigate(ROUTES.signIn);
+            toast.success("Account created. Please sign in.", {
                 autoClose: 3000,
             });
         },
@@ -50,6 +63,8 @@ export default function Signup() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
     const [formErrors, setFormErrors] = useState(defaultFormErrors);
 
     const handleSubmit = (e: FormEvent) => {
@@ -60,6 +75,7 @@ export default function Signup() {
         const validatedFields = SignupFormSchema.safeParse({
             email,
             password,
+            confirmPassword,
         });
 
         if (!validatedFields.success) {
@@ -76,10 +92,13 @@ export default function Signup() {
     };
 
     return (
-        <main className="flex flex-col items-center justify-center">
-            <h1 className="font-poppins mb-8 text-[32px]">
-                Sign up for Arthveda
+        <div>
+            <h1 className="font-poppins text-foreground-1 mb-1 text-[24px] font-bold">
+                Sign up
             </h1>
+            <p className="text-foreground-2 mb-6 text-sm">
+                Already have an account? <Link to={ROUTES.signIn}>Sign in</Link>
+            </p>
 
             <form className="flex flex-col" onSubmit={handleSubmit}>
                 <TextInput
@@ -87,6 +106,7 @@ export default function Signup() {
                     name="email"
                     placeholder="Email"
                     disabled={isPending}
+                    autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
@@ -116,21 +136,40 @@ export default function Signup() {
                         </ul>
                     </div>
                 )}
+
+                <div className="mb-4"></div>
+
+                <TextInput
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    placeholder="Confirm password"
+                    type="password"
+                    disabled={isPending}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                {formErrors.confirmPassword?.length > 0 && (
+                    <p className="text-error mt-2 text-sm">
+                        {formErrors.confirmPassword}
+                    </p>
+                )}
                 <div className="mb-8"></div>
 
                 <Button
                     className="mb-4"
                     variant="secondary"
                     loading={isPending}
-                    disabled={!email || !password}
+                    disabled={!email || !password || !confirmPassword}
                 >
                     Sign up
                 </Button>
-            </form>
 
-            <p className="text-sm">
-                Already have an account? <Link to="/signin">Sign in</Link>
-            </p>
-        </main>
+                <p className="text-foreground-3 mb-3 text-center text-[12px]">
+                    OR
+                </p>
+
+                <ContinueWithGoogle disabled={isPending} />
+            </form>
+        </div>
     );
 }

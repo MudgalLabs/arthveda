@@ -16,7 +16,7 @@ import {
     LocalStorageKey,
     saveToLocalStorage,
 } from "@/lib/utils";
-import { APP_ROUTES } from "@/app-routes";
+import { ROUTES } from "@/routes";
 
 export const Sidebar = () => {
     const { pathname } = useLocation();
@@ -89,22 +89,22 @@ export const Sidebar = () => {
                         label="Dashboard"
                         Icon={IconDashboard}
                         open={open}
-                        isActive={activeRoute === APP_ROUTES.dashboard}
-                        onClick={() => handleClick(APP_ROUTES.dashboard)}
+                        isActive={activeRoute === ROUTES.dashboard}
+                        onClick={() => handleClick(ROUTES.dashboard)}
                     />
                     <SidebarNavItem
                         label="Trades"
                         Icon={IconTrades}
                         open={open}
-                        isActive={activeRoute === APP_ROUTES.trades}
-                        onClick={() => handleClick(APP_ROUTES.trades)}
+                        isActive={activeRoute === ROUTES.trades}
+                        onClick={() => handleClick(ROUTES.trades)}
                     />
                     <SidebarNavItem
                         label="Journal"
                         Icon={IconJournal}
                         open={open}
-                        isActive={activeRoute === APP_ROUTES.journal}
-                        onClick={() => handleClick(APP_ROUTES.journal)}
+                        isActive={activeRoute === ROUTES.journal}
+                        onClick={() => handleClick(ROUTES.journal)}
                     />
                 </div>
             </div>
