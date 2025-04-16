@@ -22,7 +22,9 @@ export const Sidebar = () => {
     const { pathname } = useLocation();
 
     const [open, setOpen] = useState<boolean>(
-        JSON.parse(loadFromLocalStorage(LocalStorageKey.SIDEBAR_OPEN)) ?? false
+        JSON.parse(
+            loadFromLocalStorage(LocalStorageKey.SIDEBAR_OPEN) || "false"
+        )
     );
     const [activeRoute, setActiveRoute] = useState(pathname);
 
