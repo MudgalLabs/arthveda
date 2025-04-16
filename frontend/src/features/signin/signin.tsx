@@ -6,7 +6,6 @@ import { Button, TextInput } from "@/s8ly";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/toast";
 import { Branding } from "@/components/branding";
-import { Google } from "@/components/google";
 import { ContinueWithGoogle } from "@/components/continue-with-google";
 
 export default function Signin() {
