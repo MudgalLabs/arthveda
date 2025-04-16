@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IconType } from "react-icons";
 
@@ -10,14 +10,32 @@ import { FaCircleChevronLeft as IconLeft } from "react-icons/fa6";
 
 import { Logo } from "@/components/logo";
 import { Tooltip } from "@/components/tooltip";
-import { cn } from "@/lib/utils";
+import {
+    cn,
+    loadFromLocalStorage,
+    LocalStorageKey,
+    saveToLocalStorage,
+} from "@/lib/utils";
 import { APP_ROUTES } from "@/app-routes";
 
 export const Sidebar = () => {
-    const [open, setOpen] = useState(false);
-
     const { pathname } = useLocation();
+
+    const [open, setOpen] = useState(
+        JSON.parse(loadFromLocalStorage(LocalStorageKey.SIDEBAR_OPEN)) ?? false
+    );
+    const [activeRoute, setActiveRoute] = useState(pathname);
+
     const navigate = useNavigate();
+
+    const handleClick = (route: string) => {
+        navigate(route);
+        setActiveRoute(route);
+    };
+
+    useEffect(() => {
+        saveToLocalStorage(LocalStorageKey.SIDEBAR_OPEN, JSON.stringify(open));
+    }, [open]);
 
     return (
         <div className="bg-background-2 relative flex h-dvh flex-col px-3">
@@ -71,22 +89,22 @@ export const Sidebar = () => {
                         label="Dashboard"
                         Icon={IconDashboard}
                         open={open}
-                        isActive={pathname === APP_ROUTES.dashboard}
-                        onClick={() => navigate(APP_ROUTES.dashboard)}
+                        isActive={activeRoute === APP_ROUTES.dashboard}
+                        onClick={() => handleClick(APP_ROUTES.dashboard)}
                     />
                     <SidebarNavItem
                         label="Trades"
                         Icon={IconTrades}
                         open={open}
-                        isActive={pathname === APP_ROUTES.trades}
-                        onClick={() => navigate(APP_ROUTES.trades)}
+                        isActive={activeRoute === APP_ROUTES.trades}
+                        onClick={() => handleClick(APP_ROUTES.trades)}
                     />
                     <SidebarNavItem
                         label="Journal"
                         Icon={IconJournal}
                         open={open}
-                        isActive={pathname === APP_ROUTES.journal}
-                        onClick={() => navigate(APP_ROUTES.journal)}
+                        isActive={activeRoute === APP_ROUTES.journal}
+                        onClick={() => handleClick(APP_ROUTES.journal)}
                     />
                 </div>
             </div>
