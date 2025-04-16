@@ -26,7 +26,7 @@ func main() {
 
 	routes.SetupRoutes(ginEngine)
 
-	err = ginEngine.Run(":6969")
+	err = ginEngine.Run(":1337")
 	if err != nil {
 		panic(err)
 	}

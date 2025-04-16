@@ -20,7 +20,7 @@ export const Sidebar = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="relative flex h-dvh flex-col px-3">
+        <div className="bg-background-2 relative flex h-dvh flex-col px-3">
             <div>
                 <div
                     className={cn(

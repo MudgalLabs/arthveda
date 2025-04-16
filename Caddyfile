@@ -1,0 +1,15 @@
+arthveda.com {
+        reverse_proxy :6969
+
+        handle /api/* {
+                reverse_proxy :1337
+        }
+
+        handle_errors {
+                respond "{err.status_code} {err.status_text}"
+        }
+}
+
+www.arthveda.com {
+        redir https://arthveda.com{uri}
+}

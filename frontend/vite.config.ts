@@ -8,7 +8,7 @@ export default ({ mode }) => {
         plugins: [react(), tailwindcss()],
         server: {
             host: "localhost",
-            port: 1337,
+            port: 6969,
         },
         resolve: {
             alias: {
