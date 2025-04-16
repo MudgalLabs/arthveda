@@ -67,7 +67,3 @@ body {
   color: var(--color-foreground-1);
   font-family: Karla, Arial, Helvetica, sans-serif;
 }
-
-a {
-  @apply  text-primary-500 text-right font-bold text-sm
-}

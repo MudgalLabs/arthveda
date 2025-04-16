@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { apiHooks } from "@/hooks/api-hooks";
 import { Button, TextInput } from "@/s8ly";
@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/toast";
 import { ContinueWithGoogle } from "@/components/continue-with-google";
 import { ROUTES } from "@/routes";
+import { LinkText } from "@/components/link-text";
 
 export default function SignIn() {
     const client = useQueryClient();
@@ -43,7 +44,7 @@ export default function SignIn() {
             </h1>
             <p className="text-foreground-2 mb-6 text-sm">
                 New to Arthveda?{" "}
-                <Link to={ROUTES.signUp}>Sign up for free</Link>
+                <LinkText to={ROUTES.signUp}>Sign up for free</LinkText>
             </p>
             <form className="flex flex-col" onSubmit={handleSubmit}>
                 <TextInput
@@ -65,9 +66,9 @@ export default function SignIn() {
                     onChange={(e) => setPassword(e.target.value)}
                 />
 
-                <Link className="mb-6" to={ROUTES.forgotPassword}>
+                <LinkText className="mb-6" to={ROUTES.forgotPassword}>
                     Forgot password?
-                </Link>
+                </LinkText>
 
                 <Button
                     className="mb-3"

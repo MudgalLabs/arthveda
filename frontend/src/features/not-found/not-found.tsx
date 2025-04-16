@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { LinkText } from "@/components/link-text";
 
 export const NotFound = () => {
     return (
@@ -14,9 +14,9 @@ export const NotFound = () => {
                     You are lost. Go back where you came from.
                 </p>
                 <div className="mt-10 flex items-center justify-center gap-x-6">
-                    <Link to="/" className="text-sm font-semibold">
+                    <LinkText to="/" className="text-sm font-semibold">
                         &larr; Go back home
-                    </Link>
+                    </LinkText>
                 </div>
             </div>
         </main>

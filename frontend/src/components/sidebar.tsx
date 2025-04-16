@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { IconType } from "react-icons";
 
 import { MdGridView as IconDashboard } from "react-icons/md";
@@ -17,6 +17,7 @@ import {
     saveToLocalStorage,
 } from "@/lib/utils";
 import { ROUTES } from "@/routes";
+import { Branding } from "./branding";
 
 export const Sidebar = () => {
     const { pathname } = useLocation();
@@ -69,45 +70,42 @@ export const Sidebar = () => {
 
                 <div
                     className={cn(
-                        "mt-12 flex w-full items-center justify-center",
-                        {
-                            "gap-3": open,
-                        }
+                        "mt-12 flex w-full items-center justify-center"
                     )}
                 >
-                    <Logo height={32} />
-                    <p
-                        className={cn("hidden", {
-                            "font-poppins text-primary-500 inline-block items-center text-2xl font-bold":
-                                open,
-                        })}
-                    >
-                        Arthveda
-                    </p>
+                    {open ? <Branding height={48} /> : <Logo height={32} />}
                 </div>
 
                 <div className="mt-12 flex flex-col items-center gap-y-2">
-                    <SidebarNavItem
-                        label="Dashboard"
-                        Icon={IconDashboard}
-                        open={open}
-                        isActive={activeRoute === ROUTES.dashboard}
-                        onClick={() => handleClick(ROUTES.dashboard)}
-                    />
-                    <SidebarNavItem
-                        label="Trades"
-                        Icon={IconTrades}
-                        open={open}
-                        isActive={activeRoute === ROUTES.trades}
-                        onClick={() => handleClick(ROUTES.trades)}
-                    />
-                    <SidebarNavItem
-                        label="Journal"
-                        Icon={IconJournal}
-                        open={open}
-                        isActive={activeRoute === ROUTES.journal}
-                        onClick={() => handleClick(ROUTES.journal)}
-                    />
+                    <Link to={ROUTES.dashboard}>
+                        <SidebarNavItem
+                            label="Dashboard"
+                            Icon={IconDashboard}
+                            open={open}
+                            isActive={activeRoute === ROUTES.dashboard}
+                            onClick={() => handleClick(ROUTES.dashboard)}
+                        />
+                    </Link>
+
+                    <Link to={ROUTES.trades}>
+                        <SidebarNavItem
+                            label="Trades"
+                            Icon={IconTrades}
+                            open={open}
+                            isActive={activeRoute === ROUTES.trades}
+                            onClick={() => handleClick(ROUTES.trades)}
+                        />
+                    </Link>
+
+                    <Link to={ROUTES.journal}>
+                        <SidebarNavItem
+                            label="Journal"
+                            Icon={IconJournal}
+                            open={open}
+                            isActive={activeRoute === ROUTES.journal}
+                            onClick={() => handleClick(ROUTES.journal)}
+                        />
+                    </Link>
                 </div>
             </div>
         </div>
