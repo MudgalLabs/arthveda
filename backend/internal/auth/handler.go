@@ -1,13 +1,13 @@
 package auth
 
 import (
+	"arthveda/internal/lib/apires"
+	"arthveda/internal/lib/env"
+	"arthveda/internal/lib/utils"
 	"arthveda/internal/logger"
 	"arthveda/internal/user"
-	"arthveda/internal/utils"
-	"arthveda/internal/utils/apires"
 	"database/sql"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -107,7 +107,7 @@ func HandleSignin(c *gin.Context) {
 		"exp":        utils.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	tokenString, err := token.SignedString([]byte(env.JWT_SECRET))
 	if err != nil {
 		logger.Log.Error().Msg("(auth.createToken) failed to create authentication token :" + err.Error())
 		c.JSON(http.StatusInternalServerError, apires.Internal())

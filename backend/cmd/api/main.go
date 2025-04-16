@@ -2,19 +2,18 @@ package main
 
 import (
 	"arthveda/internal/db"
+	"arthveda/internal/lib/env"
 	"arthveda/internal/logger"
 	"arthveda/internal/routes"
-	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	logger.Init()
+	// Load all the environment variables.
+	env.Init()
 
-	// Call it once here so that we can call os.Getenv anywhere.
-	godotenv.Load()
+	logger.Init()
 
 	err := db.Init()
 	if err != nil {
@@ -27,7 +26,7 @@ func main() {
 
 	routes.SetupRoutes(ginEngine)
 
-	err = ginEngine.Run(os.Getenv("LISTEN_PORT"))
+	err = ginEngine.Run(":6969")
 	if err != nil {
 		panic(err)
 	}

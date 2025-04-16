@@ -1,9 +1,9 @@
 package db
 
 import (
+	"arthveda/internal/lib/env"
 	"arthveda/internal/logger"
 	"fmt"
-	"os"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -22,15 +22,11 @@ CREATE TABLE IF NOT EXISTS users (
 var DB *sqlx.DB
 
 func Init() error {
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-
 	logger.Log.Debug().Msg("Connecting to database...")
 
-	connectionStr := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s  sslmode=disable", host, port, dbName, user, password)
+	connectionStr := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s  sslmode=disable", env.DB_HOST, env.DB_PORT, env.DB_NAME, env.DB_USER, env.DB_PASSWORD)
+	logger.Log.Debug().Msg("conectionStr" + connectionStr)
+
 	db, err := sqlx.Connect("postgres", connectionStr)
 	if err != nil {
 		return err

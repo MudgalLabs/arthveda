@@ -1,10 +1,10 @@
 package auth
 
 import (
+	"arthveda/internal/lib/apires"
+	"arthveda/internal/lib/env"
 	"arthveda/internal/logger"
-	"arthveda/internal/utils/apires"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -21,7 +21,7 @@ func Middleware(c *gin.Context) {
 	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		return []byte(os.Getenv("JWT_SECRET")), nil
+		return []byte(env.JWT_SECRET), nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 	if err != nil {

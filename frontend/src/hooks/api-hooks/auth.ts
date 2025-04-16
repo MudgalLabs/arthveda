@@ -32,7 +32,7 @@ export function useSignin(options: AnyUseMutationOptions = {}) {
 }
 
 export function useSignout(options: AnyUseMutationOptions = {}) {
-    return useMutation<ApiRes, unknown, unknown, unknown>({
+    return useMutation<ApiRes, unknown, void, unknown>({
         mutationFn: () => {
             return api.auth.signout();
         },

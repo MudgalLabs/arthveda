@@ -2,7 +2,7 @@ package user
 
 import (
 	"arthveda/internal/db"
-	"arthveda/internal/utils"
+	"arthveda/internal/lib/utils"
 )
 
 type CreateData struct {

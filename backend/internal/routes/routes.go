@@ -2,8 +2,8 @@ package routes
 
 import (
 	"arthveda/internal/auth"
+	apires "arthveda/internal/lib/apires"
 	"arthveda/internal/user"
-	apires "arthveda/internal/utils/apires"
 	"net/http"
 	"time"
 

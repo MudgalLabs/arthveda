@@ -1,8 +1,8 @@
 package user
 
 import (
+	"arthveda/internal/lib/apires"
 	"arthveda/internal/logger"
-	"arthveda/internal/utils/apires"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
