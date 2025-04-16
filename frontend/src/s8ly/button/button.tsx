@@ -15,7 +15,7 @@ const buttonVariants = cva(
         "outline-none",
         "font-poppins",
         "font-bold",
-        "focus-visible:outline-3",
+        "focus-visible:outline-2",
         "focus-visible:outline-offset-3",
         "focus-visible:outline-solid",
     ],
@@ -35,6 +35,13 @@ const buttonVariants = cva(
                     "disabled:bg-secondary-950",
                     "disabled:text-secondary-700",
                     "focus-visible:outline-secondary-400",
+                ],
+                bright: [
+                    "bg-foreground-1",
+                    "text-primary-950",
+                    "disabled:bg-disabled",
+                    "disabled:text-foreground-3",
+                    "focus-visible:outline-foreground-1",
                 ],
             },
             size: {
@@ -86,6 +93,10 @@ const Button: FC<ButtonProps> = (props) => {
                     !loading && !disabled && variant === "secondary",
                 "active:bg-secondary-500":
                     !loading && !disabled && variant === "secondary",
+                "hover:bg-foreground-2":
+                    !loading && !disabled && variant === "bright",
+                "active:bg-foreground-1":
+                    !loading && !disabled && variant === "bright",
                 "cursor-not-allowed": loading || disabled,
             })}
             disabled={disabled}
@@ -109,6 +120,7 @@ const loadingVariant = cva(["absolute", "inline-flex", "items-center"], {
         variant: {
             primary: ["border-seondary-950"],
             secondary: ["border-primary-950"],
+            bright: ["border-primary-950"],
         },
     },
 });
