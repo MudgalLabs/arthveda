@@ -3,12 +3,14 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 interface TooltipProps extends TooltipPrimitive.TooltipProps {
     content: React.ReactNode;
+    disabled?: boolean;
     contentProps?: TooltipPrimitive.TooltipContentProps;
 }
 
 export const Tooltip: FC<TooltipProps> = ({
     children,
     content,
+    disabled,
     open,
     defaultOpen,
     onOpenChange,
@@ -17,6 +19,9 @@ export const Tooltip: FC<TooltipProps> = ({
     ...props
 }) => {
     const { contentProps = {} } = props;
+
+    // This props makes it simpler to toggle Tooltip instead of conditional wrapping.
+    if (disabled) return children;
 
     return (
         <TooltipPrimitive.Root

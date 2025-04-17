@@ -1,6 +1,6 @@
 import { FC, PropsWithChildren } from "react";
-import { FaGithub } from "react-icons/fa";
 import { Branding } from "./components/branding";
+import { IconGithub } from "./components/icons";
 
 export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
     return (
@@ -37,7 +37,7 @@ export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
                         Open Source
                     </a>
                 </p>
-                <FaGithub />
+                <IconGithub />
             </div>
         </div>
     );

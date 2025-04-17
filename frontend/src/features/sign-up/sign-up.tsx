@@ -8,7 +8,7 @@ import { Button, TextInput } from "@/s8ly";
 import { apiHooks } from "@/hooks/api-hooks";
 import { ROUTES } from "@/routes";
 import { ContinueWithGoogle } from "@/components/continue-with-google";
-import { LinkText } from "@/components/link-text";
+import { Link } from "@/components/link";
 
 export const SignupFormSchema = z
     .object({
@@ -98,8 +98,7 @@ export default function SignUp() {
                 Sign up
             </h1>
             <p className="text-foreground-2 mb-6 text-sm">
-                Already have an account?{" "}
-                <LinkText to={ROUTES.signIn}>Sign in</LinkText>
+                Already have an account? <Link to={ROUTES.signIn}>Sign in</Link>
             </p>
 
             <form className="flex flex-col" onSubmit={handleSubmit}>

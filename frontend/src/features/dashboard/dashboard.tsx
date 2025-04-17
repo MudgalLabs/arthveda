@@ -13,8 +13,9 @@ export const Dashboard = () => {
     const navigate = useNavigate();
 
     const { mutate: signout, isPending } = apiHooks.auth.useSignout({
-        onSuccess: () => {
-            client.invalidateQueries();
+        onSuccess: async () => {
+            // NOTE: Make sure to await otherwise the screen will flicker.
+            await client.invalidateQueries();
             navigate("/");
             toast("Good bye 👋. We will miss you.", {
                 autoClose: 2000,

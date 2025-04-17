@@ -10,8 +10,10 @@ const Signup = lazy(() => import("@/features/sign-up/sign-up"));
 const Dashboard = lazy(() => import("@/features/dashboard/dashboard"));
 const Trades = lazy(() => import("@/features/trades/trades"));
 const Journal = lazy(() => import("@/features/journal/journal"));
+const AddTrade = lazy(() => import("@/features/add-trade/add-trade"));
 
 export const ROUTES = {
+    index: "/",
     // Auth routes.
     signIn: "/sign-in",
     signUp: "/sign-up",
@@ -21,10 +23,22 @@ export const ROUTES = {
     dashboard: "/dashboard",
     trades: "/trades",
     journal: "/journal",
+    addTrade: "/add-trade",
 };
 
-export const ROUTES_PUBLIC = [ROUTES.signIn, ROUTES.signUp, "*"];
-export const ROUTES_PROTECTED = [ROUTES.dashboard];
+export const ROUTES_PUBLIC = [
+    ROUTES.index,
+    ROUTES.signIn,
+    ROUTES.signUp,
+    ROUTES.forgotPassword,
+    "*",
+];
+export const ROUTES_PROTECTED = [
+    ROUTES.dashboard,
+    ROUTES.trades,
+    ROUTES.journal,
+    ROUTES.addTrade,
+];
 
 export const routes: Array<RouteObject> = [
     {
@@ -68,6 +82,14 @@ export const routes: Array<RouteObject> = [
         element: (
             <Suspense>
                 <Journal />
+            </Suspense>
+        ),
+    },
+    {
+        path: ROUTES.addTrade,
+        element: (
+            <Suspense>
+                <AddTrade />
             </Suspense>
         ),
     },
