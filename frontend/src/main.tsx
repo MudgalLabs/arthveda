@@ -43,7 +43,11 @@ root.render(
                         position="bottom-right"
                         theme="dark"
                         stacked
+                        toastClassName="bg-primary-900! text-sm!"
+                        progressClassName="bg-primary-500!"
                         limit={5}
+                        draggable
+                        draggablePercent={40}
                     />
                 </TooltipProvider>
             </AuthenticationProvider>
