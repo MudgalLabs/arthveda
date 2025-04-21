@@ -20,7 +20,9 @@ export default function SignIn() {
             // shown as if we are signed in but we are still on sign in screen.
             await client.invalidateQueries();
             navigate(search.get("from") || ROUTES.dashboard);
-            toast("Welcome back!", { autoClose: 2000, hideProgressBar: true });
+            toast("Welcome back to Arthveda.", {
+                icon: <p>😎</p>,
+            });
         },
         onError: (error) => {
             const errorMsg = error.response.data.message;

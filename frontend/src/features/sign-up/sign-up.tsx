@@ -45,15 +45,13 @@ const defaultFormErrors: FormErrors = {
 };
 
 export default function SignUp() {
-    const client = useQueryClient();
     const navigate = useNavigate();
 
     const { mutate: signup, isPending } = apiHooks.auth.useSignup({
         onSuccess: () => {
-            client.invalidateQueries();
             navigate(ROUTES.signIn);
-            toast.success("Account created. Please sign in.", {
-                autoClose: 3000,
+            toast.success("Account Created", {
+                description: "Sign in to start using Arthveda",
             });
         },
         onError: (error) => {

@@ -35,7 +35,7 @@ import {
 import { useAuthentication } from "@/context/authentication-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiHooks } from "@/hooks/api-hooks";
-import { toast } from "react-toastify";
+import { toast } from "@/components/toast";
 
 export const Sidebar = () => {
     const { userEmail } = useAuthentication();
@@ -236,9 +236,8 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
                 // NOTE: Make sure to await otherwise the screen will flicker.
                 await client.invalidateQueries();
                 navigate("/");
-                toast("Good bye 👋. We will miss you.", {
-                    autoClose: 2000,
-                    hideProgressBar: true,
+                toast("Goodbye. Thank you for using Arthveda.", {
+                    icon: <p>👋</p>,
                 });
             },
         });

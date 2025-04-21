@@ -6,10 +6,11 @@ import routes from "@/routes";
 import App from "@/App";
 import { Error } from "@/features/error/error";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ToastContainer } from "@/components/toast";
+import { ToastProvider } from "@/components/toast";
 import { TooltipProvider } from "@/components/tooltip";
 
 import { AuthenticationProvider } from "./context/authentication-context";
+import { Loading } from "./components/loading";
 
 const container = document.getElementById("root") as HTMLElement;
 
@@ -39,15 +40,29 @@ root.render(
             <AuthenticationProvider>
                 <TooltipProvider>
                     <RouterProvider router={router} />
-                    <ToastContainer
-                        position="bottom-right"
+                    <ToastProvider
                         theme="dark"
-                        stacked
-                        toastClassName="bg-primary-900! text-sm!"
-                        progressClassName="bg-primary-500!"
-                        limit={5}
-                        draggable
-                        draggablePercent={40}
+                        closeButton
+                        visibleToasts={5}
+                        icons={{
+                            loading: (
+                                <Loading
+                                    size="small"
+                                    color="--color-primary-300"
+                                />
+                            ),
+                        }}
+                        toastOptions={{
+                            classNames: {
+                                toast: "bg-primary-950! border-primary-800! text-sm! font-karla!",
+                                title: "text-primary-50! font-medium!",
+                                description: "text-primary-100! font-normal!",
+                                icon: "text-primary-300!",
+                                content: "relative!",
+                                closeButton:
+                                    "bg-primary-900! text-primary-300! hover:bg-primary-800! hover:text-primary-100!",
+                            },
+                        }}
                     />
                 </TooltipProvider>
             </AuthenticationProvider>

@@ -1,3 +1,3 @@
-import { toast, ToastContainer } from "react-toastify";
+import { Toaster as ToastProvider, toast } from "sonner";
 
-export { toast, ToastContainer };
+export { toast, ToastProvider };
