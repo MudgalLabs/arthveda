@@ -11,39 +11,54 @@ const Dashboard = lazy(() => import("@/features/dashboard/dashboard"));
 const Trades = lazy(() => import("@/features/trades/trades"));
 const Journal = lazy(() => import("@/features/journal/journal"));
 const AddTrade = lazy(() => import("@/features/add-trade/add-trade"));
+const Settings = lazy(() => import("@/features/settings/settings"));
 
 export const ROUTES = {
     index: "/",
+
     // Auth routes.
+    forgotPassword: "/forgot-password",
     signIn: "/sign-in",
     signUp: "/sign-up",
-    forgotPassword: "/forgot-password",
 
     // App routes that will be accessible if a user is signed in.
-    dashboard: "/dashboard",
-    trades: "/trades",
-    journal: "/journal",
     addTrade: "/add-trade",
+    dashboard: "/dashboard",
+    journal: "/journal",
+    settings: "/settings",
+    trades: "/trades",
 };
 
 export const ROUTES_PUBLIC = [
     ROUTES.index,
+    ROUTES.forgotPassword,
     ROUTES.signIn,
     ROUTES.signUp,
-    ROUTES.forgotPassword,
     "*",
 ];
 export const ROUTES_PROTECTED = [
-    ROUTES.dashboard,
-    ROUTES.trades,
-    ROUTES.journal,
     ROUTES.addTrade,
+    ROUTES.dashboard,
+    ROUTES.journal,
+    ROUTES.settings,
+    ROUTES.trades,
 ];
 
 export const routes: Array<RouteObject> = [
+    /**
+     * PUBLIC
+     */
     {
         index: true,
         element: null,
+    },
+    {
+        path: "*",
+        element: (
+            <Suspense>
+                <NotFound />
+            </Suspense>
+        ),
     },
     {
         path: ROUTES.signIn,
@@ -61,19 +76,22 @@ export const routes: Array<RouteObject> = [
             </Suspense>
         ),
     },
+    /**
+     * PROTECTED
+     */
+    {
+        path: ROUTES.addTrade,
+        element: (
+            <Suspense>
+                <AddTrade />
+            </Suspense>
+        ),
+    },
     {
         path: ROUTES.dashboard,
         element: (
             <Suspense>
                 <Dashboard />
-            </Suspense>
-        ),
-    },
-    {
-        path: ROUTES.trades,
-        element: (
-            <Suspense>
-                <Trades />
             </Suspense>
         ),
     },
@@ -86,18 +104,18 @@ export const routes: Array<RouteObject> = [
         ),
     },
     {
-        path: ROUTES.addTrade,
+        path: ROUTES.settings,
         element: (
             <Suspense>
-                <AddTrade />
+                <Settings />
             </Suspense>
         ),
     },
     {
-        path: "*",
+        path: ROUTES.trades,
         element: (
             <Suspense>
-                <NotFound />
+                <Trades />
             </Suspense>
         ),
     },

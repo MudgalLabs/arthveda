@@ -19,11 +19,23 @@ import {
     IconExpandUpDown,
     IconJournal,
     IconLeft,
+    IconLogout,
     IconRight,
+    IconSettings,
     IconTrades,
     IconType,
 } from "@/components/icons";
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from "@/components/dropdown-menu";
 import { useAuthentication } from "@/context/authentication-context";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiHooks } from "@/hooks/api-hooks";
+import { toast } from "react-toastify";
 
 export const Sidebar = () => {
     const { userEmail } = useAuthentication();
@@ -128,6 +140,7 @@ export const Sidebar = () => {
             <div
                 className={cn("flex flex-col gap-y-2 pb-2", {
                     "items-center": !open,
+                    "pb-4": !open,
                 })}
             >
                 <Link to={ROUTES.addTrade}>
@@ -145,7 +158,7 @@ export const Sidebar = () => {
                             })}
                         >
                             <div className="flex items-center gap-x-2">
-                                <IconAdd size={24} /> {open && "Add Trade"}
+                                <IconAdd size={20} /> {open && "Add Trade"}
                             </div>
                         </Button>
                     </Tooltip>
@@ -206,30 +219,84 @@ interface SidebarProfileProps {
 const SidebarProfile: FC<SidebarProfileProps> = (props) => {
     const { open, email, avatarURL } = props;
 
+    const [menuOpened, setMenuOpened] = useState(false);
+
+    const navigate = useNavigate();
+    const client = useQueryClient();
+
+    const { mutate: signout, isPending: isSignoutPending } =
+        apiHooks.auth.useSignout({
+            onSuccess: async () => {
+                // NOTE: Make sure to await otherwise the screen will flicker.
+                await client.invalidateQueries();
+                navigate("/");
+                toast("Good bye 👋. We will miss you.", {
+                    autoClose: 2000,
+                    hideProgressBar: true,
+                });
+            },
+        });
+
     return (
-        <div
-            className={cn(
-                "text-foreground-2 hover:bg-primary-950 active:bg-primary-900 flex gap-x-2 rounded-lg hover:cursor-pointer",
-                {
-                    "px-3 py-2": open,
-                }
-            )}
-        >
-            {avatarURL ? (
-                <img src={avatarURL} />
-            ) : (
-                <DefaultProfileAvatar height={open ? 40 : 48} />
-            )}
-            {open && (
-                <div className="flex w-auto items-center">
-                    <div>
-                        <p className="text-sm">Shikhar Sharma</p>
-                        <p className="text-[12px]">{email}</p>
-                    </div>
-                    <IconExpandUpDown size={18} className="ml-6" />
+        <DropdownMenu dir="rtl" open={menuOpened} onOpenChange={setMenuOpened}>
+            <DropdownMenuTrigger
+                className="outline-none"
+                type="button"
+                onClick={() => setMenuOpened((prev) => !prev)}
+            >
+                <div
+                    className={cn(
+                        "text-foreground-2 hover:bg-primary-950 active:bg-primary-900 flex gap-x-2 rounded-lg text-left hover:cursor-pointer",
+                        {
+                            "px-3 py-2": open,
+                            "bg-primary-900": menuOpened,
+                        }
+                    )}
+                >
+                    {avatarURL ? (
+                        <img src={avatarURL} />
+                    ) : (
+                        <DefaultProfileAvatar />
+                    )}
+                    {open && (
+                        <div className="flex w-auto items-center">
+                            <div>
+                                <p className="text-sm">Shikhar Sharma</p>
+                                <p className="text-[12px]">{email}</p>
+                            </div>
+                            <IconExpandUpDown size={18} className="ml-6" />
+                        </div>
+                    )}
                 </div>
-            )}
-        </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+                side="right"
+                align="end"
+                className="bg-primary-950 min-w-[200px] rounded-sm p-1"
+            >
+                <Link to={ROUTES.settings} unstyled>
+                    <DropdownMenuItem className="hover:bg-primary-900 flex cursor-pointer items-center justify-end gap-x-3 rounded-sm p-1 outline-none">
+                        Settings
+                        <IconSettings size={18} />
+                    </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator className="bg-primary-800 my-1 h-px" />
+                <DropdownMenuItem
+                    className={cn(
+                        "hover:bg-primary-900 flex cursor-pointer items-center justify-end gap-x-3 rounded-sm p-1 outline-none",
+                        {
+                            "cursor-not-allowed hover:bg-none":
+                                isSignoutPending,
+                        }
+                    )}
+                    onSelect={() => signout()}
+                    disabled={isSignoutPending}
+                >
+                    Sign out
+                    <IconLogout size={18} />
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 };
 
@@ -241,12 +308,7 @@ const DefaultProfileAvatar: FC<DefaultProfieAvatarProps> = (props) => {
     const { height = 40 } = props;
 
     return (
-        <svg
-            height={height}
-            viewBox="0 0 40 40"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg height={height} viewBox="0 0 40 40" fill="none">
             <rect width="40" height="40" rx="5.71429" fill="#EFFAFF" />
             <path
                 fillRule="evenodd"

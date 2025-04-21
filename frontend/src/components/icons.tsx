@@ -8,3 +8,5 @@ export { LuNotebookPen as IconJournal } from "react-icons/lu";
 export { FaCircleChevronRight as IconRight } from "react-icons/fa6";
 export { FaCircleChevronLeft as IconLeft } from "react-icons/fa6";
 export { RiExpandUpDownLine as IconExpandUpDown } from "react-icons/ri";
+export { MdOutlineSettings as IconSettings } from "react-icons/md";
+export { MdOutlineLogout as IconLogout } from "react-icons/md";

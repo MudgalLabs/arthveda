@@ -39,7 +39,12 @@ root.render(
             <AuthenticationProvider>
                 <TooltipProvider>
                     <RouterProvider router={router} />
-                    <ToastContainer position="top-right" theme="dark" />
+                    <ToastContainer
+                        position="bottom-right"
+                        theme="dark"
+                        stacked
+                        limit={5}
+                    />
                 </TooltipProvider>
             </AuthenticationProvider>
         </QueryClientProvider>

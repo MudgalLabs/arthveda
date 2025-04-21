@@ -15,8 +15,10 @@ export default function SignIn() {
     const [search] = useSearchParams();
 
     const { mutate: signin, isPending } = apiHooks.auth.useSignin({
-        onSuccess: () => {
-            client.invalidateQueries();
+        onSuccess: async () => {
+            // NOTE: await otherwise there will be a time when the toast is
+            // shown as if we are signed in but we are still on sign in screen.
+            await client.invalidateQueries();
             navigate(search.get("from") || ROUTES.dashboard);
             toast("Welcome back!", { autoClose: 2000, hideProgressBar: true });
         },
