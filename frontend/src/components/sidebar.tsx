@@ -165,10 +165,12 @@ export const Sidebar = () => {
                     </Tooltip>
                 </Link>
 
-                <SidebarProfile
-                    open={open}
+                <SidebarProfileMenu
+                    sidebarOpen={open}
                     email={userEmail}
                     setActiveRoute={setActiveRoute}
+                    displayName="Shikhar Sharma"
+                    profileImageURL=""
                 />
             </div>
         </div>
@@ -214,16 +216,80 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
 };
 
 interface SidebarProfileProps {
-    open: boolean;
-
+    // Extra data is shown when `expanded` is `true`.
+    expanded: boolean;
+    // Can user click on this component?
+    clickable: boolean;
+    // Menu gets toggled when user clicks on this component.
+    menuOpen: boolean;
+    // User's email.
     email: string;
-    avatarURL?: string;
-    fullName?: string;
-    setActiveRoute: (route: string) => void;
+    // User's profile image URL.
+    profileImageURL: string;
+    // User's display name.
+    displayName: string;
+    // Style the component with classes.
+    className?: string;
 }
 
 const SidebarProfile: FC<SidebarProfileProps> = (props) => {
-    const { open, email, avatarURL, setActiveRoute } = props;
+    const {
+        expanded,
+        menuOpen,
+        email,
+        profileImageURL,
+        displayName,
+        clickable,
+        className,
+    } = props;
+
+    return (
+        <div
+            className={cn(
+                "text-foreground-2 flex gap-x-2 rounded-lg text-left",
+                {
+                    "px-3 py-2": expanded && clickable,
+                    "active:bg-primary-900 hover:bg-primary-950 hover:cursor-pointer":
+                        clickable,
+                    "bg-primary-900": menuOpen,
+                    "w-[220px]": !clickable,
+                },
+                className
+            )}
+        >
+            {profileImageURL ? (
+                <img src={profileImageURL} />
+            ) : (
+                <DefaultProfileAvatar />
+            )}
+
+            {expanded && (
+                <div className="flex w-auto items-center">
+                    <div>
+                        <p className="text-sm">{displayName}</p>
+                        <p className="text-[12px]">{email}</p>
+                    </div>
+
+                    {clickable && (
+                        <IconExpandUpDown size={18} className="ml-6" />
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+interface SidebarProfileMenuProps {
+    sidebarOpen: boolean;
+    email: string;
+    profileImageURL: string;
+    displayName: string;
+    setActiveRoute: (route: string) => void;
+}
+
+const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
+    const { sidebarOpen, email, setActiveRoute, displayName, profileImageURL } =
+        props;
 
     const [menuOpened, setMenuOpened] = useState(false);
 
@@ -243,65 +309,59 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
         });
 
     return (
-        <DropdownMenu dir="rtl" open={menuOpened} onOpenChange={setMenuOpened}>
-            <DropdownMenuTrigger
-                className="outline-none"
-                type="button"
-                onClick={() => setMenuOpened((prev) => !prev)}
-            >
-                <div
-                    className={cn(
-                        "text-foreground-2 hover:bg-primary-950 active:bg-primary-900 flex gap-x-2 rounded-lg text-left hover:cursor-pointer",
-                        {
-                            "px-3 py-2": open,
-                            "bg-primary-900": menuOpened,
-                        }
-                    )}
-                >
-                    {avatarURL ? (
-                        <img src={avatarURL} />
-                    ) : (
-                        <DefaultProfileAvatar />
-                    )}
-                    {open && (
-                        <div className="flex w-auto items-center">
-                            <div>
-                                <p className="text-sm">Shikhar Sharma</p>
-                                <p className="text-[12px]">{email}</p>
-                            </div>
-                            <IconExpandUpDown size={18} className="ml-6" />
-                        </div>
-                    )}
-                </div>
+        <DropdownMenu open={menuOpened} onOpenChange={setMenuOpened}>
+            <DropdownMenuTrigger onClick={() => setMenuOpened((prev) => !prev)}>
+                <SidebarProfile
+                    email={email}
+                    profileImageURL={profileImageURL}
+                    displayName={displayName}
+                    menuOpen={menuOpened}
+                    expanded={sidebarOpen}
+                    clickable={true}
+                />
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-                side="right"
-                align="end"
-                className="bg-primary-950 min-w-[200px] rounded-sm p-1"
-            >
+
+            <DropdownMenuContent side="right" align="end">
+                {!sidebarOpen && (
+                    <>
+                        <DropdownMenuItem
+                            className="cursor-default hover:bg-inherit"
+                            disabled
+                        >
+                            <SidebarProfile
+                                email={email}
+                                profileImageURL={profileImageURL}
+                                displayName={displayName}
+                                menuOpen={false}
+                                expanded
+                                clickable={false}
+                            />
+                        </DropdownMenuItem>
+
+                        <DropdownMenuSeparator />
+                    </>
+                )}
+
                 <Link to={ROUTES.settings} unstyled>
                     <DropdownMenuItem
-                        className="hover:bg-primary-900 flex cursor-pointer items-center justify-end gap-x-3 rounded-sm p-1 outline-none"
                         onClick={() => setActiveRoute(ROUTES.addTrade)}
                     >
-                        Settings
                         <IconSettings size={18} />
+                        Settings
                     </DropdownMenuItem>
                 </Link>
-                <DropdownMenuSeparator className="bg-primary-800 my-1 h-px" />
+
+                <DropdownMenuSeparator />
+
                 <DropdownMenuItem
-                    className={cn(
-                        "hover:bg-primary-900 flex cursor-pointer items-center justify-end gap-x-3 rounded-sm p-1 outline-none",
-                        {
-                            "cursor-not-allowed hover:bg-none":
-                                isSignoutPending,
-                        }
-                    )}
+                    className={cn({
+                        "cursor-not-allowed hover:bg-none": isSignoutPending,
+                    })}
                     onSelect={() => signout()}
                     disabled={isSignoutPending}
                 >
-                    Sign out
                     <IconLogout size={18} />
+                    Sign out
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
