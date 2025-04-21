@@ -156,6 +156,7 @@ export const Sidebar = () => {
                                 "w-full": open,
                                 "p-3": !open,
                             })}
+                            onClick={() => setActiveRoute(ROUTES.addTrade)}
                         >
                             <div className="flex items-center gap-x-2">
                                 <IconAdd size={20} /> {open && "Add Trade"}
@@ -164,7 +165,11 @@ export const Sidebar = () => {
                     </Tooltip>
                 </Link>
 
-                <SidebarProfile open={open} email={userEmail} />
+                <SidebarProfile
+                    open={open}
+                    email={userEmail}
+                    setActiveRoute={setActiveRoute}
+                />
             </div>
         </div>
     );
@@ -214,10 +219,11 @@ interface SidebarProfileProps {
     email: string;
     avatarURL?: string;
     fullName?: string;
+    setActiveRoute: (route: string) => void;
 }
 
 const SidebarProfile: FC<SidebarProfileProps> = (props) => {
-    const { open, email, avatarURL } = props;
+    const { open, email, avatarURL, setActiveRoute } = props;
 
     const [menuOpened, setMenuOpened] = useState(false);
 
@@ -275,7 +281,10 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
                 className="bg-primary-950 min-w-[200px] rounded-sm p-1"
             >
                 <Link to={ROUTES.settings} unstyled>
-                    <DropdownMenuItem className="hover:bg-primary-900 flex cursor-pointer items-center justify-end gap-x-3 rounded-sm p-1 outline-none">
+                    <DropdownMenuItem
+                        className="hover:bg-primary-900 flex cursor-pointer items-center justify-end gap-x-3 rounded-sm p-1 outline-none"
+                        onClick={() => setActiveRoute(ROUTES.addTrade)}
+                    >
                         Settings
                         <IconSettings size={18} />
                     </DropdownMenuItem>
