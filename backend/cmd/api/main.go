@@ -2,18 +2,24 @@ package main
 
 import (
 	"arthveda/internal/db"
+	"arthveda/internal/lib/apires"
 	"arthveda/internal/lib/env"
 	"arthveda/internal/logger"
-	"arthveda/internal/routes"
+	"context"
+	"errors"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 )
 
 func main() {
-	// Load all the environment variables.
 	env.Init()
-
-	logger.Init()
 
 	err := db.Init()
 	if err != nil {
@@ -22,12 +28,97 @@ func main() {
 
 	defer db.DB.Close()
 
-	ginEngine := gin.Default()
+	r := initRouter()
 
-	routes.SetupRoutes(ginEngine)
-
-	err = ginEngine.Run(":1337")
+	err = run(r)
 	if err != nil {
 		panic(err)
 	}
+}
+
+func initRouter() http.Handler {
+	r := chi.NewRouter()
+
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"*"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+
+	// Set a timeout value on the request context (ctx), that will signal
+	// through ctx.Done() that the request has timed out and further
+	// processing should be stopped.
+	r.Use(middleware.Timeout(60 * time.Second))
+
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, http.StatusOK, apires.Success(http.StatusOK, "Hi! Welcome to Arthveda API. Don't be naughty.", nil))
+		})
+
+		r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, http.StatusOK, apires.Success(http.StatusOK, "Pong", nil))
+		})
+
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/signup", handleSignup)
+			r.Post("/signin", handleSignin)
+			r.Post("/signout", handleSignout)
+		})
+
+		r.Route("/user", func(r chi.Router) {
+			r.Use(AuthMiddleware)
+			r.Get("/me", handleGetMe)
+		})
+	})
+
+	return r
+}
+
+func run(router http.Handler) error {
+	l := logger.Get()
+	srv := &http.Server{
+		Addr:         ":1337",
+		Handler:      router,
+		WriteTimeout: time.Second * 30,
+		ReadTimeout:  time.Second * 10,
+		IdleTimeout:  time.Minute,
+	}
+
+	shutdown := make(chan error)
+
+	go func() {
+		quit := make(chan os.Signal, 1)
+
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		s := <-quit
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		l.Infow("signal caught", "signal", s.String())
+
+		shutdown <- srv.Shutdown(ctx)
+	}()
+
+	l.Infow("server has started", "addr", "1337", "env", env.APP_ENV)
+
+	err := srv.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	err = <-shutdown
+	if err != nil {
+		return err
+	}
+
+	l.Infow("server has stopped", "addr", "1337", "env", env.APP_ENV)
+	return nil
 }

@@ -2,12 +2,12 @@ root = "."
 tmp_dir = "tmp"
 
 # Verbose build command
-build_cmd = "go build -v -o ./tmp/main ./cmd/api/main.go"
+build_cmd = "go build -v -o ./tmp/main ./cmd/api"
 run_cmd = "./tmp/main"
 
 [build]
 # Explicitly list Go files and build settings
-cmd = "go build -v -o ./tmp/main ./cmd/api/main.go"
+cmd = "go build -v -o ./tmp/main ./cmd/api"
 exclude_dir = [
     "tmp",
     "bin"
