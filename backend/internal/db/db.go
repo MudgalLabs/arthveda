@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -24,6 +25,10 @@ func Init() error {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	// So that we can log SQL query on execution.
+	config.ConnConfig.Tracer = &myQueryTracer{}
+
 	db, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		log.Panic(err)
@@ -35,4 +40,20 @@ func Init() error {
 	DB = db
 
 	return nil
+}
+
+type myQueryTracer struct {
+}
+
+func (tracer *myQueryTracer) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
+	l := logger.FromCtx(ctx)
+	l.Debugw("executing SQL query", "sqlstr", data.SQL, "args", data.Args)
+	return ctx
+}
+
+func (tracer *myQueryTracer) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryEndData) {
+	if data.Err != nil {
+		l := logger.FromCtx(ctx)
+		l.Debugw("error executing SQL query", "err", data.Err)
+	}
 }

@@ -7,11 +7,11 @@ import (
 )
 
 func getMeHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: get logger from contextj
-	l := logger.FromCtx(r.Context())
+	ctx := r.Context()
+	l := logger.FromCtx(ctx)
 	id := getUserIDFromContext(r)
 
-	u, err := user.GetByID(id)
+	u, err := user.GetByID(ctx, id)
 	if err != nil {
 		l.Error("failed to get user", "error", err)
 		internalServerErrorResponse(w, r, err)
