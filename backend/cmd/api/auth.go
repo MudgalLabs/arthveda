@@ -5,12 +5,12 @@ import (
 	"arthveda/internal/lib/utils"
 	"arthveda/internal/logger"
 	"arthveda/internal/user"
-	"database/sql"
 	"errors"
 	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -33,13 +33,13 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	passwordHashBytes, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 	if err != nil {
-		l.Errorw("failed to hash password", "error", err, logger.WhereKey, "signUpHandler", logger.ServiceKey, "auth")
+		l.Errorw("failed to hash password", "error", err)
 		internalServerErrorResponse(w, r, err)
 		return
 	}
 
 	userByEmail, err := user.GetByEmail(body.Email)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && err != pgx.ErrNoRows {
 		internalServerErrorResponse(w, r, err)
 	}
 
@@ -79,7 +79,7 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	u, err := user.GetByEmail(body.Email)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			errorResponse(w, r, http.StatusNotFound, "Incorrect email or password", nil)
 			return
 		}
@@ -94,7 +94,7 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 			errorResponse(w, r, http.StatusBadRequest, "Incorrect email or password", nil)
 			return
 		} else {
-			l.DPanicw("failed to compare hash and password", "error", err, logger.WhereKey, "signInHandler", logger.ServiceKey, "auth")
+			l.DPanicw("failed to compare hash and password", "error", err)
 			internalServerErrorResponse(w, r, err)
 			return
 		}
@@ -108,7 +108,7 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	tokenString, err := token.SignedString([]byte(env.JWT_SECRET))
 	if err != nil {
-		l.Errorw("failed to create authentication token", "error", err, logger.WhereKey, "signInHandler", logger.ServiceKey, "auth")
+		l.Errorw("failed to create authentication token", "error", err)
 		internalServerErrorResponse(w, r, err)
 		return
 	}

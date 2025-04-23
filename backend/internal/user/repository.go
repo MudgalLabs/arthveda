@@ -3,6 +3,7 @@ package user
 import (
 	"arthveda/internal/db"
 	"arthveda/internal/lib/utils"
+	"context"
 )
 
 type CreateData struct {
@@ -19,13 +20,13 @@ func Create(data CreateData) (Model, error) {
 
 	sqlStr := `INSERT INTO users (email, password_hash, created_at) VALUES (:email, :password_hash, :created_at)`
 
-	_, err := db.DB.NamedExec(sqlStr, user)
+	_, err := db.DB.Exec(context.Background(), sqlStr, user)
 	if err != nil {
 		return user, err
 	}
 
 	var id int64
-	rows, err := db.DB.NamedQuery(`SELECT id FROM users WHERE email = :email`, user)
+	rows, err := db.DB.Query(context.Background(), `SELECT id FROM users WHERE email = :email`, user)
 	if err != nil {
 		return user, err
 	}
@@ -49,8 +50,8 @@ func GetByEmail(email string) (Model, error) {
 	var user Model
 
 	sqlStr := `SELECT id, email, password_hash, created_at, updated_at FROM users WHERE email = $1`
-	row := db.DB.QueryRowx(sqlStr, email)
-	err := row.StructScan(&user)
+	row := db.DB.QueryRow(context.Background(), sqlStr, email)
+	err := row.Scan(&user.ID, &user.Email, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return user, err
 	}

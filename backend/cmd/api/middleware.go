@@ -27,19 +27,19 @@ func authMiddleware(next http.Handler) http.Handler {
 
 		cookie, err := r.Cookie("Authentication")
 		if err != nil {
-			l.Warnw("failed to read cookie", logger.WhereKey, "authMiddleware", "error", err)
+			l.Warnw("failed to read cookie", "error", err)
 			unauthorizedErrorResponse(w, r, errorMsg, err)
 			return
 		}
 
-		l.Debugw("authentication cookie found", logger.WhereKey, "authMiddleware", "cookie", cookie.Value)
+		l.Debugw("authentication cookie found", "cookie", cookie.Value)
 
 		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (any, error) {
 			return []byte(env.JWT_SECRET), nil
 		}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 		if err != nil {
-			l.Warnw("failed to parse the token", logger.WhereKey, "authMiddleware", "error", err)
+			l.Warnw("failed to parse the token", "error", err)
 			unauthorizedErrorResponse(w, r, errorMsg, err)
 			return
 		}
@@ -55,7 +55,7 @@ func authMiddleware(next http.Handler) http.Handler {
 			ctx = context.WithValue(ctx, userID, id)
 			ctx = context.WithValue(ctx, userEmail, email)
 		} else {
-			l.Warnw("failed to check claims in the token", logger.WhereKey, "authMiddleware", "error", err)
+			l.Warnw("failed to check claims in the token", "error", err)
 			unauthorizedErrorResponse(w, r, errorMsg, err)
 			return
 		}

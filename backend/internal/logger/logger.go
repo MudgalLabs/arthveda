@@ -20,9 +20,6 @@ var once sync.Once
 
 var logger *zap.SugaredLogger
 
-const WhereKey string = "where"
-const ServiceKey string = "service"
-
 // Get initializes a zap.SugaredLogger instance if it has not been initialized
 // already and returns the same instance for subsequent calls.
 func Get() *zap.SugaredLogger {
@@ -85,7 +82,7 @@ func Get() *zap.SugaredLogger {
 				),
 		)
 
-		logger = zap.New(core).Sugar()
+		logger = zap.New(core, zap.AddCaller()).Sugar()
 	})
 
 	return logger

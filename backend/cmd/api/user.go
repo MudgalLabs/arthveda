@@ -13,7 +13,7 @@ func getMeHandler(w http.ResponseWriter, r *http.Request) {
 
 	u, err := user.GetByEmail(email)
 	if err != nil {
-		l.Error("failed to get user", "error", err, logger.WhereKey, "getMeHandler", logger.ServiceKey, "user")
+		l.Error("failed to get user", "error", err)
 		internalServerErrorResponse(w, r, err)
 		return
 	}
