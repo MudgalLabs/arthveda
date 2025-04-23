@@ -91,7 +91,7 @@ func initRouter() http.Handler {
 func run(router http.Handler) error {
 	l := logger.Get()
 	srv := &http.Server{
-		Addr:         ":1337",
+		Addr:         ":" + env.PORT,
 		Handler:      router,
 		WriteTimeout: time.Second * 30,
 		ReadTimeout:  time.Second * 10,

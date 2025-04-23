@@ -6,7 +6,7 @@ services:
             context: ./frontend
             dockerfile: react.dockerfile
         ports:
-            - "6969:6969"
+            - "${REACT_PORT}:${REACT_PORT}"
         depends_on:
             backend:
                 condition: service_started
@@ -18,15 +18,15 @@ services:
             context: ./backend
             dockerfile: go.dockerfile
         environment:
-            APP_ENV: production
-            DB_HOST: database
+            APP_ENV: ${GO_APP_ENV}
+            DB_HOST: ${POSTGRES_HOST}
             DB_PORT: ${POSTGRES_PORT}
             DB_NAME: ${POSTGRES_DB}
             DB_USER: ${POSTGRES_USER}
             DB_PASSWORD: ${POSTGRES_PASSWORD}
             GO_JWT_SECRET: ${GO_JWT_SECRET}
         ports:
-            - "1337:1337"
+            - "${GO_PORT}:${GO_PORT}"
         depends_on:
             database:
                 condition: service_healthy

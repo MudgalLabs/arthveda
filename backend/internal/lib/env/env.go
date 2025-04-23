@@ -8,6 +8,7 @@ import (
 
 var (
 	APP_ENV     string
+	PORT        string
 	DB_HOST     string
 	DB_PORT     string
 	DB_NAME     string
@@ -28,16 +29,18 @@ func Init() {
 
 	if IsProd() {
 		APP_ENV = "production"
+		PORT = os.Getenv("GO_PORT")
 		DB_HOST = os.Getenv("DB_HOST")
 		DB_PORT = os.Getenv("DB_PORT")
 		DB_NAME = os.Getenv("DB_NAME")
 		DB_USER = os.Getenv("DB_USER")
 		DB_PASSWORD = os.Getenv("DB_PASSWORD")
-		JWT_SECRET = os.Getenv("JWT_SECRET")
-		LOG_LEVEL = os.Getenv("LOG_LEVEL")
-		LOG_FILE = os.Getenv("LOG_FILE")
+		JWT_SECRET = os.Getenv("GO_JWT_SECRET")
+		LOG_LEVEL = os.Getenv("GO_LOG_LEVEL")
+		LOG_FILE = os.Getenv("GO_LOG_FILE")
 	} else {
 		APP_ENV = "development"
+		PORT = "1337"
 		DB_HOST = "localhost"
 		DB_PORT = "42069"
 		DB_NAME = "postgres"
