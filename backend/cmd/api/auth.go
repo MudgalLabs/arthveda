@@ -101,9 +101,8 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id":    u.ID,
-		"user_email": u.Email,
-		"exp":        utils.Now().Add(time.Hour * 24 * 30).Unix(),
+		"user_id": u.ID,
+		"exp":     utils.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(env.JWT_SECRET))

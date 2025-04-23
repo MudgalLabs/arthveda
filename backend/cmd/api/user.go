@@ -9,9 +9,9 @@ import (
 func getMeHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: get logger from contextj
 	l := logger.FromCtx(r.Context())
-	email := getUserEmailFromContext(r)
+	id := getUserIDFromContext(r)
 
-	u, err := user.GetByEmail(email)
+	u, err := user.GetByID(id)
 	if err != nil {
 		l.Error("failed to get user", "error", err)
 		internalServerErrorResponse(w, r, err)

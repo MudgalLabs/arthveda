@@ -12,9 +12,9 @@ import (
 	"go.uber.org/zap"
 )
 
-type userIDKey string
+type userID string
 
-const userID userIDKey = "user_id"
+const userIDKey userID = "user_id"
 
 type userEmailKey string
 
@@ -22,7 +22,8 @@ const userEmail userEmailKey = "user_email"
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		l := logger.FromCtx(r.Context())
+		ctx := r.Context()
+		l := logger.FromCtx(ctx)
 		errorMsg := "You need to be signed in to use this route. POST /auth/sign-in to sign in."
 
 		cookie, err := r.Cookie("Authentication")
@@ -44,34 +45,32 @@ func authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := r.Context()
-
 		// TODO: Instead store the user.
 		// Maybe add a caching layer using Redis?
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			id := claims["user_id"].(float64)
-			email := claims["user_email"].(string)
-
-			ctx = context.WithValue(ctx, userID, id)
-			ctx = context.WithValue(ctx, userEmail, email)
+			ctx = context.WithValue(ctx, userIDKey, id)
+			// Add `user_id` to this ctx's logger.
+			l = l.With(zap.Float64(string(userIDKey), id))
 		} else {
 			l.Warnw("failed to check claims in the token", "error", err)
 			unauthorizedErrorResponse(w, r, errorMsg, err)
 			return
 		}
 
-		next.ServeHTTP(w, r.WithContext(ctx))
+		lrw := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+
+		// the logger is associated with the request context here
+		// so that it may be retrieved in subsequent `http.Handlers`
+		r = r.WithContext(logger.WithCtx(ctx, l))
+
+		next.ServeHTTP(lrw, r)
 	})
 }
 
-func getUserIDFromContext(r *http.Request) float64 {
-	id, _ := r.Context().Value(userID).(float64)
-	return id
-}
-
-func getUserEmailFromContext(r *http.Request) string {
-	email, _ := r.Context().Value(userEmail).(string)
-	return email
+func getUserIDFromContext(r *http.Request) int64 {
+	id, _ := r.Context().Value(userIDKey).(float64)
+	return int64(id)
 }
 
 const requestIDCtxKey = "request_id"

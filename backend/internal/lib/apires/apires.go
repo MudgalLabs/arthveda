@@ -3,7 +3,7 @@ package apires
 import "net/http"
 
 const (
-	msgInternalError   string = "Something went wrong. Please try again."
+	msgInternalError   string = "Internal server error. Please try again later."
 	msgBadRequestError string = "The request body is invalid. Check 'errors' for more details if any."
 )
 
