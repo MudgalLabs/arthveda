@@ -114,7 +114,7 @@ func run(router http.Handler) error {
 		shutdown <- srv.Shutdown(ctx)
 	}()
 
-	l.Infow("server has started", "addr", "1337", "env", env.APP_ENV)
+	l.Infow("server has started", "addr", srv.Addr, "env", env.APP_ENV)
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
@@ -126,6 +126,6 @@ func run(router http.Handler) error {
 		return err
 	}
 
-	l.Infow("server has stopped", "addr", "1337", "env", env.APP_ENV)
+	l.Infow("server has stopped", "addr", srv.Addr, "env", env.APP_ENV)
 	return nil
 }
