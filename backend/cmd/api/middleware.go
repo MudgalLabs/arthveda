@@ -5,8 +5,11 @@ import (
 	"arthveda/internal/logger"
 	"context"
 	"net/http"
+	"time"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/golang-jwt/jwt/v5"
+	"go.uber.org/zap"
 )
 
 type userIDKey string
@@ -17,26 +20,26 @@ type userEmailKey string
 
 const userEmail userEmailKey = "user_email"
 
-func AuthMiddleware(next http.Handler) http.Handler {
+func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		l := logger.Get()
+		l := logger.FromCtx(r.Context())
 		errorMsg := "You need to be signed in to use this route. POST /auth/sign-in to sign in."
 
 		cookie, err := r.Cookie("Authentication")
 		if err != nil {
-			l.Warnw("(auth.Middleware) while reading the cookie", "error", err)
+			l.Warnw("failed to read cookie", logger.WhereKey, "authMiddleware", "error", err)
 			unauthorizedErrorResponse(w, r, errorMsg, err)
 			return
 		}
 
-		l.Infow("Authentication cookie found", "cookie", cookie.Value)
+		l.Debugw("authentication cookie found", logger.WhereKey, "authMiddleware", "cookie", cookie.Value)
 
 		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (any, error) {
 			return []byte(env.JWT_SECRET), nil
 		}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 		if err != nil {
-			l.Warnw("(auth.Middleware) while parsing the token", "error", err)
+			l.Warnw("failed to parse the token", logger.WhereKey, "authMiddleware", "error", err)
 			unauthorizedErrorResponse(w, r, errorMsg, err)
 			return
 		}
@@ -52,7 +55,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			ctx = context.WithValue(ctx, userID, id)
 			ctx = context.WithValue(ctx, userEmail, email)
 		} else {
-			l.Warnw("(auth.Middleware) while checking claims in the token", "error", err)
+			l.Warnw("failed to check claims in the token", logger.WhereKey, "authMiddleware", "error", err)
 			unauthorizedErrorResponse(w, r, errorMsg, err)
 			return
 		}
@@ -69,4 +72,61 @@ func getUserIDFromContext(r *http.Request) float64 {
 func getUserEmailFromContext(r *http.Request) string {
 	email, _ := r.Context().Value(userEmail).(string)
 	return email
+}
+
+const requestIDCtxKey = "request_id"
+
+func attachLoggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		l := logger.Get()
+
+		requestID := middleware.GetReqID(ctx)
+
+		// create a child logger containing the request ID so that it appears
+		// in all subsequent logs
+		l = l.With(zap.String(string(requestIDCtxKey), requestID))
+
+		w.Header().Add(middleware.RequestIDHeader, requestID)
+
+		lrw := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+
+		// the logger is associated with the request context here
+		// so that it may be retrieved in subsequent `http.Handlers`
+		r = r.WithContext(logger.WithCtx(ctx, l))
+
+		next.ServeHTTP(lrw, r)
+	})
+}
+
+func logRequestMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		l := logger.FromCtx(ctx)
+		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+		t1 := time.Now()
+
+		defer func() {
+			status := ww.Status()
+
+			reqLogger := l.With(
+				zap.String("method", r.Method),
+				zap.String("path", r.URL.Path),
+				zap.Int("status", status),
+				zap.Duration("elapsed", time.Since(t1)),
+				zap.String("client_ip", r.RemoteAddr),
+			)
+
+			if status >= 500 {
+				reqLogger.Error("served with error")
+			} else if status >= 400 {
+				reqLogger.Warn("served with warn")
+			} else {
+				reqLogger.Info("served with info")
+			}
+
+		}()
+
+		next.ServeHTTP(ww, r)
+	})
 }

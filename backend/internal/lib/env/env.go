@@ -15,6 +15,7 @@ var (
 	DB_PASSWORD string
 	JWT_SECRET  string
 	LOG_LEVEL   string
+	LOG_FILE    string
 )
 
 func IsProd() bool {
@@ -34,6 +35,7 @@ func Init() {
 		DB_PASSWORD = os.Getenv("DB_PASSWORD")
 		JWT_SECRET = os.Getenv("JWT_SECRET")
 		LOG_LEVEL = os.Getenv("LOG_LEVEL")
+		LOG_FILE = os.Getenv("LOG_FILE")
 	} else {
 		APP_ENV = "development"
 		DB_HOST = "localhost"
@@ -43,6 +45,6 @@ func Init() {
 		DB_PASSWORD = "postgres"
 		JWT_SECRET = "this_is_a_very_strong_jwt_secret_i_promise"
 		LOG_LEVEL = "debug"
+		LOG_FILE = "arthveda_go.log"
 	}
-
 }

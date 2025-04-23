@@ -11,6 +11,7 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type ctxKey struct{}
@@ -19,18 +20,14 @@ var once sync.Once
 
 var logger *zap.SugaredLogger
 
+const WhereKey string = "where"
+const ServiceKey string = "service"
+
 // Get initializes a zap.SugaredLogger instance if it has not been initialized
 // already and returns the same instance for subsequent calls.
 func Get() *zap.SugaredLogger {
 	once.Do(func() {
 		stdout := zapcore.AddSync(os.Stdout)
-
-		// Create a temporary file to output logs to.
-		file, err := os.CreateTemp("", "log")
-		if err != nil {
-			panic("failed to create temporary file")
-		}
-		defer os.Remove(file.Name())
 
 		level := zap.InfoLevel
 		levelEnv := env.LOG_LEVEL
@@ -68,6 +65,13 @@ func Get() *zap.SugaredLogger {
 				}
 			}
 		}
+
+		file := zapcore.AddSync(&lumberjack.Logger{
+			Filename:   env.LOG_FILE,
+			MaxSize:    10, // megabytes
+			MaxBackups: 3,
+			MaxAge:     7, // days
+		})
 
 		// log to multiple destinations (console and file)
 		// extra fields are added to the JSON output alone

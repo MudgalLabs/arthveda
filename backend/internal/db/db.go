@@ -13,18 +13,18 @@ var DB *sqlx.DB
 
 func Init() error {
 	l := logger.Get()
-	l.Info("Connecting to database...")
+	l.Info("connecting to database")
 
 	connectionStr := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s  sslmode=disable", env.DB_HOST, env.DB_PORT, env.DB_NAME, env.DB_USER, env.DB_PASSWORD)
 
-	// l.Debug("conectionStr: ", connectionStr)
+	l.Debug("conectionStr: ", connectionStr)
 
 	db, err := sqlx.Connect("postgres", connectionStr)
 	if err != nil {
 		return err
 	}
 
-	l.Info("Connected to database!")
+	l.Info("connected to database")
 
 	// Set it to global variable.
 	DB = db

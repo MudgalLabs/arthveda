@@ -6,14 +6,14 @@ import (
 	"net/http"
 )
 
-func handleGetMe(w http.ResponseWriter, r *http.Request) {
+func getMeHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: get logger from contextj
-	l := logger.Get()
+	l := logger.FromCtx(r.Context())
 	email := getUserEmailFromContext(r)
 
 	u, err := user.GetByEmail(email)
 	if err != nil {
-		l.Error("handleGetMe -> user.GetByEmail", "service", "user", "error", err)
+		l.Error("failed to get user", "error", err, logger.WhereKey, "getMeHandler", logger.ServiceKey, "user")
 		internalServerErrorResponse(w, r, err)
 		return
 	}

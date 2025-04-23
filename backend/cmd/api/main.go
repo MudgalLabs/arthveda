@@ -21,6 +21,9 @@ import (
 func main() {
 	env.Init()
 
+	// idk what this does but it was on the blogpost so I'm using it.
+	defer logger.Get().Sync()
+
 	err := db.Init()
 	if err != nil {
 		panic(err)
@@ -41,7 +44,8 @@ func initRouter() http.Handler {
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	r.Use(attachLoggerMiddleware)
+	r.Use(logRequestMiddleware)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost"},
@@ -50,6 +54,9 @@ func initRouter() http.Handler {
 		ExposedHeaders:   []string{"*"},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		AllowOriginFunc: func(r *http.Request, origin string) bool {
+			return true
+		},
 	}))
 
 	// Set a timeout value on the request context (ctx), that will signal
@@ -67,14 +74,14 @@ func initRouter() http.Handler {
 		})
 
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/signup", handleSignup)
-			r.Post("/signin", handleSignin)
-			r.Post("/signout", handleSignout)
+			r.Post("/signup", signUpHandler)
+			r.Post("/signin", signInHandler)
+			r.Post("/signout", signOutHandler)
 		})
 
 		r.Route("/user", func(r chi.Router) {
-			r.Use(AuthMiddleware)
-			r.Get("/me", handleGetMe)
+			r.Use(authMiddleware)
+			r.Get("/me", getMeHandler)
 		})
 	})
 

@@ -6,6 +6,7 @@ import (
 	"arthveda/internal/logger"
 	"arthveda/internal/user"
 	"database/sql"
+	"errors"
 	"net/http"
 	"time"
 
@@ -20,7 +21,10 @@ type signupRequestBody struct {
 
 // TODO: Validate the request body.
 // Make sure email is actually an email and password is strong.
-func handleSignup(w http.ResponseWriter, r *http.Request) {
+func signUpHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	l := logger.FromCtx(ctx)
+
 	var body signupRequestBody
 	if err := readJSON(w, r, &body); err != nil {
 		invalidJSONResponse(w, r, err)
@@ -29,6 +33,7 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 
 	passwordHashBytes, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 	if err != nil {
+		l.Errorw("failed to hash password", "error", err, logger.WhereKey, "signUpHandler", logger.ServiceKey, "auth")
 		internalServerErrorResponse(w, r, err)
 		return
 	}
@@ -62,8 +67,9 @@ type signinRequestBody struct {
 	Password string `json:"password"`
 }
 
-func handleSignin(w http.ResponseWriter, r *http.Request) {
-	l := logger.Get()
+func signInHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	l := logger.FromCtx(ctx)
 
 	var body signinRequestBody
 	if err := readJSON(w, r, &body); err != nil {
@@ -73,10 +79,8 @@ func handleSignin(w http.ResponseWriter, r *http.Request) {
 
 	u, err := user.GetByEmail(body.Email)
 	if err != nil {
-		l.Errorw("auth.HandleSignin -> user.GetByEmail", "error", err, "service", "auth")
-
 		if err == sql.ErrNoRows {
-			errorResponse(w, r, http.StatusNotFound, "Account does not exist", nil)
+			errorResponse(w, r, http.StatusNotFound, "Incorrect email or password", nil)
 			return
 		}
 
@@ -86,9 +90,14 @@ func handleSignin(w http.ResponseWriter, r *http.Request) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(body.Password))
 	if err != nil {
-		l.Errorw("bcrypt.CompareHashAndPassword", "error", err, "service", "auth")
-		errorResponse(w, r, http.StatusBadRequest, "Password is incorrect", nil)
-		return
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			errorResponse(w, r, http.StatusBadRequest, "Incorrect email or password", nil)
+			return
+		} else {
+			l.DPanicw("failed to compare hash and password", "error", err, logger.WhereKey, "signInHandler", logger.ServiceKey, "auth")
+			internalServerErrorResponse(w, r, err)
+			return
+		}
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -99,7 +108,7 @@ func handleSignin(w http.ResponseWriter, r *http.Request) {
 
 	tokenString, err := token.SignedString([]byte(env.JWT_SECRET))
 	if err != nil {
-		l.Errorw("failed to create authentication token", "error", err, "service", "auth")
+		l.Errorw("failed to create authentication token", "error", err, logger.WhereKey, "signInHandler", logger.ServiceKey, "auth")
 		internalServerErrorResponse(w, r, err)
 		return
 	}
@@ -120,7 +129,7 @@ func handleSignin(w http.ResponseWriter, r *http.Request) {
 	successResponse(w, r, http.StatusOK, "Signin successful", u)
 }
 
-func handleSignout(w http.ResponseWriter, r *http.Request) {
+func signOutHandler(w http.ResponseWriter, r *http.Request) {
 	cookie := http.Cookie{
 		Name:     "Authentication",
 		Value:    "",
