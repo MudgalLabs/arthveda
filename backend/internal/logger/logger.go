@@ -26,6 +26,7 @@ func Get() *zap.SugaredLogger {
 	once.Do(func() {
 		stdout := zapcore.AddSync(os.Stdout)
 
+		// TODO: Have 2 log levels - development and production seperated.
 		level := zap.InfoLevel
 		levelEnv := env.LOG_LEVEL
 		if levelEnv != "" {
@@ -41,14 +42,14 @@ func Get() *zap.SugaredLogger {
 
 		logLevel := zap.NewAtomicLevelAt(level)
 
+		developmentCfg := zap.NewDevelopmentEncoderConfig()
+		developmentCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		consoleEncoder := zapcore.NewConsoleEncoder(developmentCfg)
+
 		productionCfg := zap.NewProductionEncoderConfig()
 		productionCfg.TimeKey = "timestamp"
 		productionCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 
-		developmentCfg := zap.NewDevelopmentEncoderConfig()
-		developmentCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
-
-		consoleEncoder := zapcore.NewConsoleEncoder(developmentCfg)
 		fileEncoder := zapcore.NewJSONEncoder(productionCfg)
 
 		var gitRevision string

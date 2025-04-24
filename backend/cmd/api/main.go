@@ -21,7 +21,8 @@ import (
 func main() {
 	env.Init()
 
-	// idk what this does but it was on the blogpost so I'm using it.
+	// IDK what this does but it was on the blogpost so I'm using it.
+	// I think it has something to do with Go sync for multi threading?
 	defer logger.Get().Sync()
 
 	err := db.Init()
