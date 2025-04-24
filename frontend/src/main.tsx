@@ -42,7 +42,6 @@ root.render(
                     <RouterProvider router={router} />
                     <ToastProvider
                         theme="dark"
-                        closeButton
                         visibleToasts={5}
                         icons={{
                             loading: (

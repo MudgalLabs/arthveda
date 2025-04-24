@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"arthveda/internal/lib/env"
+	"arthveda/internal/env"
 	"context"
 	"fmt"
 	"log"

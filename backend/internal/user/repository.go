@@ -2,8 +2,8 @@ package user
 
 import (
 	"arthveda/internal/db"
-	"arthveda/internal/lib/utils"
 	"context"
+	"time"
 )
 
 type CreateData struct {
@@ -15,7 +15,7 @@ func Create(data CreateData) (Model, error) {
 	user := Model{
 		Email:        data.Email,
 		PasswordHash: data.PasswordHash,
-		CreatedAt:    utils.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 
 	sqlStr := `INSERT INTO users (email, password_hash, created_at) VALUES (:email, :password_hash, :created_at)`

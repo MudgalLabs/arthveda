@@ -1,7 +1,7 @@
 package main
 
 import (
-	"arthveda/internal/lib/apires"
+	"arthveda/internal/apires"
 	"arthveda/internal/logger"
 	"net/http"
 )

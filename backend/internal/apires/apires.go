@@ -27,7 +27,7 @@ type ApiRes struct {
 	Data       any        `json:"data,omitempty"`
 }
 
-func New(status ApiStatus, statusCode int, message string, errors []ApiError, data any) ApiRes {
+func new(status ApiStatus, statusCode int, message string, data any, errors []ApiError) ApiRes {
 	return ApiRes{
 		Status:     status,
 		StatusCode: statusCode,
@@ -38,41 +38,17 @@ func New(status ApiStatus, statusCode int, message string, errors []ApiError, da
 }
 
 func Success(statusCode int, message string, data any) ApiRes {
-	return ApiRes{
-		Status:     ApiResStatusSuccess,
-		StatusCode: statusCode,
-		Message:    message,
-		Errors:     nil,
-		Data:       data,
-	}
+	return new(ApiResStatusSuccess, statusCode, message, data, nil)
 }
 
 func Error(statusCode int, message string, errors []ApiError) ApiRes {
-	return ApiRes{
-		Status:     ApiResStatusError,
-		StatusCode: statusCode,
-		Message:    message,
-		Errors:     errors,
-		Data:       nil,
-	}
+	return new(ApiResStatusError, statusCode, message, nil, errors)
 }
 
 func InternalError() ApiRes {
-	return ApiRes{
-		Status:     ApiResStatusError,
-		StatusCode: http.StatusInternalServerError,
-		Message:    msgInternalError,
-		Errors:     nil,
-		Data:       nil,
-	}
+	return new(ApiResStatusError, http.StatusInternalServerError, msgInternalError, nil, nil)
 }
 
 func InvalidRequestError(errors []ApiError) ApiRes {
-	return ApiRes{
-		Status:     ApiResStatusError,
-		StatusCode: http.StatusBadRequest,
-		Message:    msgBadRequestError,
-		Errors:     errors,
-		Data:       nil,
-	}
+	return new(ApiResStatusError, http.StatusBadRequest, msgBadRequestError, nil, errors)
 }

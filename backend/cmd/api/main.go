@@ -1,9 +1,9 @@
 package main
 
 import (
+	"arthveda/internal/apires"
 	"arthveda/internal/db"
-	"arthveda/internal/lib/apires"
-	"arthveda/internal/lib/env"
+	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"context"
 	"errors"

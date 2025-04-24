@@ -1,7 +1,7 @@
 package main
 
 import (
-	"arthveda/internal/lib/env"
+	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"context"
 	"net/http"

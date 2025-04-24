@@ -1,7 +1,7 @@
 package db
 
 import (
-	"arthveda/internal/lib/env"
+	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"context"
 	"fmt"

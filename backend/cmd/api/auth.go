@@ -1,8 +1,7 @@
 package main
 
 import (
-	"arthveda/internal/lib/env"
-	"arthveda/internal/lib/utils"
+	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"arthveda/internal/user"
 	"errors"
@@ -102,7 +101,7 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": u.ID,
-		"exp":     utils.Now().Add(time.Hour * 24 * 30).Unix(),
+		"exp":     time.Now().UTC().Add(time.Hour * 24 * 30).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(env.JWT_SECRET))
