@@ -46,7 +46,7 @@ services:
         ports:
             - "${POSTGRES_PORT}:${POSTGRES_PORT}"
         volumes:
-            - database_data:/var/lib/postgresql/data
+            - ~/docker_volumes/arthveda_postgresql_data:/var/lib/postgresql/data
         healthcheck:
             test:
                 [
@@ -56,6 +56,3 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
-
-volumes:
-    database_data: {}
