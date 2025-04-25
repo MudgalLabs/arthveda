@@ -16,10 +16,6 @@ type userID string
 
 const userIDKey userID = "user_id"
 
-type userEmailKey string
-
-const userEmail userEmailKey = "user_email"
-
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
