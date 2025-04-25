@@ -33,7 +33,7 @@ func new(status ApiStatus, statusCode int, message string, data any, errors []Ap
 		StatusCode: statusCode,
 		Message:    message,
 		Errors:     errors,
-		Data:       &data,
+		Data:       data,
 	}
 }
 
