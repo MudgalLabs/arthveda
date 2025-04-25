@@ -20,7 +20,7 @@ export default function SignIn() {
             // shown as if we are signed in but we are still on sign in screen.
             await client.invalidateQueries();
             navigate(search.get("from") || ROUTES.dashboard);
-            toast("Welcome to Arthveda.", {
+            toast.info("Welcome to Arthveda.", {
                 icon: <p>🚀</p>,
             });
         },

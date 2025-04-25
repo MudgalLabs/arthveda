@@ -302,7 +302,7 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
                 // NOTE: Make sure to await otherwise the screen will flicker.
                 await client.invalidateQueries();
                 navigate("/");
-                toast("Goodbye. Thank you for using Arthveda.", {
+                toast.info("Goodbye. Thank you for using Arthveda.", {
                     icon: <p>👋</p>,
                 });
             },

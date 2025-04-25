@@ -42,6 +42,7 @@ root.render(
                     <RouterProvider router={router} />
                     <ToastProvider
                         theme="dark"
+                        richColors
                         visibleToasts={5}
                         icons={{
                             loading: (
@@ -53,13 +54,7 @@ root.render(
                         }}
                         toastOptions={{
                             classNames: {
-                                toast: "bg-primary-950! border-primary-800! text-sm! font-karla!",
-                                title: "text-primary-50! font-medium!",
-                                description: "text-primary-100! font-normal!",
-                                icon: "text-primary-300!",
-                                content: "relative!",
-                                closeButton:
-                                    "bg-primary-900! text-primary-300! hover:bg-primary-800! hover:text-primary-100!",
+                                info: "bg-primary-950! border-primary-900! text-primary-300! font-karla!",
                             },
                         }}
                     />
