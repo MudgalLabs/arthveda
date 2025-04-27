@@ -15,16 +15,46 @@ const (
 )
 
 type ApiError struct {
-	Message     string `json:"message"`
+	// Message is something that can be shown to the API users on the UI.
+	Message string `json:"message"`
+
+	// Technical details regarding the error usually for API developers.
 	Description string `json:"description"`
+
+	// Indicates which part of the request triggered the error. It can be null.
+	PropertyPath string `json:"property_path,omitempty"`
+
+	// Shows the value causing the error.
+	InvalidValue any `json:"invalid_value,omitempty"`
+}
+
+func NewApiError(message, description, propertyPath string, invalidValue any) ApiError {
+	return ApiError{
+		Message:      message,
+		Description:  description,
+		PropertyPath: propertyPath,
+		InvalidValue: invalidValue,
+	}
 }
 
 type ApiRes struct {
-	Status     ApiStatus  `json:"status"`
-	StatusCode int        `json:"status_code"`
-	Message    string     `json:"message"`
-	Errors     []ApiError `json:"errors,omitempty"`
-	Data       any        `json:"data,omitempty"`
+	// A string indicating the outcome of the request.
+	// Typically `success` for successful operations and
+	// `error` represents a failure in the operation.
+	Status ApiStatus `json:"status"`
+
+	// HTTP response status code.
+	StatusCode int `json:"status_code"`
+
+	// A message explaining what has happened.
+	Message string `json:"message"`
+
+	// A list of errors to explain what was wrong in the request body
+	// usually when the input fails some validation.
+	Errors []ApiError `json:"errors,omitempty"`
+
+	// This could be either an object of key-value or a  list of such objects.
+	Data any `json:"data,omitempty"`
 }
 
 func new(status ApiStatus, statusCode int, message string, data any, errors []ApiError) ApiRes {
@@ -49,6 +79,10 @@ func InternalError() ApiRes {
 	return new(ApiResStatusError, http.StatusInternalServerError, msgInternalError, nil, nil)
 }
 
-func InvalidRequestError(errors []ApiError) ApiRes {
+func MalformedJSONError() ApiRes {
+	return new(ApiResStatusError, http.StatusBadRequest, "Request JSON is malformed", nil, nil)
+}
+
+func InvalidInputError(errors []ApiError) ApiRes {
 	return new(ApiResStatusError, http.StatusBadRequest, msgBadRequestError, nil, errors)
 }

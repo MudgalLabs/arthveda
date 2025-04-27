@@ -109,7 +109,7 @@ func logRequestMiddleware(next http.Handler) http.Handler {
 				zap.String("path", r.URL.Path),
 				zap.Int("status", status),
 				zap.Duration("elapsed", time.Since(t1)),
-				zap.String("client_ip", r.RemoteAddr),
+				zap.String("ip", r.RemoteAddr),
 			)
 
 			if status >= 500 {

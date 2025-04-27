@@ -11,9 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var DB *pgxpool.Pool
-
-func Init() error {
+func Init() (*pgxpool.Pool, error) {
 	l := logger.Get()
 	l.Info("connecting to database")
 
@@ -24,6 +22,7 @@ func Init() error {
 	config, err := pgxpool.ParseConfig(connectionStr)
 	if err != nil {
 		log.Panic(err)
+		return nil, err
 	}
 
 	// So that we can log SQL query on execution.
@@ -32,14 +31,19 @@ func Init() error {
 	db, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		log.Panic(err)
+		return nil, err
+	}
+
+	// Checking if the connection to the DB is working fine.
+	err = db.Ping(context.Background())
+	if err != nil {
+		log.Panic(err)
+		return nil, err
 	}
 
 	l.Info("connected to database")
 
-	// Set it to global variable.
-	DB = db
-
-	return nil
+	return db, nil
 }
 
 type myQueryTracer struct {

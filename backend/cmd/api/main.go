@@ -3,6 +3,8 @@ package main
 import (
 	"arthveda/internal/db"
 	"arthveda/internal/env"
+	"arthveda/internal/features/user_identity"
+	"arthveda/internal/features/user_profile"
 	"arthveda/internal/logger"
 	"context"
 	"errors"
@@ -13,6 +15,25 @@ import (
 	"time"
 )
 
+// This contains all the global state that we need to run the API.
+// Like all the services and repositories of Arthveda.
+type app struct {
+	service    services
+	repository repositories
+}
+
+// All the services.
+type services struct {
+	UserIdentityService *user_identity.Service
+	UserProfileService  *user_profile.Service
+}
+
+// Access to all repositories for reading.
+// Write access only available to services.
+type repositories struct {
+	UserIdentity user_identity.Reader
+}
+
 func main() {
 	env.Init()
 
@@ -20,14 +41,36 @@ func main() {
 	// I think it has something to do with Go sync for multi threading?
 	defer logger.Get().Sync()
 
-	err := db.Init()
+	db, err := db.Init()
 	if err != nil {
 		panic(err)
 	}
 
-	defer db.DB.Close()
+	defer db.Close()
 
-	r := initRouter()
+	// UserProfile
+	userProfileRepository := user_profile.NewRepository(db)
+	userProfileService := user_profile.NewService(userProfileRepository)
+
+	// UserIdentity
+	userIdentityRepository := user_identity.NewRepository(db)
+	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
+
+	services := services{
+		UserIdentityService: userIdentityService,
+		UserProfileService:  userProfileService,
+	}
+
+	repositories := repositories{
+		UserIdentity: userIdentityRepository,
+	}
+
+	a := &app{
+		service:    services,
+		repository: repositories,
+	}
+
+	r := initRouter(a)
 
 	err = run(r)
 	if err != nil {

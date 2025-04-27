@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
-func initRouter() http.Handler {
+func initRouter(a *app) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -19,12 +19,14 @@ func initRouter() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "DELETE", "OPTIONS", "PATCH", "POST", "PUT"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"*"},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 		AllowOriginFunc: func(r *http.Request, origin string) bool {
+			// FIXME: In prod, this should actually be allowing only the prod URL which
+			// would most likely be arthveda.io or app.arthveda.io
 			return true
 		},
 	}))
@@ -44,9 +46,9 @@ func initRouter() http.Handler {
 		})
 
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/signup", signUpHandler)
-			r.Post("/signin", signInHandler)
-			r.Post("/signout", signOutHandler)
+			r.Post("/sign-up", signUpHandler(a.service.UserIdentityService))
+			r.Post("/sign-in", signInHandler)
+			r.Post("/sign-out", signOutHandler)
 		})
 
 		r.Route("/user", func(r chi.Router) {

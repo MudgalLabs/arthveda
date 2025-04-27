@@ -2,7 +2,9 @@ package main
 
 import (
 	"arthveda/internal/env"
+	"arthveda/internal/features/user_identity"
 	"arthveda/internal/logger"
+	"arthveda/internal/service"
 	"arthveda/internal/user"
 	"errors"
 	"net/http"
@@ -13,52 +15,24 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type signupRequestBody struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
+func signUpHandler(s *user_identity.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 
-// TODO: Validate the request body.
-// Make sure email is actually an email and password is strong.
-func signUpHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	l := logger.FromCtx(ctx)
+		var req user_identity.SignUpRequest
+		if err := decodeJSONRequest(&req, r); err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
 
-	var body signupRequestBody
-	if err := readJSON(w, r, &body); err != nil {
-		invalidJSONResponse(w, r, err)
-		return
+		userProfile, errKind, err := s.SignUp(ctx, req)
+		if err != nil && errKind != service.ErrNone {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusCreated, "Signup successful", userProfile)
 	}
-
-	passwordHashBytes, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
-	if err != nil {
-		l.Errorw("failed to hash password", "error", err)
-		internalServerErrorResponse(w, r, err)
-		return
-	}
-
-	userByEmail, err := user.GetByEmail(body.Email)
-	if err != nil && err != pgx.ErrNoRows {
-		internalServerErrorResponse(w, r, err)
-	}
-
-	if userByEmail.ID > 0 {
-		errorResponse(w, r, http.StatusConflict, "Account already exists", nil)
-		return
-	}
-
-	data := user.CreateData{
-		Email:        body.Email,
-		PasswordHash: string(passwordHashBytes),
-	}
-
-	u, err := user.Create(data)
-	if err != nil {
-		internalServerErrorResponse(w, r, err)
-		return
-	}
-
-	successResponse(w, r, http.StatusCreated, "Signup successful", u)
 }
 
 type signinRequestBody struct {
@@ -71,8 +45,8 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 	l := logger.FromCtx(ctx)
 
 	var body signinRequestBody
-	if err := readJSON(w, r, &body); err != nil {
-		invalidJSONResponse(w, r, err)
+	if err := decodeJSONRequest(&body, r); err != nil {
+		malformedJSONResponse(w, r, err)
 		return
 	}
 
