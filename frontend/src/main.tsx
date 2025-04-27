@@ -44,6 +44,7 @@ root.render(
                         theme="dark"
                         richColors
                         visibleToasts={5}
+                        position="top-center"
                         icons={{
                             loading: (
                                 <Loading
