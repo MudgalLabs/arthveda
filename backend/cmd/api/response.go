@@ -61,10 +61,22 @@ func unauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, message s
 	writeJSONResponse(w, http.StatusUnauthorized, apires.Error(http.StatusUnauthorized, msg, nil))
 }
 
+// A helper function that translates Service.ErrKind and error to an HTTP response.
 func serviceErrResponse(w http.ResponseWriter, r *http.Request, errKind service.ErrKind, err error) {
 	l := logger.FromCtx(r.Context())
 
+	// Just a safety net.
+	if err == nil || errKind == service.ErrNone {
+		l.DPanicw("errKind and/ore err is not present", "error", err, "errKind", errKind)
+		internalServerErrorResponse(w, r, err)
+		return
+	}
+
 	switch {
+	case errKind == service.ErrUnauthorized:
+		unauthorizedErrorResponse(w, r, err.Error(), err)
+		return
+
 	case errKind == service.ErrConflict:
 		conflictResponse(w, r, err)
 		return

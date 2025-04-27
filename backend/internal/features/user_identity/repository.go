@@ -42,7 +42,13 @@ func NewRepository(db *pgxpool.Pool) *userIdentityRepository {
 }
 
 func (r *userIdentityRepository) FindUserIdentityByID(ctx context.Context, id int64) (*UserIdentity, error) {
-	userIdentities, err := r.findUserIdentities(ctx, &filter{ID: &id})
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	userIdentities, err := r.findUserIdentities(ctx, tx, &filter{ID: &id})
 	if err != nil {
 		return nil, fmt.Errorf("find user identities: %w", err)
 	}
@@ -56,7 +62,13 @@ func (r *userIdentityRepository) FindUserIdentityByID(ctx context.Context, id in
 }
 
 func (r *userIdentityRepository) FindUserIdentityByEmail(ctx context.Context, email string) (*UserIdentity, error) {
-	userIdentities, err := r.findUserIdentities(ctx, &filter{Email: &email})
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	userIdentities, err := r.findUserIdentities(ctx, tx, &filter{Email: &email})
 	if err != nil {
 		return nil, fmt.Errorf("find user identities: %w", err)
 	}
@@ -69,7 +81,7 @@ func (r *userIdentityRepository) FindUserIdentityByEmail(ctx context.Context, em
 	return userIdentity, nil
 }
 
-func (r *userIdentityRepository) findUserIdentities(ctx context.Context, f *filter) ([]*UserIdentity, error) {
+func (r *userIdentityRepository) findUserIdentities(ctx context.Context, tx pgx.Tx, f *filter) ([]*UserIdentity, error) {
 	var where []string
 	args := make(pgx.NamedArgs)
 
@@ -87,7 +99,7 @@ func (r *userIdentityRepository) findUserIdentities(ctx context.Context, f *filt
 	SELECT id, email, password_hash, verified, failed_login_attempts, last_login_at, created_at, updated_at 
 	FROM user_identity ` + repository.WhereSQL(where)
 
-	rows, err := r.db.Query(ctx, sql, args)
+	rows, err := tx.Query(ctx, sql, args)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
@@ -142,18 +154,19 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, userIdentity *UserI
 	userProfile := user_profile.NewUserProfile(userID, userIdentity.Email)
 
 	profileSQL := `
-	INSERT INTO user_profile (user_id, display_name, display_image, created_at, updated_at)
-	VALUES (@user_id, @display_name, @display_image, @created_at, @updated_at)
-	RETURNING user_id, display_name, display_image, created_at, updated_at
+	INSERT INTO user_profile (user_id, email, display_name, display_image, created_at, updated_at)
+	VALUES (@user_id, @email, @display_name, @display_image, @created_at, @updated_at)
+	RETURNING user_id, email, display_name, display_image, created_at, updated_at
 	`
 	profileSQLArgs := pgx.NamedArgs{
 		"user_id":       userProfile.UserID,
+		"email":         userProfile.Email,
 		"display_name":  userProfile.DisplayName,
 		"display_image": userProfile.DisplayImage,
 		"created_at":    userProfile.CreatedAt,
 		"updated_at":    userProfile.UpdatedAt,
 	}
-	err = tx.QueryRow(ctx, profileSQL, profileSQLArgs).Scan(&userProfile.UserID, &userProfile.DisplayName, &userProfile.DisplayImage, &userProfile.CreatedAt, &userProfile.UpdatedAt)
+	err = tx.QueryRow(ctx, profileSQL, profileSQLArgs).Scan(&userProfile.UserID, &userProfile.Email, &userProfile.DisplayName, &userProfile.DisplayImage, &userProfile.CreatedAt, &userProfile.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("user profile sql exec: %w", err)
 	}

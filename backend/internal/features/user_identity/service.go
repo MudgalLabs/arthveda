@@ -2,6 +2,7 @@ package user_identity
 
 import (
 	"arthveda/internal/apires"
+	"arthveda/internal/env"
 	"arthveda/internal/features/user_profile"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
@@ -11,7 +12,11 @@ import (
 	"net/mail"
 	"regexp"
 	"strings"
+	"time"
 	"unicode/utf8"
+
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
@@ -26,61 +31,61 @@ func NewService(uir ReadWriter, upr user_profile.ReadWriter) *Service {
 	}
 }
 
-type SignUpRequest struct {
+type SignUpPayload struct {
 	Email    string `json:"email" validate:"required, email"`
 	Password string `json:"password" validate:"required"`
 }
 
-func (params *SignUpRequest) validate() error {
+func (payload *SignUpPayload) validate() error {
 	var validationErrors service.InputValidationErrors = nil
 
 	// Validate email
 	const emailMaxLength = 100
 	var validEmailSeq = regexp.MustCompile(`^[a-zA-Z0-9+._~\-]+@[a-zA-Z0-9+._~\-]+(\.[a-zA-Z0-9+._~\-]+)+$`)
 
-	if strings.TrimSpace(params.Email) == "" {
-		validationErrors.Add(apires.NewApiError("Email is required", "email cannot be empty", "email", params.Email))
+	if strings.TrimSpace(payload.Email) == "" {
+		validationErrors.Add(apires.NewApiError("Email is required", "email cannot be empty", "email", payload.Email))
 	}
 
-	if strings.ContainsAny(params.Email, " \t\r\n") {
-		validationErrors.Add(apires.NewApiError("Email is invalid", "email cannot contain whitespace", "email", params.Email))
+	if strings.ContainsAny(payload.Email, " \t\r\n") {
+		validationErrors.Add(apires.NewApiError("Email is invalid", "email cannot contain whitespace", "email", payload.Email))
 	}
 
-	if strings.ContainsAny(params.Email, `"'`) {
-		validationErrors.Add(apires.NewApiError("Email is invalid", "email cannot contain quotes", "email", params.Email))
+	if strings.ContainsAny(payload.Email, `"'`) {
+		validationErrors.Add(apires.NewApiError("Email is invalid", "email cannot contain quotes", "email", payload.Email))
 	}
 
-	if rc := utf8.RuneCountInString(params.Email); rc > emailMaxLength {
-		validationErrors.Add(apires.NewApiError("Email is invalid", fmt.Sprintf("email cannot be over %d characters in length", emailMaxLength), "email", params.Email))
+	if rc := utf8.RuneCountInString(payload.Email); rc > emailMaxLength {
+		validationErrors.Add(apires.NewApiError("Email is invalid", fmt.Sprintf("email cannot be over %d characters in length", emailMaxLength), "email", payload.Email))
 	}
 
-	addr, err := mail.ParseAddress(params.Email)
+	addr, err := mail.ParseAddress(payload.Email)
 	if err != nil {
-		params.Email = strings.TrimSpace(params.Email)
+		payload.Email = strings.TrimSpace(payload.Email)
 		msg := strings.TrimPrefix(strings.ToLower(err.Error()), "mail: ")
 
 		switch {
 		case strings.Contains(msg, "missing '@'"):
-			validationErrors.Add(apires.NewApiError("Email is invalid", "email missing the @ sign", "email", params.Email))
+			validationErrors.Add(apires.NewApiError("Email is invalid", "email missing the @ sign", "email", payload.Email))
 
-		case strings.HasPrefix(params.Email, "@"):
-			validationErrors.Add(apires.NewApiError("Email is invalid", "email missing part before the @ sign", "email", params.Email))
+		case strings.HasPrefix(payload.Email, "@"):
+			validationErrors.Add(apires.NewApiError("Email is invalid", "email missing part before the @ sign", "email", payload.Email))
 
-		case strings.HasSuffix(params.Email, "@"):
-			validationErrors.Add(apires.NewApiError("Email is invalid", "email missing part after the @ sign", "email", params.Email))
+		case strings.HasSuffix(payload.Email, "@"):
+			validationErrors.Add(apires.NewApiError("Email is invalid", "email missing part after the @ sign", "email", payload.Email))
 		}
 
-		validationErrors.Add(apires.NewApiError("Email is invalid", "email invalid input: "+err.Error(), "email", params.Email))
+		validationErrors.Add(apires.NewApiError("Email is invalid", "email invalid input: "+err.Error(), "email", payload.Email))
 	}
 
 	if addr != nil && !validEmailSeq.MatchString(addr.Address) {
 		_, end, _ := strings.Cut(addr.Address, "@")
 		if !strings.Contains(end, ".") {
 			validationErrors.Add(apires.NewApiError("Email is invalid", "email missing top-level domain (.com, .co.in, etc.)",
-				"email", params.Email))
+				"email", payload.Email))
 		}
 
-		validationErrors.Add(apires.NewApiError("Email is invalid", "email must be an email address, e.g. email@example.com", "email", params.Email))
+		validationErrors.Add(apires.NewApiError("Email is invalid", "email must be an email address, e.g. email@example.com", "email", payload.Email))
 	}
 
 	// Validate password
@@ -93,25 +98,25 @@ func (params *SignUpRequest) validate() error {
 		atleastOneSpecialChar = regexp.MustCompile(`[^a-zA-Z0-9]`)
 	)
 
-	if strings.TrimSpace(params.Password) == "" {
-		validationErrors.Add(apires.NewApiError("Password cannot be empty", "", "password", params.Password))
+	if strings.TrimSpace(payload.Password) == "" {
+		validationErrors.Add(apires.NewApiError("Password cannot be empty", "", "password", payload.Password))
 	}
 
-	rc := utf8.RuneCountInString(params.Password)
+	rc := utf8.RuneCountInString(payload.Password)
 	if rc < passwordMinLength {
-		validationErrors.Add(apires.NewApiError("Password must be 8 characters long", "", "password", params.Password))
+		validationErrors.Add(apires.NewApiError("Password must be 8 characters long", "", "password", payload.Password))
 	}
 
-	if !atleastOneLetter.MatchString(params.Password) {
-		validationErrors.Add(apires.NewApiError("Password must contain at least one letter", "", "password", params.Password))
+	if !atleastOneLetter.MatchString(payload.Password) {
+		validationErrors.Add(apires.NewApiError("Password must contain at least one letter", "", "password", payload.Password))
 	}
 
-	if !atleastOneNumber.MatchString(params.Password) {
-		validationErrors.Add(apires.NewApiError("Password must contain at least one number", "", "password", params.Password))
+	if !atleastOneNumber.MatchString(payload.Password) {
+		validationErrors.Add(apires.NewApiError("Password must contain at least one number", "", "password", payload.Password))
 	}
 
-	if !atleastOneSpecialChar.MatchString(params.Password) {
-		validationErrors.Add(apires.NewApiError("Password must contain at least one special character", "", "password", params.Password))
+	if !atleastOneSpecialChar.MatchString(payload.Password) {
+		validationErrors.Add(apires.NewApiError("Password must contain at least one special character", "", "password", payload.Password))
 	}
 
 	if validationErrors != nil {
@@ -121,13 +126,13 @@ func (params *SignUpRequest) validate() error {
 	return nil
 }
 
-func (s *Service) SignUp(ctx context.Context, params SignUpRequest) (*user_profile.UserProfile, service.ErrKind, error) {
-	err := params.validate()
+func (s *Service) SignUp(ctx context.Context, payload SignUpPayload) (*user_profile.UserProfile, service.ErrKind, error) {
+	err := payload.validate()
 	if err != nil {
 		return nil, service.ErrInvalidInput, err
 	}
 
-	userIdentity, err := s.userIdentityRepository.FindUserIdentityByEmail(ctx, params.Email)
+	userIdentity, err := s.userIdentityRepository.FindUserIdentityByEmail(ctx, payload.Email)
 	if err != nil && err != repository.ErrNotFound {
 		return nil, service.ErrInternalServerError, fmt.Errorf("find user identity by email: %w", err)
 	}
@@ -136,7 +141,7 @@ func (s *Service) SignUp(ctx context.Context, params SignUpRequest) (*user_profi
 		return nil, service.ErrConflict, errors.New("Account with that email already exists")
 	}
 
-	newUserIdentity, err := newUserIdentity(params.Email, params.Password)
+	newUserIdentity, err := newUserIdentity(payload.Email, payload.Password)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("new user identity: %w", err)
 	}
@@ -147,4 +152,51 @@ func (s *Service) SignUp(ctx context.Context, params SignUpRequest) (*user_profi
 	}
 
 	return newUserProfile, service.ErrNone, nil
+}
+
+type SignInPayload struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*user_profile.UserProfile, string, service.ErrKind, error) {
+	userIdentity, err := s.userIdentityRepository.FindUserIdentityByEmail(ctx, payload.Email)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return nil, "", service.ErrUnauthorized, errors.New("Incorrect email or password")
+		}
+
+		return nil, "", service.ErrInternalServerError, fmt.Errorf("find user identity by email: %w", err)
+	}
+
+	userProfile, err := s.userProfileRepository.FindUserProfileByUserID(ctx, userIdentity.ID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return nil, "", service.ErrUnauthorized, errors.New("Incorrect email or password")
+		}
+
+		return nil, "", service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(userIdentity.PasswordHash), []byte(payload.Password))
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			// errorResponse(w, r, http.StatusBadRequest, "Incorrect email or password", nil)
+			return nil, "", service.ErrUnauthorized, errors.New("Incorrect email or password")
+		} else {
+			return nil, "", service.ErrInternalServerError, fmt.Errorf("compare hash and password: %w", err)
+		}
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": userIdentity.ID,
+		"exp":     time.Now().UTC().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(env.JWT_SECRET))
+	if err != nil {
+		return nil, "", service.ErrInternalServerError, fmt.Errorf("create authentication token: %w", err)
+	}
+
+	return userProfile, tokenString, service.ErrNone, nil
 }

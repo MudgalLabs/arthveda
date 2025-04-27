@@ -47,7 +47,7 @@ func initRouter(a *app) http.Handler {
 
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/sign-up", signUpHandler(a.service.UserIdentityService))
-			r.Post("/sign-in", signInHandler)
+			r.Post("/sign-in", signInHandler(a.service.UserIdentityService))
 			r.Post("/sign-out", signOutHandler)
 		})
 

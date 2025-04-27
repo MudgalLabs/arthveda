@@ -20,8 +20,13 @@ type ReadWriter interface {
 	Writer
 }
 
+//
+// PostgreSQL implementation
+//
+
 type filter struct {
 	UserID *int64
+	Email  *string
 }
 
 type userProfileRepository struct {
@@ -33,7 +38,13 @@ func NewRepository(db *pgxpool.Pool) *userProfileRepository {
 }
 
 func (r *userProfileRepository) FindUserProfileByUserID(ctx context.Context, userID int64) (*UserProfile, error) {
-	userProfiles, err := r.findUserProfiles(ctx, &filter{UserID: &userID})
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	userProfiles, err := r.findUserProfiles(ctx, tx, &filter{UserID: &userID})
 	if err != nil {
 		return nil, fmt.Errorf("find user profiles: %w", err)
 	}
@@ -46,7 +57,7 @@ func (r *userProfileRepository) FindUserProfileByUserID(ctx context.Context, use
 	return userProfile, nil
 }
 
-func (r *userProfileRepository) findUserProfiles(ctx context.Context, f *filter) ([]*UserProfile, error) {
+func (r *userProfileRepository) findUserProfiles(ctx context.Context, tx pgx.Tx, f *filter) ([]*UserProfile, error) {
 	var where []string
 	args := make(pgx.NamedArgs)
 
@@ -55,11 +66,16 @@ func (r *userProfileRepository) findUserProfiles(ctx context.Context, f *filter)
 		args["user_id"] = v
 	}
 
-	sql := `
-	SELECT user_id, display_name, display_image, created_at, updated_at
-	FROM user_identity ` + repository.WhereSQL(where)
+	if v := f.Email; v != nil {
+		where = append(where, "email = @email")
+		args["email"] = v
+	}
 
-	rows, err := r.db.Query(ctx, sql, args)
+	sql := `
+	SELECT user_id, email, display_name, display_image, created_at, updated_at
+	FROM user_profile ` + repository.WhereSQL(where)
+
+	rows, err := tx.Query(ctx, sql, args)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
@@ -69,7 +85,7 @@ func (r *userProfileRepository) findUserProfiles(ctx context.Context, f *filter)
 	for rows.Next() {
 		var up UserProfile
 
-		err := rows.Scan(&up.UserID, &up.DisplayName, &up.DisplayImage, &up.CreatedAt, &up.UpdatedAt)
+		err := rows.Scan(&up.UserID, &up.Email, &up.DisplayName, &up.DisplayImage, &up.CreatedAt, &up.UpdatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}

@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS user_identity (
 );
 
 CREATE TABLE IF NOT EXISTS user_profile (
-        user_id BIGINT PRIMARY KEY,
+        user_id BIGINT PRIMARY KEY UNIQUE,
+        email VARCHAR(255) NOT NULL UNIQUE,
         display_name VARCHAR(255) NOT NULL UNIQUE,
         display_image TEXT NOT NULL UNIQUE,
         created_at TIMESTAMP NOT NULL,

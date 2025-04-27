@@ -6,7 +6,9 @@ import "arthveda/internal/apires"
 type ErrKind string
 
 const (
-	ErrNone                ErrKind = "no error"
+	ErrNone ErrKind = "no error"
+
+	ErrUnauthorized        ErrKind = "unauthorized"
 	ErrConflict            ErrKind = "resource creation failed because it is conflicting with another resource"
 	ErrInvalidInput        ErrKind = "input is missing required fields or has bad values for parameters"
 	ErrInternalServerError ErrKind = "something unexpected happened"
