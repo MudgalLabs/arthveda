@@ -1,22 +1,21 @@
 package main
 
 import (
-	"arthveda/internal/logger"
-	"arthveda/internal/user"
+	"arthveda/internal/features/user_profile"
 	"net/http"
 )
 
-func getMeHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	l := logger.FromCtx(ctx)
-	id := getUserIDFromContext(r)
+func getMeHandler(s *user_profile.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		id := getUserIDFromContext(r)
 
-	u, err := user.GetByID(ctx, id)
-	if err != nil {
-		l.Error("failed to get user", "error", err)
-		internalServerErrorResponse(w, r, err)
-		return
+		userProfile, errKind, err := s.GetUserProfile(ctx, id)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, "", userProfile)
 	}
-
-	successResponse(w, r, http.StatusOK, "", u)
 }

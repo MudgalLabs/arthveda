@@ -2,7 +2,6 @@ package main
 
 import (
 	"arthveda/internal/features/user_identity"
-	"arthveda/internal/service"
 	"net/http"
 )
 
@@ -17,7 +16,7 @@ func signUpHandler(s *user_identity.Service) http.HandlerFunc {
 		}
 
 		userProfile, errKind, err := s.SignUp(ctx, payload)
-		if err != nil && errKind != service.ErrNone {
+		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return
 		}
@@ -42,7 +41,7 @@ func signInHandler(s *user_identity.Service) http.HandlerFunc {
 		}
 
 		userProfile, tokenString, errKind, err := s.SignIn(ctx, payload)
-		if err != nil && errKind != service.ErrNone {
+		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return
 		}
@@ -64,17 +63,19 @@ func signInHandler(s *user_identity.Service) http.HandlerFunc {
 	}
 }
 
-func signOutHandler(w http.ResponseWriter, r *http.Request) {
-	cookie := http.Cookie{
-		Name:     "Authentication",
-		Value:    "",
-		Path:     "/",
-		Domain:   "",
-		MaxAge:   -1, // 1 hour
-		Secure:   false,
-		HttpOnly: false,
-	}
+func signOutHandler(_ *user_identity.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cookie := http.Cookie{
+			Name:     "Authentication",
+			Value:    "",
+			Path:     "/",
+			Domain:   "",
+			MaxAge:   -1, // 1 hour
+			Secure:   false,
+			HttpOnly: false,
+		}
 
-	http.SetCookie(w, &cookie)
-	successResponse(w, r, http.StatusOK, "Signout successful", nil)
+		http.SetCookie(w, &cookie)
+		successResponse(w, r, http.StatusOK, "Signout successful", nil)
+	}
 }
