@@ -5,6 +5,8 @@ interface GoogleProps {
     className?: string;
 }
 
+// TODO: Replace this with import { FcGoogle } from "react-icons/fc";
+
 export const Google: FC<GoogleProps> = (props) => {
     const { height = 24, className } = props;
 

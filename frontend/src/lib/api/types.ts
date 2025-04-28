@@ -10,24 +10,26 @@ export interface ApiRes<T = unknown> {
     data: T;
 }
 
-export interface SignupRequestBody {
+export interface SignupRequest {
     email: string;
     password: string;
 }
 
-export interface SigninRequestBody {
+export interface SigninRequest {
     email: string;
     password: string;
 }
 
-export interface SigninResponseBody {
+export interface SigninResponse {
     email: string;
     password: string;
 }
 
-export interface GetMeResponseBody {
+export interface GetMeResponse {
     id: number;
     email: string;
+    display_name: string;
+    display_image: string;
     created_at: string;
     update_at: string;
 }

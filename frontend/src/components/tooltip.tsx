@@ -36,7 +36,7 @@ export const Tooltip: FC<TooltipProps> = ({
             </TooltipPrimitive.Trigger>
 
             <TooltipPrimitive.Content
-                className="bg-primary-950 text-primary-100 z-30 m-2 rounded-sm px-3 py-2 text-sm font-medium"
+                className="bg-primary-950 text-primary-100 0 z-30 m-2 rounded-sm px-3 py-2 text-sm font-medium"
                 {...contentProps}
             >
                 {content}

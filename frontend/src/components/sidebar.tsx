@@ -3,26 +3,19 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { Logo } from "@/components/logo";
 import { Tooltip } from "@/components/tooltip";
-import {
-    cn,
-    loadFromLocalStorage,
-    LocalStorageKey,
-    saveToLocalStorage,
-} from "@/lib/utils";
+import { cn, LocalStorageKey, saveToLocalStorage } from "@/lib/utils";
 import { ROUTES } from "@/routes";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
-import { Button } from "@/s8ly";
 import {
-    IconAdd,
+    IconPlus,
     IconDashboard,
     IconExpandUpDown,
-    IconLeft,
     IconLogout,
-    IconRight,
     IconSettings,
     IconTrades,
     IconType,
+    IconImport,
 } from "@/components/icons";
 import {
     DropdownMenu,
@@ -37,15 +30,16 @@ import { apiHooks } from "@/hooks/api-hooks";
 import { toast } from "@/components/toast";
 
 export const Sidebar = () => {
-    const { userEmail } = useAuthentication();
+    const { data } = useAuthentication();
 
     const { pathname } = useLocation();
 
-    const [open, setOpen] = useState<boolean>(
-        JSON.parse(
-            loadFromLocalStorage(LocalStorageKey.SIDEBAR_OPEN) || "false"
-        )
-    );
+    // const [open, setOpen] = useState<boolean>(
+    //     JSON.parse(
+    //         loadFromLocalStorage(LocalStorageKey.SIDEBAR_OPEN) || "false"
+    //     )
+    // );
+    const open = false; // Disabling the sidebar expansion for now.
 
     const [activeRoute, setActiveRoute] = useState(pathname);
 
@@ -63,7 +57,7 @@ export const Sidebar = () => {
     return (
         <div className="bg-background-2 relative flex h-dvh flex-col justify-between px-3">
             <div>
-                <div className="absolute top-4 right-[-9px] opacity-50 transition-opacity hover:opacity-100">
+                {/* <div className="absolute top-4 right-[-9px] opacity-50 transition-opacity hover:opacity-100">
                     <button
                         className="text-primary-400 cursor-pointer"
                         onClick={() => setOpen((prev) => !prev)}
@@ -86,11 +80,11 @@ export const Sidebar = () => {
                             </Tooltip>
                         )}
                     </button>
-                </div>
+                </div> */}
 
                 <div
                     className={cn(
-                        "mt-12 flex w-full items-center justify-center"
+                        "mt-4 flex w-full items-center justify-center"
                     )}
                 >
                     {open ? (
@@ -103,7 +97,7 @@ export const Sidebar = () => {
                     )}
                 </div>
 
-                <div className="mt-12 flex flex-col items-center gap-y-2">
+                <div className="mt-15 flex flex-col items-center gap-y-2">
                     <Link to={ROUTES.dashboard} unstyled>
                         <SidebarNavItem
                             label="Dashboard"
@@ -139,27 +133,39 @@ export const Sidebar = () => {
                         contentProps={{ side: "right" }}
                         disabled={open}
                     >
-                        <Button
-                            variant="secondary"
-                            className={cn({
-                                "w-full": open,
-                                "p-3": !open,
-                            })}
-                            onClick={() => setActiveRoute(ROUTES.addTrade)}
-                        >
-                            <div className="flex items-center gap-x-2">
-                                <IconAdd size={20} /> {open && "Add Trade"}
-                            </div>
-                        </Button>
+                        <SidebarNavItem
+                            label="Add Trade"
+                            Icon={IconPlus}
+                            open={open}
+                            isActive={activeRoute === ROUTES.addTrade}
+                            onClick={() => handleClick(ROUTES.addTrade)}
+                        />
+                    </Tooltip>
+                </Link>
+
+                <Link to={ROUTES.importTrades}>
+                    <Tooltip
+                        content="Import Trades"
+                        delayDuration={0}
+                        contentProps={{ side: "right" }}
+                        disabled={open}
+                    >
+                        <SidebarNavItem
+                            label="Import Trades"
+                            Icon={IconImport}
+                            open={open}
+                            isActive={activeRoute === ROUTES.importTrades}
+                            onClick={() => handleClick(ROUTES.importTrades)}
+                        />
                     </Tooltip>
                 </Link>
 
                 <SidebarProfileMenu
                     sidebarOpen={open}
-                    email={userEmail}
                     setActiveRoute={setActiveRoute}
-                    displayName="Shikhar Sharma"
-                    profileImageURL=""
+                    email={data!.email}
+                    displayName={data?.display_name}
+                    profileImageURL={data?.display_image}
                 />
             </div>
         </div>
@@ -180,7 +186,7 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
     const content = (
         <div
             className={cn("text-primary-500 w-fit rounded-lg p-3", {
-                "bg-primary-900 text-primary-100": isActive,
+                "bg-primary-900 text-primary-300": isActive,
                 "hover:bg-primary-950 active:bg-primary-900 active:text-primary-300 hover:cursor-pointer":
                     !isActive,
                 "flex w-[240px] items-center gap-3 text-base": open,
@@ -247,9 +253,9 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
             )}
         >
             {profileImageURL ? (
-                <img src={profileImageURL} />
+                <img className="h-12 rounded-sm" src={profileImageURL} />
             ) : (
-                <DefaultProfileAvatar />
+                <DefaultProfileAvatar height={48} />
             )}
 
             {expanded && (
@@ -270,15 +276,20 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
 
 interface SidebarProfileMenuProps {
     sidebarOpen: boolean;
-    email: string;
-    profileImageURL: string;
-    displayName: string;
     setActiveRoute: (route: string) => void;
+    email: string;
+    profileImageURL?: string;
+    displayName?: string;
 }
 
 const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
-    const { sidebarOpen, email, setActiveRoute, displayName, profileImageURL } =
-        props;
+    const {
+        sidebarOpen,
+        setActiveRoute,
+        email,
+        displayName = "Set Your Name",
+        profileImageURL = "",
+    } = props;
 
     const [menuOpened, setMenuOpened] = useState(false);
 
@@ -333,7 +344,7 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
 
                 <Link to={ROUTES.settings} unstyled>
                     <DropdownMenuItem
-                        onClick={() => setActiveRoute(ROUTES.addTrade)}
+                        onClick={() => setActiveRoute(ROUTES.settings)}
                     >
                         <IconSettings size={18} />
                         Settings
