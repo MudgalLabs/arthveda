@@ -9,7 +9,6 @@ const Signup = lazy(() => import("@/features/sign-up/sign-up"));
 // Protected
 const Dashboard = lazy(() => import("@/features/dashboard/dashboard"));
 const Trades = lazy(() => import("@/features/trades/trades"));
-const Journal = lazy(() => import("@/features/journal/journal"));
 const AddTrade = lazy(() => import("@/features/add-trade/add-trade"));
 const Settings = lazy(() => import("@/features/settings/settings"));
 
@@ -24,7 +23,6 @@ export const ROUTES = {
     // App routes that will be accessible if a user is signed in.
     addTrade: "/add-trade",
     dashboard: "/dashboard",
-    journal: "/journal",
     settings: "/settings",
     trades: "/trades",
 };
@@ -39,7 +37,6 @@ export const ROUTES_PUBLIC = [
 export const ROUTES_PROTECTED = [
     ROUTES.addTrade,
     ROUTES.dashboard,
-    ROUTES.journal,
     ROUTES.settings,
     ROUTES.trades,
 ];
@@ -92,14 +89,6 @@ export const routes: Array<RouteObject> = [
         element: (
             <Suspense>
                 <Dashboard />
-            </Suspense>
-        ),
-    },
-    {
-        path: ROUTES.journal,
-        element: (
-            <Suspense>
-                <Journal />
             </Suspense>
         ),
     },

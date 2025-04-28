@@ -17,7 +17,6 @@ import {
     IconAdd,
     IconDashboard,
     IconExpandUpDown,
-    IconJournal,
     IconLeft,
     IconLogout,
     IconRight,
@@ -124,16 +123,6 @@ export const Sidebar = () => {
                             onClick={() => handleClick(ROUTES.trades)}
                         />
                     </Link>
-
-                    <Link to={ROUTES.journal}>
-                        <SidebarNavItem
-                            label="Journal"
-                            Icon={IconJournal}
-                            open={open}
-                            isActive={activeRoute === ROUTES.journal}
-                            onClick={() => handleClick(ROUTES.journal)}
-                        />
-                    </Link>
                 </div>
             </div>
 
@@ -190,9 +179,9 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
 
     const content = (
         <div
-            className={cn("text-primary-600 w-fit rounded-lg p-3", {
+            className={cn("text-primary-500 w-fit rounded-lg p-3", {
                 "bg-primary-900 text-primary-100": isActive,
-                "hover:bg-primary-950 active:bg-primary-900 active:text-primary-400 hover:cursor-pointer":
+                "hover:bg-primary-950 active:bg-primary-900 active:text-primary-300 hover:cursor-pointer":
                     !isActive,
                 "flex w-[240px] items-center gap-3 text-base": open,
             })}
