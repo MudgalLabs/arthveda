@@ -36,7 +36,7 @@ func initRouter(a *app) http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Route("/api/v1", func(r chi.Router) {
+	r.Route("/v1", func(r chi.Router) {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			successResponse(w, r, http.StatusOK, "Hi! Welcome to Arthveda API. Don't be naughty.", nil)
 		})
