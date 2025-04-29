@@ -18,17 +18,17 @@ func initRouter(a *app) http.Handler {
 	r.Use(logRequestMiddleware)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost"},
+		AllowedOrigins:   []string{"http://localhost", "https://arthveda.ceoshikhar.com"},
 		AllowedMethods:   []string{"GET", "DELETE", "OPTIONS", "PATCH", "POST", "PUT"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"*"},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
-		AllowOriginFunc: func(r *http.Request, origin string) bool {
-			// FIXME: In prod, this should actually be allowing only the prod URL which
-			// would most likely be arthveda.io or app.arthveda.io
-			return true
-		},
+		// AllowOriginFunc: func(r *http.Request, origin string) bool {
+		// 	// FIXME: In prod, this should actually be allowing only the prod URL which
+		// 	// would most likely be arthveda.io or app.arthveda.io
+		// 	return true
+		// },
 	}))
 
 	// Set a timeout value on the request context (ctx), that will signal
@@ -36,15 +36,15 @@ func initRouter(a *app) http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		successResponse(w, r, http.StatusOK, "Hi! Welcome to Arthveda API. Don't be naughty.", nil)
+	})
+
+	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+		successResponse(w, r, http.StatusOK, "Pong", nil)
+	})
+
 	r.Route("/v1", func(r chi.Router) {
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			successResponse(w, r, http.StatusOK, "Hi! Welcome to Arthveda API. Don't be naughty.", nil)
-		})
-
-		r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
-			successResponse(w, r, http.StatusOK, "Pong", nil)
-		})
-
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/sign-up", signUpHandler(a.service.UserIdentityService))
 			r.Post("/sign-in", signInHandler(a.service.UserIdentityService))
