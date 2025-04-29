@@ -2,14 +2,17 @@ FROM golang:1.24.1-alpine3.21
 
 WORKDIR /app
 
-COPY . .
+# Copy the backend directory contents to /app
+COPY ./backend .
 
-# Download and install the dependencies:
+# Install dependencies
 RUN go get -d -v ./...
 
-# Build the go app
+# Build
 RUN go build -o ./bin/arthveda ./cmd/api
 
+# Open port
 EXPOSE 1337
 
+# Start API
 CMD ["./bin/arthveda"]

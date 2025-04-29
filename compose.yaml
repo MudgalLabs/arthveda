@@ -3,7 +3,6 @@ services:
         container_name: frontend
         image: frontend:1.0.0
         build:
-            context: ./frontend
             dockerfile: react.dockerfile
         ports:
             - "${REACT_PORT}:${REACT_PORT}"
@@ -15,7 +14,6 @@ services:
         container_name: backend
         image: backend:1.0.0
         build:
-            context: ./backend
             dockerfile: go.dockerfile
         environment:
             APP_ENV: ${GO_APP_ENV}
