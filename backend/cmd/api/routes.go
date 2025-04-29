@@ -18,17 +18,12 @@ func initRouter(a *app) http.Handler {
 	r.Use(logRequestMiddleware)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost", "https://arthveda.ceoshikhar.com"},
+		AllowedOrigins:   []string{"http://localhost:6969", "https://arthveda.ceoshikhar.com"},
 		AllowedMethods:   []string{"GET", "DELETE", "OPTIONS", "PATCH", "POST", "PUT"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"*"},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
-		// AllowOriginFunc: func(r *http.Request, origin string) bool {
-		// 	// FIXME: In prod, this should actually be allowing only the prod URL which
-		// 	// would most likely be arthveda.io or app.arthveda.io
-		// 	return true
-		// },
 	}))
 
 	// Set a timeout value on the request context (ctx), that will signal
