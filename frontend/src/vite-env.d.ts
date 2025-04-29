@@ -1,8 +1,12 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-    readonly VITE_API_BASE_URL: string;
-    readonly VITE_PORT: number;
+    /**
+     * Arthveda's API URL.
+     * NOTE: This should be without the API version in the path.
+     * @example "https://api.arthveda.io"
+     */
+    readonly VITE_API_URL: string;
 }
 
 interface ImportMeta {
