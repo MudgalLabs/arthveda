@@ -1,3 +1,3 @@
-# Arthveda
+# arthveda
 
 Your Trading Companion
