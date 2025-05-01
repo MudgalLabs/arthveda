@@ -27,7 +27,7 @@ services:
             GO_LOG_LEVEL: ${GO_LOG_LEVEL}
             GO_LOG_FILE: ${GO_LOG_FILE}
         ports:
-            - 1337:1337
+            - "${GO_PORT}:${GO_PORT}"
         depends_on:
             database:
                 condition: service_healthy

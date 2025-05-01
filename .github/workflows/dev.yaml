@@ -21,17 +21,16 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Create .env and add GO_PORT to it
+            - name: Setup .env
               run: |
                   touch .env
                   echo "GO_PORT=1337" > .env
+                  echo "POSTGRES_PORT=42069" > .env
                   cat .env
-                  export GO_PORT=1337
 
             - name: Build and push to DockerHub
               run: |
                   cat .env
-                  echo $GO_PORT
                   docker compose build backend
                   docker push ${{ secrets.DOCKERHUB_USERNAME }}/arthveda-backend:dev
 
