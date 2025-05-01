@@ -24,8 +24,8 @@ jobs:
             - name: Setup .env
               run: |
                   touch .env
-                  echo "GO_PORT=1337" > .env
-                  echo "POSTGRES_PORT=42069" > .env
+                  echo "GO_PORT=1337" >> .env
+                  echo "POSTGRES_PORT=42069" >> .env
                   cat .env
 
             - name: Build and push to DockerHub
