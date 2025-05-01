@@ -27,11 +27,9 @@ jobs:
                   echo "GO_PORT=1337" >> .env
                   echo "POSTGRES_PORT=42069" >> .env
                   echo "REACT_PORT=6969" >> .env
-                  cat .env
 
             - name: Build and push to DockerHub
               run: |
-                  cat .env
                   docker compose build backend
                   docker push ${{ secrets.DOCKERHUB_USERNAME }}/arthveda-backend:dev
 
