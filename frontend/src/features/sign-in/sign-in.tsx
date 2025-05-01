@@ -2,7 +2,7 @@ import { FormEvent, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { apiHooks } from "@/hooks/api-hooks";
-import { Button, TextInput } from "@/s8ly";
+import { Button, Input } from "@/s8ly";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/toast";
 import { ContinueWithGoogle } from "@/components/continue-with-google";
@@ -51,7 +51,7 @@ export default function SignIn() {
                 <Link to={ROUTES.signUp}>Sign up for free</Link>
             </p>
             <form className="flex flex-col" onSubmit={handleSubmit}>
-                <TextInput
+                <Input
                     className="mb-4"
                     placeholder="Email"
                     name="email"
@@ -60,7 +60,7 @@ export default function SignIn() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
-                <TextInput
+                <Input
                     className="mb-2"
                     placeholder="Password"
                     name="password"

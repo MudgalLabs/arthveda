@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { toast } from "@/components/toast";
-import { Button, TextInput } from "@/s8ly";
+import { Button, Input } from "@/s8ly";
 import { apiHooks } from "@/hooks/api-hooks";
 import { ROUTES } from "@/routes";
 import { ContinueWithGoogle } from "@/components/continue-with-google";
@@ -99,7 +99,7 @@ export default function SignUp() {
             </p>
 
             <form className="flex flex-col" onSubmit={handleSubmit}>
-                <TextInput
+                <Input
                     id="email"
                     name="email"
                     placeholder="Email"
@@ -115,7 +115,7 @@ export default function SignUp() {
                 )}
                 <div className="mb-4"></div>
 
-                <TextInput
+                <Input
                     id="password"
                     name="password"
                     placeholder="Password"
@@ -137,7 +137,7 @@ export default function SignUp() {
 
                 <div className="mb-4"></div>
 
-                <TextInput
+                <Input
                     id="confirmPassword"
                     name="confirmPassword"
                     placeholder="Confirm password"

@@ -1,5 +1,5 @@
 export const AddTrade = () => {
-    return <h1>Add Trade</h1>;
+    return <h1 className="heading">Add Trade</h1>;
 };
 
 export default AddTrade;

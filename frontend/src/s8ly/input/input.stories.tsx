@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { InputWithLabel } from "@/components/input-with-label";
 
-import { TextInput as TextInputComp } from "@/s8ly";
+import { Input as TextInputComp } from "@/s8ly";
 
 const meta = {
     title: "s8ly/TextInput",

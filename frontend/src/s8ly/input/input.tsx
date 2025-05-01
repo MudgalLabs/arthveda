@@ -2,14 +2,14 @@ import { FC, ComponentProps } from "react";
 
 import { cn } from "@/lib/utils";
 
-interface TextInputProps extends ComponentProps<"input"> {
+interface InputProps extends ComponentProps<"input"> {
     type?: "email" | "number" | "password" | "search" | "tel" | "text" | "url";
     value?: string | number;
     hidePlaceholderOnFocus?: boolean;
     compact?: boolean;
 }
 
-const TextInput: FC<TextInputProps> = (props) => {
+const Input: FC<InputProps> = (props) => {
     const { className, disabled, compact, ...rest } = props;
 
     return (
@@ -31,7 +31,7 @@ const TextInput: FC<TextInputProps> = (props) => {
     );
 };
 
-TextInput.displayName = "s8ly_TextInput";
+Input.displayName = "s8ly_Input";
 
-export { TextInput };
-export type { TextInputProps };
+export { Input };
+export type { InputProps };
