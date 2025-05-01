@@ -25,11 +25,6 @@ func signUpHandler(s *user_identity.Service) http.HandlerFunc {
 	}
 }
 
-type signinRequestBody struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 func signInHandler(s *user_identity.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

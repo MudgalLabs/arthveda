@@ -1,7 +1,7 @@
 services:
     frontend:
         container_name: frontend
-        image: frontend:1.0.0
+        image: frontend:0.0.1
         build:
             dockerfile: react.dockerfile
         ports:
@@ -12,7 +12,7 @@ services:
 
     backend:
         container_name: backend
-        image: backend:1.0.0
+        image: ceoshikhar/arthveda-backend:0.0.1
         build:
             dockerfile: go.dockerfile
         environment:
