@@ -44,13 +44,13 @@ services:
         ports:
             - "${POSTGRES_PORT}:${POSTGRES_PORT}"
         volumes:
-            - ~/docker_volumes/arthveda_postgresql_data:/var/lib/postgresql/data
+            - /var/lib/arthveda/postgresql/data:/var/lib/postgresql/data
         healthcheck:
             test:
                 [
                     "CMD-SHELL",
                     "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}",
                 ]
-            interval: 5s
+            interval: 10s
             timeout: 5s
             retries: 5
