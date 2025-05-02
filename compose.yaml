@@ -1,11 +1,16 @@
+networks:
+    arthveda_network:
+        name: arthveda_network
+
 services:
     frontend:
         container_name: frontend
-        image: frontend:dev
         build:
             dockerfile: react.dockerfile
         ports:
             - "${REACT_PORT}:${REACT_PORT}"
+        networks:
+            - arthveda_network
         depends_on:
             backend:
                 condition: service_started
@@ -28,6 +33,8 @@ services:
             GO_LOG_FILE: ${GO_LOG_FILE}
         ports:
             - "${GO_PORT}:${GO_PORT}"
+        networks:
+            - arthveda_network
         depends_on:
             database:
                 condition: service_healthy
@@ -43,6 +50,8 @@ services:
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         ports:
             - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+        networks:
+            - arthveda_network
         volumes:
             - ~/docker_volumes/arthveda_postgresql_data:/var/lib/postgresql/data
         healthcheck:
