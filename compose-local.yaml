@@ -11,5 +11,5 @@ services:
         networks:
             - arthveda_network
         depends_on:
-            frontend:
+            client:
                 condition: service_started
