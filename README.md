@@ -3,3 +3,5 @@
   <h1>Arthveda</h1>
   <p>The Open Source Trading Journal</p>
 </div>
+
+![arthveda_banner](https://github.com/user-attachments/assets/127cc8c0-0d22-401a-b5ee-761ceb5fb0e0)
