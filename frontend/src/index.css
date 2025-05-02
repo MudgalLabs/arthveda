@@ -21,6 +21,20 @@
     src: url("./assets/fonts/Karla.ttf");
 }
 
+@font-face {
+    font-family: Museo Sans;
+    src: url("./assets/fonts/MuseoSans-Medium.otf");
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Museo Sans;
+    src: url("./assets/fonts/MuseoSans-Bold.otf");
+    font-weight: bold;
+    font-style: normal;
+}
+
 /* Theme*/
 
 @theme {
@@ -87,6 +101,7 @@
 
     --font-poppins: Poppins;
     --font-karla: Karla;
+    --font-museo-sans: Museo Sans;
 }
 
 /* Global */

@@ -91,7 +91,7 @@ export const Sidebar = () => {
                         // FIXME
                         // The negative mt is a hack to make the Logo and Branding Logo appear at the same height.
                         // This can be fixed by removing the padding from SVG by re-rendering a new one from Figma.
-                        <Branding height={32} className="" />
+                        <Branding className="h-8" />
                     ) : (
                         <Logo height={32} />
                     )}
