@@ -1,11 +1,11 @@
-name: "build & deploy api"
+name: "build and deploy api"
 
 on:
     push:
         branches: ["dev"]
 
 jobs:
-    build-and-deploy:
+    build-and-deploy-api:
         runs-on: ubuntu-latest
 
         steps:
