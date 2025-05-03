@@ -15,10 +15,11 @@ type UserProfile struct {
 	UpdatedAt    zero.Time `json:"updated_at" db:"updated_at"`
 }
 
-func NewUserProfile(userID int64, email string) *UserProfile {
+func NewUserProfile(userID int64, email, name string) *UserProfile {
 	return &UserProfile{
-		UserID:    userID,
-		Email:     email,
-		CreatedAt: time.Now().UTC(),
+		UserID:      userID,
+		Email:       email,
+		DisplayName: name,
+		CreatedAt:   time.Now().UTC(),
 	}
 }

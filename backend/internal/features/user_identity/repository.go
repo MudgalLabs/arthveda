@@ -16,7 +16,7 @@ type Reader interface {
 }
 
 type Writer interface {
-	SignUp(ctx context.Context, userIdentity *UserIdentity) (*user_profile.UserProfile, error)
+	SignUp(ctx context.Context, name string, userIdentity *UserIdentity) (*user_profile.UserProfile, error)
 }
 
 type ReadWriter interface {
@@ -124,7 +124,7 @@ func (r *userIdentityRepository) findUserIdentities(ctx context.Context, tx pgx.
 	return userIdentities, nil
 }
 
-func (r *userIdentityRepository) SignUp(ctx context.Context, userIdentity *UserIdentity) (*user_profile.UserProfile, error) {
+func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userIdentity *UserIdentity) (*user_profile.UserProfile, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin: %w", err)
@@ -151,7 +151,7 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, userIdentity *UserI
 		return nil, fmt.Errorf("user identity sql scan: %w", err)
 	}
 
-	userProfile := user_profile.NewUserProfile(userID, userIdentity.Email)
+	userProfile := user_profile.NewUserProfile(userID, userIdentity.Email, name)
 
 	profileSQL := `
 	INSERT INTO user_profile (user_id, email, display_name, display_image, created_at, updated_at)

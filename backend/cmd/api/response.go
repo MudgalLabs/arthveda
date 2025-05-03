@@ -28,7 +28,7 @@ func internalServerErrorResponse(w http.ResponseWriter, r *http.Request, err err
 func malformedJSONResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
 	l.Warnw("malformed json response", "error", err.Error())
-	writeJSONResponse(w, http.StatusBadRequest, apires.MalformedJSONError)
+	writeJSONResponse(w, http.StatusBadRequest, apires.MalformedJSONError())
 }
 
 func invalidInputResponse(w http.ResponseWriter, r *http.Request, errs service.InputValidationErrors) {

@@ -32,12 +32,24 @@ func NewService(uir ReadWriter, upr user_profile.ReadWriter) *Service {
 }
 
 type SignUpPayload struct {
-	Email    string `json:"email" validate:"required, email"`
-	Password string `json:"password" validate:"required"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (payload *SignUpPayload) validate() error {
 	var validationErrors service.InputValidationErrors = nil
+
+	// Validate name
+	const nameMinLength = 3
+
+	if strings.TrimSpace(payload.Name) == "" {
+		validationErrors.Add(apires.NewApiError("Name is required", "name cannot be empty", "name", payload.Name))
+	}
+
+	if rc := utf8.RuneCountInString(payload.Name); rc < nameMinLength {
+		validationErrors.Add(apires.NewApiError(fmt.Sprintf("Name must be longer than %d letters", nameMinLength), fmt.Sprintf("name must be longer than %d characters in length", nameMinLength), "name", payload.Name))
+	}
 
 	// Validate email
 	const emailMaxLength = 100
@@ -146,7 +158,7 @@ func (s *Service) SignUp(ctx context.Context, payload SignUpPayload) (*user_prof
 		return nil, service.ErrInternalServerError, fmt.Errorf("new user identity: %w", err)
 	}
 
-	newUserProfile, err := s.userIdentityRepository.SignUp(ctx, newUserIdentity)
+	newUserProfile, err := s.userIdentityRepository.SignUp(ctx, payload.Name, newUserIdentity)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("repository sign up: %w", err)
 	}

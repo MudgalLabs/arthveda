@@ -21,7 +21,7 @@ type ApiError struct {
 	// Technical details regarding the error usually for API developers.
 	Description string `json:"description"`
 
-	// Indicates which part of the request triggered the error. It can be null.
+	// Indicates which part of the request triggered the error.
 	PropertyPath string `json:"property_path,omitempty"`
 
 	// Shows the value causing the error.
