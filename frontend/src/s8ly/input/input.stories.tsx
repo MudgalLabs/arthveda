@@ -1,17 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
+import { Input as InputComp, Label } from "@/s8ly";
+
 import { WithLabel as WithLabelComp } from "@/components/with-label";
 import { Password as PasswordComp } from "@/components/password";
 
-import { Input as TextInputComp, Label } from "@/s8ly";
-
 const meta = {
-    title: "s8ly/TextInput",
-    component: TextInputComp,
+    title: "s8ly/Input",
+    component: InputComp,
     parameters: {
         layout: "centered",
     },
-} satisfies Meta<typeof TextInputComp>;
+} satisfies Meta<typeof InputComp>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -44,7 +44,7 @@ export const WithLabel: Story = {
     render: () => (
         <WithLabelComp
             Label={<Label>Email</Label>}
-            Input={<TextInputComp placeholder="mail@example.com" />}
+            Input={<InputComp placeholder="mail@example.com" />}
         />
     ),
 };

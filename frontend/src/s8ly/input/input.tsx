@@ -17,11 +17,11 @@ const Input: FC<InputProps> = (props) => {
         hidePlaceholderOnFocus,
         onBlur,
         onFocus,
-        placeholder,
+        placeholder: placeholderProp,
         ...rest
     } = props;
 
-    const [placeholderText, setPlaceholderText] = useState(placeholder);
+    const [placeholder, setPlaceholderText] = useState(placeholderProp);
 
     function handleOnFocus(event: React.FocusEvent<HTMLInputElement>) {
         if (hidePlaceholderOnFocus) setPlaceholderText("");
@@ -29,7 +29,7 @@ const Input: FC<InputProps> = (props) => {
     }
 
     function handleOnBlur(event: React.FocusEvent<HTMLInputElement>) {
-        if (hidePlaceholderOnFocus) setPlaceholderText(placeholder);
+        if (hidePlaceholderOnFocus) setPlaceholderText(placeholderProp);
         if (onBlur) onBlur(event);
     }
 
@@ -47,7 +47,7 @@ const Input: FC<InputProps> = (props) => {
                 className
             )}
             disabled={disabled}
-            placeholder={placeholderText}
+            placeholder={placeholder}
             onFocus={handleOnFocus}
             onBlur={handleOnBlur}
             {...rest}

@@ -29,28 +29,28 @@ export const Tooltip: FC<TooltipProps> = ({
     if (disabled) return children;
 
     return (
-        <TooltipPrimitive.Root
-            open={open}
-            defaultOpen={defaultOpen}
-            onOpenChange={onOpenChange}
-            delayDuration={delayDuration}
-            disableHoverableContent={disableHoverableContent}
-        >
-            <TooltipPrimitive.Trigger asChild>
-                {children}
-            </TooltipPrimitive.Trigger>
-
-            <TooltipPrimitive.Content
-                className={cn(
-                    "bg-primary-950 text-primary-100 0 z-30 m-2 rounded-sm px-3 py-2 text-sm font-medium",
-                    contentPropsClassName
-                )}
-                {...contentPropsRest}
+        <TooltipPrimitive.TooltipProvider>
+            <TooltipPrimitive.Root
+                open={open}
+                defaultOpen={defaultOpen}
+                onOpenChange={onOpenChange}
+                delayDuration={delayDuration}
+                disableHoverableContent={disableHoverableContent}
             >
-                {content}
-            </TooltipPrimitive.Content>
-        </TooltipPrimitive.Root>
+                <TooltipPrimitive.Trigger asChild>
+                    {children}
+                </TooltipPrimitive.Trigger>
+
+                <TooltipPrimitive.Content
+                    className={cn(
+                        "bg-primary-950 text-primary-100 0 z-30 m-2 rounded-sm px-3 py-2 text-sm font-medium",
+                        contentPropsClassName
+                    )}
+                    {...contentPropsRest}
+                >
+                    {content}
+                </TooltipPrimitive.Content>
+            </TooltipPrimitive.Root>
+        </TooltipPrimitive.TooltipProvider>
     );
 };
-
-export const TooltipProvider = TooltipPrimitive.TooltipProvider;
