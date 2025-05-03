@@ -3,6 +3,7 @@ name: "build and deploy api"
 on:
     push:
         branches: ["dev"]
+        paths: "backend/**"
 
 jobs:
     build-and-deploy-api:
