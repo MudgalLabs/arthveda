@@ -1,4 +1,4 @@
-import { FC, ComponentProps } from "react";
+import { FC, ComponentProps, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,7 +10,28 @@ interface InputProps extends ComponentProps<"input"> {
 }
 
 const Input: FC<InputProps> = (props) => {
-    const { className, disabled, compact, ...rest } = props;
+    const {
+        className,
+        compact,
+        disabled,
+        hidePlaceholderOnFocus,
+        onBlur,
+        onFocus,
+        placeholder,
+        ...rest
+    } = props;
+
+    const [placeholderText, setPlaceholderText] = useState(placeholder);
+
+    function handleOnFocus(event: React.FocusEvent<HTMLInputElement>) {
+        if (hidePlaceholderOnFocus) setPlaceholderText("");
+        if (onFocus) onFocus(event);
+    }
+
+    function handleOnBlur(event: React.FocusEvent<HTMLInputElement>) {
+        if (hidePlaceholderOnFocus) setPlaceholderText(placeholder);
+        if (onBlur) onBlur(event);
+    }
 
     return (
         <input
@@ -26,6 +47,9 @@ const Input: FC<InputProps> = (props) => {
                 className
             )}
             disabled={disabled}
+            placeholder={placeholderText}
+            onFocus={handleOnFocus}
+            onBlur={handleOnBlur}
             {...rest}
         />
     );

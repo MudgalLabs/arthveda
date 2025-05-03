@@ -10,3 +10,5 @@ export { RiExpandUpDownLine as IconExpandUpDown } from "react-icons/ri";
 export { MdOutlineSettings as IconSettings } from "react-icons/md";
 export { MdOutlineLogout as IconLogout } from "react-icons/md";
 export { LuCloudUpload as IconImport } from "react-icons/lu";
+export { FaEye as IconEyeOpen } from "react-icons/fa";
+export { FaEyeSlash as IconEyeClose } from "react-icons/fa";

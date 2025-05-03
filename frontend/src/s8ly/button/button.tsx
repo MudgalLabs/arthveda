@@ -43,6 +43,18 @@ const buttonVariants = cva(
                     "disabled:text-foreground-3",
                     "focus-visible:outline-foreground-1",
                 ],
+                outline: [
+                    "bg-transparent",
+                    "text-primary-500",
+                    "border-2 border-primary-900",
+                    "disabled:text-foreground-3",
+                ],
+                icon: [
+                    "bg-transparent",
+                    "text-primary-500",
+                    "p-2.5!",
+                    "disabled:text-foreground-3",
+                ],
             },
             size: {
                 small: [
@@ -85,18 +97,16 @@ const Button: FC<ButtonProps> = (props) => {
             className={cn(buttonVariants({ variant, size, className }), {
                 "active:scale-[0.98]": !loading && !disabled,
                 "cursor-pointer": !loading,
-                "hover:bg-primary-600":
+                "hover:bg-primary-600 active:bg-primary-500":
                     !loading && !disabled && variant === "primary",
-                "active:bg-primary-500":
-                    !loading && !disabled && variant === "primary",
-                "hover:bg-secondary-600":
+                "hover:bg-secondary-600 active:bg-secondary-500":
                     !loading && !disabled && variant === "secondary",
-                "active:bg-secondary-500":
-                    !loading && !disabled && variant === "secondary",
-                "hover:bg-foreground-2":
+                "hover:bg-foreground-2 active:bg-foreground-1":
                     !loading && !disabled && variant === "bright",
-                "active:bg-foreground-1":
-                    !loading && !disabled && variant === "bright",
+                "hover:border-primary-700 hover:text-primary-400 active:border-primary-800 active:tex-primary-500":
+                    !loading && !disabled && variant === "outline",
+                "hover:bg-primary-950 hover:text-primary-400":
+                    !loading && !disabled && variant === "icon",
                 "cursor-not-allowed": loading || disabled,
             })}
             disabled={disabled}
@@ -121,6 +131,8 @@ const loadingVariant = cva(["absolute", "inline-flex", "items-center"], {
             primary: ["border-seondary-950"],
             secondary: ["border-primary-950"],
             bright: ["border-primary-950"],
+            outline: ["border-primary-500"],
+            icon: ["border-primary-500"],
         },
     },
 });

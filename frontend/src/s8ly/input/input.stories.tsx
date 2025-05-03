@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { InputWithLabel } from "@/components/input-with-label";
+import { WithLabel as WithLabelComp } from "@/components/with-label";
+import { Password as PasswordComp } from "@/components/password";
 
-import { Input as TextInputComp } from "@/s8ly";
+import { Input as TextInputComp, Label } from "@/s8ly";
 
 const meta = {
     title: "s8ly/TextInput",
@@ -18,16 +19,32 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
     args: {
         placeholder: "Enter your name",
-        hidePlaceholderOnFocus: false,
-        disabled: false,
     },
+};
+
+export const Compact: Story = {
+    args: {
+        placeholder: "Enter your name",
+        compact: true,
+    },
+};
+
+export const HidePlaceholderOnFocus: Story = {
+    args: {
+        placeholder: "Enter your name",
+        hidePlaceholderOnFocus: true,
+    },
+};
+
+export const Password: Story = {
+    render: () => <PasswordComp />,
 };
 
 export const WithLabel: Story = {
     render: () => (
-        <InputWithLabel
-            label="Email"
-            inputProps={{ placeholder: "mail@example.com" }}
+        <WithLabelComp
+            Label={<Label>Email</Label>}
+            Input={<TextInputComp placeholder="mail@example.com" />}
         />
     ),
 };

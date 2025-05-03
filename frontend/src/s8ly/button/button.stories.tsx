@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { Button } from "@/s8ly";
+import { IconSettings } from "@/components/icons";
 
 /**
  * Leaving storybook boiler template comments in here so that we can later come back here if we need it.
@@ -82,5 +83,51 @@ export const Large: Story = {
     args: {
         size: "large",
         children: "Button",
+    },
+};
+
+export const Outline: Story = {
+    args: {
+        variant: "outline",
+        children: "Button",
+    },
+};
+
+export const OutlineDisabled: Story = {
+    args: {
+        variant: "outline",
+        children: "Button",
+        disabled: true,
+    },
+};
+
+export const OutlineLoading: Story = {
+    args: {
+        variant: "outline",
+        children: "Button",
+        loading: true,
+    },
+};
+
+export const Icon: Story = {
+    args: {
+        variant: "icon",
+        children: <IconSettings size={20} />,
+    },
+};
+
+export const IconLoading: Story = {
+    args: {
+        variant: "icon",
+        children: <IconSettings size={20} />,
+        loading: true,
+    },
+};
+
+export const IconDisabled: Story = {
+    args: {
+        variant: "icon",
+        children: <IconSettings size={20} />,
+        disabled: true,
     },
 };
