@@ -1,6 +1,8 @@
 import { FC } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
+import { cn } from "@/lib/utils";
+
 interface TooltipProps extends TooltipPrimitive.TooltipProps {
     content: React.ReactNode;
     disabled?: boolean;
@@ -20,6 +22,9 @@ export const Tooltip: FC<TooltipProps> = ({
 }) => {
     const { contentProps = {} } = props;
 
+    const { className: contentPropsClassName = "", ...contentPropsRest } =
+        contentProps;
+
     // This props makes it simpler to toggle Tooltip instead of conditional wrapping.
     if (disabled) return children;
 
@@ -36,8 +41,11 @@ export const Tooltip: FC<TooltipProps> = ({
             </TooltipPrimitive.Trigger>
 
             <TooltipPrimitive.Content
-                className="bg-primary-950 text-primary-100 0 z-30 m-2 rounded-sm px-3 py-2 text-sm font-medium"
-                {...contentProps}
+                className={cn(
+                    "bg-primary-950 text-primary-100 0 z-30 m-2 rounded-sm px-3 py-2 text-sm font-medium",
+                    contentPropsClassName
+                )}
+                {...contentPropsRest}
             >
                 {content}
             </TooltipPrimitive.Content>

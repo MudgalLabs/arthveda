@@ -8,6 +8,7 @@ import { toast } from "@/components/toast";
 import { ContinueWithGoogle } from "@/components/continue-with-google";
 import { ROUTES } from "@/routes";
 import { Link } from "@/components/link";
+import { Password } from "@/components/password";
 
 export default function SignIn() {
     const client = useQueryClient();
@@ -60,7 +61,7 @@ export default function SignIn() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
-                <Input
+                <Password
                     className="mb-2"
                     placeholder="Password"
                     name="password"

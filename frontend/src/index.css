@@ -145,3 +145,9 @@ a {
 @utility flex-center {
     @apply flex items-center justify-center;
 }
+
+/* Inputs */
+
+@utility input-error {
+    @apply outline-red rounded-lg outline-2 outline-offset-2 outline-dashed;
+}

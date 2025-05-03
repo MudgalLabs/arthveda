@@ -8,9 +8,14 @@ import { apiHooks } from "@/hooks/api-hooks";
 import { ROUTES } from "@/routes";
 import { ContinueWithGoogle } from "@/components/continue-with-google";
 import { Link } from "@/components/link";
+import { Password } from "@/components/password";
 
 export const SignupFormSchema = z
     .object({
+        name: z
+            .string()
+            .trim()
+            .min(3, { message: "Name must be longer than 3 letters" }),
         email: z
             .string()
             .email({ message: "Please enter a valid email." })
@@ -32,12 +37,14 @@ export const SignupFormSchema = z
     });
 
 interface FormErrors {
+    name: string[];
     email: string[];
     password: string[];
     confirmPassword: string[];
 }
 
 const defaultFormErrors: FormErrors = {
+    name: [],
     email: [],
     password: [],
     confirmPassword: [],
@@ -59,6 +66,7 @@ export default function SignUp() {
         },
     });
 
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -71,6 +79,7 @@ export default function SignUp() {
         setFormErrors(defaultFormErrors);
 
         const validatedFields = SignupFormSchema.safeParse({
+            name,
             email,
             password,
             confirmPassword,
@@ -84,6 +93,7 @@ export default function SignUp() {
         }
 
         signup({
+            name,
             email,
             password,
         });
@@ -100,6 +110,26 @@ export default function SignUp() {
 
             <form className="flex flex-col" onSubmit={handleSubmit}>
                 <Input
+                    className={
+                        formErrors.name?.length > 0 ? "input-error!" : ""
+                    }
+                    id="name"
+                    name="name"
+                    placeholder="Name"
+                    disabled={isPending}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                />
+                {formErrors.name?.length > 0 && (
+                    <p className="text-red mt-2 text-sm">{formErrors.name}</p>
+                )}
+                <div className="mb-4"></div>
+
+                <Input
+                    className={
+                        formErrors.email?.length > 0 ? "input-error!" : ""
+                    }
+                    type="email"
                     id="email"
                     name="email"
                     placeholder="Email"
@@ -109,13 +139,14 @@ export default function SignUp() {
                     onChange={(e) => setEmail(e.target.value)}
                 />
                 {formErrors.email?.length > 0 && (
-                    <p className="text-error mt-2 text-sm">
-                        {formErrors.email}
-                    </p>
+                    <p className="text-red mt-2 text-sm">{formErrors.email}</p>
                 )}
                 <div className="mb-4"></div>
 
-                <Input
+                <Password
+                    className={
+                        formErrors.password?.length > 0 ? "input-error!" : ""
+                    }
                     id="password"
                     name="password"
                     placeholder="Password"
@@ -125,7 +156,7 @@ export default function SignUp() {
                     onChange={(e) => setPassword(e.target.value)}
                 />
                 {formErrors.password?.length > 0 && (
-                    <div className="text-error mt-2 text-sm">
+                    <div className="text-red mt-2 text-sm">
                         <p>Password must:</p>
                         <ul>
                             {formErrors.password.map((error) => (
@@ -134,10 +165,14 @@ export default function SignUp() {
                         </ul>
                     </div>
                 )}
-
                 <div className="mb-4"></div>
 
-                <Input
+                <Password
+                    className={
+                        formErrors.confirmPassword?.length > 0
+                            ? "input-error!"
+                            : ""
+                    }
                     id="confirmPassword"
                     name="confirmPassword"
                     placeholder="Confirm password"
@@ -147,7 +182,7 @@ export default function SignUp() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                 />
                 {formErrors.confirmPassword?.length > 0 && (
-                    <p className="text-error mt-2 text-sm">
+                    <p className="text-red mt-2 text-sm">
                         {formErrors.confirmPassword}
                     </p>
                 )}
