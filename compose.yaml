@@ -12,14 +12,14 @@ services:
         networks:
             - arthveda_network
         depends_on:
-            api:
+            server:
                 condition: service_started
 
-    api:
-        container_name: api
-        image: ceoshikhar/arthveda-api:dev
+    server:
+        container_name: server
+        image: ceoshikhar/arthveda-server:dev
         build:
-            dockerfile: api.dockerfile
+            dockerfile: server.dockerfile
         environment:
             APP_ENV: ${GO_APP_ENV}
             GO_PORT: ${GO_PORT}

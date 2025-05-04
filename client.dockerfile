@@ -2,13 +2,13 @@ FROM node:23-alpine
 
 WORKDIR /app
 
-COPY ./frontend/package.json .
+COPY ./client/package.json .
 
 RUN npm install
 
 RUN npm i -g serve
 
-COPY ./frontend .
+COPY ./client .
 
 COPY ./.env ./.env
 

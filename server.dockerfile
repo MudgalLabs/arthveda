@@ -3,7 +3,7 @@ FROM golang:1.24.1-alpine3.21
 WORKDIR /app
 
 # Copy the backend directory contents to /app
-COPY ./backend .
+COPY ./server .
 
 # Install dependencies
 RUN go get -d -v ./...

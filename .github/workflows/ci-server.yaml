@@ -1,12 +1,12 @@
-name: "build and deploy api"
+name: "build and deploy server"
 
 on:
     push:
         branches: ["dev"]
-        paths: "backend/**"
+        paths: "server/**"
 
 jobs:
-    build-and-deploy-api:
+    build-and-deploy-server:
         runs-on: ubuntu-latest
 
         steps:
@@ -31,8 +31,8 @@ jobs:
 
             - name: Build and push to DockerHub
               run: |
-                  docker compose build api
-                  docker push ${{ secrets.DOCKERHUB_USERNAME }}/arthveda-api:dev
+                  docker compose build server
+                  docker push ${{ secrets.DOCKERHUB_USERNAME }}/arthveda-server:dev
 
             - name: Set up SSH
               uses: webfactory/ssh-agent@v0.9.0
@@ -45,4 +45,4 @@ jobs:
 
             - name: Deploy to VPS
               run: |
-                  ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout dev && git pull && docker compose pull api && docker compose up api -d && exit"
+                  ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout dev && git pull && docker compose pull server && docker compose up server -d && exit"
