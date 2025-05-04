@@ -27,14 +27,14 @@ const buttonVariants = cva(
                     "text-primary-950",
                     "disabled:bg-primary-950",
                     "disabled:text-primary-700",
-                    "focus-visible:outline-primary-400",
+                    "focus-visible:outline-primary-500",
                 ],
                 secondary: [
                     "bg-secondary-500",
                     "text-secondary-950",
                     "disabled:bg-secondary-950",
                     "disabled:text-secondary-700",
-                    "focus-visible:outline-secondary-400",
+                    "focus-visible:outline-secondary-500",
                 ],
                 bright: [
                     "bg-foreground-1",

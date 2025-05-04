@@ -134,7 +134,6 @@ export default function SignUp() {
                     name="email"
                     placeholder="Email"
                     disabled={isPending}
-                    autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />

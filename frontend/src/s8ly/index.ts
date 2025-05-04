@@ -1,9 +1,14 @@
+/**
+ * This is going to be later seperated out into it's own NPM package called 's8ly'.
+ *
+ * We will use these core building blocks as base components in all Mudgal Labs web projects.
+ */
+
 // Button
-export { Button } from "./button/button";
-export type { ButtonProps } from "./button/button";
+export * from "./button/button";
 // Label
-export { Label } from "./label/label";
-export type { LabelProps } from "./label/label";
-// TextInput
-export { Input } from "./input/input";
-export type { InputProps } from "./input/input";
+export * from "./label/label";
+// Input
+export * from "./input/input";
+// Select
+export * from "./select/select";
