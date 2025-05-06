@@ -12,7 +12,7 @@ export const Logo: FC<LogoProps> = (props) => {
     return (
         <svg
             height={height}
-            viewBox="0 0 48 41"
+            viewBox="0 0 32 48"
             fill={color}
             xmlns="http://www.w3.org/2000/svg"
             className={className}

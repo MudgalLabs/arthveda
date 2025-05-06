@@ -8,6 +8,7 @@ import { ToastProvider } from "@/components/toast";
 import { AuthenticationProvider } from "@/context/authentication-context";
 import routes from "@/routes";
 import App from "@/App";
+import { SidebarProvider } from "./components/sidebar/sidebar-context";
 
 const container = document.getElementById("root") as HTMLElement;
 
@@ -35,8 +36,10 @@ root.render(
     <StrictMode>
         <QueryClientProvider client={queryClient}>
             <AuthenticationProvider>
-                <RouterProvider router={router} />
-                <ToastProvider />
+                <SidebarProvider>
+                    <RouterProvider router={router} />
+                    <ToastProvider />
+                </SidebarProvider>
             </AuthenticationProvider>
         </QueryClientProvider>
     </StrictMode>

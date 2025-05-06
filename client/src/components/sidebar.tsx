@@ -1,21 +1,17 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { Logo } from "@/components/logo";
 import { Tooltip } from "@/components/tooltip";
-import { cn, LocalStorageKey, saveToLocalStorage } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ROUTES } from "@/routes";
-import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
 import {
-    IconPlus,
     IconDashboard,
     IconExpandUpDown,
     IconLogout,
     IconSettings,
     IconTrades,
     IconType,
-    IconImport,
 } from "@/components/icons";
 import {
     DropdownMenu,
@@ -28,18 +24,14 @@ import { useAuthentication } from "@/context/authentication-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiHooks } from "@/hooks/api-hooks";
 import { toast } from "@/components/toast";
+import { useSidebar } from "./sidebar/sidebar-context";
+
+export const SIDEBAR_WIDHTH = 280;
 
 export const Sidebar = () => {
     const { data } = useAuthentication();
-
     const { pathname } = useLocation();
-
-    // const [open, setOpen] = useState<boolean>(
-    //     JSON.parse(
-    //         loadFromLocalStorage(LocalStorageKey.SIDEBAR_OPEN) || "false"
-    //     )
-    // );
-    const open = false; // Disabling the sidebar expansion for now.
+    const { isOpen } = useSidebar();
 
     const [activeRoute, setActiveRoute] = useState(pathname);
 
@@ -50,69 +42,36 @@ export const Sidebar = () => {
         setActiveRoute(route);
     };
 
-    useEffect(() => {
-        saveToLocalStorage(LocalStorageKey.SIDEBAR_OPEN, JSON.stringify(open));
-    }, [open]);
+    console.log({ isOpen });
 
     return (
-        <div className="bg-background-2 relative flex h-dvh flex-col justify-between px-3">
+        <div
+            className={cn(
+                "border-r-accent-muted relative flex h-full flex-col justify-between border-r-1 px-3",
+                isOpen && `min-w-[${SIDEBAR_WIDHTH}px]`
+            )}
+        >
             <div>
-                {/* <div className="absolute top-4 right-[-9px] opacity-50 transition-opacity hover:opacity-100">
-                    <button
-                        className="text-primary-400 cursor-pointer"
-                        onClick={() => setOpen((prev) => !prev)}
-                    >
-                        {open ? (
-                            <Tooltip
-                                content="Collapse"
-                                delayDuration={300}
-                                contentProps={{ side: "left" }}
-                            >
-                                <IconLeft size={20} />
-                            </Tooltip>
-                        ) : (
-                            <Tooltip
-                                content="Expand"
-                                delayDuration={300}
-                                contentProps={{ side: "right" }}
-                            >
-                                <IconRight size={20} />
-                            </Tooltip>
-                        )}
-                    </button>
-                </div> */}
-
                 <div
-                    className={cn(
-                        "mt-4 flex w-full items-center justify-center"
-                    )}
+                    className={cn("mt-4 flex flex-col gap-y-2 pb-2", {
+                        "items-center": !isOpen,
+                    })}
                 >
-                    {open ? (
-                        // FIXME
-                        // The negative mt is a hack to make the Logo and Branding Logo appear at the same height.
-                        // This can be fixed by removing the padding from SVG by re-rendering a new one from Figma.
-                        <Branding className="h-8" />
-                    ) : (
-                        <Logo height={32} />
-                    )}
-                </div>
-
-                <div className="mt-15 flex flex-col items-center gap-y-2">
                     <Link to={ROUTES.dashboard} unstyled>
                         <SidebarNavItem
                             label="Dashboard"
                             Icon={IconDashboard}
-                            open={open}
+                            open={isOpen}
                             isActive={activeRoute === ROUTES.dashboard}
                             onClick={() => handleClick(ROUTES.dashboard)}
                         />
                     </Link>
 
-                    <Link to={ROUTES.trades}>
+                    <Link to={ROUTES.trades} unstyled>
                         <SidebarNavItem
                             label="Trades"
                             Icon={IconTrades}
-                            open={open}
+                            open={isOpen}
                             isActive={activeRoute === ROUTES.trades}
                             onClick={() => handleClick(ROUTES.trades)}
                         />
@@ -122,46 +81,11 @@ export const Sidebar = () => {
 
             <div
                 className={cn("flex flex-col gap-y-2 pb-2", {
-                    "items-center": !open,
-                    "pb-4": !open,
+                    "items-center": !isOpen,
                 })}
             >
-                <Link to={ROUTES.addTrade}>
-                    <Tooltip
-                        content="Add Trade"
-                        delayDuration={0}
-                        contentProps={{ side: "right" }}
-                        disabled={open}
-                    >
-                        <SidebarNavItem
-                            label="Add Trade"
-                            Icon={IconPlus}
-                            open={open}
-                            isActive={activeRoute === ROUTES.addTrade}
-                            onClick={() => handleClick(ROUTES.addTrade)}
-                        />
-                    </Tooltip>
-                </Link>
-
-                <Link to={ROUTES.importTrades}>
-                    <Tooltip
-                        content="Import Trades"
-                        delayDuration={0}
-                        contentProps={{ side: "right" }}
-                        disabled={open}
-                    >
-                        <SidebarNavItem
-                            label="Import Trades"
-                            Icon={IconImport}
-                            open={open}
-                            isActive={activeRoute === ROUTES.importTrades}
-                            onClick={() => handleClick(ROUTES.importTrades)}
-                        />
-                    </Tooltip>
-                </Link>
-
                 <SidebarProfileMenu
-                    sidebarOpen={open}
+                    sidebarOpen={isOpen}
                     setActiveRoute={setActiveRoute}
                     email={data!.email}
                     displayName={data?.display_name}
@@ -185,12 +109,15 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
 
     const content = (
         <div
-            className={cn("text-primary-500 w-fit rounded-lg p-3", {
-                "bg-primary-900 text-primary-300": isActive,
-                "hover:bg-primary-950 active:bg-primary-900 active:text-primary-300 hover:cursor-pointer":
-                    !isActive,
-                "flex w-[240px] items-center gap-3 text-base": open,
-            })}
+            className={cn(
+                "bg-muted text-muted-foreground w-full rounded-lg border-1 border-transparent p-3",
+                {
+                    "bg-primary text-foreground": isActive,
+                    "hover:border-accent hover:text-foreground hover:cursor-pointer":
+                        !isActive,
+                    "flex items-center gap-3 text-base": open,
+                }
+            )}
             onClick={onClick}
         >
             <Icon size={24} />
@@ -213,16 +140,22 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
 interface SidebarProfileProps {
     // Extra data is shown when `expanded` is `true`.
     expanded: boolean;
+
     // Can user click on this component?
     clickable: boolean;
+
     // Menu gets toggled when user clicks on this component.
     menuOpen: boolean;
+
     // User's email.
     email: string;
+
     // User's profile image URL.
     profileImageURL: string;
+
     // User's display name.
     displayName: string;
+
     // Style the component with classes.
     className?: string;
 }
@@ -241,13 +174,11 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
     return (
         <div
             className={cn(
-                "text-foreground-muted flex gap-x-2 rounded-lg text-left",
+                "text-muted-foreground bg-muted flex gap-x-2 rounded-lg text-left",
                 {
-                    "px-3 py-2": expanded && clickable,
-                    "active:bg-primary-900 hover:bg-primary-950 hover:cursor-pointer":
-                        clickable,
-                    "bg-primary-900": menuOpen,
-                    "w-[220px]": !clickable,
+                    "px-2 py-2": expanded && clickable,
+                    "hover:cursor-pointer": clickable,
+                    "bg-primary text-foreground": menuOpen,
                 },
                 className
             )}
@@ -259,15 +190,13 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
             )}
 
             {expanded && (
-                <div className="flex w-auto items-center">
+                <div className="flex w-full items-center justify-between">
                     <div>
                         <p className="text-sm">{displayName}</p>
                         <p className="text-[12px]">{email}</p>
                     </div>
 
-                    {clickable && (
-                        <IconExpandUpDown size={18} className="ml-6" />
-                    )}
+                    {clickable && <IconExpandUpDown size={18} className="" />}
                 </div>
             )}
         </div>

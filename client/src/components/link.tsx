@@ -16,7 +16,8 @@ export const Link: FC<LinkProps> = (props) => {
         <RouterLink
             className={cn(
                 {
-                    "text-base! font-normal! text-inherit!": unstyled,
+                    "text-base! font-normal! text-inherit! no-underline!":
+                        unstyled,
                 },
                 className
             )}

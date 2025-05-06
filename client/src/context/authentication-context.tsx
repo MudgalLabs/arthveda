@@ -15,8 +15,6 @@ const AuthenticationContext = createContext<AuthenticationContextType>({
     data: undefined,
 });
 
-AuthenticationContext.Provider;
-
 export const AuthenticationProvider: FC<PropsWithChildren> = ({ children }) => {
     const { data, isSuccess, isLoading } = apiHooks.user.useGetMe();
 

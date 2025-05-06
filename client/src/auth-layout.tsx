@@ -4,18 +4,18 @@ import { IconGithub } from "./components/icons";
 
 export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
     return (
-        <div className="flex h-screen flex-col items-center justify-between">
+        <div className="flex h-dvh flex-col items-center justify-between">
             <div />
             <div className="flex w-[85%] items-center justify-center md:justify-between lg:w-[70%] xl:w-[55%]">
                 <main className="flex flex-col items-center justify-center">
-                    <Branding className="mb-24 h-[48px] md:hidden!" />
+                    <Branding className="mb-24 md:hidden!" />
 
                     {/* Here is where we will render sign-in, sign-up, forgot-password forms. */}
                     {/* Maybe even reset-password too? */}
                     {children}
                 </main>
 
-                <Branding className="hidden! h-[48px] md:flex!" />
+                <Branding className="hidden! md:flex!" />
             </div>
 
             <div className="mb-3 flex w-full flex-row items-center justify-center gap-x-1 text-sm">
