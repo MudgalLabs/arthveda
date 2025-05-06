@@ -9,7 +9,7 @@ export const WithLabel: FC<WithLabelProps> = (props) => {
     const { Input, Label } = props;
 
     return (
-        <div className="flex flex-col gap-y-1.5">
+        <div className="flex flex-col gap-y-2">
             {Label}
             {Input}
         </div>

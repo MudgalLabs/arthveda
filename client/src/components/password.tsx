@@ -35,7 +35,7 @@ export const Password: FC<PasswordProps> = (props) => {
                 <Button
                     type="button"
                     variant="icon"
-                    className="absolute right-2 rounded-md"
+                    className="hover:bg-background-1 absolute right-2 rounded-md border-transparent"
                     onClick={() => setShowingPassword((prev) => !prev)}
                 >
                     {showingPassword ? <IconEyeClose /> : <IconEyeOpen />}

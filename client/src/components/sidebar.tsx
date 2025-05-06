@@ -241,7 +241,7 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
     return (
         <div
             className={cn(
-                "text-foreground-2 flex gap-x-2 rounded-lg text-left",
+                "text-foreground-muted flex gap-x-2 rounded-lg text-left",
                 {
                     "px-3 py-2": expanded && clickable,
                     "active:bg-primary-900 hover:bg-primary-950 hover:cursor-pointer":

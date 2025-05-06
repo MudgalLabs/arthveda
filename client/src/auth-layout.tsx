@@ -7,7 +7,7 @@ export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
         <div className="flex h-screen flex-col items-center justify-between">
             <div />
             <div className="flex w-[85%] items-center justify-center md:justify-between lg:w-[70%] xl:w-[55%]">
-                <main className="flex flex-col items-start justify-center">
+                <main className="flex flex-col items-center justify-center">
                     <Branding className="mb-24 h-[48px] md:hidden!" />
 
                     {/* Here is where we will render sign-in, sign-up, forgot-password forms. */}
@@ -33,11 +33,12 @@ export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
                         href="https://github.com/MudgalLabs/arthveda"
                         target="_blank"
                         rel="noopener noreferrer"
+                        className="inline-flex items-center gap-x-1"
                     >
                         Open Source
+                        <IconGithub />
                     </a>
                 </p>
-                <IconGithub />
             </div>
         </div>
     );

@@ -22,13 +22,6 @@ export const Default: Story = {
     },
 };
 
-export const Compact: Story = {
-    args: {
-        placeholder: "Enter your name",
-        compact: true,
-    },
-};
-
 export const HidePlaceholderOnFocus: Story = {
     args: {
         placeholder: "Enter your name",

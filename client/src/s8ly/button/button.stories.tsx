@@ -72,20 +72,6 @@ export const SecondaryLoading: Story = {
     },
 };
 
-export const Small: Story = {
-    args: {
-        size: "small",
-        children: "Button",
-    },
-};
-
-export const Large: Story = {
-    args: {
-        size: "large",
-        children: "Button",
-    },
-};
-
 export const Outline: Story = {
     args: {
         variant: "outline",
@@ -113,14 +99,6 @@ export const Icon: Story = {
     args: {
         variant: "icon",
         children: <IconSettings size={20} />,
-    },
-};
-
-export const IconLoading: Story = {
-    args: {
-        variant: "icon",
-        children: <IconSettings size={20} />,
-        loading: true,
     },
 };
 

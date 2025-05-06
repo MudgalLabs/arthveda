@@ -50,7 +50,7 @@ root.render(
                     }}
                     toastOptions={{
                         classNames: {
-                            info: "bg-primary-950! border-primary-900! text-primary-300! font-karla! text-sm!",
+                            info: "bg-primary-950! border-primary-900! text-primary-300! font-content! text-sm!",
                         },
                     }}
                 />

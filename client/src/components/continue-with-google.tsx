@@ -1,21 +1,15 @@
-import { Button } from "@/s8ly";
+import { Button, ButtonProps } from "@/s8ly";
 
 import { Google } from "@/components/google";
 import { FC } from "react";
 
-interface ContinueWithGoogleProps {
-    disabled?: boolean;
-}
+interface ContinueWithGoogleProps extends ButtonProps {}
 
 export const ContinueWithGoogle: FC<ContinueWithGoogleProps> = (props) => {
-    const { disabled = false } = props;
-
     return (
-        <Button variant="bright" disabled={disabled} type="button">
-            <div className="flex gap-x-3">
-                <Google />
-                Continue with Google
-            </div>
+        <Button variant="outline" type="button" className="h-10" {...props}>
+            <Google />
+            Continue with Google
         </Button>
     );
 };

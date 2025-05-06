@@ -43,7 +43,7 @@ export const Tooltip: FC<TooltipProps> = ({
 
                 <TooltipPrimitive.Content
                     className={cn(
-                        "bg-primary-950 text-primary-100 0 z-30 m-2 rounded-sm px-3 py-2 text-sm font-medium",
+                        "bg-accent text-foreground 0 z-50 m-2 rounded-md px-3 py-2 text-sm font-medium",
                         contentPropsClassName
                     )}
                     {...contentPropsRest}

@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { toast } from "@/components/toast";
-import { Button, Input } from "@/s8ly";
+import { Button, Input, Label } from "@/s8ly";
 import { apiHooks } from "@/hooks/api-hooks";
 import { ROUTES } from "@/routes";
 import { ContinueWithGoogle } from "@/components/continue-with-google";
 import { Link } from "@/components/link";
 import { Password } from "@/components/password";
+import { WithLabel } from "@/components/with-label";
 
 export const SignupFormSchema = z
     .object({
@@ -100,60 +101,84 @@ export default function SignUp() {
     };
 
     return (
-        <div>
-            <h1 className="font-poppins text-foreground-1 mb-1 text-[24px] font-bold">
+        <div className="border-border rounded-md border-1 p-6">
+            <h1 className="font-heading text-foreground mb-1 text-[24px] font-bold">
                 Sign up
             </h1>
-            <p className="text-foreground-2 mb-6 text-sm">
+            <p className="text-foreground-muted mb-6 text-sm">
                 Already have an account? <Link to={ROUTES.signIn}>Sign in</Link>
             </p>
 
             <form className="flex flex-col" onSubmit={handleSubmit}>
-                <Input
-                    className={
-                        formErrors.name?.length > 0 ? "input-error!" : ""
+                <WithLabel
+                    Label={<Label>Name</Label>}
+                    Input={
+                        <Input
+                            id="name"
+                            name="name"
+                            placeholder="Sigma Male"
+                            disabled={isPending}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            variant={
+                                formErrors.name?.length > 0
+                                    ? "error"
+                                    : undefined
+                            }
+                        />
                     }
-                    id="name"
-                    name="name"
-                    placeholder="Name"
-                    disabled={isPending}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
                 />
+
                 {formErrors.name?.length > 0 && (
                     <p className="text-red mt-2 text-sm">{formErrors.name}</p>
                 )}
                 <div className="mb-4"></div>
 
-                <Input
-                    className={
-                        formErrors.email?.length > 0 ? "input-error!" : ""
+                <WithLabel
+                    Label={<Label>Email</Label>}
+                    Input={
+                        <Input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="name@arthveda.io"
+                            disabled={isPending}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            variant={
+                                formErrors.email?.length > 0
+                                    ? "error"
+                                    : undefined
+                            }
+                        />
                     }
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Email"
-                    disabled={isPending}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                 />
+
                 {formErrors.email?.length > 0 && (
                     <p className="text-red mt-2 text-sm">{formErrors.email}</p>
                 )}
                 <div className="mb-4"></div>
 
-                <Password
-                    className={
-                        formErrors.password?.length > 0 ? "input-error!" : ""
+                <WithLabel
+                    Label={<Label>Password</Label>}
+                    Input={
+                        <Password
+                            id="password"
+                            name="password"
+                            placeholder="Password"
+                            type="password"
+                            disabled={isPending}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            variant={
+                                formErrors.password?.length > 0
+                                    ? "error"
+                                    : undefined
+                            }
+                        />
                     }
-                    id="password"
-                    name="password"
-                    placeholder="Password"
-                    type="password"
-                    disabled={isPending}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                 />
+
                 {formErrors.password?.length > 0 && (
                     <div className="text-red mt-2 text-sm">
                         <p>Password must:</p>
@@ -166,20 +191,26 @@ export default function SignUp() {
                 )}
                 <div className="mb-4"></div>
 
-                <Password
-                    className={
-                        formErrors.confirmPassword?.length > 0
-                            ? "input-error!"
-                            : ""
+                <WithLabel
+                    Label={<Label>Confirm Password</Label>}
+                    Input={
+                        <Password
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            placeholder="Password"
+                            type="password"
+                            disabled={isPending}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            variant={
+                                formErrors.confirmPassword?.length > 0
+                                    ? "error"
+                                    : undefined
+                            }
+                        />
                     }
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    placeholder="Confirm password"
-                    type="password"
-                    disabled={isPending}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
                 />
+
                 {formErrors.confirmPassword?.length > 0 && (
                     <p className="text-red mt-2 text-sm">
                         {formErrors.confirmPassword}
@@ -196,7 +227,7 @@ export default function SignUp() {
                     Sign up
                 </Button>
 
-                <p className="text-foreground-3 mb-3 text-center text-[12px]">
+                <p className="text-foreground-muted mb-3 text-center text-[12px]">
                     OR
                 </p>
 

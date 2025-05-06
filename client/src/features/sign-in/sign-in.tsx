@@ -2,13 +2,14 @@ import { FormEvent, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { apiHooks } from "@/hooks/api-hooks";
-import { Button, Input } from "@/s8ly";
+import { Button, Input, Label } from "@/s8ly";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/toast";
 import { ContinueWithGoogle } from "@/components/continue-with-google";
 import { ROUTES } from "@/routes";
 import { Link } from "@/components/link";
 import { Password } from "@/components/password";
+import { WithLabel } from "@/components/with-label";
 
 export default function SignIn() {
     const client = useQueryClient();
@@ -43,32 +44,43 @@ export default function SignIn() {
     };
 
     return (
-        <div>
-            <h1 className="font-poppins text-foreground-1 mb-1 text-[24px] font-bold">
+        <div className="border-border rounded-md border-1 p-6">
+            <h1 className="font-heading text-foreground mb-1 text-[24px] font-bold">
                 Sign in
             </h1>
-            <p className="text-foreground-2 mb-6 text-sm">
+            <p className="text-foreground-muted mb-6 text-sm">
                 New to Arthveda?{" "}
                 <Link to={ROUTES.signUp}>Sign up for free</Link>
             </p>
             <form className="flex flex-col" onSubmit={handleSubmit}>
-                <Input
-                    className="mb-4"
-                    placeholder="Email"
-                    name="email"
-                    disabled={isPending}
-                    autoFocus
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                <WithLabel
+                    Label={<Label>Email</Label>}
+                    Input={
+                        <Input
+                            className="mb-4"
+                            placeholder="Email"
+                            name="email"
+                            disabled={isPending}
+                            autoFocus
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                    }
                 />
-                <Password
-                    className="mb-2"
-                    placeholder="Password"
-                    name="password"
-                    type="password"
-                    disabled={isPending}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+
+                <WithLabel
+                    Label={<Label>Password</Label>}
+                    Input={
+                        <Password
+                            className="mb-2"
+                            placeholder="Password"
+                            name="password"
+                            type="password"
+                            disabled={isPending}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    }
                 />
 
                 <Link className="mb-6" to={ROUTES.forgotPassword}>
@@ -84,7 +96,7 @@ export default function SignIn() {
                     Sign in
                 </Button>
 
-                <p className="text-foreground-3 mb-3 text-center text-[12px]">
+                <p className="text-foreground-muted mb-3 text-center text-[12px]">
                     OR
                 </p>
 

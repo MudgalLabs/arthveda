@@ -13,7 +13,7 @@ export const Branding: FC<BrandingProps> = (props) => {
     return (
         <div
             className={cn(
-                "font-museo-sans text-primary-500 flex! items-baseline gap-x-3 text-[52px] font-semibold",
+                "font-logo text-primary-500 flex! items-baseline gap-x-3 text-[52px] font-semibold",
                 className
             )}
         >
