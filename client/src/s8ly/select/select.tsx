@@ -53,10 +53,10 @@ export const Select: FC<SelectProps> = ({
             <SelectPrimitive.Trigger
                 ref={ref}
                 className={cn(
-                    "bg-primary-950 text-foreground focus:outline-primary-500 flex items-center justify-between gap-x-4 rounded-md p-3",
-                    "w-[300px] cursor-pointer focus:outline-1 focus:outline-offset-4",
+                    "bg-muted text-foreground border-border box-border flex w-[300px] cursor-pointer items-center justify-between gap-x-4 rounded-md border-1 p-3",
+                    "focus:outline-primary focus:outline-1 focus:outline-offset-0",
                     {
-                        "text-primary-300": !value,
+                        "text-foreground-muted": !value,
                     },
                     className?.trigger
                 )}
@@ -77,7 +77,7 @@ export const Select: FC<SelectProps> = ({
                 <SelectPrimitive.Content
                     position="popper"
                     className={cn(
-                        "bg-primary-950 mt-1 w-[300px] rounded-md",
+                        "border-border bg-background-1 mt-1 w-[300px] rounded-md border-1",
                         className?.content
                     )}
                 >
@@ -111,11 +111,11 @@ const SelectItem: FC<SelectItemProps> = ({ children, ref, ...props }) => {
         <SelectPrimitive.Item
             {...props}
             ref={ref}
-            className="hover:bg-primary-900 focus:bg-primary-900 m-1 flex cursor-pointer items-center justify-between rounded-md px-2 py-3 focus:outline-none"
+            className="hover:bg-muted focus:bg-muted m-1 flex cursor-pointer items-center justify-between rounded-md px-2 py-3 focus:outline-none"
         >
             <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
             <SelectPrimitive.ItemIndicator>
-                <IconCheck size={20} className="text-primary-300" />
+                <IconCheck size={20} className="text-primary" />
             </SelectPrimitive.ItemIndicator>
         </SelectPrimitive.Item>
     );
