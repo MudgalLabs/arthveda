@@ -89,7 +89,7 @@ export default function SignIn() {
 
                 <Button
                     className="mb-3"
-                    variant="secondary"
+                    variant="primary"
                     loading={isPending}
                     disabled={!email || !password}
                 >

@@ -6,7 +6,7 @@ interface InputProps extends ComponentProps<"input"> {
     hidePlaceholderOnFocus?: boolean;
     type?: "email" | "number" | "password" | "search" | "tel" | "text" | "url";
     value?: string | number;
-    variant?: "default" | "error";
+    variant?: "default" | "error" | undefined;
 }
 
 const Input: FC<InputProps> = (props) => {
@@ -38,7 +38,7 @@ const Input: FC<InputProps> = (props) => {
             className={cn(
                 "bg-muted text-foreground border-border box-border w-[300px] rounded-md border-1 p-3 text-sm",
                 "focus:border-accent focus:bg-background-1 focus:border-1",
-                "disabled:opacity-50",
+                "disabled:opacity-69",
                 "transition-all outline-none disabled:cursor-not-allowed",
                 {
                     "border-rose-500": variant === "error",

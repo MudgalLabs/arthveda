@@ -95,17 +95,97 @@ export const OutlineLoading: Story = {
     },
 };
 
+export const Destructive: Story = {
+    args: {
+        variant: "destructive",
+        children: "Button",
+    },
+};
+
+export const DestructiveDisabled: Story = {
+    args: {
+        variant: "destructive",
+        children: "Button",
+        disabled: true,
+    },
+};
+
+export const DestructiveLoading: Story = {
+    args: {
+        variant: "destructive",
+        children: "Button",
+        loading: true,
+    },
+};
+
+export const Ghost: Story = {
+    args: {
+        variant: "ghost",
+        children: "Button",
+    },
+};
+
+export const GhostDisabled: Story = {
+    args: {
+        variant: "ghost",
+        children: "Button",
+        disabled: true,
+    },
+};
+
+export const GhostLoading: Story = {
+    args: {
+        variant: "ghost",
+        children: "Button",
+        loading: true,
+    },
+};
+
+export const Link: Story = {
+    args: {
+        variant: "link",
+        children: "Button",
+    },
+};
+
+export const LinkDisabled: Story = {
+    args: {
+        variant: "link",
+        children: "Button",
+        disabled: true,
+    },
+};
+
+export const LinkLoading: Story = {
+    args: {
+        variant: "link",
+        children: "Button",
+        loading: true,
+    },
+};
+
 export const Icon: Story = {
     args: {
-        variant: "icon",
+        variant: "outline",
+        size: "icon",
         children: <IconSettings size={20} />,
     },
 };
 
 export const IconDisabled: Story = {
     args: {
-        variant: "icon",
+        variant: "outline",
+        size: "icon",
         children: <IconSettings size={20} />,
         disabled: true,
+    },
+};
+
+export const IconLoading: Story = {
+    args: {
+        variant: "outline",
+        size: "icon",
+        children: <IconSettings size={20} />,
+        loading: true,
     },
 };

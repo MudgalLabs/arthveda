@@ -220,7 +220,6 @@ export default function SignUp() {
 
                 <Button
                     className="mb-3"
-                    variant="secondary"
                     loading={isPending}
                     disabled={!email || !password || !confirmPassword}
                 >

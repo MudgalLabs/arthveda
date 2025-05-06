@@ -29,6 +29,13 @@ export const HidePlaceholderOnFocus: Story = {
     },
 };
 
+export const Disabeld: Story = {
+    args: {
+        placeholder: "Enter your name",
+        disabled: true,
+    },
+};
+
 export const Password: Story = {
     render: () => <PasswordComp />,
 };
