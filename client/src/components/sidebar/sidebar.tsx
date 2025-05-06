@@ -42,8 +42,6 @@ export const Sidebar = () => {
         setActiveRoute(route);
     };
 
-    console.log({ isOpen });
-
     return (
         <div
             className={cn(
