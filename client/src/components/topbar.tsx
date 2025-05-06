@@ -10,8 +10,9 @@ export const Topbar = () => {
 
     return (
         <div className="border-b-accent-muted flex h-full w-full items-center justify-between border-b-1 py-2">
-            <div className="ml-5 flex w-[260px] gap-x-5">
+            <div>
                 <Button
+                    className="m-5"
                     variant="ghost"
                     size="icon"
                     type="button"
@@ -20,10 +21,10 @@ export const Topbar = () => {
                     <IconSidebarToggle size={24} />
                 </Button>
 
-                <Branding textSize="24px" logoSize={24} />
+                <Branding textSize="24px" logoSize={32} />
             </div>
 
-            <div className="mr-10 inline-flex gap-x-2">
+            <div className="inline-flex gap-x-2">
                 <Link to={ROUTES.addTrade} unstyled>
                     <Button variant="outline" size="small">
                         <IconPlus size={18} /> Add Trade

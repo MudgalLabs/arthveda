@@ -10,17 +10,17 @@ interface BrandingProps {
 }
 
 export const Branding: FC<BrandingProps> = (props) => {
-    const { textSize = "48px", logoSize = 48, className } = props;
+    const { textSize = "36px", logoSize = 36, className } = props;
 
     return (
         <div
             className={cn(
-                `font-logo text-logo flex! items-baseline gap-x-3 text-[${textSize}]! font-semibold`,
+                `font-logo text-logo text-[${textSize}]! inline-flex items-baseline gap-x-2 font-semibold`,
                 className
             )}
         >
             <img src={Logo} width={logoSize} />
-            <h1>arthveda</h1>
+            <h1 className="p-0">arthveda</h1>
         </div>
     );
 };

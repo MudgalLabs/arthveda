@@ -29,7 +29,7 @@ export const DropdownMenuContent: FC<DropdownMenuProps> = ({
         <DropdownMenuPrimitive.Portal>
             <DropdownMenuPrimitive.Content
                 className={cn(
-                    "bg-primary-950 min-w-[200px] rounded-sm p-1",
+                    "bg-background-1 border-border rounded-md border-1 p-1",
                     className
                 )}
                 {...props}
@@ -47,7 +47,7 @@ export const DropdownMenuItem: FC<
 > = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Item
         className={cn(
-            "hover:bg-primary-900 flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 outline-none",
+            "hover:bg-muted text-foreground-muted hover:text-foreground focus:bg-muted focus:text-muted-foreground flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 text-sm font-semibold outline-none",
             className
         )}
         {...props}
@@ -58,7 +58,7 @@ export const DropdownMenuSeparator: FC<
     DropdownMenuPrimitive.DropdownMenuSeparatorProps
 > = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Separator
-        className={cn("bg-primary-800 my-1 h-px", className)}
+        className={cn("bg-border my-1 h-px", className)}
         {...props}
     />
 );

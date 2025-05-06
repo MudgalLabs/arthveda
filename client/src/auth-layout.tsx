@@ -15,7 +15,7 @@ export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
                     {children}
                 </main>
 
-                <Branding className="hidden! md:flex!" />
+                <Branding className="hidden md:inline-flex!" />
             </div>
 
             <div className="mb-3 flex w-full flex-row items-center justify-center gap-x-1 text-sm">
