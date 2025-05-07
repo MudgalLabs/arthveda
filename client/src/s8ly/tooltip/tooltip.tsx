@@ -16,7 +16,7 @@ export const Tooltip: FC<TooltipProps> = ({
     open,
     defaultOpen,
     onOpenChange,
-    delayDuration,
+    delayDuration = 0,
     disableHoverableContent,
     ...props
 }) => {
