@@ -26,8 +26,6 @@ import { apiHooks } from "@/hooks/api-hooks";
 import { toast } from "@/components/toast";
 import { useSidebar } from "@/components/sidebar/sidebar-context";
 
-export const SIDEBAR_WIDHTH = 280;
-
 export const Sidebar = () => {
     const { data } = useAuthentication();
     const { pathname } = useLocation();
@@ -46,7 +44,9 @@ export const Sidebar = () => {
         <div
             className={cn(
                 "border-r-accent-muted relative flex h-full flex-col justify-between border-r-1 px-3",
-                isOpen && `min-w-[${SIDEBAR_WIDHTH}px]`
+                {
+                    "min-w-[280px]!": isOpen,
+                }
             )}
         >
             <div>
@@ -175,7 +175,7 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
             className={cn(
                 "text-muted-foreground flex gap-x-2 rounded-md text-left transition-colors",
                 {
-                    "px-2 py-2": expanded && clickable,
+                    "px-2 py-2": clickable,
                     "hover:bg-muted hover:text-foreground hover:cursor-pointer":
                         clickable,
                     "bg-accent-muted text-foreground": menuOpen,
