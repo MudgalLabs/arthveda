@@ -74,6 +74,23 @@ a {
     @apply text-link font-content text-sm font-bold underline-offset-4 hover:underline;
 }
 
+/* Change Autocomplete styles in Chrome*/
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-foreground);
+    -webkit-box-shadow: 0 0 0px 1000px var(--color-accent-muted) inset;
+    caret-color: var(--color-foreground);
+    border-color: var(--color-accent-muted);
+    transition: background-color 1000s ease-in-out 0s;
+}
+
 /* Typography */
 
 @utility big-heading {

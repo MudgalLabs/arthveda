@@ -47,7 +47,7 @@ export const DropdownMenuItem: FC<
 > = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Item
         className={cn(
-            "hover:bg-muted text-foreground-muted hover:text-foreground focus:bg-muted focus:text-muted-foreground flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 text-sm font-semibold outline-none",
+            "hover:bg-muted text-foreground focus:bg-accent flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 text-sm font-semibold outline-none",
             className
         )}
         {...props}

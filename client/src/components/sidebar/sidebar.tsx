@@ -169,12 +169,12 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
     return (
         <div
             className={cn(
-                "text-muted-foreground flex gap-x-2 rounded-md text-left transition-colors",
+                "text-foreground flex gap-x-2 rounded-md text-left transition-colors",
                 {
-                    "px-2 py-2": clickable,
-                    "hover:bg-muted hover:text-foreground hover:cursor-pointer":
+                    "bg-muted text-foreground px-2 py-2": clickable,
+                    "hover:bg-accent-muted hover:text-foreground hover:cursor-pointer":
                         clickable,
-                    "bg-accent-muted text-foreground": menuOpen,
+                    "bg-accent text-foreground": menuOpen,
                 },
                 className
             )}

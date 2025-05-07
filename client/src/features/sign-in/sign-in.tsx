@@ -61,7 +61,6 @@ export default function SignIn() {
                             placeholder="Email"
                             name="email"
                             disabled={isPending}
-                            autoFocus
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
