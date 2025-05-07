@@ -50,11 +50,7 @@ export const Sidebar = () => {
             )}
         >
             <div>
-                <div
-                    className={cn("mt-4 flex flex-col gap-y-2 pb-2", {
-                        "items-center": !isOpen,
-                    })}
-                >
+                <div className="mt-4 flex flex-col gap-y-2 pb-2">
                     <Link to={ROUTES.dashboard} unstyled>
                         <SidebarNavItem
                             label="Dashboard"

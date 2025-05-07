@@ -12,7 +12,9 @@ export const Topbar = () => {
         <div className="border-b-accent-muted flex h-full w-full items-center justify-between border-b-1 py-2">
             <div>
                 <Button
-                    className="m-5"
+                    // The 6 margin on the left comes from the Sidebar where the Icon
+                    // is rendered at 6 margin from the left.
+                    className="mx-6"
                     variant="ghost"
                     size="icon"
                     type="button"
