@@ -9,12 +9,12 @@ export const Topbar = () => {
     const { toggleSidebar } = useSidebar();
 
     return (
-        <div className="border-b-accent-muted flex h-full w-full items-center justify-between border-b-1 py-2">
-            <div>
+        <div className="border-b-accent-muted flex h-full w-full items-center justify-between border-b-1">
+            <div className="flex items-baseline">
                 <Button
                     // The 6 margin on the left comes from the Sidebar where the Icon
                     // is rendered at 6 margin from the left.
-                    className="mx-6"
+                    className="mr-8 ml-5"
                     variant="ghost"
                     size="icon"
                     type="button"
@@ -23,10 +23,10 @@ export const Topbar = () => {
                     <IconSidebarToggle size={24} />
                 </Button>
 
-                <Branding size="small" />
+                <Branding className="hidden sm:inline-flex" size="small" />
             </div>
 
-            <div className="inline-flex gap-x-2">
+            <div className="mr-2 inline-flex gap-x-2">
                 <Link to={ROUTES.addTrade} unstyled>
                     <Button variant="outline" size="small">
                         <IconPlus size={18} /> Add Trade

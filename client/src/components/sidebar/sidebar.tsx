@@ -46,6 +46,7 @@ export const Sidebar = () => {
                 "border-r-accent-muted relative flex h-full flex-col justify-between border-r-1 px-3",
                 {
                     "min-w-[280px]!": isOpen,
+                    "min-w-fit": !isOpen,
                 }
             )}
         >

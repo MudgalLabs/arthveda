@@ -29,7 +29,7 @@ export const Branding: FC<BrandingProps> = (props) => {
     return (
         <div
             className={cn(
-                "font-logo text-logo inline-flex items-baseline gap-x-2 font-semibold",
+                "font-logo text-logo no-select inline-flex items-baseline gap-x-2 font-semibold",
                 className
             )}
         >
