@@ -21,7 +21,7 @@ export const Topbar = () => {
                     <IconSidebarToggle size={24} />
                 </Button>
 
-                <Branding textSize="24px" logoSize={32} />
+                <Branding size="small" />
             </div>
 
             <div className="inline-flex gap-x-2">

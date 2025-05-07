@@ -8,14 +8,14 @@ export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
             <div />
             <div className="flex w-[85%] items-center justify-center md:justify-between lg:w-[70%] xl:w-[55%]">
                 <main className="flex flex-col items-center justify-center">
-                    <Branding className="mb-24 md:hidden!" />
+                    <Branding className="mb-24 md:hidden!" size="large" />
 
                     {/* Here is where we will render sign-in, sign-up, forgot-password forms. */}
                     {/* Maybe even reset-password too? */}
                     {children}
                 </main>
 
-                <Branding className="hidden md:inline-flex!" />
+                <Branding className="hidden md:inline-flex!" size="large" />
             </div>
 
             <div className="mb-3 flex w-full flex-row items-center justify-center gap-x-1 text-sm">
