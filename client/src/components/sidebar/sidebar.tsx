@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { Tooltip } from "@/components/tooltip";
+import { Tooltip } from "@/s8ly/tooltip/tooltip";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/routes";
 import { Link } from "@/components/link";
@@ -43,7 +43,7 @@ export const Sidebar = () => {
     return (
         <div
             className={cn(
-                "border-r-accent-muted relative flex h-full flex-col justify-between border-r-1 px-3",
+                "bg-background-1 border-r-accent-muted relative flex h-full flex-col justify-between border-r-1 px-3",
                 {
                     "min-w-[280px]!": isOpen,
                     "min-w-fit": !isOpen,

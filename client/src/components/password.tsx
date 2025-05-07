@@ -3,7 +3,7 @@ import { FC, useState } from "react";
 import { IconEyeClose, IconEyeOpen } from "@/components/icons";
 import { Button, Input, InputProps } from "@/s8ly";
 import { cn } from "@/lib/utils";
-import { Tooltip } from "@/components/tooltip";
+import { Tooltip } from "@/s8ly/tooltip/tooltip";
 
 interface PasswordProps extends InputProps {}
 
@@ -13,12 +13,7 @@ export const Password: FC<PasswordProps> = (props) => {
     const [showingPassword, setShowingPassword] = useState(false);
 
     return (
-        <div
-            className={cn(
-                "relative box-border flex w-fit items-center",
-                className
-            )}
-        >
+        <div className={cn("relative flex w-fit items-center", className)}>
             <Input
                 placeholder="Password"
                 hidePlaceholderOnFocus

@@ -12,3 +12,7 @@ export * from "./label/label";
 export * from "./input/input";
 // Select
 export * from "./select/select";
+// Table
+export * from "./table/table";
+// Tooltip
+export * from "./tooltip/tooltip";

@@ -4,24 +4,31 @@ import { IconImport, IconPlus, IconSidebarToggle } from "@/components/icons";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes";
+import { Tooltip } from "../s8ly/tooltip/tooltip";
 
 export const Topbar = () => {
-    const { toggleSidebar } = useSidebar();
+    const { isOpen, toggleSidebar } = useSidebar();
 
     return (
         <div className="border-b-accent-muted flex h-full w-full items-center justify-between border-b-1">
             <div className="flex items-baseline">
-                <Button
-                    // The 6 margin on the left comes from the Sidebar where the Icon
-                    // is rendered at 6 margin from the left.
-                    className="mr-8 ml-5"
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    onClick={toggleSidebar}
+                <Tooltip
+                    content={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+                    delayDuration={1000}
+                    contentProps={{ side: "right" }}
                 >
-                    <IconSidebarToggle size={24} />
-                </Button>
+                    <Button
+                        // The 6 margin on the left comes from the Sidebar where the Icon
+                        // is rendered at 6 margin from the left.
+                        className="mr-8 ml-5"
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        onClick={toggleSidebar}
+                    >
+                        <IconSidebarToggle size={24} />
+                    </Button>
+                </Tooltip>
 
                 <Branding className="hidden sm:inline-flex" size="small" />
             </div>

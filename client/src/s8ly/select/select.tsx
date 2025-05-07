@@ -53,7 +53,7 @@ export const Select: FC<SelectProps> = ({
             <SelectPrimitive.Trigger
                 ref={ref}
                 className={cn(
-                    "bg-muted text-foreground border-border box-border flex w-[300px] cursor-pointer items-center justify-between gap-x-4 rounded-md border-1 p-3",
+                    "bg-muted text-foreground border-border flex w-[300px] cursor-pointer items-center justify-between gap-x-4 rounded-md border-1 p-3",
                     "focus:outline-accent focus:outline-1 focus:outline-offset-0",
                     {
                         "text-foreground-muted": !value,

@@ -63,6 +63,10 @@
 
 /* Global */
 
+* {
+    box-sizing: border-box;
+}
+
 body {
     background: var(--color-background-1);
     color: var(--color-foreground);

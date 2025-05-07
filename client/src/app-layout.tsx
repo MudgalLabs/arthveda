@@ -10,11 +10,11 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
                 <Topbar />
             </div>
 
-            <div className={`flex h-[calc(100vh-48px)]! gap-x-4`}>
+            <div className="flex h-[calc(100vh-48px)]!">
                 <Sidebar />
 
-                <div className="bg-background-2 mx-auto my-4 w-full max-w-[1200px] rounded-xl px-5 py-4">
-                    {children}
+                <div className="flex h-full w-full justify-center">
+                    <div className="m-6 w-full max-w-[1440px]">{children}</div>
                 </div>
             </div>
         </div>
