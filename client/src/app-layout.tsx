@@ -5,12 +5,12 @@ import { Topbar } from "@/components/topbar";
 
 export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
     return (
-        <div className="h-full">
-            <div className="h-[48px] w-full">
+        <div className="h-dvh">
+            <div className="h-[56px] w-full">
                 <Topbar />
             </div>
 
-            <div className="flex h-[calc(100vh-48px)]!">
+            <div className="flex h-[calc(100vh-56px)]!">
                 <Sidebar />
 
                 <div className="flex h-full w-full justify-center">

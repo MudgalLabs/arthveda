@@ -14,7 +14,7 @@ export const Topbar = () => {
             <div className="flex items-baseline">
                 <Tooltip
                     content={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-                    delayDuration={1000}
+                    delayDuration={0}
                     contentProps={{ side: "right" }}
                 >
                     <Button
