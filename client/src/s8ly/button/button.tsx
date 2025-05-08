@@ -16,7 +16,9 @@ const buttonVariants = cva(
                 outline:
                     "bg-transparent text-foreground border-1 border-accent enabled:hover:bg-accent enabled:hover:text-foreground",
                 destructive:
-                    "bg-destructive text-foreground enabled:hover:bg-destructive/90 focus-visible:destructive/20",
+                    "bg-background-red text-foreground enabled:hover:bg-background-red/90 focus-visible:bg-background-red/20",
+                success:
+                    "bg-background-green text-foreground enabled:hover:bg-background-green/90 focus-visible:bg-background-green/20",
                 ghost: "enabled:hover:bg-accent enabled:hover:text-foreground",
                 link: "text-link underline-offset-4 hover:underline",
             },
@@ -79,6 +81,7 @@ const loadingVariant = cva(["absolute", "inline-flex", "items-center"], {
             secondary: "border-foreground",
             outline: "border-primary",
             destructive: "border-foreground",
+            success: "border-foreground",
             ghost: "border-primary",
             link: "border-primary",
         },

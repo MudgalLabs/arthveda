@@ -118,6 +118,29 @@ export const DestructiveLoading: Story = {
     },
 };
 
+export const Success: Story = {
+    args: {
+        variant: "success",
+        children: "Button",
+    },
+};
+
+export const SuccessDisabled: Story = {
+    args: {
+        variant: "success",
+        children: "Button",
+        disabled: true,
+    },
+};
+
+export const SuccessLoading: Story = {
+    args: {
+        variant: "success",
+        children: "Button",
+        loading: true,
+    },
+};
+
 export const Ghost: Story = {
     args: {
         variant: "ghost",
