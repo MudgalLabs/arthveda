@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useControlled } from "@/hooks/use-controlled";
 
 export interface SelectProps extends SelectPrimitive.SelectProps {
-    items: { value: string; label: string; disabled?: boolean }[];
+    options: { value: string; label: string; disabled?: boolean }[];
     ref?: Ref<HTMLButtonElement>;
     placeholder?: ReactNode;
     className?: {
@@ -18,7 +18,7 @@ export interface SelectProps extends SelectPrimitive.SelectProps {
 export const Select: FC<SelectProps> = ({
     children,
     ref,
-    items,
+    options,
     className,
     placeholder,
     defaultValue,
@@ -86,8 +86,13 @@ export const Select: FC<SelectProps> = ({
                     </SelectPrimitive.ScrollUpButton>
 
                     <SelectPrimitive.Viewport>
-                        {items.map((i) => (
-                            <SelectItem {...i}>{i.label}</SelectItem>
+                        {options.map((option) => (
+                            <SelectItem
+                                value={option.value}
+                                disabled={option.disabled}
+                            >
+                                {option.label}
+                            </SelectItem>
                         ))}
                     </SelectPrimitive.Viewport>
 
@@ -109,7 +114,7 @@ const SelectItem: FC<SelectItemProps> = ({ children, ref, ...props }) => {
         <SelectPrimitive.Item
             {...props}
             ref={ref}
-            className="hover:bg-muted focus:bg-muted m-1 flex cursor-pointer items-center justify-between rounded-md px-2 py-3 focus:outline-none"
+            className="hover:bg-muted focus:bg-muted disabled:text-foreground-muted m-1 flex cursor-pointer items-center justify-between rounded-md px-2 py-3 focus:outline-none"
         >
             <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
             <SelectPrimitive.ItemIndicator>
