@@ -1,7 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta } from "@storybook/react";
 import { useState } from "react";
 
 import { Calendar as CalendarComp } from "@/s8ly";
+import { formatDate } from "@/lib/utils";
 
 const meta = {
     title: "s8ly/Calendar",
@@ -12,16 +13,15 @@ const meta = {
 } satisfies Meta<typeof CalendarComp>;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
 
-export const SingleDate = () => {
+export const Single = () => {
     const [selectedDates, onDatesChange] = useState<Date[]>([]);
 
     return (
         <>
             <p className="mb-4">
                 {selectedDates.length > 0
-                    ? selectedDates[0].toLocaleDateString()
+                    ? formatDate(selectedDates[0])
                     : "Select a date"}
             </p>
             <CalendarComp
@@ -33,18 +33,31 @@ export const SingleDate = () => {
     );
 };
 
-export const DateRange = () => {
+export const Range = () => {
     const [selectedDates, onDatesChange] = useState<Date[]>([]);
+
+    const from = selectedDates[0];
+    const to = selectedDates[1];
+
+    const formatted = () => {
+        if (!from) return "Select range";
+
+        let str = "";
+
+        if (from) {
+            str += formatDate(from);
+        }
+
+        if (to) {
+            str += " - " + formatDate(to);
+        }
+
+        return str;
+    };
 
     return (
         <>
-            <p className="mb-4">
-                {selectedDates.length > 0
-                    ? selectedDates
-                          .map((d) => d.toLocaleDateString())
-                          .join(" - ")
-                    : "Select a date"}
-            </p>
+            <p className="mb-4">{formatted()}</p>
             <CalendarComp
                 mode="range"
                 selectedDates={selectedDates}

@@ -20,6 +20,7 @@ import clsx from "clsx";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { Button } from "@/s8ly";
 
+// CSS for range picker styles.
 import "./calendar.css";
 
 interface CalendarProps {
@@ -28,13 +29,51 @@ interface CalendarProps {
     selectedDates: Date[];
 }
 
+function Calendar({
+    mode,
+    selectedDates,
+    onDatesChange,
+}: CalendarProps): ReactElement {
+    const isRange = mode === "range";
+    const [offsetDate, onOffsetChange] = useState<Date>(new Date());
+
+    const config: DPUserConfig = {
+        selectedDates,
+        onDatesChange,
+        offsetDate,
+        onOffsetChange,
+        dates: {
+            mode,
+            minDate: isRange
+                ? selectedDates.length > 0
+                    ? selectedDates[0]
+                    : undefined
+                : undefined,
+            maxDate: new Date(),
+            toggle: true,
+        },
+        calendar: {
+            offsets: isRange ? [1] : undefined,
+        },
+        locale: {
+            monthName: "short",
+        },
+    };
+
+    return (
+        <DatePickerStateProvider config={config}>
+            <CalendarInternal />
+        </DatePickerStateProvider>
+    );
+}
+
 enum View {
     Days = "Days",
     Months = "Months",
     Years = "Years",
 }
 
-function CalendarDumb(): ReactElement {
+function CalendarInternal(): ReactElement {
     const [view, setView] = useState<View>(View.Days);
 
     const state = useDatePickerStateContext();
@@ -129,7 +168,7 @@ function CalendarDumb(): ReactElement {
     );
 
     const MonthsView = ({ year }: { year: string }) => (
-        <Section>
+        <Section className="h-full w-full">
             <SectionHeader>
                 <Button
                     variant="ghost"
@@ -154,7 +193,7 @@ function CalendarDumb(): ReactElement {
                 </Button>
             </SectionHeader>
 
-            <main className="mt-5 grid h-full grid-cols-3 items-center gap-x-2 gap-y-5">
+            <main className="mt-5 grid grid-cols-3 items-center gap-x-2 gap-y-5">
                 {months.map((m) => (
                     <Button
                         variant="ghost"
@@ -172,7 +211,7 @@ function CalendarDumb(): ReactElement {
     );
 
     const YearsView = () => (
-        <Section>
+        <Section className="h-full w-full">
             <SectionHeader>
                 <Button variant="ghost" size="icon" {...previousYearsButton()}>
                     <IconChevronLeft />
@@ -184,7 +223,7 @@ function CalendarDumb(): ReactElement {
                     <IconChevronRight />
                 </Button>
             </SectionHeader>
-            <main className="mt-5 grid h-full grid-cols-3 items-center gap-x-2 gap-y-5">
+            <main className="mt-5 grid grid-cols-3 items-center gap-x-2 gap-y-5">
                 {years.map((y) => (
                     <Button
                         variant="ghost"
@@ -201,79 +240,18 @@ function CalendarDumb(): ReactElement {
         </Section>
     );
 
-    const Renderer = ({
-        calendar,
-        showNext,
-        showPrev,
-    }: {
-        calendar: DPCalendar;
-        showPrev: boolean;
-        showNext: boolean;
-    }) => {
-        if (view === View.Years) return <YearsView />;
-        else if (view === View.Months)
-            return <MonthsView year={calendar.year} />;
-        return (
-            <DaysView
-                calendar={calendar}
-                showNext={showNext}
-                showPrev={showPrev}
-            />
-        );
-    };
-
     return (
         <>
-            {calendars.map((calendar, idx) => (
-                <main
-                    key={`${calendar.days}-${calendar.month}-${calendar.year}-${idx}`}
-                    className="bg-muted border-border h-[330px] w-[300px] rounded-md border-1 p-3"
-                >
-                    <Renderer
-                        calendar={calendar}
-                        // If we have 1 calendar, means we are in "single" mode, so show the button
-                        // otherwise only showPrev on 1st calendar and showNext on 2nd calendar.
-                        showNext={calendars.length === 1 || idx === 1}
-                        showPrev={calendars.length === 1 || idx === 0}
-                    />
-                </main>
-            ))}
-        </>
-    );
-}
-
-function Calendar({
-    mode,
-    selectedDates,
-    onDatesChange,
-}: CalendarProps): ReactElement {
-    const isRange = mode === "range";
-
-    const config: DPUserConfig = {
-        selectedDates,
-        onDatesChange,
-        dates: {
-            mode,
-            minDate: isRange
-                ? selectedDates.length > 0
-                    ? selectedDates[0]
-                    : undefined
-                : undefined,
-        },
-        calendar: {
-            offsets: isRange ? [1] : undefined,
-        },
-        locale: {
-            monthName: "short",
-        },
-    };
-
-    return (
-        <DatePickerStateProvider config={config}>
-            <div className="flex gap-x-4">
-                <CalendarDumb />
+            <div className="bg-muted border-border flex h-[330px] w-[300px] gap-x-4 rounded-md border-1 p-3">
+                {view === View.Years ? (
+                    <YearsView />
+                ) : view === View.Months ? (
+                    <MonthsView year={calendars[0].month} />
+                ) : (
+                    <DaysView calendar={calendars[0]} showNext showPrev />
+                )}
             </div>
-        </DatePickerStateProvider>
+        </>
     );
 }
 

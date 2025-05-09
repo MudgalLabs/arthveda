@@ -20,3 +20,40 @@ export function saveToLocalStorage(key: LocalStorageKey, value: string) {
 export function loadFromLocalStorage(key: LocalStorageKey): string {
     return localStorage.getItem(key) || "";
 }
+
+export function formatDate(date: Date) {
+    const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
+
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const month = months[date.getMonth()];
+
+    const getOrdinalSuffix = (n: number) => {
+        if (n >= 11 && n <= 13) return n + "th";
+        switch (n % 10) {
+            case 1:
+                return n + "st";
+            case 2:
+                return n + "nd";
+            case 3:
+                return n + "rd";
+            default:
+                return n + "th";
+        }
+    };
+
+    return `${month} ${getOrdinalSuffix(day)}, ${year}`;
+}
