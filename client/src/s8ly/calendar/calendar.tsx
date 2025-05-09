@@ -1,11 +1,32 @@
-import { FC, ReactNode, useState } from "react";
-import { useDatePicker, DPDay, DPMonth, DPYear } from "@rehookify/datepicker";
+import { FC, ReactElement, ReactNode, useState } from "react";
+import {
+    DPDay,
+    DPMonth,
+    DPYear,
+    DatePickerStateProvider,
+    DPCalendar,
+    useDatePickerStateContext,
+    useMonths,
+    useYears,
+    DPUserConfig,
+    useMonthsPropGetters,
+    useYearsPropGetters,
+    useDaysPropGetters,
+    useDatePickerOffsetPropGetters,
+    useCalendars,
+} from "@rehookify/datepicker";
 import clsx from "clsx";
 
-import { Button } from "@/s8ly";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
+import { Button } from "@/s8ly";
 
-interface CalendarProps {}
+import "./calendar.css";
+
+interface CalendarProps {
+    mode: "single" | "range";
+    onDatesChange(d: Date[]): void;
+    selectedDates: Date[];
+}
 
 enum View {
     Days = "Days",
@@ -13,70 +34,74 @@ enum View {
     Years = "Years",
 }
 
-function Calendar() {
-    const [selectedDates, onDatesChange] = useState<Date[]>([]);
+function CalendarDumb(): ReactElement {
     const [view, setView] = useState<View>(View.Days);
 
-    const {
-        data: { calendars, weekDays, formattedDates, months, years },
-        propGetters: {
-            dayButton,
-            addOffset,
-            subtractOffset,
-            monthButton,
-            nextYearsButton,
-            previousYearsButton,
-            yearButton,
-        },
-    } = useDatePicker({
-        selectedDates,
-        onDatesChange,
-        calendar: {
-            startDay: 1,
-        },
-        locale: {
-            monthName: "short",
-        },
-    });
+    const state = useDatePickerStateContext();
+    const { monthButton } = useMonthsPropGetters(state);
+    const { nextYearsButton, previousYearsButton, yearButton } =
+        useYearsPropGetters(state);
+    const { dayButton } = useDaysPropGetters(state);
+    const { addOffset, subtractOffset } = useDatePickerOffsetPropGetters(state);
 
-    const { month, year, days } = calendars[0];
+    const { months } = useMonths(state);
+    const { years } = useYears(state);
+    const { calendars, weekDays } = useCalendars(state);
 
-    const DaysView = (
+    const DaysView = ({
+        calendar,
+        showNext,
+        showPrev,
+    }: {
+        calendar: DPCalendar;
+        showPrev: boolean;
+        showNext: boolean;
+    }) => (
         <Section>
             <SectionHeader>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    {...subtractOffset({ months: 1 })}
-                >
-                    <IconChevronLeft />
-                </Button>
+                {showPrev ? (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        {...subtractOffset({ months: 1 })}
+                    >
+                        <IconChevronLeft />
+                    </Button>
+                ) : (
+                    <div />
+                )}
+
                 <span className="text-foreground flex-center gap-x-2">
                     <Button
                         variant="link"
                         className="text-foreground p-0 font-normal"
                         onClick={() => setView(View.Months)}
                     >
-                        {month}
+                        {calendar.month}
                     </Button>
                     <Button
                         variant="link"
                         className="text-foreground p-0 font-normal"
                         onClick={() => setView(View.Years)}
                     >
-                        {year}
+                        {calendar.year}
                     </Button>
                 </span>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    {...addOffset({ months: 1 })}
-                >
-                    <IconChevronRight />
-                </Button>
+
+                {showNext ? (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        {...addOffset({ months: 1 })}
+                    >
+                        <IconChevronRight />
+                    </Button>
+                ) : (
+                    <div />
+                )}
             </SectionHeader>
 
-            <CalendarInternal className="mb-2 h-8 items-center">
+            <CalendarGrid className="mb-2 h-8 items-center">
                 {weekDays.map((d) => (
                     <p
                         key={d}
@@ -85,10 +110,10 @@ function Calendar() {
                         {d}
                     </p>
                 ))}
-            </CalendarInternal>
+            </CalendarGrid>
 
-            <CalendarInternal>
-                {days.map((d) => (
+            <CalendarGrid>
+                {calendar.days.map((d) => (
                     <Button
                         variant="ghost"
                         size="icon"
@@ -99,11 +124,11 @@ function Calendar() {
                         {d.day}
                     </Button>
                 ))}
-            </CalendarInternal>
+            </CalendarGrid>
         </Section>
     );
 
-    const MonthsView = (
+    const MonthsView = ({ year }: { year: string }) => (
         <Section>
             <SectionHeader>
                 <Button
@@ -146,7 +171,7 @@ function Calendar() {
         </Section>
     );
 
-    const YearsView = (
+    const YearsView = () => (
         <Section>
             <SectionHeader>
                 <Button variant="ghost" size="icon" {...previousYearsButton()}>
@@ -175,32 +200,93 @@ function Calendar() {
             </main>
         </Section>
     );
-    const content = () => {
-        if (view === View.Years) return YearsView;
-        else if (view === View.Months) return MonthsView;
-        return DaysView;
+
+    const Renderer = ({
+        calendar,
+        showNext,
+        showPrev,
+    }: {
+        calendar: DPCalendar;
+        showPrev: boolean;
+        showNext: boolean;
+    }) => {
+        if (view === View.Years) return <YearsView />;
+        else if (view === View.Months)
+            return <MonthsView year={calendar.year} />;
+        return (
+            <DaysView
+                calendar={calendar}
+                showNext={showNext}
+                showPrev={showPrev}
+            />
+        );
     };
 
     return (
         <>
-            {formattedDates[0]}
-            <main className="bg-muted border-border h-[350px] w-[310px] rounded-md border-1 p-3">
-                {content()}
-            </main>
+            {calendars.map((calendar, idx) => (
+                <main
+                    key={`${calendar.days}-${calendar.month}-${calendar.year}-${idx}`}
+                    className="bg-muted border-border h-[330px] w-[300px] rounded-md border-1 p-3"
+                >
+                    <Renderer
+                        calendar={calendar}
+                        // If we have 1 calendar, means we are in "single" mode, so show the button
+                        // otherwise only showPrev on 1st calendar and showNext on 2nd calendar.
+                        showNext={calendars.length === 1 || idx === 1}
+                        showPrev={calendars.length === 1 || idx === 0}
+                    />
+                </main>
+            ))}
         </>
     );
 }
 
-interface CalendarProps {
+function Calendar({
+    mode,
+    selectedDates,
+    onDatesChange,
+}: CalendarProps): ReactElement {
+    const isRange = mode === "range";
+
+    const config: DPUserConfig = {
+        selectedDates,
+        onDatesChange,
+        dates: {
+            mode,
+            minDate: isRange
+                ? selectedDates.length > 0
+                    ? selectedDates[0]
+                    : undefined
+                : undefined,
+        },
+        calendar: {
+            offsets: isRange ? [1] : undefined,
+        },
+        locale: {
+            monthName: "short",
+        },
+    };
+
+    return (
+        <DatePickerStateProvider config={config}>
+            <div className="flex gap-x-4">
+                <CalendarDumb />
+            </div>
+        </DatePickerStateProvider>
+    );
+}
+
+interface CalendarGridProps {
     className?: string;
     children?: ReactNode;
 }
 
-export const CalendarInternal: FC<CalendarProps> = ({
+export const CalendarGrid: FC<CalendarGridProps> = ({
     className,
     children,
 }) => {
-    const mainClassName = clsx("grid grid-cols-7 gap-x-1 gap-y-1", className);
+    const mainClassName = clsx("grid grid-cols-7 gap-x-0 gap-y-0", className);
     return <main className={mainClassName}>{children}</main>;
 };
 
@@ -232,12 +318,13 @@ export const Section: FC<SectionProps> = ({ className, children }) => {
 
 export const getDayClassName = (
     className: string,
-    { selected, disabled, inCurrentMonth, now }: DPDay
+    { selected, disabled, inCurrentMonth, now, range }: DPDay
 ) =>
-    clsx(className, {
+    clsx("day", className, range, {
         "bg-primary text-foreground hover:bg-accent opacity-100!": selected,
         "opacity-25 cursor-not-allowed": disabled,
         "text-foreground-muted": !inCurrentMonth && !selected,
+        "bg-muted! text-foreground-muted!": !inCurrentMonth && !!range,
         "border border-accent": now,
     });
 

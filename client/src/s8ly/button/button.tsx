@@ -1,4 +1,4 @@
-import { ComponentProps, FC } from "react";
+import { ComponentProps, FC, memo } from "react";
 
 import { VariantProps, cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ interface ButtonProps
     loading?: boolean;
 }
 
-const Button: FC<ButtonProps> = (props) => {
+const Button: FC<ButtonProps> = memo((props) => {
     const {
         className,
         children,
@@ -72,7 +72,7 @@ const Button: FC<ButtonProps> = (props) => {
             </span>
         </button>
     );
-};
+});
 
 const loadingVariant = cva(["absolute", "inline-flex", "items-center"], {
     variants: {
