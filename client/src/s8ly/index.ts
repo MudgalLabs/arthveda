@@ -8,6 +8,8 @@
 export * from "./button/button";
 // Calendar
 export * from "./calendar/calendar";
+// Checkbox
+export * from "./checkbox/checkbox";
 // Label
 export * from "./label/label";
 // Input

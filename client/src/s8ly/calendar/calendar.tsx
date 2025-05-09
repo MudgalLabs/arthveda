@@ -27,15 +27,18 @@ interface CalendarProps {
     mode: "single" | "range";
     onDatesChange(d: Date[]): void;
     selectedDates: Date[];
+    offsetDate?: Date;
+    onOffsetChange?(d: Date): void;
 }
 
 function Calendar({
     mode,
     selectedDates,
     onDatesChange,
+    offsetDate,
+    onOffsetChange,
 }: CalendarProps): ReactElement {
     const isRange = mode === "range";
-    const [offsetDate, onOffsetChange] = useState<Date>(new Date());
 
     const config: DPUserConfig = {
         selectedDates,

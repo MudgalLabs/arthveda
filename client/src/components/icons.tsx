@@ -17,5 +17,6 @@ export { IoChevronForward as IconChevronRight } from "react-icons/io5";
 export { IoChevronDown as IconChevronDown } from "react-icons/io5";
 export { IoChevronBack as IconChevronLeft } from "react-icons/io5";
 export { BsCheck as IconCheck } from "react-icons/bs";
+export { BsDash as IconDash } from "react-icons/bs";
 export { RxCross2 as IconCross } from "react-icons/rx";
 export { TbLayoutSidebarFilled as IconSidebarToggle } from "react-icons/tb";
