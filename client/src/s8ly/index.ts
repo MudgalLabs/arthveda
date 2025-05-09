@@ -6,6 +6,8 @@
 
 // Button
 export * from "./button/button";
+// Calendar
+export * from "./calendar/calendar";
 // Label
 export * from "./label/label";
 // Input
