@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useControlled } from "@/hooks/use-controlled";
 
 export interface SelectProps extends SelectPrimitive.SelectProps {
-    items: { value: string; label: string }[];
+    items: { value: string; label: string; disabled?: boolean }[];
     ref?: Ref<HTMLButtonElement>;
     placeholder?: ReactNode;
     className?: {
@@ -87,9 +87,7 @@ export const Select: FC<SelectProps> = ({
 
                     <SelectPrimitive.Viewport>
                         {items.map((i) => (
-                            <SelectItem key={i.value} value={i.value}>
-                                {i.label}
-                            </SelectItem>
+                            <SelectItem {...i}>{i.label}</SelectItem>
                         ))}
                     </SelectPrimitive.Viewport>
 
