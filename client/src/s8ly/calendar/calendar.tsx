@@ -15,8 +15,8 @@ import {
     useDatePickerOffsetPropGetters,
     useCalendars,
 } from "@rehookify/datepicker";
-import clsx from "clsx";
 
+import { cn } from "@/lib/utils";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { Button } from "@/s8ly";
 
@@ -47,12 +47,6 @@ function Calendar({
         onOffsetChange,
         dates: {
             mode,
-            minDate: isRange
-                ? selectedDates.length > 0
-                    ? selectedDates[0]
-                    : undefined
-                : undefined,
-            maxDate: new Date(),
             toggle: true,
         },
         calendar: {
@@ -89,6 +83,8 @@ function CalendarInternal(): ReactElement {
     const { months } = useMonths(state);
     const { years } = useYears(state);
     const { calendars, weekDays } = useCalendars(state);
+
+    const isRange = state.config.dates.mode === "range";
 
     const DaysView = ({
         calendar,
@@ -243,15 +239,37 @@ function CalendarInternal(): ReactElement {
         </Section>
     );
 
+    const commonClasses =
+        "bg-muted border-border flex gap-x-4 rounded-md border-1 p-3";
+
+    const classes = {
+        single: commonClasses + " h-[330px] w-[300px] ",
+        range: commonClasses + " h-[330px] w-[600px] ",
+    };
+
     return (
         <>
-            <div className="bg-muted border-border flex h-[330px] w-[300px] gap-x-4 rounded-md border-1 p-3">
+            <div className={classes[isRange ? "range" : "single"]}>
                 {view === View.Years ? (
                     <YearsView />
                 ) : view === View.Months ? (
                     <MonthsView year={calendars[0].month} />
                 ) : (
-                    <DaysView calendar={calendars[0]} showNext showPrev />
+                    <>
+                        {calendars.map((calendar, idx) => (
+                            <>
+                                <DaysView
+                                    calendar={calendar}
+                                    showNext={
+                                        calendars.length === 1 || idx == 1
+                                    }
+                                    showPrev={
+                                        calendars.length === 1 || idx == 0
+                                    }
+                                />
+                            </>
+                        ))}
+                    </>
                 )}
             </div>
         </>
@@ -267,7 +285,7 @@ export const CalendarGrid: FC<CalendarGridProps> = ({
     className,
     children,
 }) => {
-    const mainClassName = clsx("grid grid-cols-7 gap-x-0 gap-y-0", className);
+    const mainClassName = cn("grid grid-cols-7 gap-x-0 gap-y-0", className);
     return <main className={mainClassName}>{children}</main>;
 };
 
@@ -280,7 +298,7 @@ export const SectionHeader: FC<SectionHeaderProps> = ({
     className,
     children,
 }) => {
-    const headerClassName = clsx(
+    const headerClassName = cn(
         "grid grid-cols-[2rem_1fr_2rem] items-center mb-2",
         className
     );
@@ -293,7 +311,7 @@ interface SectionProps {
 }
 
 export const Section: FC<SectionProps> = ({ className, children }) => {
-    const sectionClassName = clsx("", className);
+    const sectionClassName = cn("", className);
     return <section className={sectionClassName}>{children}</section>;
 };
 
@@ -301,7 +319,7 @@ export const getDayClassName = (
     className: string,
     { selected, disabled, inCurrentMonth, now, range }: DPDay
 ) =>
-    clsx("day", className, range, {
+    cn("day", className, range, {
         "bg-primary text-foreground hover:bg-accent opacity-100!": selected,
         "opacity-25 cursor-not-allowed": disabled,
         "text-foreground-muted": !inCurrentMonth && !selected,
@@ -313,7 +331,7 @@ export const getMonthClassName = (
     className: string,
     { selected, now, disabled }: DPMonth
 ) =>
-    clsx(className, {
+    cn(className, {
         "bg-primary text-foreground hover:bg-accent opacity-100": selected,
         "border border-accent": now,
         "opacity-25 cursor-not-allowed": disabled,
@@ -323,7 +341,7 @@ export const getYearsClassName = (
     className: string,
     { selected, now, disabled }: DPYear
 ) =>
-    clsx(className, {
+    cn(className, {
         "bg-primary text-foreground hover:bg-accent opacity-100": selected,
         "border border-accent": now,
         "opacity-25 cursor-not-allowed": disabled,
