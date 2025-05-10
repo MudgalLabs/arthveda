@@ -20,3 +20,4 @@ export { BsCheck as IconCheck } from "react-icons/bs";
 export { BsDash as IconDash } from "react-icons/bs";
 export { RxCross2 as IconCross } from "react-icons/rx";
 export { TbLayoutSidebarFilled as IconSidebarToggle } from "react-icons/tb";
+export { MdCircle as IconCircleFilled } from "react-icons/md";

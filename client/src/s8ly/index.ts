@@ -10,6 +10,8 @@ export * from "./button/button";
 export * from "./calendar/calendar";
 // Checkbox
 export * from "./checkbox/checkbox";
+// DropdownMenu
+export * from "./dropdown-menu/dropdown-menu";
 // Label
 export * from "./label/label";
 // Input

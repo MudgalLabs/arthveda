@@ -19,7 +19,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-} from "@/components/dropdown-menu";
+} from "@/s8ly/dropdown-menu/dropdown-menu";
 import { useAuthentication } from "@/context/authentication-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiHooks } from "@/hooks/api-hooks";
