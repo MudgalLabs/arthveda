@@ -14,6 +14,8 @@ export * from "./checkbox/checkbox";
 export * from "./label/label";
 // Input
 export * from "./input/input";
+// Popover
+export * from "./popover/popover";
 // Select
 export * from "./select/select";
 // Table

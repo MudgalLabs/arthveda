@@ -3,9 +3,9 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 
 import { cn } from "@/lib/utils";
 
-export const DropdownMenu = DropdownMenuPrimitive.Root;
+const DropdownMenu = DropdownMenuPrimitive.Root;
 
-export const DropdownMenuTrigger: FC<
+const DropdownMenuTrigger: FC<
     DropdownMenuPrimitive.DropdownMenuTriggerProps
 > = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Trigger
@@ -19,7 +19,7 @@ interface DropdownMenuProps
     ref?: Ref<HTMLDivElement>;
 }
 
-export const DropdownMenuContent: FC<DropdownMenuProps> = ({
+const DropdownMenuContent: FC<DropdownMenuProps> = ({
     children,
     ref,
     className,
@@ -42,9 +42,10 @@ export const DropdownMenuContent: FC<DropdownMenuProps> = ({
     );
 };
 
-export const DropdownMenuItem: FC<
-    DropdownMenuPrimitive.DropdownMenuItemProps
-> = ({ className, ...props }) => (
+const DropdownMenuItem: FC<DropdownMenuPrimitive.DropdownMenuItemProps> = ({
+    className,
+    ...props
+}) => (
     <DropdownMenuPrimitive.Item
         className={cn(
             "hover:bg-muted text-foreground focus:bg-accent flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 text-sm font-semibold outline-none",
@@ -54,7 +55,7 @@ export const DropdownMenuItem: FC<
     />
 );
 
-export const DropdownMenuSeparator: FC<
+const DropdownMenuSeparator: FC<
     DropdownMenuPrimitive.DropdownMenuSeparatorProps
 > = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Separator
@@ -62,3 +63,11 @@ export const DropdownMenuSeparator: FC<
         {...props}
     />
 );
+
+export {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+};
