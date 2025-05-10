@@ -54,7 +54,7 @@ export const Select: FC<SelectProps> = ({
                 ref={ref}
                 className={cn(
                     "bg-muted text-foreground border-border flex w-[300px] cursor-pointer items-center justify-between gap-x-4 rounded-md border-1 p-3",
-                    "focus:outline-accent focus:outline-1 focus:outline-offset-0",
+                    "focus:outline-accent text-sm focus:outline-1 focus:outline-offset-0",
                     {
                         "text-foreground-muted": !value,
                     },
@@ -77,7 +77,7 @@ export const Select: FC<SelectProps> = ({
                 <SelectPrimitive.Content
                     position="popper"
                     className={cn(
-                        "border-border bg-background-1 mt-1 w-[300px] rounded-md border-1",
+                        "border-border bg-background-1 mt-1 w-[300px] rounded-md border-1 text-sm",
                         className?.content
                     )}
                 >
@@ -118,7 +118,7 @@ const SelectItem: FC<SelectItemProps> = ({ children, ref, ...props }) => {
         >
             <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
             <SelectPrimitive.ItemIndicator>
-                <IconCheck size={24} className="text-primary" />
+                <IconCheck size={24} className="text-foreground-muted" />
             </SelectPrimitive.ItemIndicator>
         </SelectPrimitive.Item>
     );
