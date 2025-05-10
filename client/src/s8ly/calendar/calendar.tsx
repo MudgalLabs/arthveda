@@ -26,14 +26,14 @@ import "./calendar.css";
 interface CalendarProps {
     mode: "single" | "range";
     onDatesChange(d: Date[]): void;
-    selectedDates: Date[];
+    dates: Date[];
     offsetDate?: Date;
     onOffsetChange?(d: Date): void;
 }
 
 function Calendar({
     mode,
-    selectedDates,
+    dates: selectedDates,
     onDatesChange,
     offsetDate,
     onOffsetChange,

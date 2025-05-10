@@ -21,3 +21,5 @@ export { BsDash as IconDash } from "react-icons/bs";
 export { RxCross2 as IconCross } from "react-icons/rx";
 export { TbLayoutSidebarFilled as IconSidebarToggle } from "react-icons/tb";
 export { MdCircle as IconCircleFilled } from "react-icons/md";
+export { MdCalendarToday as IconCalendarSingle } from "react-icons/md";
+export { MdCalendarMonth as IconCalendarRange } from "react-icons/md";

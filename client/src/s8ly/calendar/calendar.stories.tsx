@@ -15,29 +15,27 @@ const meta = {
 export default meta;
 
 export const Single = () => {
-    const [selectedDates, onDatesChange] = useState<Date[]>([]);
+    const [dates, setDates] = useState<Date[]>([]);
 
     return (
         <>
             <p className="mb-4">
-                {selectedDates.length > 0
-                    ? formatDate(selectedDates[0])
-                    : "Select a date"}
+                {dates.length > 0 ? formatDate(dates[0]) : "Select a date"}
             </p>
             <CalendarComp
                 mode="single"
-                selectedDates={selectedDates}
-                onDatesChange={onDatesChange}
+                dates={dates}
+                onDatesChange={setDates}
             />
         </>
     );
 };
 
 export const Range = () => {
-    const [selectedDates, onDatesChange] = useState<Date[]>([]);
+    const [dates, setDates] = useState<Date[]>([]);
 
-    const from = selectedDates[0];
-    const to = selectedDates[1];
+    const from = dates[0];
+    const to = dates[1];
 
     const formatted = () => {
         if (!from) return "Select range";
@@ -58,11 +56,7 @@ export const Range = () => {
     return (
         <>
             <p className="mb-4">{formatted()}</p>
-            <CalendarComp
-                mode="range"
-                selectedDates={selectedDates}
-                onDatesChange={onDatesChange}
-            />
+            <CalendarComp mode="range" dates={dates} onDatesChange={setDates} />
         </>
     );
 };
