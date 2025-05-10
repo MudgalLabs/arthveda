@@ -53,7 +53,11 @@ function DatePicker({
                     open={open}
                     isDateSet={isDateSet}
                 >
-                    {isRange ? <IconCalendarRange /> : <IconCalendarSingle />}
+                    {isRange ? (
+                        <IconCalendarRange size={18} />
+                    ) : (
+                        <IconCalendarSingle size={18} />
+                    )}
                     {isDateSet ? selectedText : unselectedText}
                 </DatePickerButton>
             </PopoverTrigger>

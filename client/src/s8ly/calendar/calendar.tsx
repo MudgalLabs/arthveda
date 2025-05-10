@@ -84,6 +84,8 @@ function CalendarInternal(): ReactElement {
     const { years } = useYears(state);
     const { calendars, weekDays } = useCalendars(state);
 
+    const isRange = state.config.dates.mode === "range";
+
     const DaysView = ({
         calendar,
         showNext,
@@ -242,13 +244,21 @@ function CalendarInternal(): ReactElement {
 
     return (
         <>
-            <div className="bg-muted border-border flex h-[330px] w-fit gap-x-4 rounded-md border-1 p-3">
+            <div
+                className={cn(
+                    "bg-muted border-border flex h-[330px] w-fit gap-x-4 rounded-md border-1 p-3",
+                    {
+                        "w-[300px]": !isRange,
+                        "w-[560px]": isRange,
+                    }
+                )}
+            >
                 {view === View.Years ? (
                     <YearsView />
                 ) : view === View.Months ? (
                     <MonthsView year={calendars[0].month} />
                 ) : (
-                    <>
+                    <div className="flex w-full items-center justify-between">
                         {calendars.map((calendar, idx) => (
                             <DaysView
                                 key={calendar.month + calendar.year + idx}
@@ -257,7 +267,7 @@ function CalendarInternal(): ReactElement {
                                 showPrev={calendars.length === 1 || idx == 0}
                             />
                         ))}
-                    </>
+                    </div>
                 )}
             </div>
         </>
