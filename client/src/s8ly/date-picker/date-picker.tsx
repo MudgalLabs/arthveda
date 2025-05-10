@@ -1,7 +1,7 @@
-import { ComponentProps, useState } from "react";
+import { ComponentProps, useMemo, useState } from "react";
 
 import { useControlled } from "@/hooks/use-controlled";
-import { IconCalendarSingle } from "@/components/icons";
+import { IconCalendarRange, IconCalendarSingle } from "@/components/icons";
 import { cn, formatDate } from "@/lib/utils";
 import {
     Calendar,
@@ -18,8 +18,10 @@ interface DatePickerProps extends CalendarProps {
 function DatePicker({
     dates: datesProp,
     onDatesChange: onDatesChangeProp,
+    offsetDate: offsetDateProp,
     className,
-    ...props
+    mode,
+    onOffsetChange: onOffsetChangeProp,
 }: DatePickerProps) {
     const [dates, setDates] = useControlled({
         controlled: datesProp,
@@ -27,30 +29,41 @@ function DatePicker({
         name: "dates",
     });
 
+    const [offsetDate, setOffsetDate] = useControlled({
+        controlled: offsetDateProp,
+        default: useMemo(() => new Date(), []),
+        name: "offsetDate",
+    });
+
     const [open, setOpen] = useState(false);
+
+    const isDateSet = dates.length > 0;
+    const isRange = mode === "range";
+    const unselectedText = isRange ? "Select range" : "Select date";
+    const selectedText = dates.map((d) => formatDate(d)).join(" - ");
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <DatePickerButton
                     className={cn(
-                        props.mode === "single" ? "w-[160px]" : "w-[270px]",
+                        isRange ? "w-[270px]" : "w-[160px]",
                         className
                     )}
                     open={open}
-                    isDateSet={dates.length > 0}
+                    isDateSet={isDateSet}
                 >
-                    <IconCalendarSingle />
-                    {dates.length > 0
-                        ? dates.map((d) => formatDate(d)).join(" - ")
-                        : "Pick a date"}
+                    {isRange ? <IconCalendarRange /> : <IconCalendarSingle />}
+                    {isDateSet ? selectedText : unselectedText}
                 </DatePickerButton>
             </PopoverTrigger>
             <PopoverContent className="w-auto border-none p-0" align="start">
                 <Calendar
                     dates={dates}
                     onDatesChange={onDatesChangeProp ?? setDates}
-                    {...props}
+                    offsetDate={offsetDate}
+                    onOffsetChange={onOffsetChangeProp ?? setOffsetDate}
+                    mode={mode}
                 />
             </PopoverContent>
         </Popover>

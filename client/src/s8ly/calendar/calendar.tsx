@@ -84,8 +84,6 @@ function CalendarInternal(): ReactElement {
     const { years } = useYears(state);
     const { calendars, weekDays } = useCalendars(state);
 
-    const isRange = state.config.dates.mode === "range";
-
     const DaysView = ({
         calendar,
         showNext,
@@ -156,7 +154,10 @@ function CalendarInternal(): ReactElement {
                         variant="ghost"
                         size="icon"
                         key={d.$date.toString()}
-                        className={getDayClassName("text-xs", d)}
+                        className={getDayClassName(
+                            "text-foreground text-xs",
+                            d
+                        )}
                         {...dayButton(d)}
                     >
                         {d.day}
@@ -239,17 +240,9 @@ function CalendarInternal(): ReactElement {
         </Section>
     );
 
-    const commonClasses =
-        "bg-muted border-border flex gap-x-4 rounded-md border-1 p-3";
-
-    const classes = {
-        single: commonClasses + " h-[330px] w-[300px] ",
-        range: commonClasses + " h-[330px] w-[600px] ",
-    };
-
     return (
         <>
-            <div className={classes[isRange ? "range" : "single"]}>
+            <div className="bg-muted border-border flex h-[330px] w-fit gap-x-4 rounded-md border-1 p-3">
                 {view === View.Years ? (
                     <YearsView />
                 ) : view === View.Months ? (
@@ -257,17 +250,12 @@ function CalendarInternal(): ReactElement {
                 ) : (
                     <>
                         {calendars.map((calendar, idx) => (
-                            <>
-                                <DaysView
-                                    calendar={calendar}
-                                    showNext={
-                                        calendars.length === 1 || idx == 1
-                                    }
-                                    showPrev={
-                                        calendars.length === 1 || idx == 0
-                                    }
-                                />
-                            </>
+                            <DaysView
+                                key={calendar.month + calendar.year + idx}
+                                calendar={calendar}
+                                showNext={calendars.length === 1 || idx == 1}
+                                showPrev={calendars.length === 1 || idx == 0}
+                            />
                         ))}
                     </>
                 )}
@@ -324,7 +312,7 @@ export const getDayClassName = (
         "opacity-25 cursor-not-allowed": disabled,
         "text-foreground-muted": !inCurrentMonth && !selected,
         "bg-muted! text-foreground-muted!": !inCurrentMonth && !!range,
-        "border border-accent": now,
+        "border border-accent rounded-md!": now, // The `!` on rounded-md exists because without it, the "range" classes remove it.
     });
 
 export const getMonthClassName = (

@@ -1,5 +1,5 @@
 .day {
-    --border-color: var(--color-accent); /* slate-700 */
+    --border-color: var(--color-accent);
     --in-range-bg: var(--color-accent-muted);
     --border-radius: 4px;
 }
