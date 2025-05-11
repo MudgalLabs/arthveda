@@ -12,6 +12,7 @@ export interface SelectProps extends SelectPrimitive.SelectProps {
     classNames?: {
         content?: string;
         trigger?: string;
+        item?: string;
     };
 }
 
@@ -89,6 +90,7 @@ export const Select: FC<SelectProps> = ({
                         {options.map((option, idx) => (
                             <SelectItem
                                 key={`${option.value}${idx}`}
+                                className={classNames?.item}
                                 value={option.value}
                                 disabled={option.disabled}
                             >
@@ -110,12 +112,20 @@ interface SelectItemProps extends SelectPrimitive.SelectItemProps {
     ref?: Ref<HTMLDivElement>;
 }
 
-const SelectItem: FC<SelectItemProps> = ({ children, ref, ...props }) => {
+const SelectItem: FC<SelectItemProps> = ({
+    ref,
+    children,
+    className,
+    ...props
+}) => {
     return (
         <SelectPrimitive.Item
             {...props}
             ref={ref}
-            className="hover:bg-muted focus:bg-muted disabled:text-foreground-muted m-1 flex cursor-pointer items-center justify-between rounded-md px-2 py-3 focus:outline-none"
+            className={cn(
+                "hover:bg-muted focus:bg-muted disabled:text-foreground-muted m-1 flex cursor-pointer items-center justify-between rounded-md px-2 py-3 focus:outline-none",
+                className
+            )}
         >
             <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
             <SelectPrimitive.ItemIndicator>

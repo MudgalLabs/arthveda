@@ -10,6 +10,8 @@ export * from "./button/button";
 export * from "./calendar/calendar";
 // Checkbox
 export * from "./checkbox/checkbox";
+// DataTable
+export * from "./data-table/data-table";
 // DatePicker
 export * from "./date-picker/date-picker";
 // DropdownMenu
