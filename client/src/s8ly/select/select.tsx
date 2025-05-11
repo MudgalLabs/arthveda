@@ -86,8 +86,9 @@ export const Select: FC<SelectProps> = ({
                     </SelectPrimitive.ScrollUpButton>
 
                     <SelectPrimitive.Viewport>
-                        {options.map((option) => (
+                        {options.map((option, idx) => (
                             <SelectItem
+                                key={`${option.value}${idx}`}
                                 value={option.value}
                                 disabled={option.disabled}
                             >
