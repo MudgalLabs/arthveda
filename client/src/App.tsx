@@ -32,16 +32,8 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
         !isAuthenticated &&
         (ROUTES_PROTECTED.includes(pathname) || pathname == ROUTES.index)
     ) {
-        let signIn = ROUTES.signIn;
-
-        // The path isn't home(`/`) so we want to put this as a search param.
-        // Maybe user was trynig to go to `/dashboard` but isn't signed in.
-        if (pathname !== ROUTES.index) {
-            signIn += `?from=${pathname}`;
-        }
-
         // Redirect user to signin screen.
-        return <Navigate to={signIn} />;
+        return <Navigate to={ROUTES.signIn} />;
     }
 
     if (isAuthenticated) {

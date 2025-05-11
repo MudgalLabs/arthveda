@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { apiHooks } from "@/hooks/api-hooks";
 import { Button, Input, Label } from "@/s8ly";
@@ -14,17 +14,16 @@ import { WithLabel } from "@/components/with-label";
 export default function SignIn() {
     const client = useQueryClient();
     const navigate = useNavigate();
-    const [search] = useSearchParams();
 
     const { mutate: signin, isPending } = apiHooks.auth.useSignin({
         onSuccess: async () => {
             // NOTE: await otherwise there will be a time when the toast is
             // shown as if we are signed in but we are still on sign in screen.
             await client.invalidateQueries();
-            navigate(search.get("from") || ROUTES.dashboard);
             toast.info("Welcome to Arthveda.", {
                 icon: <p>🚀</p>,
             });
+            navigate(ROUTES.dashboard);
         },
         onError: (error) => {
             const errorMsg = error.response.data.message;
