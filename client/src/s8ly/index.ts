@@ -26,5 +26,7 @@ export * from "./popover/popover";
 export * from "./select/select";
 // Table
 export * from "./table/table";
+// Toggle
+export * from "./toggle/toggle";
 // Tooltip
 export * from "./tooltip/tooltip";
