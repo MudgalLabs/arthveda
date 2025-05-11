@@ -21,7 +21,7 @@ export default meta;
 export const Popover = () => {
     return (
         <PopoverComp>
-            <PopoverTrigger>
+            <PopoverTrigger asChild>
                 <Button variant="outline">Open popover</Button>
             </PopoverTrigger>
             <PopoverContent>

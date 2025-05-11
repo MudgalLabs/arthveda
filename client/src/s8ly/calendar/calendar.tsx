@@ -318,7 +318,8 @@ export const getDayClassName = (
     { selected, disabled, inCurrentMonth, now, range }: DPDay
 ) =>
     cn("day", className, range, {
-        "bg-primary text-foreground hover:bg-accent opacity-100!": selected,
+        "bg-primary text-foreground hover:bg-primary/90! opacity-100!":
+            selected,
         "opacity-25 cursor-not-allowed": disabled,
         "text-foreground-muted": !inCurrentMonth && !selected,
         "bg-muted! text-foreground-muted!": !inCurrentMonth && !!range,

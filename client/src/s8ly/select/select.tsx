@@ -9,7 +9,7 @@ export interface SelectProps extends SelectPrimitive.SelectProps {
     options: { value: string; label: string; disabled?: boolean }[];
     ref?: Ref<HTMLButtonElement>;
     placeholder?: ReactNode;
-    className?: {
+    classNames?: {
         content?: string;
         trigger?: string;
     };
@@ -19,7 +19,7 @@ export const Select: FC<SelectProps> = ({
     children,
     ref,
     options,
-    className,
+    classNames,
     placeholder,
     defaultValue,
     value: valueProp,
@@ -58,7 +58,7 @@ export const Select: FC<SelectProps> = ({
                     {
                         "text-foreground-muted": !value,
                     },
-                    className?.trigger
+                    classNames?.trigger
                 )}
             >
                 <SelectPrimitive.Value placeholder={placeholder ?? "Choose"} />
@@ -78,7 +78,7 @@ export const Select: FC<SelectProps> = ({
                     position="popper"
                     className={cn(
                         "border-border bg-background-1 mt-1 w-[300px] rounded-md border-1 text-sm",
-                        className?.content
+                        classNames?.content
                     )}
                 >
                     <SelectPrimitive.ScrollUpButton>
