@@ -33,7 +33,7 @@ export const IconSingle = () => {
 
 export const Segment = () => {
     return (
-        <ToggleGroup type="single" className="[&_*]:h-8">
+        <ToggleGroup type="single" variant="outline" className="[&_*]:h-8">
             <ToggleGroupItem value="bold" aria-label="Toggle bold">
                 Equity
             </ToggleGroupItem>

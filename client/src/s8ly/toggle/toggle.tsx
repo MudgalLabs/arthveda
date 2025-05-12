@@ -10,7 +10,7 @@ const toggleVariants = cva(
             variant: {
                 default: "bg-muted text-muted-foreground",
                 outline:
-                    "data-[state=off]:border border-accent bg-transparent text-foreground-muted shadow-xs data-[state=off]:enabled:hover:bg-accent-muted data-[state=off]:enabled:hover:text-muted-foreground",
+                    "data-[state=off]:border border-border bg-transparent text-foreground-muted shadow-xs data-[state=off]:enabled:hover:bg-accent-muted data-[state=off]:enabled:hover:text-muted-foreground",
                 success: "data-[state=on]:bg-background-green",
                 destructive: "data-[state=on]:bg-background-red",
             },
