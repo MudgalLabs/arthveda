@@ -52,34 +52,28 @@ export default function SignIn() {
                 <Link to={ROUTES.signUp}>Sign up for free</Link>
             </p>
             <form className="flex flex-col" onSubmit={handleSubmit}>
-                <WithLabel
-                    Label={<Label>Email</Label>}
-                    Input={
-                        <Input
-                            className="mb-4"
-                            placeholder="Email"
-                            name="email"
-                            disabled={isPending}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    }
-                />
+                <WithLabel Label={<Label>Email</Label>}>
+                    <Input
+                        className="mb-4"
+                        placeholder="Email"
+                        name="email"
+                        disabled={isPending}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </WithLabel>
 
-                <WithLabel
-                    Label={<Label>Password</Label>}
-                    Input={
-                        <Password
-                            className="mb-2"
-                            placeholder="Password"
-                            name="password"
-                            type="password"
-                            disabled={isPending}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    }
-                />
+                <WithLabel Label={<Label>Password</Label>}>
+                    <Password
+                        className="mb-2"
+                        placeholder="Password"
+                        name="password"
+                        type="password"
+                        disabled={isPending}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </WithLabel>
 
                 <Link className="mb-6" to={ROUTES.forgotPassword}>
                     Forgot password?

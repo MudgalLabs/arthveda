@@ -110,74 +110,61 @@ export default function SignUp() {
             </p>
 
             <form className="flex flex-col" onSubmit={handleSubmit}>
-                <WithLabel
-                    Label={<Label>Name</Label>}
-                    Input={
-                        <Input
-                            id="name"
-                            name="name"
-                            placeholder="Sigma Male"
-                            disabled={isPending}
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            variant={
-                                formErrors.name?.length > 0
-                                    ? "error"
-                                    : undefined
-                            }
-                        />
-                    }
-                />
+                <WithLabel Label={<Label>Name</Label>}>
+                    <Input
+                        id="name"
+                        name="name"
+                        placeholder="Sigma Male"
+                        disabled={isPending}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        variant={
+                            formErrors.name?.length > 0 ? "error" : undefined
+                        }
+                    />
+                </WithLabel>
 
                 {formErrors.name?.length > 0 && (
                     <p className="text-red mt-2 text-sm">{formErrors.name}</p>
                 )}
                 <div className="mb-4"></div>
 
-                <WithLabel
-                    Label={<Label>Email</Label>}
-                    Input={
-                        <Input
-                            type="email"
-                            id="email"
-                            name="email"
-                            placeholder="name@arthveda.io"
-                            disabled={isPending}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            variant={
-                                formErrors.email?.length > 0
-                                    ? "error"
-                                    : undefined
-                            }
-                        />
-                    }
-                />
+                <WithLabel Label={<Label>Email</Label>}>
+                    <Input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="name@arthveda.io"
+                        disabled={isPending}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        variant={
+                            formErrors.email?.length > 0 ? "error" : undefined
+                        }
+                    />
+                </WithLabel>
 
                 {formErrors.email?.length > 0 && (
                     <p className="text-red mt-2 text-sm">{formErrors.email}</p>
                 )}
                 <div className="mb-4"></div>
 
-                <WithLabel
-                    Label={<Label>Password</Label>}
-                    Input={
-                        <Password
-                            id="password"
-                            name="password"
-                            placeholder="Password"
-                            type="password"
-                            disabled={isPending}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            variant={
-                                formErrors.password?.length > 0
-                                    ? "error"
-                                    : undefined
-                            }
-                        />
-                    }
-                />
+                <WithLabel Label={<Label>Password</Label>}>
+                    <Password
+                        id="password"
+                        name="password"
+                        placeholder="Password"
+                        type="password"
+                        disabled={isPending}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        variant={
+                            formErrors.password?.length > 0
+                                ? "error"
+                                : undefined
+                        }
+                    />
+                </WithLabel>
 
                 {formErrors.password?.length > 0 && (
                     <div className="text-red mt-2 text-sm">
@@ -191,25 +178,22 @@ export default function SignUp() {
                 )}
                 <div className="mb-4"></div>
 
-                <WithLabel
-                    Label={<Label>Confirm Password</Label>}
-                    Input={
-                        <Password
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            placeholder="Password"
-                            type="password"
-                            disabled={isPending}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            variant={
-                                formErrors.confirmPassword?.length > 0
-                                    ? "error"
-                                    : undefined
-                            }
-                        />
-                    }
-                />
+                <WithLabel Label={<Label>Confirm Password</Label>}>
+                    <Password
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        placeholder="Password"
+                        type="password"
+                        disabled={isPending}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        variant={
+                            formErrors.confirmPassword?.length > 0
+                                ? "error"
+                                : undefined
+                        }
+                    />
+                </WithLabel>
 
                 {formErrors.confirmPassword?.length > 0 && (
                     <p className="text-red mt-2 text-sm">

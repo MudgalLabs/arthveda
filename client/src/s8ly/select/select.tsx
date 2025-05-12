@@ -31,13 +31,13 @@ export const Select: FC<SelectProps> = ({
 }) => {
     const [value, setValue] = useControlled({
         controlled: valueProp,
-        default: "",
+        default: defaultValue,
         name: "value",
     });
 
     const [open, setOpen] = useControlled({
         controlled: openProp,
-        default: false,
+        default: defaultOpen,
         name: "open",
     });
 
@@ -54,10 +54,12 @@ export const Select: FC<SelectProps> = ({
             <SelectPrimitive.Trigger
                 ref={ref}
                 className={cn(
-                    "bg-muted text-foreground border-border flex w-[300px] cursor-pointer items-center justify-between gap-x-4 rounded-md border-1 p-3",
+                    "bg-muted text-foreground border-border flex w-[300px] items-center justify-between gap-x-4 rounded-md border-1 p-3 enabled:cursor-pointer",
                     "focus:outline-accent text-sm focus:outline-1 focus:outline-offset-0",
                     {
                         "text-foreground-muted": !value,
+                        "opacity-60 disabled:cursor-not-allowed":
+                            props.disabled,
                     },
                     classNames?.trigger
                 )}
@@ -116,16 +118,19 @@ const SelectItem: FC<SelectItemProps> = ({
     ref,
     children,
     className,
+    disabled,
     ...props
 }) => {
     return (
         <SelectPrimitive.Item
-            {...props}
             ref={ref}
+            data-disabled={disabled}
             className={cn(
-                "hover:bg-muted focus:bg-muted disabled:text-foreground-muted m-1 flex cursor-pointer items-center justify-between rounded-md px-2 py-3 focus:outline-none",
+                "enabled:hover:bg-muted focus:bg-muted data-[disabled=true]:text-foreground-muted m-1 flex items-center justify-between rounded-md px-2 py-3 focus:outline-none enabled:cursor-pointer data-[disabled=true]:hover:cursor-not-allowed",
                 className
             )}
+            disabled={disabled}
+            {...props}
         >
             <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
             <SelectPrimitive.ItemIndicator>

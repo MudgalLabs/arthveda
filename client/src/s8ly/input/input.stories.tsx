@@ -3,7 +3,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Input as InputComp, Label } from "@/s8ly";
 
 import { WithLabel as WithLabelComp } from "@/components/with-label";
+import { WithCompare as WithCompareComp } from "@/components/with-compare";
 import { Password as PasswordComp } from "@/components/password";
+import { CompareSelect as CompareSelect } from "@/components/compare-select";
 
 const meta = {
     title: "s8ly/Input",
@@ -40,11 +42,18 @@ export const Password: Story = {
     render: () => <PasswordComp />,
 };
 
-export const WithLabel: Story = {
-    render: () => (
-        <WithLabelComp
-            Label={<Label>Email</Label>}
-            Input={<InputComp placeholder="mail@example.com" />}
-        />
-    ),
+export const WithLabel = () => {
+    return (
+        <WithLabelComp Label={<Label>Email</Label>}>
+            <InputComp placeholder="mail@example.com" type="email" />
+        </WithLabelComp>
+    );
+};
+
+export const WithCompare = () => {
+    return (
+        <WithCompareComp Compare={<CompareSelect />}>
+            <InputComp placeholder="Price" type="number" />
+        </WithCompareComp>
+    );
 };
