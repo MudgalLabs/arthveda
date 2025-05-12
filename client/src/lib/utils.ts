@@ -21,7 +21,11 @@ export function loadFromLocalStorage(key: LocalStorageKey): string {
     return localStorage.getItem(key) || "";
 }
 
-export function formatDate(date: Date) {
+interface formatDateOptions {
+    time?: boolean;
+}
+
+export function formatDate(date: Date, options: formatDateOptions = {}) {
     const months = [
         "Jan",
         "Feb",
@@ -55,5 +59,13 @@ export function formatDate(date: Date) {
         }
     };
 
-    return `${month} ${getOrdinalSuffix(day)}, ${year}`;
+    const formattedDate = `${month} ${getOrdinalSuffix(day)}, ${year}`;
+
+    if (options.time) {
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${formattedDate}, ${hours}:${minutes}`;
+    }
+
+    return formattedDate;
 }

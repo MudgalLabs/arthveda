@@ -5,9 +5,6 @@ import { useState } from "react";
 
 const meta = {
     title: "s8ly/DatePicker",
-    parameters: {
-        layout: "centered",
-    },
 } satisfies Meta;
 
 export default meta;
@@ -20,4 +17,18 @@ export function Single() {
 export function Range() {
     const [dates, setDates] = useState<Date[]>([]);
     return <DatePicker mode="range" dates={dates} onDatesChange={setDates} />;
+}
+
+export function SingleWithTime() {
+    const [dates, setDates] = useState<Date[]>([]);
+    return (
+        <DatePicker mode="single" time dates={dates} onDatesChange={setDates} />
+    );
+}
+
+export function RangeWithTime() {
+    const [dates, setDates] = useState<Date[]>([]);
+    return (
+        <DatePicker mode="range" time dates={dates} onDatesChange={setDates} />
+    );
 }

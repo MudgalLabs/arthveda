@@ -19,9 +19,10 @@ function DatePicker({
     dates: datesProp,
     onDatesChange: onDatesChangeProp,
     offsetDate: offsetDateProp,
-    className,
     mode,
     onOffsetChange: onOffsetChangeProp,
+    time,
+    className,
 }: DatePickerProps) {
     const [dates, setDates] = useControlled({
         controlled: datesProp,
@@ -40,16 +41,20 @@ function DatePicker({
     const isDateSet = dates.length > 0;
     const isRange = mode === "range";
     const unselectedText = isRange ? "Select range" : "Select date";
-    const selectedText = dates.map((d) => formatDate(d)).join(" - ");
+    const selectedText = dates
+        .map((d) => formatDate(d, { time: time }))
+        .join(" - ");
+
+    let width = "min-w-[150px]";
+    if (isRange) width = "min-w-[250px]";
+    if (time && !isRange) width = "min-w-[190px]";
+    if (time && isRange) width = "min-w-[330px]";
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <DatePickerButton
-                    className={cn(
-                        isRange ? "w-[270px]" : "w-[160px]",
-                        className
-                    )}
+                    className={cn(width, className)}
                     open={open}
                     isDateSet={isDateSet}
                 >
@@ -68,6 +73,7 @@ function DatePicker({
                     offsetDate={offsetDate}
                     onOffsetChange={onOffsetChangeProp ?? setOffsetDate}
                     mode={mode}
+                    time={time}
                 />
             </PopoverContent>
         </Popover>

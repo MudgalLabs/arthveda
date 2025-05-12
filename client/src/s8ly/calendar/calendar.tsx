@@ -1,4 +1,12 @@
-import { FC, ReactElement, ReactNode, useState } from "react";
+import {
+    FC,
+    ReactElement,
+    ReactNode,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
 import {
     DPDay,
     DPMonth,
@@ -14,6 +22,9 @@ import {
     useDaysPropGetters,
     useDatePickerOffsetPropGetters,
     useCalendars,
+    DPTime,
+    useTime,
+    useTimePropGetter,
 } from "@rehookify/datepicker";
 
 import { cn } from "@/lib/utils";
@@ -29,6 +40,8 @@ interface CalendarProps {
     dates: Date[];
     offsetDate?: Date;
     onOffsetChange?(d: Date): void;
+    /** If set to `true`, user will be able to pick a time as well. */
+    time?: boolean;
 }
 
 function Calendar({
@@ -37,6 +50,7 @@ function Calendar({
     onDatesChange,
     offsetDate,
     onOffsetChange,
+    time = false,
 }: CalendarProps): ReactElement {
     const isRange = mode === "range";
 
@@ -47,30 +61,40 @@ function Calendar({
         onOffsetChange,
         dates: {
             mode,
-            toggle: true,
         },
         calendar: {
             offsets: isRange ? [1] : undefined,
         },
+        time: { interval: 15 },
         locale: {
             monthName: "short",
+            hour: "2-digit",
+            minute: "2-digit",
         },
     };
 
     return (
         <DatePickerStateProvider config={config}>
-            <CalendarInternal />
+            <div className="grid grid-cols-[repeat(2,_min-content)] gap-x-6">
+                <CalendarInternal time={time} />
+
+                {time && (
+                    <div className="border-border block rounded border p-4">
+                        <Time />
+                    </div>
+                )}
+            </div>
         </DatePickerStateProvider>
     );
 }
 
-enum View {
+const enum View {
     Days = "Days",
     Months = "Months",
     Years = "Years",
 }
 
-function CalendarInternal(): ReactElement {
+function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
     const [view, setView] = useState<View>(View.Days);
 
     const state = useDatePickerStateContext();
@@ -85,6 +109,33 @@ function CalendarInternal(): ReactElement {
     const { calendars, weekDays } = useCalendars(state);
 
     const isRange = state.config.dates.mode === "range";
+
+    // This ref and the useEffect attached to this ref is because the library
+    // (@rehookify/datepicker) being used to build Calendar and Time components
+    // "activates" or "shows" the selected/active time only when the user
+    // clicks on the selected date. The correct behaviour would have been to
+    // mark the "active"/"selected" time for the active date automatically on
+    // mount but it doesn't. So I am programmatically clicking on the active
+    // day button (if any) so that the time also gets active and render appropriately.
+    const activeDayRef = useRef<HTMLButtonElement | null>(null);
+    useEffect(() => {
+        if (!time) return;
+
+        const days = calendars[0].days;
+        let day;
+        for (let i = 0; i < days.length; i += 1) {
+            const d = days[i];
+
+            if (d.selected) {
+                day = d;
+                break;
+            }
+        }
+
+        if (day) {
+            activeDayRef.current?.click();
+        }
+    }, []);
 
     const DaysView = ({
         calendar,
@@ -151,20 +202,23 @@ function CalendarInternal(): ReactElement {
             </CalendarGrid>
 
             <CalendarGrid>
-                {calendar.days.map((d) => (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        key={d.$date.toString()}
-                        className={getDayClassName(
-                            "text-foreground text-xs",
-                            d
-                        )}
-                        {...dayButton(d)}
-                    >
-                        {d.day}
-                    </Button>
-                ))}
+                {calendar.days.map((d) => {
+                    return (
+                        <Button
+                            ref={d.selected && !isRange ? activeDayRef : null}
+                            variant="ghost"
+                            size="icon"
+                            key={d.$date.toString()}
+                            className={getDayClassName(
+                                "text-foreground text-xs",
+                                d
+                            )}
+                            {...dayButton(d)}
+                        >
+                            {d.day}
+                        </Button>
+                    );
+                })}
             </CalendarGrid>
         </Section>
     );
@@ -274,6 +328,49 @@ function CalendarInternal(): ReactElement {
     );
 }
 
+function Time() {
+    const state = useDatePickerStateContext();
+    const time = useTime(state);
+    const { timeButton } = useTimePropGetter(state);
+
+    // This ref and the useLayoutEffect attached to it allow us to bring the
+    // active/selected time in the view of the scrollable <ul>.
+    const activeTimeRef = useRef<HTMLButtonElement | null>(null);
+    useLayoutEffect(() => {
+        if (activeTimeRef.current) {
+            activeTimeRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+        }
+    }, [time]);
+
+    return (
+        <ul className="m-0 max-h-80 list-none overflow-y-auto p-0">
+            {time.time.map((t) => {
+                if (t.selected) {
+                    console.log(t, t.selected);
+                }
+                return (
+                    <li key={t.$date.toString()} className="p-0">
+                        <Button
+                            ref={t.selected ? activeTimeRef : null}
+                            variant="ghost"
+                            className={getTimesClassName(
+                                "px-8 font-mono text-xs",
+                                t
+                            )}
+                            {...timeButton(t)}
+                        >
+                            {t.time}
+                        </Button>
+                    </li>
+                );
+            })}
+        </ul>
+    );
+}
+
 interface CalendarGridProps {
     className?: string;
     children?: ReactNode;
@@ -346,5 +443,15 @@ export const getYearsClassName = (
         "opacity-25 cursor-not-allowed": disabled,
     });
 
-export { Calendar };
+export const getTimesClassName = (
+    className: string,
+    { selected, disabled }: DPTime
+) =>
+    cn(className, {
+        "bg-primary text-foreground hover:bg-primary/90! opacity-100!":
+            selected,
+        "opacity-25 cursor-not-allowed": disabled,
+    });
+
+export { Calendar, Time, CalendarInternal };
 export type { CalendarProps };
