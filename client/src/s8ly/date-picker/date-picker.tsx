@@ -11,8 +11,11 @@ import {
     PopoverTrigger,
 } from "@/s8ly";
 
-interface DatePickerProps extends CalendarProps {
+interface DatePickerProps
+    extends Omit<CalendarProps, "dates" | "onDatesChange"> {
     className?: string;
+    dates?: Date[];
+    onDatesChange?(d: Date[]): void;
 }
 
 function DatePicker({
@@ -45,10 +48,10 @@ function DatePicker({
         .map((d) => formatDate(d, { time: time }))
         .join(" - ");
 
-    let width = "min-w-[150px]";
-    if (isRange) width = "min-w-[250px]";
-    if (time && !isRange) width = "min-w-[190px]";
-    if (time && isRange) width = "min-w-[330px]";
+    let width = "w-[150px]";
+    if (isRange) width = "w-[250px]";
+    if (time && !isRange) width = "w-[190px]";
+    if (time && isRange) width = "w-[330px]";
 
     return (
         <Popover open={open} onOpenChange={setOpen}>

@@ -20,14 +20,12 @@ function ToggleGroup({
     VariantProps<typeof toggleVariants>) {
     return (
         <ToggleGroupPrimitive.Root
-            data-slot="toggle-group"
             data-variant={variant}
             data-size={size}
             className={cn(
                 "group/toggle-group bg-muted flex w-fit items-center gap-x-1.5 rounded-md p-1",
                 className
             )}
-            gap-x-10
             {...props}
         >
             <ToggleGroupContext.Provider value={{ variant, size }}>
@@ -49,7 +47,6 @@ function ToggleGroupItem({
 
     return (
         <ToggleGroupPrimitive.Item
-            data-slot="toggle-group-item"
             data-variant={context.variant || variant}
             data-size={context.size || size}
             className={cn(

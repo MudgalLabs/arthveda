@@ -35,9 +35,9 @@ import { Button } from "@/s8ly";
 import "./calendar.css";
 
 interface CalendarProps {
-    mode: "single" | "range";
-    onDatesChange(d: Date[]): void;
     dates: Date[];
+    onDatesChange(d: Date[]): void;
+    mode?: "single" | "range";
     offsetDate?: Date;
     onOffsetChange?(d: Date): void;
     /** If set to `true`, user will be able to pick a time as well. */
@@ -45,9 +45,9 @@ interface CalendarProps {
 }
 
 function Calendar({
-    mode,
     dates: selectedDates,
     onDatesChange,
+    mode = "single",
     offsetDate,
     onOffsetChange,
     time = false,
@@ -75,7 +75,11 @@ function Calendar({
 
     return (
         <DatePickerStateProvider config={config}>
-            <div className="grid grid-cols-[repeat(2,_min-content)] gap-x-6">
+            <div
+                className={cn("grid grid-cols-[repeat(2,_min-content)]", {
+                    "gap-x-6": time,
+                })}
+            >
                 <CalendarInternal time={time} />
 
                 {time && (
@@ -302,7 +306,7 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
                 className={cn(
                     "bg-muted border-border flex h-[330px] w-fit gap-x-4 rounded-md border-1 p-3",
                     {
-                        "w-[300px]": !isRange,
+                        "w-[280px]": !isRange,
                         "w-[560px]": isRange,
                     }
                 )}
@@ -376,10 +380,7 @@ interface CalendarGridProps {
     children?: ReactNode;
 }
 
-export const CalendarGrid: FC<CalendarGridProps> = ({
-    className,
-    children,
-}) => {
+const CalendarGrid: FC<CalendarGridProps> = ({ className, children }) => {
     const mainClassName = cn("grid grid-cols-7 gap-x-0 gap-y-0", className);
     return <main className={mainClassName}>{children}</main>;
 };
@@ -389,10 +390,7 @@ interface SectionHeaderProps {
     children?: ReactNode;
 }
 
-export const SectionHeader: FC<SectionHeaderProps> = ({
-    className,
-    children,
-}) => {
+const SectionHeader: FC<SectionHeaderProps> = ({ className, children }) => {
     const headerClassName = cn(
         "grid grid-cols-[2rem_1fr_2rem] items-center mb-2",
         className
@@ -405,12 +403,12 @@ interface SectionProps {
     children?: ReactNode;
 }
 
-export const Section: FC<SectionProps> = ({ className, children }) => {
+const Section: FC<SectionProps> = ({ className, children }) => {
     const sectionClassName = cn("", className);
     return <section className={sectionClassName}>{children}</section>;
 };
 
-export const getDayClassName = (
+const getDayClassName = (
     className: string,
     { selected, disabled, inCurrentMonth, now, range }: DPDay
 ) =>
@@ -423,7 +421,7 @@ export const getDayClassName = (
         "border border-accent rounded-md!": now, // The `!` on rounded-md exists because without it, the "range" classes remove it.
     });
 
-export const getMonthClassName = (
+const getMonthClassName = (
     className: string,
     { selected, now, disabled }: DPMonth
 ) =>
@@ -433,7 +431,7 @@ export const getMonthClassName = (
         "opacity-25 cursor-not-allowed": disabled,
     });
 
-export const getYearsClassName = (
+const getYearsClassName = (
     className: string,
     { selected, now, disabled }: DPYear
 ) =>
@@ -443,10 +441,7 @@ export const getYearsClassName = (
         "opacity-25 cursor-not-allowed": disabled,
     });
 
-export const getTimesClassName = (
-    className: string,
-    { selected, disabled }: DPTime
-) =>
+const getTimesClassName = (className: string, { selected, disabled }: DPTime) =>
     cn(className, {
         "bg-primary text-foreground hover:bg-primary/90! opacity-100!":
             selected,
