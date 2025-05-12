@@ -37,6 +37,5 @@ export const Disabled: Story = {
 export const Text: Story = {
     args: {
         children: "Show",
-        size: "text",
     },
 };

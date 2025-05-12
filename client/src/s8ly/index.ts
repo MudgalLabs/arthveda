@@ -28,5 +28,7 @@ export * from "./select/select";
 export * from "./table/table";
 // Toggle
 export * from "./toggle/toggle";
+// ToggleGroup
+export * from "./toggle-group/toggle-group";
 // Tooltip
 export * from "./tooltip/tooltip";

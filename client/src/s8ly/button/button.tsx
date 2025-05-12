@@ -84,5 +84,5 @@ const Loading: FC = () => {
 
 Button.displayName = "s8ly_Button";
 
-export { Button };
+export { Button, buttonVariants };
 export type { ButtonProps };
