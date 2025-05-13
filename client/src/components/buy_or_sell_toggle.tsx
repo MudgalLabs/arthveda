@@ -1,11 +1,11 @@
 import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
 
-type BuyOrSell = "buy" | "sell";
+type BuyOrSellState = "buy" | "sell" | "";
 
 interface BuyOrSellToggleProps {
-    defaultValue?: BuyOrSell;
-    value?: BuyOrSell;
-    onChange?: (v: BuyOrSell) => void;
+    defaultValue?: BuyOrSellState;
+    value?: BuyOrSellState;
+    onChange?: (v: BuyOrSellState) => void;
 }
 
 function BuyOrSellToggle({
@@ -16,7 +16,7 @@ function BuyOrSellToggle({
     return (
         <ToggleGroup
             type="single"
-            className="[&_*]:h-8"
+            className="[&_*]:h-8 [&_*]:w-18"
             defaultValue={defaultValue}
             value={value}
             onValueChange={onChange}
@@ -37,4 +37,4 @@ function BuyOrSellToggle({
 }
 
 export { BuyOrSellToggle };
-export type { BuyOrSellToggleProps, BuyOrSell };
+export type { BuyOrSellToggleProps, BuyOrSellState };

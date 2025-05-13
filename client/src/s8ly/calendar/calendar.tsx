@@ -352,9 +352,6 @@ function Time() {
     return (
         <ul className="m-0 max-h-80 list-none overflow-y-auto p-0">
             {time.time.map((t) => {
-                if (t.selected) {
-                    console.log(t, t.selected);
-                }
                 return (
                     <li key={t.$date.toString()} className="p-0">
                         <Button

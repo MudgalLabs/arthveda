@@ -78,6 +78,11 @@ a {
     @apply text-link font-content text-sm font-bold underline-offset-4 hover:underline;
 }
 
+button {
+    /* The default in TailwindCSS is making the button chunky. */
+    line-height: normal;
+}
+
 /* Utility to disable selection. */
 @utility no-select {
     -webkit-touch-callout: none; /* iOS Safari */
