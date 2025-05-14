@@ -17,8 +17,8 @@ export const Primary: Story = {
     args: { children: "Breakeven", variant: "primary" },
 };
 
-export const Secondary: Story = {
-    args: { children: "Open", variant: "secondary" },
+export const Muted: Story = {
+    args: { children: "Open", variant: "muted" },
 };
 
 export const Green: Story = {

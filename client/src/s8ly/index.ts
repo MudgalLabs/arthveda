@@ -22,6 +22,8 @@ export * from "./label/label";
 export * from "./input/input";
 // Popover
 export * from "./popover/popover";
+// Progress
+export * from "./progress/progress";
 // Select
 export * from "./select/select";
 // Seperator

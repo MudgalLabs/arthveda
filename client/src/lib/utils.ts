@@ -69,3 +69,60 @@ export function formatDate(date: Date, options: formatDateOptions = {}) {
 
     return formattedDate;
 }
+
+/**
+ * Rounds a Date object to the nearest 15-minute increment.
+ * Adjusts the hour if needed and resets seconds and milliseconds.
+ *
+ * @param date - A Date instance to be rounded.
+ * @returns A new Date object rounded to the nearest 15 minutes.
+ */
+export function roundToNearest15Minutes(date: Date): Date {
+    const result = new Date(date); // Clone original to avoid mutation
+
+    const minutes: number = result.getMinutes();
+    const roundedMinutes: number = Math.round(minutes / 15) * 15;
+
+    if (roundedMinutes === 60) {
+        result.setHours(result.getHours() + 1);
+        result.setMinutes(0);
+    } else {
+        result.setMinutes(roundedMinutes);
+    }
+
+    result.setSeconds(0);
+    result.setMilliseconds(0);
+
+    return result;
+}
+
+/**
+ * Represents the time difference between two dates in days, hours, and minutes.
+ */
+interface TimeElapsed {
+    days: number;
+    hours: number;
+    minutes: number;
+}
+
+/**
+ * Calculates the time elapsed between two Date objects and returns the breakdown
+ * in days, hours, and minutes (not total values).
+ */
+export function getElapsedTime(start: Date, end: Date): TimeElapsed {
+    if (start > end) {
+        console.error(
+            "getElapsedTime: start date must be earlier than end date."
+        );
+        return { days: 0, hours: 0, minutes: 0 };
+    }
+
+    const diffMs: number = end.getTime() - start.getTime();
+    const totalMinutes: number = Math.floor(diffMs / (1000 * 60));
+
+    const days: number = Math.floor(totalMinutes / (60 * 24));
+    const hours: number = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes: number = totalMinutes % 60;
+
+    return { days, hours, minutes };
+}

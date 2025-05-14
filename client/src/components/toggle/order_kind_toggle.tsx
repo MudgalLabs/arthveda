@@ -1,18 +1,17 @@
+import { OrderKind } from "@/features/trade/trade";
 import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
 
-type BuyOrSellState = "buy" | "sell";
-
-interface BuyOrSellToggleProps {
-    defaultValue?: BuyOrSellState;
-    value?: BuyOrSellState;
-    onChange?: (v: BuyOrSellState) => void;
+interface OrderKindToggleProps {
+    defaultValue?: OrderKind;
+    value?: OrderKind;
+    onChange?: (v: OrderKind) => void;
 }
 
-function BuyOrSellToggle({
+function OrderKindToggle({
     defaultValue,
     value,
     onChange,
-}: BuyOrSellToggleProps) {
+}: OrderKindToggleProps) {
     return (
         <ToggleGroup
             type="single"
@@ -36,5 +35,5 @@ function BuyOrSellToggle({
     );
 }
 
-export { BuyOrSellToggle };
-export type { BuyOrSellToggleProps, BuyOrSellState };
+export { OrderKindToggle };
+export type { OrderKindToggleProps };

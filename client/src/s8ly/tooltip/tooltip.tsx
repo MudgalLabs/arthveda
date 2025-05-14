@@ -29,31 +29,29 @@ export const Tooltip: FC<TooltipProps> = ({
     if (disabled) return children;
 
     return (
-        <TooltipPrimitive.TooltipProvider>
-            <TooltipPrimitive.Root
-                open={open}
-                defaultOpen={defaultOpen}
-                onOpenChange={onOpenChange}
-                delayDuration={delayDuration}
-                disableHoverableContent={disableHoverableContent}
-            >
-                <TooltipPrimitive.Trigger className="peer" asChild>
-                    {children}
-                </TooltipPrimitive.Trigger>
+        <TooltipPrimitive.Root
+            open={open}
+            defaultOpen={defaultOpen}
+            onOpenChange={onOpenChange}
+            delayDuration={delayDuration}
+            disableHoverableContent={disableHoverableContent}
+        >
+            <TooltipPrimitive.Trigger className="peer" asChild>
+                {children}
+            </TooltipPrimitive.Trigger>
 
-                <div className="opacity-0 transition-opacity duration-150 ease-in-out peer-hover:opacity-100">
-                    <TooltipPrimitive.Content
-                        className={cn(
-                            "bg-accent text-foreground 0 z-50 m-2 rounded-md px-3 py-2 text-sm font-medium",
-                            contentPropsClassName
-                        )}
-                        {...contentPropsRest}
-                    >
-                        {content}
-                        <TooltipPrimitive.Arrow width={11} height={5} />
-                    </TooltipPrimitive.Content>
-                </div>
-            </TooltipPrimitive.Root>
-        </TooltipPrimitive.TooltipProvider>
+            <div className="opacity-0 transition-opacity duration-150 ease-in-out peer-hover:opacity-100">
+                <TooltipPrimitive.Content
+                    className={cn(
+                        "bg-muted border-border-muted text-foreground 0 z-50 m-2 rounded-md border-1 px-3 py-2 text-sm font-medium",
+                        contentPropsClassName
+                    )}
+                    {...contentPropsRest}
+                >
+                    {content}
+                    <TooltipPrimitive.Arrow width={11} height={5} />
+                </TooltipPrimitive.Content>
+            </div>
+        </TooltipPrimitive.Root>
     );
 };

@@ -1,6 +1,3 @@
-import { BuyOrSellState } from "@/components/toggle/buy_or_sell_toggle";
-import { SegmentKind } from "@/components/toggle/segment_toggle";
-
 import {
     createContext,
     Dispatch,
@@ -10,45 +7,52 @@ import {
     useState,
 } from "react";
 
-interface SubTrade {
-    id: number; // To keep track of unique rows.
-    buy_or_sell: BuyOrSellState;
-    time: Date[];
-    quantity: number;
-    price: number;
-}
-
-interface AddTradeState {
-    symbol: string;
-    instrument: SegmentKind;
-    planned_risk: number;
-    charges: number;
-}
+import {
+    OrderKind,
+    ProcessTradeResult,
+    SubTrade,
+    Trade,
+} from "@/features/trade/trade";
+import { roundToNearest15Minutes } from "@/lib/utils";
 
 interface AddTradeContextType {
-    state: AddTradeState;
-    setState: Dispatch<SetStateAction<AddTradeState>>;
+    state: Trade;
+    setState: Dispatch<SetStateAction<Trade>>;
     subTrades: SubTrade[];
     setSubTrades: Dispatch<SetStateAction<SubTrade[]>>;
     insertNewSubTrade: () => void;
     removeSubTrade: (subTradeID: number) => void;
+    processTradeResult: ProcessTradeResult;
 }
 
-function getEmptySubTrade(id: number, buyOrSell: BuyOrSellState): SubTrade {
+function getEmptySubTrade(id: number, orderKind: OrderKind): SubTrade {
     return {
         id,
-        buy_or_sell: buyOrSell,
-        time: [],
+        order_kind: orderKind,
+        time: roundToNearest15Minutes(new Date()),
         price: 0,
         quantity: 0,
     };
 }
 
-const initialState: AddTradeState = {
+const initialState: Trade = {
     symbol: "",
     instrument: "equity",
-    planned_risk: 0,
-    charges: 0,
+    currency: "INR",
+    planned_risk_amount: 69,
+    charges_amount: 4000,
+};
+
+const initialProcessTradeResult: ProcessTradeResult = {
+    opened_at: roundToNearest15Minutes(new Date()),
+    closed_at: null,
+    direction: "long",
+    outcome: "open",
+    gross_pnl_amount: 0,
+    net_pnl_amount: 0,
+    net_return_percentage: 0,
+    r_factor: 0,
+    cost_as_percentage_of_net_pnl: 0,
 };
 
 const AddTradeContext = createContext<AddTradeContextType>(
@@ -56,14 +60,17 @@ const AddTradeContext = createContext<AddTradeContextType>(
 );
 
 function AddTradeContextProvider({ children }: { children: ReactNode }) {
-    const [state, setState] = useState<AddTradeState>(() => initialState);
+    const [state, setState] = useState<Trade>(() => initialState);
     const [subTrades, setSubTrades] = useState<SubTrade[]>(() => [
         getEmptySubTrade(1, "buy"),
     ]);
+    const [processTradeResult] = useState<ProcessTradeResult>(
+        () => initialProcessTradeResult
+    );
 
     // TODO: Maybe add some checks/conditions?
     function insertNewSubTrade() {
-        const firstSubTradeBuyOrSell = subTrades[0]?.buy_or_sell ?? "buy";
+        const firstSubTradeBuyOrSell = subTrades[0]?.order_kind ?? "buy";
         // We are assuming that if the first sub trade was a BUY trade, then user
         // went LONG on this trade. That's why the subsequent sub trade are most
         // likely going to be SELL trade unless user may have scaled in by doing
@@ -93,6 +100,7 @@ function AddTradeContextProvider({ children }: { children: ReactNode }) {
         setSubTrades,
         insertNewSubTrade,
         removeSubTrade,
+        processTradeResult,
     };
 
     return (

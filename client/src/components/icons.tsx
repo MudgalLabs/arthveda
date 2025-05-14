@@ -34,3 +34,5 @@ export { LuChevronsRight as IconChevronsRight } from "react-icons/lu";
 export { LuChevronsUpDown as IconChevronsUpDown } from "react-icons/lu";
 export { LuSettings2 as IconSettings2 } from "react-icons/lu";
 export { LuTrash2 as IconTrash } from "react-icons/lu";
+export { LuTrendingUp as IconTrendingUp } from "react-icons/lu";
+export { LuTrendingDown as IconTrendingDown } from "react-icons/lu";

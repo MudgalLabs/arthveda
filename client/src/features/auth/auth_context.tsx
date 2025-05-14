@@ -1,12 +1,12 @@
 import { createContext, FC, PropsWithChildren, useContext } from "react";
 
 import { apiHooks } from "@/hooks/api_hooks";
-import { GetMeResponse } from "@/lib/api/types";
+import { User } from "@/lib/api/user";
 
 interface AuthenticationContextType {
     isLoading: boolean;
     isAuthenticated: boolean;
-    data: GetMeResponse | undefined;
+    data: User | undefined;
 }
 
 const AuthenticationContext = createContext<AuthenticationContextType>({

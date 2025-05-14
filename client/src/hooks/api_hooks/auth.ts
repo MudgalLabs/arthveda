@@ -1,12 +1,9 @@
 import { useMutation, AnyUseMutationOptions } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
-import {
-    ApiRes,
-    GetMeResponse,
-    SigninRequest,
-    SignupRequest,
-} from "@/lib/api/types";
+import { ApiRes } from "@/lib/api/client";
+import { SigninRequest, SignupRequest } from "@/lib/api/auth";
+import { User } from "@/lib/api/user";
 
 export function useSignup(options: AnyUseMutationOptions = {}) {
     return useMutation<ApiRes, unknown, SignupRequest, unknown>({
@@ -18,17 +15,14 @@ export function useSignup(options: AnyUseMutationOptions = {}) {
 }
 
 export function useSignin(options: AnyUseMutationOptions = {}) {
-    return useMutation<
-        ApiRes<{ user: GetMeResponse }>,
-        unknown,
-        SigninRequest,
-        unknown
-    >({
-        mutationFn: (body: SigninRequest) => {
-            return api.auth.signin(body);
-        },
-        ...options,
-    });
+    return useMutation<ApiRes<{ user: User }>, unknown, SigninRequest, unknown>(
+        {
+            mutationFn: (body: SigninRequest) => {
+                return api.auth.signin(body);
+            },
+            ...options,
+        }
+    );
 }
 
 export function useSignout(options: AnyUseMutationOptions = {}) {

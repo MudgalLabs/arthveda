@@ -7,8 +7,7 @@ const tagVariants = cva("font-semibold rounded-sm border-1", {
     variants: {
         variant: {
             primary: "bg-accent-muted border-accent text-primary",
-            secondary:
-                "bg-accent-muted border-border-muted text-muted-foreground",
+            muted: "bg-accent-muted border-border-muted text-muted-foreground",
             success:
                 "bg-background-green-muted border-border-green text-foreground-green",
             destructive:
@@ -19,7 +18,7 @@ const tagVariants = cva("font-semibold rounded-sm border-1", {
         },
     },
     defaultVariants: {
-        variant: "primary",
+        variant: "muted",
         size: "default",
     },
 });
@@ -30,12 +29,7 @@ interface TagProps extends VariantProps<typeof tagVariants> {
 }
 
 function Tag(props: TagProps) {
-    const {
-        children,
-        className,
-        variant = "primary",
-        size = "default",
-    } = props;
+    const { children, className, variant = "muted", size = "default" } = props;
     return (
         <div className={cn(tagVariants({ variant, size, className }))}>
             {children}
