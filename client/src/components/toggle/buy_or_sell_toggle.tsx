@@ -1,6 +1,6 @@
 import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
 
-type BuyOrSellState = "buy" | "sell" | "";
+type BuyOrSellState = "buy" | "sell";
 
 interface BuyOrSellToggleProps {
     defaultValue?: BuyOrSellState;

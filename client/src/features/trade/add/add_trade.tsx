@@ -20,6 +20,8 @@ import {
 } from "@/hooks/use_data_table_editable_cell";
 
 function AddTrade() {
+    const { state, setState } = useAddTrade();
+
     return (
         <>
             <h1 className="heading">Add Trade</h1>
@@ -30,19 +32,54 @@ function AddTrade() {
 
             <div className="flex items-center justify-between">
                 <WithLabel Label={<Label>Symbol</Label>}>
-                    <Input type="text" />
+                    <Input
+                        type="text"
+                        value={state.symbol}
+                        onChange={(e) =>
+                            setState((prev) => ({
+                                ...prev,
+                                symbol: e.target.value,
+                            }))
+                        }
+                    />
                 </WithLabel>
 
                 <WithLabel Label={<Label>Instrument</Label>}>
-                    <SegmentToggle />
+                    <SegmentToggle
+                        value={state.instrument}
+                        onChange={(value) =>
+                            setState((prev) => ({
+                                ...prev,
+                                instrument: value,
+                            }))
+                        }
+                    />
                 </WithLabel>
 
                 <WithLabel Label={<Label>Planned Risk</Label>}>
-                    <Input type="number" />
+                    <Input
+                        type="number"
+                        value={state.planned_risk}
+                        onChange={(e) =>
+                            setState((prev) => ({
+                                ...prev,
+                                planned_risk: Number(e.target.value),
+                            }))
+                        }
+                    />
                 </WithLabel>
 
                 <WithLabel Label={<Label>Charges</Label>}>
-                    <Input type="number" />
+                    <Input
+                        type="number"
+                        value={state.charges}
+                        onChange={(e) =>
+                            setState((prev) => ({
+                                ...prev,
+                                charges: Number(e.target.value),
+                            }))
+                        }
+                    />
                 </WithLabel>
             </div>
 

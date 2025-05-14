@@ -1,3 +1,4 @@
+import { BuyOrSellState } from "@/components/toggle/buy_or_sell_toggle";
 import { SegmentKind } from "@/components/toggle/segment_toggle";
 
 import {
@@ -11,7 +12,7 @@ import {
 
 interface SubTrade {
     id: number; // To keep track of unique rows.
-    buy_or_sell: "buy" | "sell" | "";
+    buy_or_sell: BuyOrSellState;
     time: Date[];
     quantity: number;
     price: number;
@@ -33,10 +34,10 @@ interface AddTradeContextType {
     removeSubTrade: (subTradeID: number) => void;
 }
 
-function getEmptySubTrade(id: number): SubTrade {
+function getEmptySubTrade(id: number, buyOrSell: BuyOrSellState): SubTrade {
     return {
         id,
-        buy_or_sell: "",
+        buy_or_sell: buyOrSell,
         time: [],
         price: 0,
         quantity: 0,
@@ -57,14 +58,23 @@ const AddTradeContext = createContext<AddTradeContextType>(
 function AddTradeContextProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<AddTradeState>(() => initialState);
     const [subTrades, setSubTrades] = useState<SubTrade[]>(() => [
-        getEmptySubTrade(1),
+        getEmptySubTrade(1, "buy"),
     ]);
 
     // TODO: Maybe add some checks/conditions?
     function insertNewSubTrade() {
+        const firstSubTradeBuyOrSell = subTrades[0]?.buy_or_sell ?? "buy";
+        // We are assuming that if the first sub trade was a BUY trade, then user
+        // went LONG on this trade. That's why the subsequent sub trade are most
+        // likely going to be SELL trade unless user may have scaled in by doing
+        // multiple BUY trade. So this is just a simple guess which can definitely
+        // be improved upon with some more complex logic.
+        const newSubTradeBuyOrSell =
+            firstSubTradeBuyOrSell === "buy" ? "sell" : "buy";
+
         setSubTrades((prev) => {
             const copy = Array.from(prev);
-            copy.push(getEmptySubTrade(prev.length + 1));
+            copy.push(getEmptySubTrade(prev.length + 1, newSubTradeBuyOrSell));
             return copy;
         });
     }

@@ -4,14 +4,14 @@
 
 @font-face {
     font-family: Poppins;
-    src: url("./assets/fonts/Poppins-Regular.ttf");
+    src: url("./assets/fonts/Poppins_Regular.ttf");
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: Poppins;
-    src: url("./assets/fonts/Poppins-Bold.ttf");
+    src: url("./assets/fonts/Poppins_Bold.ttf");
     font-weight: bold;
     font-style: normal;
 }
@@ -23,7 +23,7 @@
 
 @font-face {
     font-family: Museo Sans;
-    src: url("./assets/fonts/MuseoSans-Medium.otf");
+    src: url("./assets/fonts/MuseoSans_Medium.otf");
     font-weight: 500;
     font-style: normal;
 }
