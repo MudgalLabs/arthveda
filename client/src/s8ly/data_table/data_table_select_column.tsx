@@ -4,6 +4,7 @@ import { Checkbox } from "@/s8ly";
 
 const DATA_TABLE_SELECT_COLUMN_ID = "__select__";
 
+// TODO: This should be in @/components and not here?
 function getDataTableSelectColumnDef<T>(): ColumnDef<T> {
     return {
         id: DATA_TABLE_SELECT_COLUMN_ID,

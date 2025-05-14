@@ -4,12 +4,12 @@ import { z } from "zod";
 
 import { toast } from "@/components/toast";
 import { Button, Input, Label } from "@/s8ly";
-import { apiHooks } from "@/hooks/api-hooks";
+import { apiHooks } from "@/hooks/api_hooks";
 import { ROUTES } from "@/routes";
-import { ContinueWithGoogle } from "@/components/continue-with-google";
+import { ContinueWithGoogle } from "@/components/continue_with_google";
 import { Link } from "@/components/link";
 import { Password } from "@/components/password";
-import { WithLabel } from "@/components/with-label";
+import { WithLabel } from "@/components/with_label";
 
 export const SignupFormSchema = z
     .object({

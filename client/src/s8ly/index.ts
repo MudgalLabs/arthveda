@@ -11,11 +11,11 @@ export * from "./calendar/calendar";
 // Checkbox
 export * from "./checkbox/checkbox";
 // DataTable
-export * from "./data-table/data-table";
+export * from "./data_table/data_table";
 // DatePicker
-export * from "./date-picker/date-picker";
+export * from "./date_picker/date_picker";
 // DropdownMenu
-export * from "./dropdown-menu/dropdown-menu";
+export * from "./dropdown_menu/dropdown_menu";
 // Label
 export * from "./label/label";
 // Input
@@ -31,6 +31,6 @@ export * from "./table/table";
 // Toggle
 export * from "./toggle/toggle";
 // ToggleGroup
-export * from "./toggle-group/toggle-group";
+export * from "./toggle_group/toggle_group";
 // Tooltip
 export * from "./tooltip/tooltip";

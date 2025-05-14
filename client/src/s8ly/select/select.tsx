@@ -3,7 +3,7 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 
 import { IconCheck, IconChevronDown, IconChevronUp } from "@/components/icons";
 import { cn } from "@/lib/utils";
-import { useControlled } from "@/hooks/use-controlled";
+import { useControlled } from "@/hooks/use_controlled";
 
 export interface SelectProps extends SelectPrimitive.SelectProps {
     options: { value: string; label: string; disabled?: boolean }[];

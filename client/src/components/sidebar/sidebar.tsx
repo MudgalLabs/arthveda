@@ -19,12 +19,12 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-} from "@/s8ly/dropdown-menu/dropdown-menu";
-import { useAuthentication } from "@/context/authentication-context";
+} from "@/s8ly/dropdown_menu/dropdown_menu";
+import { useAuthentication } from "@/features/auth/auth_context";
 import { useQueryClient } from "@tanstack/react-query";
-import { apiHooks } from "@/hooks/api-hooks";
+import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
-import { useSidebar } from "@/components/sidebar/sidebar-context";
+import { useSidebar } from "@/components/sidebar/sidebar_context";
 
 export const Sidebar = () => {
     const { data } = useAuthentication();
@@ -62,13 +62,13 @@ export const Sidebar = () => {
                         />
                     </Link>
 
-                    <Link to={ROUTES.trades} unstyled>
+                    <Link to={ROUTES.tradeList} unstyled>
                         <SidebarNavItem
                             label="Trades"
                             Icon={IconTrades}
                             open={isOpen}
-                            isActive={activeRoute === ROUTES.trades}
-                            onClick={() => handleClick(ROUTES.trades)}
+                            isActive={activeRoute === ROUTES.tradeList}
+                            onClick={() => handleClick(ROUTES.tradeList)}
                         />
                     </Link>
                 </div>

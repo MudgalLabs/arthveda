@@ -4,13 +4,13 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 
-import { SegmentToggle } from "@/components/segment_toggle";
-import { WithLabel } from "@/components/with-label";
-import { SubTrade, useAddTrade } from "@/features/add-trade/add-trade-context";
+import { SegmentToggle } from "@/components/toggle/segment_toggle";
+import { WithLabel } from "@/components/with_label";
+import { SubTrade, useAddTrade } from "@/features/trade/add/add_trade_context";
 import {
     BuyOrSellState,
     BuyOrSellToggle,
-} from "@/components/buy_or_sell_toggle";
+} from "@/components/toggle/buy_or_sell_toggle";
 import { IconPlus, IconTrash } from "@/components/icons";
 
 import { Button, DataTable, DatePicker, Input, Label, Separator } from "@/s8ly";

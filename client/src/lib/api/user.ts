@@ -1,4 +1,4 @@
-import { API_ROUTES } from "@/lib/api/api-routes";
+import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
 
 export function getMe() {

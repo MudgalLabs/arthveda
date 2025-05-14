@@ -47,8 +47,8 @@ import {
     IconEllipsisVertical,
 } from "@/components/icons";
 
-import { DataTableColumnHeader } from "./data-table-header";
-import { DataTableSmart } from "./data-table-smart";
+import { DataTableColumnHeader } from "./data_table_header";
+import { DataTableSmart } from "./data_table_smart";
 
 const meta = {
     title: "s8ly/DataTable",

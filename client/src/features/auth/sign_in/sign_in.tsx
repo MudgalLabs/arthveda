@@ -1,15 +1,15 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { apiHooks } from "@/hooks/api-hooks";
+import { apiHooks } from "@/hooks/api_hooks";
 import { Button, Input, Label } from "@/s8ly";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/toast";
-import { ContinueWithGoogle } from "@/components/continue-with-google";
+import { ContinueWithGoogle } from "@/components/continue_with_google";
 import { ROUTES } from "@/routes";
 import { Link } from "@/components/link";
 import { Password } from "@/components/password";
-import { WithLabel } from "@/components/with-label";
+import { WithLabel } from "@/components/with_label";
 
 export default function SignIn() {
     const client = useQueryClient();

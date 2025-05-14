@@ -1,6 +1,6 @@
 import { ComponentProps, useEffect, useMemo, useState } from "react";
 
-import { useControlled } from "@/hooks/use-controlled";
+import { useControlled } from "@/hooks/use_controlled";
 import { IconCalendarRange, IconCalendarSingle } from "@/components/icons";
 import { cn, formatDate } from "@/lib/utils";
 import {

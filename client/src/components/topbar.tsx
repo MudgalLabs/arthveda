@@ -1,5 +1,5 @@
 import { Button } from "@/s8ly";
-import { useSidebar } from "@/components/sidebar/sidebar-context";
+import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { IconImport, IconPlus, IconSidebarToggle } from "@/components/icons";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";

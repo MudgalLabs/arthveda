@@ -8,10 +8,10 @@ import {
 
 import "@/index.css";
 
-import { AuthLayout } from "@/auth-layout";
-import { useAuthentication } from "@/context/authentication-context";
+import { AuthLayout } from "@/auth_layout";
+import { useAuthentication } from "@/features/auth/auth_context";
 import { ROUTES_PUBLIC, ROUTES_PROTECTED, ROUTES } from "@/routes";
-import { AppLayout } from "@/app-layout";
+import { AppLayout } from "@/app_layout";
 import { Loading } from "@/components/loading";
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {

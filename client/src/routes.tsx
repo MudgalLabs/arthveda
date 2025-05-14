@@ -2,48 +2,54 @@ import { lazy, Suspense } from "react";
 import { type RouteObject } from "react-router-dom";
 
 // Public
-const NotFound = lazy(() => import("@/features/not-found/not-found"));
-const Signin = lazy(() => import("@/features/sign-in/sign-in"));
-const Signup = lazy(() => import("@/features/sign-up/sign-up"));
+const NotFound = lazy(() => import("@/features/not_found/not_found"));
+const Signin = lazy(() => import("@/features/auth/sign_in/sign_in"));
+const Signup = lazy(() => import("@/features/auth/sign_up/sign_up"));
 
 // Protected
-const AddTrade = lazy(() => import("@/features/add-trade/add-trade"));
+const AddTrade = lazy(() => import("@/features/trade/add/add_trade"));
 const Dashboard = lazy(() => import("@/features/dashboard/dashboard"));
 const ImportTrades = lazy(
-    () => import("@/features/import-trades/import-trades")
+    () => import("@/features/trade/import/import_trades")
 );
-const Trades = lazy(() => import("@/features/trades/trades"));
+const Trades = lazy(() => import("@/features/trade/list/trade_list"));
 const Settings = lazy(() => import("@/features/settings/settings"));
 
 export const ROUTES = {
+    //
+    // Routes that don't require user to be authenticated.
+    //
     index: "/",
+    notFound: "*",
 
-    // Auth routes.
-    forgotPassword: "/forgot-password",
     signIn: "/sign-in",
     signUp: "/sign-up",
+    forgotPassword: "/forgot-password",
 
+    //
     // App routes that will be accessible if a user is signed in.
-    addTrade: "/trades/add",
+    //
     dashboard: "/dashboard",
-    importTrades: "/trades/import",
     settings: "/settings",
-    trades: "/trades",
+    // All routes related to Trade.
+    tradeList: "/trade/list",
+    addTrade: "/trade/add",
+    importTrades: "/trade/import",
 };
 
 export const ROUTES_PUBLIC = [
     ROUTES.index,
-    ROUTES.forgotPassword,
+    ROUTES.notFound,
     ROUTES.signIn,
     ROUTES.signUp,
-    "*",
+    ROUTES.forgotPassword,
 ];
 export const ROUTES_PROTECTED = [
     ROUTES.addTrade,
     ROUTES.dashboard,
     ROUTES.importTrades,
     ROUTES.settings,
-    ROUTES.trades,
+    ROUTES.tradeList,
 ];
 
 export const routes: Array<RouteObject> = [
@@ -55,7 +61,7 @@ export const routes: Array<RouteObject> = [
         element: null,
     },
     {
-        path: "*",
+        path: ROUTES.notFound,
         element: (
             <Suspense>
                 <NotFound />
@@ -114,7 +120,7 @@ export const routes: Array<RouteObject> = [
         ),
     },
     {
-        path: ROUTES.trades,
+        path: ROUTES.tradeList,
         element: (
             <Suspense>
                 <Trades />

@@ -12,9 +12,9 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 
-import { DataTablePagination } from "./data-table-pagination";
-import { DataTable } from "./data-table";
-import { DataTableVisibility } from "./data-table-visibility";
+import { DataTablePagination } from "./data_table_pagination";
+import { DataTable } from "./data_table";
+import { DataTableVisibility } from "./data_table_visibility";
 
 interface DataTableSmartProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];

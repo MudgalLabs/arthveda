@@ -1,6 +1,6 @@
 import { createContext, FC, PropsWithChildren, useContext } from "react";
 
-import { apiHooks } from "@/hooks/api-hooks";
+import { apiHooks } from "@/hooks/api_hooks";
 import { GetMeResponse } from "@/lib/api/types";
 
 interface AuthenticationContextType {

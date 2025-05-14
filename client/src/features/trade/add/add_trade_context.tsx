@@ -1,4 +1,4 @@
-import { SegmentKind } from "@/components/segment_toggle";
+import { SegmentKind } from "@/components/toggle/segment_toggle";
 
 import {
     createContext,
