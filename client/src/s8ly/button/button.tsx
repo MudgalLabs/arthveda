@@ -54,7 +54,7 @@ const Button: FC<ButtonProps> = memo((props) => {
 
     return (
         <button
-            className={cn(buttonVariants({ variant, size, className }), {})}
+            className={cn(buttonVariants({ variant, size, className }))}
             disabled={disabled || loading}
             {...rest}
         >

@@ -26,6 +26,8 @@ export * from "./popover/popover";
 export * from "./select/select";
 // Seperator
 export * from "./seperator/seperator";
+// Tag
+export * from "./tag/tag";
 // Table
 export * from "./table/table";
 // Toggle
