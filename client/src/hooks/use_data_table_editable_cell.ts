@@ -49,7 +49,7 @@ type DataTableCellUpdateFn = (
     value: unknown
 ) => void;
 
-type Setter<T> = (updater: (old: T[]) => T[] | T[]) => void;
+type Setter<T> = (value: T[] | ((prev: T[]) => T[])) => void;
 
 function getDataTableCellUpdateFn<T = unknown>(
     setter: Setter<T>

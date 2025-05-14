@@ -60,7 +60,9 @@ function AddTrade() {
                 <AddSubTradeButton />
             </div>
 
-            <div className="space-x-4">
+            <div className="h-10" />
+
+            <div className="flex justify-end space-x-4">
                 <Button variant="secondary">Cancel</Button>
                 <Button>Save</Button>
             </div>
