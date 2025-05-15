@@ -46,7 +46,7 @@ func signInHandler(s *user_identity.Service) http.HandlerFunc {
 			Value:    tokenString,
 			Path:     "/",
 			Domain:   "",
-			MaxAge:   3600, // 1 hour
+			MaxAge:   3600 * 24 * 30, // 30 days
 			Secure:   false,
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
