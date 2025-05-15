@@ -1,8 +1,6 @@
 package trade
 
 import (
-	"fmt"
-
 	"github.com/shopspring/decimal"
 )
 
@@ -37,44 +35,6 @@ const (
 	OutcomeKindLoss      OutcomeKind = "loss"
 )
 
-// calculateNewAveragePrice calculates the new average price for a position.
-func calculateNewAveragePrice(
-	currentAvgPrice decimal.Decimal,
-	currentQty decimal.Decimal,
-	direction DirectionKind,
-	newQty decimal.Decimal,
-	newPrice decimal.Decimal,
-) (decimal.Decimal, error) {
-	if newQty.IsZero() {
-		return currentAvgPrice, nil
-	}
-
-	// Validate direction and quantity sign
-
-	if direction == DirectionKindLong && newQty.IsNegative() {
-		return decimal.Zero, fmt.Errorf("new quantity %s contradicts long position", newQty.String())
-	}
-
-	if direction == DirectionKindShort && newQty.IsPositive() {
-		return decimal.Zero, fmt.Errorf("new quantity %s contradicts short position", newQty.String())
-	}
-
-	totalQty := currentQty.Add(newQty)
-	if totalQty.IsZero() {
-		// Position fully closed
-		return decimal.Zero, nil
-	}
-
-	currentValue := currentQty.Mul(currentAvgPrice)
-	newValue := newQty.Mul(newPrice)
-	combinedValue := currentValue.Add(newValue)
-
-	// Use Abs to ensure positive average price
-	newAvgPrice := combinedValue.Div(totalQty).Abs()
-
-	return newAvgPrice, nil
-}
-
 // ApplyTradeToPosition applies a trade to an existing position,
 // handling scaling in, closing, or flipping the position.
 //
@@ -96,11 +56,11 @@ func applyTradeToPosition(
 	tradeQty decimal.Decimal,
 	tradePrice decimal.Decimal,
 	orderKind OrderKind,
-) (newAvgPrice decimal.Decimal, newQty decimal.Decimal, newDirection DirectionKind, realizedPnL, newTotalCost decimal.Decimal, err error) {
+) (newAvgPrice decimal.Decimal, newQty decimal.Decimal, newDirection DirectionKind, realizedPnL, newTotalCost decimal.Decimal) {
 
 	// No-op for 0 order
 	if tradeQty.IsZero() {
-		return currentAvgPrice, currentQty, direction, decimal.Zero, decimal.Zero, nil
+		return currentAvgPrice, currentQty, direction, decimal.Zero, decimal.Zero
 	}
 
 	isLong := direction == DirectionKindLong
@@ -117,7 +77,7 @@ func applyTradeToPosition(
 
 		newTotalCost = tradePrice.Mul(tradeQty)
 
-		return tradePrice, tradeQty, newDirection, decimal.Zero, newTotalCost, nil
+		return tradePrice, tradeQty, newDirection, decimal.Zero, newTotalCost
 	}
 
 	if isScalingIn {
@@ -127,7 +87,7 @@ func applyTradeToPosition(
 		newAvgPrice = tradeCost.Div(newQty)
 		newDirection = direction
 		newTotalCost = totalCost.Add(tradeCost)
-		return newAvgPrice, newQty, newDirection, decimal.Zero, newTotalCost, nil
+		return newAvgPrice, newQty, newDirection, decimal.Zero, newTotalCost
 	}
 
 	// Scaling out or flipping
@@ -147,9 +107,9 @@ func applyTradeToPosition(
 		// Partial or full close
 		newQty = currentQty.Sub(tradeQty)
 		if newQty.IsZero() {
-			return decimal.Zero, decimal.Zero, "", realizedPnL, totalCost, nil
+			return decimal.Zero, decimal.Zero, "", realizedPnL, totalCost
 		}
-		return currentAvgPrice, newQty, direction, realizedPnL, totalCost, nil
+		return currentAvgPrice, newQty, direction, realizedPnL, totalCost
 	}
 
 	// Flip
@@ -160,5 +120,5 @@ func applyTradeToPosition(
 	}
 
 	newTotalCost = totalCost.Add(tradePrice.Mul(newQty))
-	return tradePrice, netQty, newDirection, realizedPnL, newTotalCost, nil
+	return tradePrice, netQty, newDirection, realizedPnL, newTotalCost
 }

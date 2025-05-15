@@ -1,9 +1,9 @@
 package trade
 
 import (
+	"arthveda/internal/apires"
 	"arthveda/internal/service"
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -51,7 +51,7 @@ func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePa
 	result := computeAddTradeResult{}
 
 	if len(payload.SubTrades) == 0 {
-		return result, service.ErrInvalidInput, errors.New("there are no sub trades")
+		return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError("There are no Sub Trades", "", "sub_trades", payload.SubTrades))
 	}
 
 	var closedAt *time.Time = nil
@@ -69,19 +69,16 @@ func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePa
 
 		subTradeQty, err = decimal.NewFromString(subTrade.Quantity)
 		if err != nil {
-			return result, service.ErrInvalidInput, fmt.Errorf("Invalid quantity %s in a sub trade", subTrade.Quantity)
+			return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError(fmt.Sprintf("Invalid quantity %s in a sub trade", subTrade.Quantity), "", fmt.Sprintf("sub_trades[%d]", i), subTrade.Quantity))
 		}
 		subTradePrice, err = decimal.NewFromString(subTrade.Price)
 		if err != nil {
-			return result, service.ErrInvalidInput, fmt.Errorf("Invalid price %s in a sub trade", subTrade.Quantity)
+			return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError(fmt.Sprintf("Invalid price %s in a sub trade", subTrade.Price), "", fmt.Sprintf("sub_trades[%d]", i), subTrade.Price))
 		}
 
 		var pnl decimal.Decimal
 
-		avgPrice, netQty, direction, pnl, totalCost, err = applyTradeToPosition(avgPrice, netQty, totalCost, direction, subTradeQty, subTradePrice, subTrade.OrderKind)
-		if err != nil {
-			return result, service.ErrInvalidInput, err
-		}
+		avgPrice, netQty, direction, pnl, totalCost = applyTradeToPosition(avgPrice, netQty, totalCost, direction, subTradeQty, subTradePrice, subTrade.OrderKind)
 
 		grossPnL = grossPnL.Add(pnl)
 
@@ -106,18 +103,22 @@ func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePa
 
 	plannedRiskAmount, err := decimal.NewFromString(payload.PlannedRiskAmount)
 	if err != nil {
-		return result, service.ErrInvalidInput, fmt.Errorf("Invalid planned risk amount %s", payload.PlannedRiskAmount)
+		return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError(fmt.Sprintf("Invalid planned risk amount %s", payload.PlannedRiskAmount), "", "planned_risk_amount", payload.PlannedRiskAmount))
 	}
 
 	chargesAmount, err := decimal.NewFromString(payload.ChargesAmount)
 	if err != nil {
-		return result, service.ErrInvalidInput, fmt.Errorf("Invalid charges amount %s", payload.ChargesAmount)
+		return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError(fmt.Sprintf("Invalid charges amount %s", payload.ChargesAmount), "", "charges_amount", payload.ChargesAmount))
 	}
 
-	netPnL := grossPnL.Sub(chargesAmount)
-	rFactor := netPnL.Div(plannedRiskAmount).Round(2)
-	netReturnPercentage := netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
-	chargesAsPercentageOfNetPnL := chargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100)).Round(2)
+	var netPnL, rFactor, netReturnPercentage, chargesAsPercentageOfNetPnL decimal.Decimal
+
+	if grossPnL.IsPositive() {
+		netPnL = grossPnL.Sub(chargesAmount)
+		rFactor = netPnL.Div(plannedRiskAmount).Round(2)
+		netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
+		chargesAsPercentageOfNetPnL = chargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100)).Round(2)
+	}
 
 	result.Direction = direction
 	result.Outcome = outcome

@@ -3,8 +3,9 @@ package apires
 import "net/http"
 
 const (
-	msgInternalError   string = "Internal server error. Please try again later."
-	msgBadRequestError string = "The request body is invalid. Check 'errors' for more details if any."
+	SOMETHING_WENT_WRONG    string = "Something went wrong"
+	INERTNAL_SERVER_ERROR   string = "Internal server error"
+	INVALID_REQUEST_PAYLOAD string = "Invalid request payload"
 )
 
 type ApiStatus = string
@@ -75,14 +76,18 @@ func Error(statusCode int, message string, errors []ApiError) ApiRes {
 	return new(ApiResStatusError, statusCode, message, nil, errors)
 }
 
-func InternalError() ApiRes {
-	return new(ApiResStatusError, http.StatusInternalServerError, msgInternalError, nil, nil)
+func InternalError(err error) ApiRes {
+	errs := []ApiError{}
+	errs = append(errs, NewApiError(INERTNAL_SERVER_ERROR, err.Error(), "", ""))
+	return new(ApiResStatusError, http.StatusInternalServerError, SOMETHING_WENT_WRONG, nil, errs)
 }
 
-func MalformedJSONError() ApiRes {
-	return new(ApiResStatusError, http.StatusBadRequest, "Request JSON is malformed", nil, nil)
+func MalformedJSONError(err error) ApiRes {
+	errs := []ApiError{}
+	errs = append(errs, NewApiError(INVALID_REQUEST_PAYLOAD, err.Error(), "", ""))
+	return new(ApiResStatusError, http.StatusBadRequest, SOMETHING_WENT_WRONG, nil, errs)
 }
 
 func InvalidInputError(errors []ApiError) ApiRes {
-	return new(ApiResStatusError, http.StatusBadRequest, msgBadRequestError, nil, errors)
+	return new(ApiResStatusError, http.StatusBadRequest, SOMETHING_WENT_WRONG, nil, errors)
 }

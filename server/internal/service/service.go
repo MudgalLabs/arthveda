@@ -26,6 +26,12 @@ func (errs *InputValidationErrors) Add(err apires.ApiError) {
 	*errs = append(*errs, err)
 }
 
+func NewInputValidationErrorsWithError(err apires.ApiError) InputValidationErrors {
+	errs := InputValidationErrors{}
+	errs = append(errs, err)
+	return errs
+}
+
 // !!!! **** DO NOT CALL THIS FUNCTION! **** !!!!
 //
 // Implementing it so that we can use `error` when validating inputs.

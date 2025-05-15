@@ -22,13 +22,13 @@ func errorResponse(w http.ResponseWriter, r *http.Request, statusCode int, messa
 func internalServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
 	l.Errorw("internal error response", "error", err.Error())
-	writeJSONResponse(w, http.StatusInternalServerError, apires.InternalError())
+	writeJSONResponse(w, http.StatusInternalServerError, apires.InternalError(err))
 }
 
 func malformedJSONResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
 	l.Warnw("malformed json response", "error", err.Error())
-	writeJSONResponse(w, http.StatusBadRequest, apires.MalformedJSONError())
+	writeJSONResponse(w, http.StatusBadRequest, apires.MalformedJSONError(err))
 }
 
 func invalidInputResponse(w http.ResponseWriter, r *http.Request, errs service.InputValidationErrors) {
@@ -82,7 +82,13 @@ func serviceErrResponse(w http.ResponseWriter, r *http.Request, errKind service.
 		return
 
 	case errKind == service.ErrInvalidInput:
-		invalidInputResponse(w, r, err.(service.InputValidationErrors))
+		inputValidationErrors, ok := err.(service.InputValidationErrors)
+
+		if !ok {
+			inputValidationErrors = service.NewInputValidationErrorsWithError(apires.NewApiError("Something went wrong", "invalid input", "", nil))
+		}
+
+		invalidInputResponse(w, r, inputValidationErrors)
 		return
 
 	case errKind == service.ErrNotFound:
