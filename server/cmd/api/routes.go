@@ -55,7 +55,7 @@ func initRouter(a *app) http.Handler {
 		r.Route("/trade", func(r chi.Router) {
 			r.Use(authMiddleware)
 
-			r.Post("/compute-for-add", computeAddTradeHandler(a.service.TradeService))
+			r.Post("/compute-for-add", computeForAddTradeHandler(a.service.TradeService))
 		})
 	})
 

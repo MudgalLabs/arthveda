@@ -30,6 +30,7 @@ function DatePicker({
     time,
     onOpen,
     onClose,
+    config,
 }: DatePickerProps) {
     const [dates, setDates] = useControlled({
         controlled: datesProp,
@@ -88,6 +89,7 @@ function DatePicker({
                     onOffsetChange={onOffsetChangeProp ?? setOffsetDate}
                     mode={mode}
                     time={time}
+                    config={config}
                 />
             </PopoverContent>
         </Popover>

@@ -104,11 +104,14 @@ func applyTradeToPosition(
 
 	// Check if it's a full close or flip
 	if tradeQty.LessThanOrEqual(currentQty) {
-		// Partial or full close
 		newQty = currentQty.Sub(tradeQty)
+
+		// Full close
 		if newQty.IsZero() {
-			return decimal.Zero, decimal.Zero, "", realizedPnL, totalCost
+			return decimal.Zero, decimal.Zero, direction, realizedPnL, totalCost
 		}
+
+		// Partial close
 		return currentAvgPrice, newQty, direction, realizedPnL, totalCost
 	}
 

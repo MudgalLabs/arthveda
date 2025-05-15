@@ -17,9 +17,10 @@ import {
 } from "@/s8ly";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
-import { SubTrade, useAddTrade } from "@/features/trade/add/add_trade_context";
+import { useAddTrade } from "@/features/trade/add/add_trade_context";
 import { OrderKindToggle } from "@/components/toggle/order_kind_toggle";
 import {
+    IconAlert,
     IconCalendarRange,
     IconPlus,
     IconTrash,
@@ -32,7 +33,8 @@ import {
 } from "@/hooks/use_data_table_editable_cell";
 import { OrderKind } from "@/features/trade/trade";
 import { Card, CardTitle } from "@/components/card";
-import { cn, formatDate, getElapsedTime } from "@/lib/utils";
+import { cn, formatDate, getElapsedTime, isSameDay } from "@/lib/utils";
+import { SubTradeForAddRequest } from "@/lib/api/trade";
 
 function AddTrade() {
     const { state, setState } = useAddTrade();
@@ -93,7 +95,7 @@ function AddTrade() {
                         onChange={(e) =>
                             setState((prev) => ({
                                 ...prev,
-                                planned_risk: Number(e.target.value),
+                                planned_risk_amount: e.target.value,
                             }))
                         }
                     />
@@ -106,7 +108,7 @@ function AddTrade() {
                         onChange={(e) =>
                             setState((prev) => ({
                                 ...prev,
-                                charges: Number(e.target.value),
+                                charges_amount: e.target.value,
                             }))
                         }
                     />
@@ -130,23 +132,27 @@ function AddTrade() {
             <div className="h-10" />
 
             <div className="flex justify-end space-x-4">
-                <Button variant="secondary">Cancel</Button>
+                <Button variant="secondary">Discard</Button>
                 <Button>Save</Button>
             </div>
         </>
     );
 }
 
-const columns: ColumnDef<SubTrade>[] = [
+const columns: ColumnDef<SubTradeForAddRequest>[] = [
     {
         accessorKey: "order_kind",
         header: "Buy / Sell",
         cell: (ctx) => {
             const { value, syncWithValue } =
                 useDataTableEditableCell<OrderKind>(ctx);
-            return <OrderKindToggle value={value} onChange={syncWithValue} />;
+            return (
+                <OrderKindToggle
+                    value={value}
+                    onChange={(v) => v && syncWithValue(v)}
+                />
+            );
         },
-        enableSorting: false,
     },
     {
         accessorKey: "time",
@@ -154,12 +160,39 @@ const columns: ColumnDef<SubTrade>[] = [
         cell: (ctx) => {
             const { value, setValue, sync } =
                 useDataTableEditableCell<Date>(ctx);
+            const { subTrades } = useAddTrade();
+
+            // We are subtracting `2` from length because `1` will be the last one.
+            const secondLastSubTrade =
+                subTrades[Math.min(subTrades.length - 2, 0)];
+
+            // We don't want to apply a `minDate` if this is the first sub trade.
+            const applyDateTimeRestrictions = ctx.row.index > 0;
             return (
                 <DatePicker
                     time
                     dates={[value]}
                     onDatesChange={(dates) => setValue(dates[0])}
                     onClose={sync}
+                    config={{
+                        dates: {
+                            minDate: applyDateTimeRestrictions
+                                ? secondLastSubTrade.time
+                                : undefined,
+                        },
+                        time: {
+                            minTime:
+                                // We wanna apply time restrictions only if we are on different sub trade
+                                // and the date is not same as previous sub trade.
+                                applyDateTimeRestrictions &&
+                                isSameDay(value, secondLastSubTrade.time)
+                                    ? {
+                                          h: secondLastSubTrade.time.getHours(),
+                                          m: secondLastSubTrade.time.getMinutes(),
+                                      }
+                                    : undefined,
+                        },
+                    }}
                 />
             );
         },
@@ -170,9 +203,16 @@ const columns: ColumnDef<SubTrade>[] = [
         cell: (ctx) => {
             const { value, setValue, sync } =
                 useDataTableEditableCell<string>(ctx);
+            const [error, setError] = useState(false);
+
+            useEffect(() => {
+                setError(value === "");
+            }, [value]);
+
             return (
                 <Input
                     type="number"
+                    variant={error ? "error" : "default"}
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     onBlur={sync}
@@ -186,9 +226,16 @@ const columns: ColumnDef<SubTrade>[] = [
         cell: (ctx) => {
             const { value, setValue, sync } =
                 useDataTableEditableCell<string>(ctx);
+
+            const [error, setError] = useState(false);
+
+            useEffect(() => {
+                setError(value === "");
+            }, [value]);
             return (
                 <Input
                     type="number"
+                    variant={error ? "error" : "default"}
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     onBlur={sync}
@@ -205,7 +252,7 @@ const columns: ColumnDef<SubTrade>[] = [
                 <Button
                     variant="destructive"
                     size="icon"
-                    onClick={() => removeSubTrade(row.original.id)}
+                    onClick={() => removeSubTrade(row.index)}
                 >
                     <IconTrash className="text-foreground" size={20} />
                 </Button>
@@ -222,7 +269,8 @@ function SubTradesTable() {
         data: subTrades,
         getCoreRowModel: getCoreRowModel(),
         meta: {
-            updateFn: getDataTableCellUpdateFn<SubTrade>(setSubTrades),
+            updateFn:
+                getDataTableCellUpdateFn<SubTradeForAddRequest>(setSubTrades),
         },
     });
 
@@ -230,12 +278,27 @@ function SubTradesTable() {
 }
 
 function AddSubTradeButton() {
-    const { insertNewSubTrade } = useAddTrade();
+    const { subTradesAreValid, insertNewSubTrade } = useAddTrade();
 
     return (
-        <Button variant="secondary" onClick={() => insertNewSubTrade()}>
-            <IconPlus /> Add Sub Trade
-        </Button>
+        <Tooltip
+            content={
+                <div className="flex items-center gap-x-2">
+                    <IconAlert size={18} />
+                    <p>Sub Trades is missing some data</p>
+                </div>
+            }
+            contentProps={{ side: "bottom" }}
+            disabled={subTradesAreValid}
+        >
+            <Button
+                variant="secondary"
+                disabled={!subTradesAreValid}
+                onClick={() => insertNewSubTrade()}
+            >
+                <IconPlus /> Add Sub Trade
+            </Button>
+        </Tooltip>
     );
 }
 
@@ -245,7 +308,7 @@ function PnLCard() {
             net_pnl_amount,
             net_return_percentage,
             gross_pnl_amount,
-            cost_as_percentage_of_net_pnl,
+            charges_as_percentage_of_net_pnl: cost_as_percentage_of_net_pnl,
         },
         state: { charges_amount },
     } = useAddTrade();
@@ -253,12 +316,14 @@ function PnLCard() {
     let netPnLSign = "";
     let trendingIcon: ReactNode = null;
     let textColor = "text-foreground";
+    const grossPnL = BigInt(gross_pnl_amount);
+    const netPnL = BigInt(net_pnl_amount);
 
-    if (net_pnl_amount > 0) {
+    if (netPnL > 0) {
         netPnLSign = "+";
         trendingIcon = <IconTrendingUp size={20} />;
         textColor = "text-foreground-green";
-    } else if (net_pnl_amount < 0) {
+    } else if (netPnL < 0) {
         netPnLSign = "-";
         trendingIcon = <IconTrendingDown />;
         textColor = "text-foreground-red";
@@ -271,15 +336,11 @@ function PnLCard() {
                     Gross{" "}
                     <span
                         className={cn({
-                            "text-foreground-green": gross_pnl_amount > 0,
-                            "text-foreground-red": gross_pnl_amount < 0,
+                            "text-foreground-green": grossPnL > 0,
+                            "text-foreground-red": grossPnL < 0,
                         })}
                     >
-                        {gross_pnl_amount > 0
-                            ? "+"
-                            : gross_pnl_amount < 0
-                              ? "-"
-                              : ""}
+                        {grossPnL > 0 ? "+" : grossPnL < 0 ? "-" : ""}
                         {gross_pnl_amount}
                     </span>
                 </p>
@@ -356,7 +417,7 @@ function RFactorCard() {
 }
 
 function DurationCard() {
-    const [now, setNow] = useState(new Date());
+    const now = new Date();
 
     const {
         processTradeResult: { opened_at, closed_at },
@@ -366,17 +427,6 @@ function DurationCard() {
         opened_at,
         closed_at ?? now
     );
-
-    useEffect(() => {
-        const id = setInterval(() => {
-            setNow(new Date());
-            // PERF: Should we increase this interval time because in
-            // UI the lowest time period is minutes so updating it every
-            // second isn't really that important here.
-        }, 1000);
-
-        () => clearInterval(id);
-    }, []);
 
     return (
         <div className="flex flex-col gap-y-2">

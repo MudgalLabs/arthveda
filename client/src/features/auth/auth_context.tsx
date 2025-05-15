@@ -35,7 +35,9 @@ export function useAuthentication(): AuthenticationContextType {
     const context = useContext(AuthenticationContext);
 
     if (!context) {
-        console.error("useAuthentication: did you forget to use AuthProvider?");
+        throw new Error(
+            "useAuthentication: did you forget to use AuthProvider?"
+        );
     }
 
     return context;

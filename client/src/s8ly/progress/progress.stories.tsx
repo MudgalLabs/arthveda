@@ -17,7 +17,9 @@ export function Progress() {
 
     useEffect(() => {
         const timer = setTimeout(() => setProgress(66), 500);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+        };
     }, []);
 
     return <ProgressComp value={progress} className="w-[320px]" />;

@@ -27,7 +27,7 @@ import {
     useTimePropGetter,
 } from "@rehookify/datepicker";
 
-import { cn } from "@/lib/utils";
+import { cn, deepMerge } from "@/lib/utils";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { Button } from "@/s8ly";
 
@@ -42,6 +42,7 @@ interface CalendarProps {
     onOffsetChange?(d: Date): void;
     /** If set to `true`, user will be able to pick a time as well. */
     time?: boolean;
+    config?: Omit<DPUserConfig, "selectedDates" | "onDatesChange">;
 }
 
 function Calendar({
@@ -51,10 +52,11 @@ function Calendar({
     offsetDate,
     onOffsetChange,
     time = false,
+    config: configProp,
 }: CalendarProps): ReactElement {
     const isRange = mode === "range";
 
-    const config: DPUserConfig = {
+    let config: DPUserConfig = {
         selectedDates,
         onDatesChange,
         offsetDate,
@@ -72,6 +74,10 @@ function Calendar({
             minute: "2-digit",
         },
     };
+
+    if (configProp) {
+        config = deepMerge(config, configProp);
+    }
 
     return (
         <DatePickerStateProvider config={config}>

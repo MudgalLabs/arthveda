@@ -57,7 +57,7 @@ export function useSidebar(): SidebarContextType {
     const context = useContext(SidebarContext);
 
     if (!context) {
-        console.error("useSidebar: did you forget to use SidebarProvider?");
+        throw new Error("useSidebar: did you forget to use SidebarProvider?");
     }
 
     return context;

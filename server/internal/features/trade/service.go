@@ -44,6 +44,7 @@ type computeAddTradeResult struct {
 	NetReturnPercentage         float64       `json:"net_return_percentage"`
 	ChargesAsPercentageOfNetPnL float64       `json:"charges_as_percentage_of_net_pnl"`
 	OpenQty                     string        `json:"open_qty"`
+	OpenPrice                   string        `json:"open_price"`
 }
 
 func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePayload) (computeAddTradeResult, service.ErrKind, error) {
@@ -51,7 +52,7 @@ func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePa
 	result := computeAddTradeResult{}
 
 	if len(payload.SubTrades) == 0 {
-		return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError("There are no Sub Trades", "", "sub_trades", payload.SubTrades))
+		return result, service.ErrNone, nil
 	}
 
 	var closedAt *time.Time = nil
@@ -87,20 +88,6 @@ func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePa
 		}
 	}
 
-	if netQty.IsZero() {
-		// The trade is closed.
-		if grossPnL.IsZero() {
-			outcome = OutcomeKindBreakeven
-		} else if grossPnL.IsPositive() {
-			outcome = OutcomeKindWin
-		} else if grossPnL.IsNegative() {
-			outcome = OutcomeKindLoss
-		}
-	} else {
-		// Trade is open.
-		outcome = OutcomeKindOpen
-	}
-
 	plannedRiskAmount, err := decimal.NewFromString(payload.PlannedRiskAmount)
 	if err != nil {
 		return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError(fmt.Sprintf("Invalid planned risk amount %s", payload.PlannedRiskAmount), "", "planned_risk_amount", payload.PlannedRiskAmount))
@@ -115,9 +102,29 @@ func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePa
 
 	if grossPnL.IsPositive() {
 		netPnL = grossPnL.Sub(chargesAmount)
-		rFactor = netPnL.Div(plannedRiskAmount).Round(2)
-		netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
 		chargesAsPercentageOfNetPnL = chargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100)).Round(2)
+
+		if plannedRiskAmount.IsPositive() {
+			rFactor = netPnL.Div(plannedRiskAmount).Round(2)
+		}
+
+		if totalCost.IsPositive() {
+			netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
+		}
+	}
+
+	if netQty.IsZero() {
+		// The trade is closed.
+		if netPnL.IsZero() {
+			outcome = OutcomeKindBreakeven
+		} else if netPnL.IsPositive() {
+			outcome = OutcomeKindWin
+		} else if netPnL.IsNegative() {
+			outcome = OutcomeKindLoss
+		}
+	} else {
+		// Trade is open.
+		outcome = OutcomeKindOpen
 	}
 
 	result.Direction = direction
@@ -129,7 +136,11 @@ func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePa
 	result.RFactor, _ = rFactor.Float64()
 	result.NetReturnPercentage, _ = netReturnPercentage.Float64()
 	result.ChargesAsPercentageOfNetPnL, _ = chargesAsPercentageOfNetPnL.Float64()
-	result.OpenQty = netQty.String()
+
+	if netQty.IsPositive() {
+		result.OpenQty = netQty.String()
+		result.OpenPrice = avgPrice.String()
+	}
 
 	return result, service.ErrNone, nil
 }

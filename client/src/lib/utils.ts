@@ -126,3 +126,52 @@ export function getElapsedTime(start: Date, end: Date): TimeElapsed {
 
     return { days, hours, minutes };
 }
+
+type AnyObject = Record<string, any>;
+
+export function deepMerge<T extends AnyObject, U extends AnyObject>(
+    obj1: T,
+    obj2: U
+): T & U {
+    const result: AnyObject = { ...obj1 };
+
+    for (const key in obj2) {
+        if (Object.prototype.hasOwnProperty.call(obj2, key)) {
+            const val1 = obj1[key];
+            const val2 = obj2[key];
+
+            if (isPlainObject(val1) && isPlainObject(val2)) {
+                result[key] = deepMerge(val1, val2);
+            } else {
+                result[key] = val2;
+            }
+        }
+    }
+
+    return result as T & U;
+}
+
+// Helper to check if a value is a plain (non-array, non-null) object
+function isPlainObject(value: any): value is AnyObject {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+let i = 0;
+
+export function genId(): number {
+    i = i + 1;
+    return i;
+}
+
+export function isSameDay(date1: Date, date2: Date): boolean {
+    return (
+        date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate()
+    );
+}
+
+export function removeAtIndex<T>(array: T[], index: number): T[] {
+    if (index < 0 || index >= array.length) return array;
+    return [...array.slice(0, index), ...array.slice(index + 1)];
+}

@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func computeAddTradeHandler(s *trade.Service) http.HandlerFunc {
+func computeForAddTradeHandler(s *trade.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
