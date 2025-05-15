@@ -8,7 +8,7 @@ import (
 func getMeHandler(s *user_profile.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		id := getUserIDFromContext(r)
+		id := getUserIDFromContext(ctx)
 
 		userProfile, errKind, err := s.GetUserProfile(ctx, id)
 		if err != nil {

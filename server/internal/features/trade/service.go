@@ -1,0 +1,134 @@
+package trade
+
+import (
+	"arthveda/internal/service"
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/shopspring/decimal"
+)
+
+type Service struct {
+	tradeRepository ReadWriter
+}
+
+func NewService(repo ReadWriter) *Service {
+	return &Service{
+		tradeRepository: repo,
+	}
+}
+
+type computeAddTradeSubTrade struct {
+	OrderKind OrderKind `json:"order_kind"`
+	Time      time.Time `json:"time"`
+	Quantity  string    `json:"quantity"`
+	Price     string    `json:"price"`
+}
+
+type ComputeAddTradePayload struct {
+	PlannedRiskAmount string                    `json:"planned_risk_amount"`
+	ChargesAmount     string                    `json:"charges_amount"`
+	SubTrades         []computeAddTradeSubTrade `json:"sub_trades"`
+}
+
+type computeAddTradeResult struct {
+	Direction                   DirectionKind `json:"direction"`
+	Outcome                     OutcomeKind   `json:"outcome"`
+	OpenedAt                    time.Time     `json:"opened_at"`
+	ClosedAt                    *time.Time    `json:"closed_at"` // `nil` if the Outcome is OutcomeKindOpen
+	GrossPnLAmount              string        `json:"gross_pnl_amount"`
+	NetPnLAmount                string        `json:"net_pnl_amount"`
+	RFactor                     float64       `json:"r_factor"`
+	NetReturnPercentage         float64       `json:"net_return_percentage"`
+	ChargesAsPercentageOfNetPnL float64       `json:"charges_as_percentage_of_net_pnl"`
+	OpenQty                     string        `json:"open_qty"`
+}
+
+func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePayload) (computeAddTradeResult, service.ErrKind, error) {
+	var err error
+	result := computeAddTradeResult{}
+
+	if len(payload.SubTrades) == 0 {
+		return result, service.ErrInvalidInput, errors.New("there are no sub trades")
+	}
+
+	var closedAt *time.Time = nil
+	var outcome OutcomeKind
+	var direction DirectionKind
+	var avgPrice decimal.Decimal
+	grossPnL := decimal.NewFromFloat(0)
+	totalCost := decimal.NewFromFloat(0)
+	netQty := decimal.NewFromFloat(0)
+
+	var i int
+	for i = 0; i < len(payload.SubTrades); i++ {
+		subTrade := payload.SubTrades[i]
+		var subTradeQty, subTradePrice decimal.Decimal
+
+		subTradeQty, err = decimal.NewFromString(subTrade.Quantity)
+		if err != nil {
+			return result, service.ErrInvalidInput, fmt.Errorf("Invalid quantity %s in a sub trade", subTrade.Quantity)
+		}
+		subTradePrice, err = decimal.NewFromString(subTrade.Price)
+		if err != nil {
+			return result, service.ErrInvalidInput, fmt.Errorf("Invalid price %s in a sub trade", subTrade.Quantity)
+		}
+
+		var pnl decimal.Decimal
+
+		avgPrice, netQty, direction, pnl, totalCost, err = applyTradeToPosition(avgPrice, netQty, totalCost, direction, subTradeQty, subTradePrice, subTrade.OrderKind)
+		if err != nil {
+			return result, service.ErrInvalidInput, err
+		}
+
+		grossPnL = grossPnL.Add(pnl)
+
+		if netQty.IsZero() {
+			closedAt = &subTrade.Time
+		}
+	}
+
+	if netQty.IsZero() {
+		// The trade is closed.
+		if grossPnL.IsZero() {
+			outcome = OutcomeKindBreakeven
+		} else if grossPnL.IsPositive() {
+			outcome = OutcomeKindWin
+		} else if grossPnL.IsNegative() {
+			outcome = OutcomeKindLoss
+		}
+	} else {
+		// Trade is open.
+		outcome = OutcomeKindOpen
+	}
+
+	plannedRiskAmount, err := decimal.NewFromString(payload.PlannedRiskAmount)
+	if err != nil {
+		return result, service.ErrInvalidInput, fmt.Errorf("Invalid planned risk amount %s", payload.PlannedRiskAmount)
+	}
+
+	chargesAmount, err := decimal.NewFromString(payload.ChargesAmount)
+	if err != nil {
+		return result, service.ErrInvalidInput, fmt.Errorf("Invalid charges amount %s", payload.ChargesAmount)
+	}
+
+	netPnL := grossPnL.Sub(chargesAmount)
+	rFactor := netPnL.Div(plannedRiskAmount).Round(2)
+	netReturnPercentage := netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
+	chargesAsPercentageOfNetPnL := chargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100)).Round(2)
+
+	result.Direction = direction
+	result.Outcome = outcome
+	result.OpenedAt = payload.SubTrades[0].Time
+	result.ClosedAt = closedAt
+	result.GrossPnLAmount = grossPnL.String()
+	result.NetPnLAmount = netPnL.String()
+	result.RFactor, _ = rFactor.Float64()
+	result.NetReturnPercentage, _ = netReturnPercentage.Float64()
+	result.ChargesAsPercentageOfNetPnL, _ = chargesAsPercentageOfNetPnL.Float64()
+	result.OpenQty = netQty.String()
+
+	return result, service.ErrNone, nil
+}

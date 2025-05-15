@@ -3,6 +3,7 @@ package main
 import (
 	"arthveda/internal/db"
 	"arthveda/internal/env"
+	"arthveda/internal/features/trade"
 	"arthveda/internal/features/user_identity"
 	"arthveda/internal/features/user_profile"
 	"arthveda/internal/logger"
@@ -26,12 +27,15 @@ type app struct {
 type services struct {
 	UserIdentityService *user_identity.Service
 	UserProfileService  *user_profile.Service
+	TradeService        *trade.Service
 }
 
 // Access to all repositories for reading.
 // Write access only available to services.
 type repositories struct {
 	UserIdentity user_identity.Reader
+	UserProfile  user_profile.Reader
+	Trade        trade.Reader
 }
 
 func main() {
@@ -56,13 +60,20 @@ func main() {
 	userIdentityRepository := user_identity.NewRepository(db)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
 
+	// Trade
+	tradeRepository := trade.NewRepository(db)
+	tradeService := trade.NewService(tradeRepository)
+
 	services := services{
 		UserIdentityService: userIdentityService,
 		UserProfileService:  userProfileService,
+		TradeService:        tradeService,
 	}
 
 	repositories := repositories{
 		UserIdentity: userIdentityRepository,
+		UserProfile:  userProfileRepository,
+		Trade:        tradeRepository,
 	}
 
 	a := &app{

@@ -64,8 +64,8 @@ func authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func getUserIDFromContext(r *http.Request) int64 {
-	id, _ := r.Context().Value(userIDKey).(float64)
+func getUserIDFromContext(ctx context.Context) int64 {
+	id, _ := ctx.Value(userIDKey).(float64)
 	return int64(id)
 }
 
