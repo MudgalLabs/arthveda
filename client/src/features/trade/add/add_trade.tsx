@@ -88,7 +88,7 @@ function AddTrade() {
                 <div>
                     <CurrencySelect
                         classNames={{ trigger: "w-fit" }}
-                        value={state.currency}
+                        defaultValue={state.currency}
                     />
                 </div>
             </div>

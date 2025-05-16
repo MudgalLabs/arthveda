@@ -28,9 +28,9 @@ const Select: FC<SelectProps> = ({
     options,
     classNames,
     placeholder,
-    defaultValue,
+    defaultValue = "",
     value: valueProp,
-    defaultOpen,
+    defaultOpen = false,
     open: openProp,
     onOpenChange,
     ...props
