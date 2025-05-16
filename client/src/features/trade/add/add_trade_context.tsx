@@ -13,7 +13,7 @@ import {
     InstrumentKind,
     OrderKind,
 } from "@/features/trade/trade";
-import { genId, removeAtIndex, roundToNearest15Minutes } from "@/lib/utils";
+import { removeAtIndex, roundToNearest15Minutes } from "@/lib/utils";
 import { ComputeForAddResponse, SubTradeForAddRequest } from "@/lib/api/trade";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useDebounce } from "@/hooks/use_debounce";
@@ -32,16 +32,14 @@ interface AddTradeContextType {
     setState: Dispatch<SetStateAction<Trade>>;
     subTrades: SubTradeForAddRequest[];
     setSubTrades: Dispatch<SetStateAction<SubTradeForAddRequest[]>>;
+    subTradesAreValid: boolean;
     insertNewSubTrade: () => void;
     removeSubTrade: (subTradeID: number) => void;
-    processTradeResult: ComputeForAddResponse;
-    subTradesAreValid: boolean;
+    computeForAddResult: ComputeForAddResponse;
+    isComputing: boolean;
 }
 
-function getEmptySubTrade(
-    id: number,
-    orderKind: OrderKind
-): SubTradeForAddRequest {
+function getEmptySubTrade(orderKind: OrderKind): SubTradeForAddRequest {
     return {
         order_kind: orderKind,
         time: roundToNearest15Minutes(new Date()),
@@ -68,7 +66,8 @@ const initialProcessTradeResult: ComputeForAddResponse = {
     net_return_percentage: 0,
     r_factor: 0,
     charges_as_percentage_of_net_pnl: 0,
-    open_qty: "0",
+    open_quantity: "0",
+    open_price: "0",
 };
 
 const AddTradeContext = createContext<AddTradeContextType>(
@@ -77,18 +76,22 @@ const AddTradeContext = createContext<AddTradeContextType>(
 
 function AddTradeContextProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<Trade>(() => initialState);
-    const debouncedState = useDebounce(state, 350);
+    const debouncedState = useDebounce(state, 500);
+
     const [subTrades, setSubTrades] = useState<SubTradeForAddRequest[]>(() => [
-        getEmptySubTrade(genId(), "buy"),
+        getEmptySubTrade("buy"),
     ]);
-    const [processTradeResult, setProcessTradeResult] =
+    const debouncedSubTrades = useDebounce(subTrades, 500);
+
+    const [computeForAddResult, setComputeForAddResult] =
         useState<ComputeForAddResponse>(() => initialProcessTradeResult);
     const [subTradesAreValid, setSubTradesAreValid] = useState(false);
-    const { mutateAsync: computeForAddTrade } =
+
+    const { mutateAsync: computeForAddTrade, isPending: isComputing } =
         apiHooks.trade.useComputeForAddTrade({
             onSuccess: async (res) => {
                 const data = res.data.data as ComputeForAddResponse;
-                setProcessTradeResult({
+                setComputeForAddResult({
                     ...data,
                     opened_at: new Date(data.opened_at),
                     closed_at: data.closed_at ? new Date(data.closed_at) : null,
@@ -118,15 +121,18 @@ function AddTradeContextProvider({ children }: { children: ReactNode }) {
 
         setSubTrades((prev) => {
             const copy = Array.from(prev);
-            copy.push(getEmptySubTrade(genId(), newSubTradeOrderKind));
+            copy.push(getEmptySubTrade(newSubTradeOrderKind));
             return copy;
         });
     }
 
     function removeSubTrade(index: number) {
         setSubTrades((prev) => {
-            const updated = removeAtIndex(Array.from(prev), index);
-            return updated;
+            if (prev.length > 1) {
+                return removeAtIndex(Array.from(prev), index);
+            } else {
+                return prev;
+            }
         });
     }
 
@@ -153,23 +159,20 @@ function AddTradeContextProvider({ children }: { children: ReactNode }) {
         computeForAddTrade({
             planned_risk_amount: debouncedState.planned_risk_amount || "0",
             charges_amount: debouncedState.charges_amount || "0",
-            sub_trades: subTrades.map((s) => {
-                // @ts-ignore
-                delete s.id;
-                return s;
-            }),
+            sub_trades: debouncedSubTrades,
         });
-    }, [debouncedState, subTradesAreValid]);
+    }, [debouncedState, debouncedSubTrades]);
 
     const value = {
         state,
         setState,
         subTrades,
         setSubTrades,
+        subTradesAreValid,
         insertNewSubTrade,
         removeSubTrade,
-        processTradeResult,
-        subTradesAreValid,
+        computeForAddResult,
+        isComputing,
     };
 
     return (

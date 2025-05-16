@@ -24,7 +24,7 @@ interface LoadingProps extends VariantProps<typeof loadingVariant> {
 }
 
 export const Loading: FC<LoadingProps> = ({ color, size = "default" }) => {
-    let borderColor = "border-primary-500";
+    let borderColor = "border-primary";
 
     if (color) {
         if (color.startsWith("--")) {

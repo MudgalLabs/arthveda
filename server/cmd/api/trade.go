@@ -2,7 +2,6 @@ package main
 
 import (
 	"arthveda/internal/features/trade"
-	"fmt"
 	"net/http"
 )
 
@@ -12,7 +11,6 @@ func computeForAddTradeHandler(s *trade.Service) http.HandlerFunc {
 
 		var payload trade.ComputeAddTradePayload
 		if err := decodeJSONRequest(&payload, r); err != nil {
-			fmt.Println("ERRRR", err)
 			malformedJSONResponse(w, r, err)
 			return
 		}

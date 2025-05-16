@@ -43,13 +43,15 @@ type computeAddTradeResult struct {
 	RFactor                     float64       `json:"r_factor"`
 	NetReturnPercentage         float64       `json:"net_return_percentage"`
 	ChargesAsPercentageOfNetPnL float64       `json:"charges_as_percentage_of_net_pnl"`
-	OpenQty                     string        `json:"open_qty"`
+	OpenQty                     string        `json:"open_quantity"`
 	OpenPrice                   string        `json:"open_price"`
 }
 
 func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePayload) (computeAddTradeResult, service.ErrKind, error) {
 	var err error
-	result := computeAddTradeResult{}
+	result := computeAddTradeResult{
+		OpenedAt: time.Now().UTC(),
+	}
 
 	if len(payload.SubTrades) == 0 {
 		return result, service.ErrNone, nil
@@ -100,21 +102,14 @@ func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePa
 
 	var netPnL, rFactor, netReturnPercentage, chargesAsPercentageOfNetPnL decimal.Decimal
 
-	if grossPnL.IsPositive() {
+	// The trade is closed.
+	if netQty.IsZero() {
 		netPnL = grossPnL.Sub(chargesAmount)
-		chargesAsPercentageOfNetPnL = chargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100)).Round(2)
 
 		if plannedRiskAmount.IsPositive() {
 			rFactor = netPnL.Div(plannedRiskAmount).Round(2)
 		}
 
-		if totalCost.IsPositive() {
-			netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
-		}
-	}
-
-	if netQty.IsZero() {
-		// The trade is closed.
 		if netPnL.IsZero() {
 			outcome = OutcomeKindBreakeven
 		} else if netPnL.IsPositive() {
@@ -125,6 +120,19 @@ func (s *Service) ComputeAddTrade(ctx context.Context, payload ComputeAddTradePa
 	} else {
 		// Trade is open.
 		outcome = OutcomeKindOpen
+
+		// The trade is still open but we have some realised gross pnl.
+		if grossPnL.IsPositive() {
+			netPnL = grossPnL
+		}
+	}
+
+	if grossPnL.IsPositive() {
+		chargesAsPercentageOfNetPnL = chargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100)).Round(2)
+	}
+
+	if totalCost.IsPositive() {
+		netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
 	}
 
 	result.Direction = direction

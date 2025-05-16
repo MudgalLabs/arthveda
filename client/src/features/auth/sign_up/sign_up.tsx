@@ -8,7 +8,7 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { ROUTES } from "@/routes";
 import { ContinueWithGoogle } from "@/components/continue_with_google";
 import { Link } from "@/components/link";
-import { Password } from "@/components/password";
+import { PasswordInput } from "@/components/input/password_input";
 import { WithLabel } from "@/components/with_label";
 
 export const SignupFormSchema = z
@@ -150,7 +150,7 @@ export default function SignUp() {
                 <div className="mb-4"></div>
 
                 <WithLabel Label={<Label>Password</Label>}>
-                    <Password
+                    <PasswordInput
                         id="password"
                         name="password"
                         placeholder="Password"
@@ -179,7 +179,7 @@ export default function SignUp() {
                 <div className="mb-4"></div>
 
                 <WithLabel Label={<Label>Confirm Password</Label>}>
-                    <Password
+                    <PasswordInput
                         id="confirmPassword"
                         name="confirmPassword"
                         placeholder="Password"

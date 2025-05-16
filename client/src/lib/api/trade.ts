@@ -25,7 +25,8 @@ export interface ComputeForAddResponse {
     r_factor: number;
     net_return_percentage: number;
     charges_as_percentage_of_net_pnl: number;
-    open_qty: string;
+    open_quantity: string;
+    open_price: string;
 }
 
 export function computeForAdd(body: ComputeForAddRequest) {

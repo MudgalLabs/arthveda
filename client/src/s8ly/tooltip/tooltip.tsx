@@ -49,7 +49,11 @@ export const Tooltip: FC<TooltipProps> = ({
                     {...contentPropsRest}
                 >
                     {content}
-                    <TooltipPrimitive.Arrow width={11} height={5} />
+                    <TooltipPrimitive.Arrow
+                        width={11}
+                        height={5}
+                        fill="var(--color-border-muted)"
+                    />
                 </TooltipPrimitive.Content>
             </div>
         </TooltipPrimitive.Root>

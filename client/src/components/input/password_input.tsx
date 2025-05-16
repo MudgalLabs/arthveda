@@ -7,7 +7,7 @@ import { Tooltip } from "@/s8ly/tooltip/tooltip";
 
 interface PasswordProps extends InputProps {}
 
-export const Password: FC<PasswordProps> = (props) => {
+export const PasswordInput: FC<PasswordProps> = (props) => {
     const { className, ...rest } = props;
 
     const [showingPassword, setShowingPassword] = useState(false);
@@ -41,4 +41,4 @@ export const Password: FC<PasswordProps> = (props) => {
     );
 };
 
-Password.displayName = "Password";
+PasswordInput.displayName = "PasswordInput";

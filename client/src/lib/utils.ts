@@ -1,3 +1,4 @@
+import { CurrencyKind } from "@/features/trade/trade";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -156,13 +157,6 @@ function isPlainObject(value: any): value is AnyObject {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-let i = 0;
-
-export function genId(): number {
-    i = i + 1;
-    return i;
-}
-
 export function isSameDay(date1: Date, date2: Date): boolean {
     return (
         date1.getFullYear() === date2.getFullYear() &&
@@ -174,4 +168,63 @@ export function isSameDay(date1: Date, date2: Date): boolean {
 export function removeAtIndex<T>(array: T[], index: number): T[] {
     if (index < 0 || index >= array.length) return array;
     return [...array.slice(0, index), ...array.slice(index + 1)];
+}
+
+export function formatCurrency(
+    amount: string | number,
+    currency: CurrencyKind,
+    withSymbol: boolean = true,
+    locale: string = "en-IN",
+    options: Intl.NumberFormatOptions = {}
+): string {
+    const _amount = Number(amount);
+    const _options = deepMerge(
+        {
+            style: withSymbol ? "currency" : "decimal",
+            currency: currency,
+            maximumFractionDigits: 4,
+        },
+        options
+    );
+
+    return new Intl.NumberFormat(locale, _options).format(_amount);
+}
+
+export function removeFormatCurrency(formatted: string): string {
+    // Remove anything that isn't a digit or a dot
+    const cleaned = formatted.replace(/[^0-9.]/g, "");
+
+    return cleaned;
+}
+
+export function getCurrencyLabel(currency: CurrencyKind, locale = "en") {
+    const symbol = new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    })
+        .format(1)
+        .replace(/\d/g, "")
+        .trim(); // extract symbol
+    const name = new Intl.DisplayNames([locale], { type: "currency" }).of(
+        currency
+    );
+    return `${currency} – ${symbol} – ${name}`;
+}
+
+export function getCurrencySymbol(
+    currencyCode: CurrencyKind,
+    locale = "en"
+): string {
+    const formatted = new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: currencyCode,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(1);
+
+    // Remove all digits, commas, periods, and whitespace to isolate the symbol
+    const symbol = formatted.replace(/[\d.,\s]/g, "").trim();
+    return symbol;
 }

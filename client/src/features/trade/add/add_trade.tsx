@@ -33,30 +33,51 @@ import {
 } from "@/hooks/use_data_table_editable_cell";
 import { OrderKind } from "@/features/trade/trade";
 import { Card, CardTitle } from "@/components/card";
-import { cn, formatDate, getElapsedTime, isSameDay } from "@/lib/utils";
+import {
+    cn,
+    formatCurrency,
+    formatDate,
+    getElapsedTime,
+    isSameDay,
+} from "@/lib/utils";
 import { SubTradeForAddRequest } from "@/lib/api/trade";
+import { Loading } from "@/components/loading";
+import { CurrencySelect } from "@/components/select/currency_select";
+import { CurrencyInput } from "@/components/input/currency_input";
 
 function AddTrade() {
-    const { state, setState } = useAddTrade();
+    const { state, setState, isComputing } = useAddTrade();
 
     return (
         <>
-            <h1 className="heading">Add Trade</h1>
+            <div className="flex items-center justify-between">
+                <div className="flex gap-x-2">
+                    <h1 className="heading">Add Trade</h1>
+                    <div>{isComputing && <Loading />}</div>
+                </div>
+
+                <div>
+                    <CurrencySelect
+                        classNames={{ trigger: "w-fit" }}
+                        defaultValue={state.currency}
+                    />
+                </div>
+            </div>
 
             <div className="h-3" />
             <Separator />
             <div className="h-6" />
 
-            <div className="flex justify-between">
-                <div className="flex gap-x-6">
-                    <PnLCard />
-                    <RFactorCard />
-                    <DurationCard />
-                </div>
+            <div className="flex gap-x-6">
+                <PnLCard />
+                <RFactorCard />
+                <DurationCard />
 
-                <div className="flex h-fit gap-x-2">
-                    <DirectionTag />
-                    <OutcomeTag />
+                <div className="flex items-end">
+                    <div className="flex h-fit gap-x-2">
+                        <DirectionTag />
+                        <OutcomeTag />
+                    </div>
                 </div>
             </div>
 
@@ -89,10 +110,9 @@ function AddTrade() {
                 </WithLabel>
 
                 <WithLabel Label={<Label>Planned Risk</Label>}>
-                    <Input
-                        type="number"
-                        value={state.planned_risk_amount}
-                        onChange={(e) =>
+                    <CurrencyInput
+                        currency={state.currency}
+                        onBlur={(e) =>
                             setState((prev) => ({
                                 ...prev,
                                 planned_risk_amount: e.target.value,
@@ -102,10 +122,9 @@ function AddTrade() {
                 </WithLabel>
 
                 <WithLabel Label={<Label>Charges</Label>}>
-                    <Input
-                        type="number"
-                        value={state.charges_amount}
-                        onChange={(e) =>
+                    <CurrencyInput
+                        currency={state.currency}
+                        onBlur={(e) =>
                             setState((prev) => ({
                                 ...prev,
                                 charges_amount: e.target.value,
@@ -206,7 +225,7 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
             const [error, setError] = useState(false);
 
             useEffect(() => {
-                setError(value === "");
+                setError(Number(value) === 0);
             }, [value]);
 
             return (
@@ -224,19 +243,20 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
         accessorKey: "price",
         header: "Price",
         cell: (ctx) => {
+            const { state } = useAddTrade();
             const { value, setValue, sync } =
                 useDataTableEditableCell<string>(ctx);
 
             const [error, setError] = useState(false);
 
             useEffect(() => {
-                setError(value === "");
+                setError(Number(value) === 0);
             }, [value]);
+
             return (
-                <Input
-                    type="number"
+                <CurrencyInput
+                    currency={state.currency}
                     variant={error ? "error" : "default"}
-                    value={value}
                     onChange={(e) => setValue(e.target.value)}
                     onBlur={sync}
                 />
@@ -246,16 +266,25 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
     {
         id: "delete",
         header: "",
-        cell: ({ row }) => {
+        cell: ({ row, table }) => {
             const { removeSubTrade } = useAddTrade();
+            // We want to disable this button if we have only 1 sub trade (rows count = 1).
+            const disableButton = table.getRowModel().rows.length === 1;
             return (
-                <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => removeSubTrade(row.index)}
+                <Tooltip
+                    content="There must be a Sub Trade"
+                    contentProps={{ side: "bottom" }}
+                    disabled={!disableButton}
                 >
-                    <IconTrash className="text-foreground" size={20} />
-                </Button>
+                    <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => removeSubTrade(row.index)}
+                        disabled={disableButton}
+                    >
+                        <IconTrash className="text-foreground" size={20} />
+                    </Button>
+                </Tooltip>
             );
         },
     },
@@ -283,9 +312,9 @@ function AddSubTradeButton() {
     return (
         <Tooltip
             content={
-                <div className="flex items-center gap-x-2">
+                <div className="flex-center gap-x-2">
                     <IconAlert size={18} />
-                    <p>Sub Trades is missing some data</p>
+                    <p>Sub Trades missing some data</p>
                 </div>
             }
             contentProps={{ side: "bottom" }}
@@ -304,27 +333,24 @@ function AddSubTradeButton() {
 
 function PnLCard() {
     const {
-        processTradeResult: {
+        computeForAddResult: {
             net_pnl_amount,
             net_return_percentage,
             gross_pnl_amount,
             charges_as_percentage_of_net_pnl: cost_as_percentage_of_net_pnl,
         },
-        state: { charges_amount },
+        state: { currency, charges_amount },
     } = useAddTrade();
 
-    let netPnLSign = "";
     let trendingIcon: ReactNode = null;
     let textColor = "text-foreground";
     const grossPnL = BigInt(gross_pnl_amount);
     const netPnL = BigInt(net_pnl_amount);
 
     if (netPnL > 0) {
-        netPnLSign = "+";
         trendingIcon = <IconTrendingUp size={20} />;
         textColor = "text-foreground-green";
     } else if (netPnL < 0) {
-        netPnLSign = "-";
         trendingIcon = <IconTrendingDown />;
         textColor = "text-foreground-red";
     }
@@ -340,56 +366,64 @@ function PnLCard() {
                             "text-foreground-red": grossPnL < 0,
                         })}
                     >
-                        {grossPnL > 0 ? "+" : grossPnL < 0 ? "-" : ""}
-                        {gross_pnl_amount}
+                        {formatCurrency(gross_pnl_amount, currency)}
                     </span>
                 </p>
                 <p>
                     Net{" "}
                     <span className={textColor}>
-                        {netPnLSign}
-                        {net_pnl_amount}
+                        {formatCurrency(net_pnl_amount, currency)}
                     </span>{" "}
                 </p>
             </div>
 
-            <p>
-                Charges{" "}
-                <span className="text-foreground-red">-{charges_amount}</span>{" "}
-                and{" "}
-                <span className="text-foreground-red">
-                    {cost_as_percentage_of_net_pnl}%
-                </span>{" "}
-                of Gross
-            </p>
+            {Number(charges_amount) > 0 && (
+                <p>
+                    Charges{" "}
+                    <span className="text-foreground-red">
+                        {formatCurrency(charges_amount, currency)}
+                    </span>{" "}
+                    and{" "}
+                    <span className="text-foreground-red">
+                        {cost_as_percentage_of_net_pnl}%
+                    </span>{" "}
+                    of Gross
+                </p>
+            )}
         </div>
     );
 
     return (
-        <div className="flex flex-col gap-y-2">
+        <div className="flex min-w-80 flex-col gap-y-2">
             <CardTitle>PnL</CardTitle>
-            <Card className="min-w-50">
+            <Card className="flex h-full min-w-50 flex-col items-start justify-center">
                 <div className={`flex items-end gap-x-2 ${textColor}`}>
                     <p
                         className={`font-heading text-[32px] leading-none font-bold`}
                     >
-                        {netPnLSign} {net_pnl_amount}
+                        {formatCurrency(net_pnl_amount, currency)}
                     </p>
                     <p>{net_return_percentage}%</p>
                     <p>{trendingIcon}</p>
                 </div>
 
-                <div className="h-4" />
-
-                <Tooltip
-                    content={tooltipContent}
-                    contentProps={{
-                        side: "bottom",
-                        className: "min-w-(--radix-tooltip-trigger-width)",
-                    }}
-                >
-                    <Progress value={100 - cost_as_percentage_of_net_pnl} />
-                </Tooltip>
+                {Number(net_pnl_amount) > 0 && (
+                    <div className="w-full">
+                        <div className="h-4" />
+                        <Tooltip
+                            content={tooltipContent}
+                            contentProps={{
+                                side: "bottom",
+                                className:
+                                    "min-w-(--radix-tooltip-trigger-width)",
+                            }}
+                        >
+                            <Progress
+                                value={100 - cost_as_percentage_of_net_pnl}
+                            />
+                        </Tooltip>
+                    </div>
+                )}
             </Card>
         </div>
     );
@@ -397,7 +431,7 @@ function PnLCard() {
 
 function RFactorCard() {
     const {
-        processTradeResult: { r_factor },
+        computeForAddResult: { r_factor },
     } = useAddTrade();
 
     let textColor = "";
@@ -420,7 +454,7 @@ function DurationCard() {
     const now = new Date();
 
     const {
-        processTradeResult: { opened_at, closed_at },
+        computeForAddResult: { opened_at, closed_at },
     } = useAddTrade();
 
     const { days, hours, minutes } = getElapsedTime(
@@ -430,7 +464,7 @@ function DurationCard() {
 
     return (
         <div className="flex flex-col gap-y-2">
-            <CardTitle>R Factor</CardTitle>
+            <CardTitle>Duration</CardTitle>
             <Card className="flex h-full flex-col items-center gap-y-2">
                 <p className="font-heading text-2xl font-bold">
                     {days} days {hours} hours {minutes} mins
@@ -455,19 +489,36 @@ function DurationCard() {
 
 function DirectionTag() {
     const {
-        processTradeResult: { direction },
+        computeForAddResult: { direction },
     } = useAddTrade();
-    return <Tag>{direction === "long" ? "Long" : "Short"}</Tag>;
+    const isLong = direction === "long";
+    return (
+        <Tag variant={isLong ? "success" : "destructive"}>
+            {isLong ? "Long" : "Short"}
+        </Tag>
+    );
 }
 
 function OutcomeTag() {
     const {
-        processTradeResult: { outcome },
+        computeForAddResult: { outcome, open_quantity, open_price },
+        state: { currency },
     } = useAddTrade();
     if (outcome === "win") return <Tag variant="success">Win</Tag>;
     if (outcome === "loss") return <Tag variant="destructive">Loss</Tag>;
     if (outcome === "breakeven") return <Tag variant="primary">Breakeven</Tag>;
-    return <Tag variant="muted">Open</Tag>;
+
+    let openTagContent = "Open";
+
+    if (Number(open_quantity) > 0) {
+        openTagContent +=
+            " ~ Qty: " +
+            open_quantity +
+            " Avg: " +
+            formatCurrency(open_price, currency);
+    }
+
+    return <Tag variant="muted">{openTagContent}</Tag>;
 }
 
 export default AddTrade;

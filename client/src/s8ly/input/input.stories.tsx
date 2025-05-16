@@ -4,7 +4,7 @@ import { Input as InputComp, Label } from "@/s8ly";
 
 import { WithLabel as WithLabelComp } from "@/components/with_label";
 import { WithCompare as WithCompareComp } from "@/components/with_compare";
-import { Password as PasswordComp } from "@/components/password";
+import { PasswordInput as PasswordComp } from "@/components/input/password_input";
 import { CompareSelect as CompareSelect } from "@/components/select/compare_select";
 
 const meta = {

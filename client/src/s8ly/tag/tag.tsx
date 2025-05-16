@@ -14,7 +14,7 @@ const tagVariants = cva("font-semibold rounded-sm border-1", {
                 "bg-background-red-muted border-border-red text-foreground-red",
         },
         size: {
-            default: "text-sm px-3 py-2",
+            default: "text-sm px-3 py-1",
         },
     },
     defaultVariants: {

@@ -8,7 +8,7 @@ import { toast } from "@/components/toast";
 import { ContinueWithGoogle } from "@/components/continue_with_google";
 import { ROUTES } from "@/routes";
 import { Link } from "@/components/link";
-import { Password } from "@/components/password";
+import { PasswordInput } from "@/components/input/password_input";
 import { WithLabel } from "@/components/with_label";
 
 export default function SignIn() {
@@ -64,7 +64,7 @@ export default function SignIn() {
                 </WithLabel>
 
                 <WithLabel Label={<Label>Password</Label>}>
-                    <Password
+                    <PasswordInput
                         className="mb-2"
                         placeholder="Password"
                         name="password"

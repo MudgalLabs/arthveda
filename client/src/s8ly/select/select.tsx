@@ -5,8 +5,14 @@ import { IconCheck, IconChevronDown, IconChevronUp } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";
 
-export interface SelectProps extends SelectPrimitive.SelectProps {
-    options: { value: string; label: string; disabled?: boolean }[];
+interface SelectOptionItem {
+    value: string;
+    label: string | ReactNode;
+    disabled?: boolean;
+}
+
+interface SelectProps extends SelectPrimitive.SelectProps {
+    options: SelectOptionItem[];
     ref?: Ref<HTMLButtonElement>;
     placeholder?: ReactNode;
     classNames?: {
@@ -16,7 +22,7 @@ export interface SelectProps extends SelectPrimitive.SelectProps {
     };
 }
 
-export const Select: FC<SelectProps> = ({
+const Select: FC<SelectProps> = ({
     children,
     ref,
     options,
@@ -139,3 +145,6 @@ const SelectItem: FC<SelectItemProps> = ({
         </SelectPrimitive.Item>
     );
 };
+
+export { Select };
+export type { SelectProps, SelectOptionItem };
