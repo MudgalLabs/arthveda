@@ -14,6 +14,8 @@ export * from "./checkbox/checkbox";
 export * from "./data_table/data_table";
 // DatePicker
 export * from "./date_picker/date_picker";
+// Dialog
+export * from "./dialog/dialog";
 // DropdownMenu
 export * from "./dropdown_menu/dropdown_menu";
 // Label

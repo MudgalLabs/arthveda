@@ -29,7 +29,7 @@ const PopoverContent: FC<PopoverContentProps> = ({
             {...props}
         >
             {children}
-            <PopoverPrimitive.Arrow />
+            <PopoverPrimitive.Arrow fill="var(--color-border-muted)" />
         </PopoverPrimitive.Content>
     </PopoverPrimitive.Portal>
 );

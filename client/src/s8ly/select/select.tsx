@@ -60,7 +60,7 @@ const Select: FC<SelectProps> = ({
             <SelectPrimitive.Trigger
                 ref={ref}
                 className={cn(
-                    "bg-muted text-foreground border-border flex w-[300px] items-center justify-between gap-x-4 rounded-md border-1 p-3 enabled:cursor-pointer",
+                    "bg-muted text-foreground border-border flex h-10 w-[300px] items-center justify-between gap-x-4 rounded-md border-1 p-3 enabled:cursor-pointer",
                     "focus:outline-accent text-sm focus:outline-1 focus:outline-offset-0",
                     {
                         "text-foreground-muted": !value,
@@ -132,7 +132,7 @@ const SelectItem: FC<SelectItemProps> = ({
             ref={ref}
             data-disabled={disabled}
             className={cn(
-                "enabled:hover:bg-muted focus:bg-muted data-[disabled=true]:text-foreground-muted m-1 flex items-center justify-between rounded-md px-2 py-3 focus:outline-none enabled:cursor-pointer data-[disabled=true]:hover:cursor-not-allowed",
+                "enabled:hover:bg-muted focus:bg-muted data-[disabled=true]:text-foreground-muted m-1 flex h-10 items-center justify-between rounded-md px-2 py-3 focus:outline-none enabled:cursor-pointer data-[disabled=true]:hover:cursor-not-allowed",
                 className
             )}
             disabled={disabled}
