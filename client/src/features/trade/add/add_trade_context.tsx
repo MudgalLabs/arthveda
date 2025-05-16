@@ -57,34 +57,38 @@ function getEmptySubTrade(orderKind: OrderKind): SubTrade {
     };
 }
 
-const initialState: Trade = {
-    symbol: "",
-    instrument: "equity",
-    currency: "INR",
-    planned_risk_amount: "",
-    charges_amount: "",
-};
+function getInitialState(): Trade {
+    return {
+        symbol: "",
+        instrument: "equity",
+        currency: "INR",
+        planned_risk_amount: "",
+        charges_amount: "",
+    };
+}
 
-const initialComputeResult: ComputeForAddResponse = {
-    opened_at: roundToNearest15Minutes(new Date()),
-    closed_at: null,
-    direction: "long",
-    outcome: "open",
-    gross_pnl_amount: "0",
-    net_pnl_amount: "0",
-    net_return_percentage: 0,
-    r_factor: 0,
-    charges_as_percentage_of_net_pnl: 0,
-    open_quantity: "0",
-    open_price: "0",
-};
+function getInitialComputeResult(): ComputeForAddResponse {
+    return {
+        opened_at: roundToNearest15Minutes(new Date()),
+        closed_at: null,
+        direction: "long",
+        outcome: "open",
+        gross_pnl_amount: "0",
+        net_pnl_amount: "0",
+        net_return_percentage: 0,
+        r_factor: 0,
+        charges_as_percentage_of_net_pnl: 0,
+        open_quantity: "0",
+        open_price: "0",
+    };
+}
 
 const AddTradeContext = createContext<AddTradeContextType>(
     {} as AddTradeContextType
 );
 
 function AddTradeContextProvider({ children }: { children: ReactNode }) {
-    const [state, setState] = useState<Trade>(() => initialState);
+    const [state, setState] = useState<Trade>(() => getInitialState());
     const debouncedState = useDebounce(state, 500);
 
     const [subTrades, setSubTrades] = useState<SubTrade[]>(() => [
@@ -93,7 +97,7 @@ function AddTradeContextProvider({ children }: { children: ReactNode }) {
     const debouncedSubTrades = useDebounce(subTrades, 500);
 
     const [computeForAddResult, setComputeForAddResult] =
-        useState<ComputeForAddResponse>(() => initialComputeResult);
+        useState<ComputeForAddResponse>(() => getInitialComputeResult());
 
     const subTradesAreValid = useMemo(() => {
         let flag = true;
@@ -174,9 +178,9 @@ function AddTradeContextProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const discard = useCallback(() => {
-        setState(initialState);
+        setState(() => getInitialState());
         setSubTrades([getEmptySubTrade("buy")]);
-        setComputeForAddResult(initialComputeResult);
+        setComputeForAddResult(() => getInitialComputeResult());
     }, []);
 
     useEffect(() => {

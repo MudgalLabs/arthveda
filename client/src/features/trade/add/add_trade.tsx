@@ -220,6 +220,8 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
 
             // We don't want to apply a `minDate` if this is the first sub trade.
             const applyDateTimeRestrictions = ctx.row.index > 0;
+            const now = new Date();
+
             return (
                 <DatePicker
                     time
@@ -231,6 +233,7 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
                             minDate: applyDateTimeRestrictions
                                 ? secondLastSubTrade.time
                                 : undefined,
+                            maxDate: now,
                         },
                         time: {
                             minTime:
@@ -243,6 +246,10 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
                                           m: secondLastSubTrade.time.getMinutes(),
                                       }
                                     : undefined,
+                            maxTime: {
+                                h: now.getHours(),
+                                m: now.getMinutes(),
+                            },
                         },
                     }}
                 />
