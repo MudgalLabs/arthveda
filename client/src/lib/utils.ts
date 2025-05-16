@@ -228,3 +228,11 @@ export function getCurrencySymbol(
     const symbol = formatted.replace(/[\d.,\s]/g, "").trim();
     return symbol;
 }
+
+let counter = 0;
+
+export function generateId(prefix = "id") {
+    const timestamp = Date.now();
+    const uniquePart = counter++;
+    return `${prefix}-${timestamp}-${uniquePart}`;
+}

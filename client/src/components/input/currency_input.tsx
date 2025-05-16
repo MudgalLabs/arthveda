@@ -31,18 +31,25 @@ function CurrencyInput(props: CurrencyInputProps) {
     });
 
     function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const value = e.target.value;
-        setValue(value);
-        onChangeProp?.(e);
+        const isValidValue = !Number.isNaN(Number(e.target.value));
+
+        if (isValidValue) {
+            setValue(e.target.value);
+            onChangeProp?.(e);
+        }
     }
 
     function onFocus(e: React.FocusEvent<HTMLInputElement>) {
-        setValue(removeFormatCurrency(value));
+        if (value) {
+            setValue(removeFormatCurrency(value));
+        }
         onFocusProp?.(e);
     }
 
     function onBlur(e: React.FocusEvent<HTMLInputElement>) {
-        setValue(formatCurrency(value, currency, false));
+        if (value) {
+            setValue(formatCurrency(value, currency, false));
+        }
         onBlurProp?.(e);
     }
 

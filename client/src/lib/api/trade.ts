@@ -9,6 +9,10 @@ export interface SubTradeForAddRequest {
     price: string;
 }
 
+export interface SubTrade extends SubTradeForAddRequest {
+    id: string;
+}
+
 export interface ComputeForAddRequest {
     planned_risk_amount: string;
     charges_amount: string;
