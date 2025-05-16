@@ -65,8 +65,8 @@ const initialState: Trade = {
     charges_amount: "",
 };
 
-const initialProcessTradeResult: ComputeForAddResponse = {
-    opened_at: new Date(),
+const initialComputeResult: ComputeForAddResponse = {
+    opened_at: roundToNearest15Minutes(new Date()),
     closed_at: null,
     direction: "long",
     outcome: "open",
@@ -93,7 +93,7 @@ function AddTradeContextProvider({ children }: { children: ReactNode }) {
     const debouncedSubTrades = useDebounce(subTrades, 500);
 
     const [computeForAddResult, setComputeForAddResult] =
-        useState<ComputeForAddResponse>(() => initialProcessTradeResult);
+        useState<ComputeForAddResponse>(() => initialComputeResult);
 
     const subTradesAreValid = useMemo(() => {
         let flag = true;
@@ -174,8 +174,9 @@ function AddTradeContextProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const discard = useCallback(() => {
-        setState(() => initialState);
-        setSubTrades(() => [getEmptySubTrade("buy")]);
+        setState(initialState);
+        setSubTrades([getEmptySubTrade("buy")]);
+        setComputeForAddResult(initialComputeResult);
     }, []);
 
     useEffect(() => {

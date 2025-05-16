@@ -290,6 +290,7 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
                 <CurrencyInput
                     currency={state.currency}
                     variant={error ? "error" : "default"}
+                    value={value}
                     onChange={(e) => setValue(e.target.value)}
                     onBlur={sync}
                 />
