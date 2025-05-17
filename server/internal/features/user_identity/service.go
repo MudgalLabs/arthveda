@@ -149,7 +149,7 @@ func (s *Service) SignUp(ctx context.Context, payload SignUpPayload) (*user_prof
 		return nil, service.ErrInternalServerError, fmt.Errorf("find user identity by email: %w", err)
 	}
 
-	if userIdentity != nil && userIdentity.ID > 0 {
+	if userIdentity != nil && userIdentity.ID.String() != "" {
 		return nil, service.ErrConflict, errors.New("Account with that email already exists")
 	}
 

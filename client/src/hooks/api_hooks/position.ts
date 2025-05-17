@@ -1,6 +1,8 @@
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
 import {
+    AddPositionRequest,
+    AddPositionResponse,
     ComputePositionRequest,
     ComputePositionResponse,
 } from "@/lib/api/position";
@@ -14,7 +16,21 @@ export function useCompute(options: AnyUseMutationOptions = {}) {
         unknown
     >({
         mutationFn: (body: ComputePositionRequest) => {
-            return api.trade.compute(body);
+            return api.position.compute(body);
+        },
+        ...options,
+    });
+}
+
+export function useAdd(options: AnyUseMutationOptions = {}) {
+    return useMutation<
+        ApiRes<AddPositionResponse>,
+        unknown,
+        AddPositionRequest,
+        unknown
+    >({
+        mutationFn: (body: AddPositionRequest) => {
+            return api.position.add(body);
         },
         ...options,
     });

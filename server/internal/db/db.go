@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -27,6 +28,12 @@ func Init() (*pgxpool.Pool, error) {
 
 	// So that we can log SQL query on execution.
 	config.ConnConfig.Tracer = &myQueryTracer{}
+
+	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		// Register `pgxdecimal` so that we can use `decimal.Decimal` for values while scaning or inserting records.
+		pgxdecimal.Register(conn.TypeMap())
+		return nil
+	}
 
 	db, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {

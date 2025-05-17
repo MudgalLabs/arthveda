@@ -6,12 +6,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Reader interface {
-	FindUserIdentityByID(ctx context.Context, id int64) (*UserIdentity, error)
+	FindUserIdentityByID(ctx context.Context, id uuid.UUID) (*UserIdentity, error)
 	FindUserIdentityByEmail(ctx context.Context, email string) (*UserIdentity, error)
 }
 
@@ -29,7 +30,7 @@ type ReadWriter interface {
 //
 
 type filter struct {
-	ID    *int64
+	ID    *uuid.UUID
 	Email *string
 }
 
@@ -41,7 +42,7 @@ func NewRepository(db *pgxpool.Pool) *userIdentityRepository {
 	return &userIdentityRepository{db}
 }
 
-func (r *userIdentityRepository) FindUserIdentityByID(ctx context.Context, id int64) (*UserIdentity, error) {
+func (r *userIdentityRepository) FindUserIdentityByID(ctx context.Context, id uuid.UUID) (*UserIdentity, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin: %w", err)
@@ -132,11 +133,11 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 	defer tx.Rollback(ctx)
 
 	identitySQL := `
-	INSERT INTO user_identity (email, password_hash, verified, failed_login_attempts, last_login_at, created_at, updated_at)
-	VALUES (@email, @password_hash, @verified, @failed_login_attempts, @last_login_at, @created_at, @updated_at)
-	RETURNING id
+	INSERT INTO user_identity (id, email, password_hash, verified, failed_login_attempts, last_login_at, created_at, updated_at)
+	VALUES (@id, @email, @password_hash, @verified, @failed_login_attempts, @last_login_at, @created_at, @updated_at)
 	`
 	identitySQLArgs := pgx.NamedArgs{
+		"id":                     userIdentity.ID,
 		"email":                  userIdentity.Email,
 		"password_hash":          userIdentity.PasswordHash,
 		"verified":               userIdentity.Verified,
@@ -145,18 +146,16 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 		"created_at":             userIdentity.CreatedAt,
 		"updated_at":             userIdentity.UpdatedAt,
 	}
-	var userID int64
-	err = tx.QueryRow(ctx, identitySQL, identitySQLArgs).Scan(&userID)
+	_, err = tx.Exec(ctx, identitySQL, identitySQLArgs)
 	if err != nil {
 		return nil, fmt.Errorf("user identity sql scan: %w", err)
 	}
 
-	userProfile := user_profile.NewUserProfile(userID, userIdentity.Email, name)
+	userProfile := user_profile.NewUserProfile(userIdentity.ID, userIdentity.Email, name)
 
 	profileSQL := `
 	INSERT INTO user_profile (user_id, email, display_name, display_image, created_at, updated_at)
 	VALUES (@user_id, @email, @display_name, @display_image, @created_at, @updated_at)
-	RETURNING user_id, email, display_name, display_image, created_at, updated_at
 	`
 	profileSQLArgs := pgx.NamedArgs{
 		"user_id":       userProfile.UserID,
@@ -166,7 +165,7 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 		"created_at":    userProfile.CreatedAt,
 		"updated_at":    userProfile.UpdatedAt,
 	}
-	err = tx.QueryRow(ctx, profileSQL, profileSQLArgs).Scan(&userProfile.UserID, &userProfile.Email, &userProfile.DisplayName, &userProfile.DisplayImage, &userProfile.CreatedAt, &userProfile.UpdatedAt)
+	_, err = tx.Exec(ctx, profileSQL, profileSQLArgs)
 	if err != nil {
 		return nil, fmt.Errorf("user profile sql exec: %w", err)
 	}

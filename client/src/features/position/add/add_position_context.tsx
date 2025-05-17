@@ -20,12 +20,12 @@ import { ComputePositionResponse } from "@/lib/api/position";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useDebounce } from "@/hooks/use_debounce";
 import { toast } from "@/components/toast";
-import { Trade, TradeKind } from "@/features/trade/trade";
+import { NewTrade, TradeKind } from "@/features/trade/trade";
 
 interface State {
     symbol: string;
     instrument: PositionInstrument;
-    currency: CurrencyCode;
+    currency_code: CurrencyCode;
     risk_amount: string;
     charges_amount: string;
 }
@@ -33,9 +33,10 @@ interface State {
 interface AddPositionContextType {
     state: State;
     setState: Dispatch<SetStateAction<State>>;
-    trades: Trade[];
-    setTrades: Dispatch<SetStateAction<Trade[]>>;
+    trades: NewTrade[];
+    setTrades: Dispatch<SetStateAction<NewTrade[]>>;
     tradesAreValid: boolean;
+    canSave: boolean;
     insertNewTrade: () => void;
     removeTrade: (tradeID: number) => void;
     computeResult: ComputePositionResponse;
@@ -44,9 +45,12 @@ interface AddPositionContextType {
     discard: () => void;
 }
 
-function getEmptyTrade(orderKind: TradeKind): Trade {
+function getEmptyTrade(orderKind: TradeKind): NewTrade {
     return {
-        id: generateId("trade"),
+        // I am adding this `id` here because tanstack-table needs an `id` on a row
+        // function properly and uniquely identify row(s).
+        // @ts-ignore
+        id: generateId("row"),
         kind: orderKind,
         time: roundToNearest15Minutes(new Date()),
         price: "",
@@ -58,7 +62,7 @@ function getInitialState(): State {
     return {
         symbol: "",
         instrument: "equity",
-        currency: "INR",
+        currency_code: "INR",
         risk_amount: "",
         charges_amount: "",
     };
@@ -88,7 +92,9 @@ function AddPositionContextProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<State>(() => getInitialState());
     const debouncedState = useDebounce(state, 500);
 
-    const [trades, setTrades] = useState<Trade[]>(() => [getEmptyTrade("buy")]);
+    const [trades, setTrades] = useState<NewTrade[]>(() => [
+        getEmptyTrade("buy"),
+    ]);
     const debouncedTrades = useDebounce(trades, 500);
 
     const [computeResult, setComputeResult] = useState<ComputePositionResponse>(
@@ -124,6 +130,12 @@ function AddPositionContextProvider({ children }: { children: ReactNode }) {
 
         return flag;
     }, [trades]);
+
+    const canSave = useMemo(() => {
+        if (!tradesAreValid) return false;
+        if (!state.symbol) return false;
+        return true;
+    }, [tradesAreValid, state]);
 
     const showDiscardWarning = useMemo(() => {
         let flag = false;
@@ -202,6 +214,7 @@ function AddPositionContextProvider({ children }: { children: ReactNode }) {
             isComputing,
             showDiscardWarning,
             discard,
+            canSave,
         }),
         [
             state,
@@ -215,6 +228,7 @@ function AddPositionContextProvider({ children }: { children: ReactNode }) {
             isComputing,
             showDiscardWarning,
             discard,
+            canSave,
         ]
     );
 

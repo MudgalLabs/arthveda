@@ -1,0 +1,110 @@
+package trade
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type Reader interface {
+	FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error)
+}
+
+type Writer interface {
+	Create(ctx context.Context, positionID uuid.UUID, trades []CreatePayload) ([]*Trade, error)
+}
+
+type ReadWriter interface {
+	Reader
+	Writer
+}
+
+//
+// PostgreSQL implementation
+//
+
+type tradeRepository struct {
+	db *pgxpool.Pool
+}
+
+func NewRepository(db *pgxpool.Pool) *tradeRepository {
+	return &tradeRepository{db}
+}
+
+func (r *tradeRepository) Create(ctx context.Context, positionID uuid.UUID, trades []CreatePayload) ([]*Trade, error) {
+	rows := make([][]any, len(trades))
+	now := time.Now().UTC()
+
+	for i, t := range trades {
+		ID, err := uuid.NewV7()
+		if err != nil {
+			return nil, fmt.Errorf("uuid: %w", err)
+		}
+
+		rows[i] = []any{
+			ID,
+			positionID,
+			now,
+			nil,
+			t.Kind,
+			t.Time,
+			t.Quantity,
+			t.Price,
+		}
+	}
+
+	_, err := r.db.CopyFrom(
+		ctx,
+		pgx.Identifier{"trade"},
+		[]string{"id", "position_id", "created_at", "updated_at", "kind", "time", "quantity", "price"},
+		pgx.CopyFromRows(rows),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("batch insert: %w", err)
+	}
+
+	return r.FindByPositionID(ctx, positionID)
+}
+
+func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, position_id, created_at, updated_at, kind, time, quantity, price
+		FROM trade
+		WHERE position_id = $1
+	`, positionID)
+
+	if err != nil {
+		return nil, fmt.Errorf("query: %w", err)
+	}
+
+	defer rows.Close()
+
+	var trades []*Trade
+	for rows.Next() {
+		var trade Trade
+
+		err := rows.Scan(
+			&trade.ID,
+			&trade.PositionID,
+			&trade.CreatedAt,
+			&trade.UpdatedAt,
+			&trade.Kind,
+			&trade.Time,
+			&trade.Quantity,
+			&trade.Price,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		trades = append(trades, &trade)
+	}
+
+	return trades, nil
+}

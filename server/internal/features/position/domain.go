@@ -4,12 +4,16 @@ import (
 	"arthveda/internal/features/trade"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/guregu/null/v6/zero"
 	"github.com/shopspring/decimal"
 )
 
 type Position struct {
-	ID int64 `json:"id" db:"id"`
+	ID        uuid.UUID `json:"id" db:"id"`
+	UserID    uuid.UUID `json:"user_id" db:"user_id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt zero.Time `json:"updated_at" db:"updated_at"`
 
 	//
 	// Data provided by the user
@@ -17,17 +21,17 @@ type Position struct {
 
 	Symbol        string          `json:"symbol" db:"symbol"`
 	Instrument    Instrument      `json:"instrument" db:"instrument"`
-	CurrencyID    int             `json:"currency_id" db:"currency_id"`
+	CurrencyCode  string          `json:"currency_code" db:"currency_code"`
 	RiskAmount    decimal.Decimal `json:"risk_amount" db:"risk_amount"`
 	ChargesAmount decimal.Decimal `json:"charges_amount" db:"charges_amount"`
 
 	//
-	// Data computed by Arthveda based on data provided by user mentioned above & related SubTrade(s).
+	// Data computed by Arthveda based on data provided by user mentioned above & related trade(s).
 	// So if the data provideed by the user changes, the data below must be recomputed and saved.
 	//
 
 	Direction                   Direction       `json:"direction" db:"direction"`
-	Outcome                     Status          `json:"outcome" db:"outcome"`
+	Status                      Status          `json:"status" db:"status"`
 	OpenedAt                    time.Time       `json:"opened_at" db:"opened_at"`
 	ClosedAt                    zero.Time       `json:"closed_at" db:"closed_at"`
 	GrossPnLAmount              decimal.Decimal `json:"gross_pnl_amount" db:"gross_pnl_amount"`
@@ -35,8 +39,27 @@ type Position struct {
 	RFactor                     float64         `json:"r_factor" db:"r_factor"`
 	NetReturnPercentage         float64         `json:"net_return_percentage" db:"net_return_percentage"`
 	ChargesAsPercentageOfNetPnL float64         `json:"charges_as_percentage_of_net_pnl" db:"charges_as_percentage_of_net_pnl"`
-	OpenQuantity                float64         `json:"open_quantity" db:"open_quantity"`
+	OpenQuantity                decimal.Decimal `json:"open_quantity" db:"open_quantity"`
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount" db:"open_average_price_amount"`
+
+	//
+	// Everything above is present in the DATABASE but everything below isn't.
+	//
+	Trades []*trade.Trade `json:"trades"` // All the trade(s) that are RELATED to this Position.
+}
+
+func newPosition() (*Position, error) {
+	now := time.Now().UTC()
+	ID, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Position{
+		ID:        ID,
+		CreatedAt: now,
+		Trades:    []*trade.Trade{},
+	}, nil
 }
 
 type Instrument string
@@ -57,10 +80,10 @@ const (
 type Status string
 
 const (
-	StatusOpen      Status = "open"
-	StatusBreakeven Status = "breakeven"
 	StatusWin       Status = "win"
 	StatusLoss      Status = "loss"
+	StatusBreakeven Status = "breakeven"
+	StatusOpen      Status = "open"
 )
 
 // ApplyTradeToPosition applies a trade to an existing position,

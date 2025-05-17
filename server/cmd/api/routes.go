@@ -46,15 +46,16 @@ func initRouter(a *app) http.Handler {
 			r.Post("/sign-out", signOutHandler(a.service.UserIdentityService))
 		})
 
-		r.Route("/user", func(r chi.Router) {
+		r.Route("/users", func(r chi.Router) {
 			r.Use(authMiddleware)
 
 			r.Get("/me", getMeHandler(a.service.UserProfileService))
 		})
 
-		r.Route("/position", func(r chi.Router) {
+		r.Route("/positions", func(r chi.Router) {
 			r.Use(authMiddleware)
 
+			r.Post("/", createPositionHandler(a.service.PositionService))
 			r.Post("/compute", computePositionHandler(a.service.PositionService))
 		})
 	})

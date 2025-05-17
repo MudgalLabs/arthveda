@@ -5,6 +5,8 @@ import (
 	"arthveda/internal/service"
 	"context"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -17,7 +19,7 @@ func NewService(upr ReadWriter) *Service {
 	}
 }
 
-func (s *Service) GetUserProfile(ctx context.Context, id int64) (*UserProfile, service.ErrKind, error) {
+func (s *Service) GetUserProfile(ctx context.Context, id uuid.UUID) (*UserProfile, service.ErrKind, error) {
 	userProfile, err := s.userProfileRepository.FindUserProfileByUserID(ctx, id)
 	if err != nil {
 		if err == repository.ErrNotFound {

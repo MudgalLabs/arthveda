@@ -59,7 +59,12 @@ import { Loading } from "@/components/loading";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { CurrencyInput } from "@/components/input/currency_input";
 import { useWrappedState } from "@/hooks/use_wrapped_state";
-import { NewTrade, Trade, TradeKind } from "@/features/trade/trade";
+import { NewTrade, TradeKind } from "@/features/trade/trade";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/routes";
+import { apiHooks } from "@/hooks/api_hooks";
+import { toast } from "@/components/toast";
+import { AddPositionResponse } from "@/lib/api/position";
 
 function AddPosition() {
     const {
@@ -73,7 +78,46 @@ function AddPosition() {
         tradesAreValid,
         insertNewTrade,
         computeResult,
+        canSave,
     } = useAddPosition();
+
+    const navigate = useNavigate();
+
+    const { mutateAsync: save, isPending: isSaving } = apiHooks.position.useAdd(
+        {
+            onSuccess: async (res) => {
+                const data = res.data.data as AddPositionResponse;
+                if (!data) {
+                    toast.error("Something went wrong");
+                    return;
+                }
+                const id = data.id;
+                toast.success(`New position ${id} created`);
+                navigate(ROUTES.positionList);
+            },
+            onError: (error) => {
+                const errorMsg = error.response.data.message;
+                toast.error(errorMsg);
+            },
+        }
+    );
+
+    const handleClickSave = () => {
+        if (!canSave) return;
+
+        save({
+            risk_amount: state.risk_amount || "0",
+            charges_amount: state.charges_amount || "0",
+            symbol: state.symbol,
+            instrument: state.instrument,
+            currency_code: state.currency_code,
+            trades: trades.map((t) => {
+                // @ts-ignore
+                delete t.id;
+                return t;
+            }),
+        });
+    };
 
     return (
         <>
@@ -86,7 +130,7 @@ function AddPosition() {
                 <div>
                     <CurrencySelect
                         classNames={{ trigger: "w-fit" }}
-                        defaultValue={state.currency}
+                        defaultValue={state.currency_code}
                     />
                 </div>
             </div>
@@ -101,7 +145,7 @@ function AddPosition() {
                     charges_as_percentage_of_net_pnl={
                         computeResult.charges_as_percentage_of_net_pnl
                     }
-                    currency={state.currency}
+                    currency={state.currency_code}
                     gross_pnl_amount={computeResult.gross_pnl_amount}
                     net_pnl_amount={computeResult.net_pnl_amount}
                     net_return_percentage={computeResult.net_return_percentage}
@@ -116,7 +160,7 @@ function AddPosition() {
                     <div className="flex h-fit gap-x-2">
                         <DirectionTag direction={computeResult.direction} />
                         <OutcomeTag
-                            currency={state.currency}
+                            currency={state.currency_code}
                             outcome={computeResult.outcome}
                             open_price={computeResult.open_average_price_amount}
                             open_quantity={computeResult.open_quantity}
@@ -143,13 +187,13 @@ function AddPosition() {
                 </WithLabel>
 
                 <RiskInput
-                    currency={state.currency}
+                    currency={state.currency_code}
                     value={state.risk_amount}
                     setState={setState}
                 />
 
                 <ChargesInput
-                    currency={state.currency}
+                    currency={state.currency_code}
                     value={state.charges_amount}
                     setState={setState}
                 />
@@ -179,7 +223,13 @@ function AddPosition() {
                     showDiscardWarning={showDiscardWarning}
                     discard={discard}
                 />
-                <Button>Save</Button>
+                <Button
+                    onClick={handleClickSave}
+                    loading={isSaving}
+                    disabled={!canSave}
+                >
+                    Save
+                </Button>
             </div>
         </>
     );
@@ -288,7 +338,7 @@ const columns: ColumnDef<NewTrade>[] = [
 
             return (
                 <CurrencyInput
-                    currency={state.currency}
+                    currency={state.currency_code}
                     variant={error ? "error" : "default"}
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
@@ -329,11 +379,11 @@ const TradesTable = memo(
         trades,
         setTrades,
     }: {
-        trades: Trade[];
-        setTrades: React.Dispatch<React.SetStateAction<Trade[]>>;
+        trades: NewTrade[];
+        setTrades: React.Dispatch<React.SetStateAction<NewTrade[]>>;
     }) => {
         const updateFn = useMemo(
-            () => getDataTableCellUpdateFn<Trade>(setTrades),
+            () => getDataTableCellUpdateFn<NewTrade>(setTrades),
             []
         );
 
@@ -593,6 +643,7 @@ const SymbolInput = memo(
                 <Input
                     type="text"
                     autoFocus
+                    variant={value ? "default" : "error"}
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     onBlur={() =>

@@ -5,9 +5,10 @@ export const API_ROUTES = {
         signout: "/auth/sign-out",
     },
     user: {
-        getMe: "/user/me",
+        getMe: "/users/me",
     },
     position: {
-        compute: "/position/compute",
+        compute: "/positions/compute",
+        add: "/positions",
     },
 };

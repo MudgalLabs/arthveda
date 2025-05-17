@@ -1,5 +1,8 @@
 import {
+    CurrencyCode,
+    Position,
     PositionDirection,
+    PositionInstrument,
     PositionStatus,
 } from "@/features/position/position";
 import { NewTrade } from "@/features/trade/trade";
@@ -29,6 +32,21 @@ export interface ComputePositionResponse {
 export function compute(body: ComputePositionRequest) {
     return client.post<ComputePositionRequest, ApiRes<ComputePositionResponse>>(
         API_ROUTES.position.compute,
+        body
+    );
+}
+
+export interface AddPositionRequest extends ComputePositionRequest {
+    symbol: string;
+    instrument: PositionInstrument;
+    currency_code: CurrencyCode;
+}
+
+export interface AddPositionResponse extends Position {}
+
+export function add(body: AddPositionRequest) {
+    return client.post<AddPositionRequest, ApiRes<AddPositionResponse>>(
+        API_ROUTES.position.add,
         body
     );
 }

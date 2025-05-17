@@ -1,57 +1,55 @@
 package position
 
 import (
-	"arthveda/internal/apires"
 	"arthveda/internal/features/trade"
+	"arthveda/internal/logger"
 	"arthveda/internal/service"
 	"context"
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/guregu/null/v6/zero"
 	"github.com/shopspring/decimal"
 )
 
 type Service struct {
 	positionRepository ReadWriter
+	tradeRepository    trade.ReadWriter
 }
 
-func NewService(repo ReadWriter) *Service {
+func NewService(positionRepository ReadWriter, tradeRepository trade.ReadWriter) *Service {
 	return &Service{
-		positionRepository: repo,
+		positionRepository,
+		tradeRepository,
 	}
 }
 
-type computeTrade struct {
-	OrderKind trade.Kind `json:"kind"`
-	Time      time.Time  `json:"time"`
-	Quantity  string     `json:"quantity"` // TODO: Can we directly use `decimal.Decimal` instead of `string` here?
-	Price     string     `json:"price"`    // TODO: Can we directly use `decimal.Decimal` instead of `string` here?
-}
-
 type ComputePayload struct {
-	RiskAmount    string         `json:"risk_amount"`    // TODO: Can we directly use `decimal.Decimal` instead of `string` here?
-	ChargesAmount string         `json:"charges_amount"` // TODO: Can we directly use `decimal.Decimal` instead of `string` here?
-	Trades        []computeTrade `json:"trades"`
+	RiskAmount    decimal.Decimal       `json:"risk_amount"`
+	ChargesAmount decimal.Decimal       `json:"charges_amount"`
+	Trades        []trade.CreatePayload `json:"trades"`
 }
 
 type computeResult struct {
-	Direction                   Direction  `json:"direction"`
-	Outcome                     Status     `json:"outcome"`
-	OpenedAt                    time.Time  `json:"opened_at"`
-	ClosedAt                    *time.Time `json:"closed_at"`        // `nil` if the Outcome is OutcomeKindOpen meaning the trade is open.
-	GrossPnLAmount              string     `json:"gross_pnl_amount"` // TODO: Can we directly use `decimal.Decimal` instead of `string` here?
-	NetPnLAmount                string     `json:"net_pnl_amount"`   // TODO: Can we directly use `decimal.Decimal` instead of `string` here?
-	RFactor                     float64    `json:"r_factor"`
-	NetReturnPercentage         float64    `json:"net_return_percentage"`
-	ChargesAsPercentageOfNetPnL float64    `json:"charges_as_percentage_of_net_pnl"`
-	OpenQuantity                string     `json:"open_quantity"`             // TODO: Can we directly use `decimal.Decimal` instead of `string` here?
-	OpenAveragePriceAmount      string     `json:"open_average_price_amount"` // TODO: Can we directly use `decimal.Decimal` instead of `string` here?
+	Direction                   Direction       `json:"direction"`
+	Status                      Status          `json:"status"`
+	OpenedAt                    time.Time       `json:"opened_at"`
+	ClosedAt                    *time.Time      `json:"closed_at"` // `nil` if the Status is StatusOpen meaning the position is open.
+	GrossPnLAmount              decimal.Decimal `json:"gross_pnl_amount"`
+	NetPnLAmount                decimal.Decimal `json:"net_pnl_amount"`
+	RFactor                     float64         `json:"r_factor"`
+	NetReturnPercentage         float64         `json:"net_return_percentage"`
+	ChargesAsPercentageOfNetPnL float64         `json:"charges_as_percentage_of_net_pnl"`
+	OpenQuantity                decimal.Decimal `json:"open_quantity"`
+	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount"`
 }
 
 func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeResult, service.ErrKind, error) {
-	var err error
 	result := computeResult{
-		OpenedAt: time.Now().UTC(),
+		OpenedAt:  time.Now().UTC(),
+		Status:    StatusOpen,
+		Direction: DirectionLong,
 	}
 
 	if len(payload.Trades) == 0 {
@@ -59,7 +57,7 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeR
 	}
 
 	var closedAt *time.Time = nil
-	var outcome Status
+	var status Status
 	var direction Direction
 	var avgPrice decimal.Decimal
 	grossPnL := decimal.NewFromFloat(0)
@@ -67,88 +65,127 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeR
 	netQty := decimal.NewFromFloat(0)
 
 	for i := range payload.Trades {
-		subTrade := payload.Trades[i]
-		var subTradeQty, subTradePrice decimal.Decimal
-
-		subTradeQty, err = decimal.NewFromString(subTrade.Quantity)
-		if err != nil {
-			return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError(fmt.Sprintf("Invalid quantity %s in a sub trade", subTrade.Quantity), "", fmt.Sprintf("trades[%d]", i), subTrade.Quantity))
-		}
-		subTradePrice, err = decimal.NewFromString(subTrade.Price)
-		if err != nil {
-			return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError(fmt.Sprintf("Invalid price %s in a sub trade", subTrade.Price), "", fmt.Sprintf("trades[%d]", i), subTrade.Price))
-		}
+		trade := payload.Trades[i]
+		tradeQty := trade.Quantity
+		tradePrice := trade.Price
 
 		var pnl decimal.Decimal
 
-		avgPrice, netQty, direction, pnl, totalCost = applyTradeToPosition(avgPrice, netQty, totalCost, direction, subTradeQty, subTradePrice, subTrade.OrderKind)
+		avgPrice, netQty, direction, pnl, totalCost = applyTradeToPosition(avgPrice, netQty, totalCost, direction, tradeQty, tradePrice, trade.Kind)
 
 		grossPnL = grossPnL.Add(pnl)
 
 		if netQty.IsZero() {
-			closedAt = &subTrade.Time
+			closedAt = &trade.Time
 		}
-	}
-
-	riskAmount, err := decimal.NewFromString(payload.RiskAmount)
-	if err != nil {
-		return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError(fmt.Sprintf("Invalid risk amount %s", payload.RiskAmount), "", "risk_amount", payload.RiskAmount))
-	}
-
-	chargesAmount, err := decimal.NewFromString(payload.ChargesAmount)
-	if err != nil {
-		return result, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError(fmt.Sprintf("Invalid charges amount %s", payload.ChargesAmount), "", "charges_amount", payload.ChargesAmount))
 	}
 
 	var netPnL, rFactor, netReturnPercentage, chargesAsPercentageOfNetPnL decimal.Decimal
 
-	// The trade is closed.
+	// Position is closed.
 	if netQty.IsZero() {
-		netPnL = grossPnL.Sub(chargesAmount)
+		netPnL = grossPnL.Sub(payload.ChargesAmount)
 
-		if riskAmount.IsPositive() {
-			rFactor = netPnL.Div(riskAmount).Round(2)
+		if payload.RiskAmount.IsPositive() {
+			rFactor = netPnL.Div(payload.RiskAmount).Round(2)
 		}
 
 		if netPnL.IsZero() {
-			outcome = StatusBreakeven
+			status = StatusBreakeven
 		} else if netPnL.IsPositive() {
-			outcome = StatusWin
+			status = StatusWin
 		} else if netPnL.IsNegative() {
-			outcome = StatusLoss
+			status = StatusLoss
 		}
 	} else {
-		// Trade is open.
-		outcome = StatusOpen
+		// Position is open.
+		status = StatusOpen
 
-		// The trade is still open but we have some realised gross pnl.
+		// The position is still open but we have some realised gross pnl.
 		if grossPnL.IsPositive() {
 			netPnL = grossPnL
 		}
 	}
 
 	if grossPnL.IsPositive() {
-		chargesAsPercentageOfNetPnL = chargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100)).Round(2)
+		chargesAsPercentageOfNetPnL = payload.ChargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100)).Round(2)
 	}
 
 	if totalCost.IsPositive() {
 		netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
 	}
 
+	fmt.Println("AFTER:", direction)
 	result.Direction = direction
-	result.Outcome = outcome
+	result.Status = status
 	result.OpenedAt = payload.Trades[0].Time
 	result.ClosedAt = closedAt
-	result.GrossPnLAmount = grossPnL.String()
-	result.NetPnLAmount = netPnL.String()
+	result.GrossPnLAmount = grossPnL
+	result.NetPnLAmount = netPnL
 	result.RFactor, _ = rFactor.Float64()
 	result.NetReturnPercentage, _ = netReturnPercentage.Float64()
 	result.ChargesAsPercentageOfNetPnL, _ = chargesAsPercentageOfNetPnL.Float64()
 
 	if netQty.IsPositive() {
-		result.OpenQuantity = netQty.String()
-		result.OpenAveragePriceAmount = avgPrice.String()
+		result.OpenQuantity = netQty
+		result.OpenAveragePriceAmount = avgPrice
 	}
 
 	return result, service.ErrNone, nil
+}
+
+type AddPayload struct {
+	ComputePayload
+	Symbol       string     `json:"symbol"`
+	Instrument   Instrument `json:"instrument"`
+	CurrencyCode string     `json:"currency_code"`
+}
+
+func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload AddPayload) (*Position, service.ErrKind, error) {
+	logger := logger.FromCtx(ctx)
+	var err error
+
+	computeResult, errKind, err := s.Compute(ctx, payload.ComputePayload)
+	if err != nil {
+		return nil, errKind, err
+	}
+
+	position, err := newPosition()
+	if err != nil {
+		return nil, service.ErrInternalServerError, err
+	}
+
+	position.UserID = userID
+	position.Symbol = payload.Symbol
+	position.Instrument = payload.Instrument
+	position.CurrencyCode = payload.CurrencyCode
+	position.RiskAmount = payload.RiskAmount
+	position.ChargesAmount = payload.ChargesAmount
+	position.Direction = computeResult.Direction
+	position.Status = computeResult.Status
+	position.OpenedAt = computeResult.OpenedAt
+	position.ClosedAt = zero.TimeFromPtr(computeResult.ClosedAt)
+	position.GrossPnLAmount = computeResult.GrossPnLAmount
+	position.NetPnLAmount = computeResult.NetPnLAmount
+	position.RFactor = computeResult.RFactor
+	position.NetReturnPercentage = computeResult.NetReturnPercentage
+	position.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
+	position.OpenQuantity = computeResult.OpenQuantity
+	position.OpenAveragePriceAmount = computeResult.OpenAveragePriceAmount
+
+	err = s.positionRepository.Create(ctx, position)
+	if err != nil {
+		return nil, service.ErrInternalServerError, err
+	}
+
+	trades, err := s.tradeRepository.Create(ctx, position.ID, payload.Trades)
+	if err != nil {
+		logger.Errorw("failed to create trades after creating a position, so deleting the position that was created", "error", err, "position_id", position.ID)
+		s.positionRepository.Delete(ctx, position.ID)
+		return nil, service.ErrInternalServerError, err
+	}
+
+	position.Trades = trades
+
+	return position, service.ErrNone, nil
 }

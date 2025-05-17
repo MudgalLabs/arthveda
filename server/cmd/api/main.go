@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/db"
 	"arthveda/internal/env"
 	"arthveda/internal/features/position"
+	"arthveda/internal/features/trade"
 	"arthveda/internal/features/user_identity"
 	"arthveda/internal/features/user_profile"
 	"arthveda/internal/logger"
@@ -60,9 +61,13 @@ func main() {
 	userIdentityRepository := user_identity.NewRepository(db)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
 
+	// Trade
+	tradeRepository := trade.NewRepository(db)
+	// tradeService := trade.NewService(tradeRepository)
+
 	// Position
 	positionRepository := position.NewRepository(db)
-	positionService := position.NewService(positionRepository)
+	positionService := position.NewService(positionRepository, tradeRepository)
 
 	services := services{
 		UserIdentityService: userIdentityService,

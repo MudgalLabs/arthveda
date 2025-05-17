@@ -4,11 +4,13 @@ import (
 	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -44,10 +46,10 @@ func authMiddleware(next http.Handler) http.Handler {
 		// TODO: Instead store the user.
 		// Maybe add a caching layer using Redis?
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			id := claims["user_id"].(float64)
+			id := claims["user_id"].(string)
 			ctx = context.WithValue(ctx, userIDKey, id)
 			// Add `user_id` to this ctx's logger.
-			l = l.With(zap.Float64(string(userIDKey), id))
+			l = l.With(zap.String(string(userIDKey), id))
 		} else {
 			l.Warnw("failed to check claims in the token", "error", err)
 			unauthorizedErrorResponse(w, r, errorMsg, err)
@@ -64,9 +66,17 @@ func authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func getUserIDFromContext(ctx context.Context) int64 {
-	id, _ := ctx.Value(userIDKey).(float64)
-	return int64(id)
+func getUserIDFromContext(ctx context.Context) uuid.UUID {
+	idStr, ok := ctx.Value(userIDKey).(string)
+	if !ok {
+		panic("user id not valid in context")
+	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		panic(fmt.Sprintf("user id is not uuid: %s", err.Error()))
+	}
+	return id
 }
 
 const requestIDCtxKey = "request_id"

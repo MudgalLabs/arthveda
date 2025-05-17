@@ -5,12 +5,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Reader interface {
-	FindUserProfileByUserID(ctx context.Context, userID int64) (*UserProfile, error)
+	FindUserProfileByUserID(ctx context.Context, userID uuid.UUID) (*UserProfile, error)
 }
 
 type Writer interface{}
@@ -25,7 +26,7 @@ type ReadWriter interface {
 //
 
 type filter struct {
-	UserID *int64
+	UserID *uuid.UUID
 	Email  *string
 }
 
@@ -37,7 +38,7 @@ func NewRepository(db *pgxpool.Pool) *userProfileRepository {
 	return &userProfileRepository{db}
 }
 
-func (r *userProfileRepository) FindUserProfileByUserID(ctx context.Context, userID int64) (*UserProfile, error) {
+func (r *userProfileRepository) FindUserProfileByUserID(ctx context.Context, userID uuid.UUID) (*UserProfile, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin: %w", err)

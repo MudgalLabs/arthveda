@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/guregu/null/v6/zero"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // NOTE: This data should **NEVER** be sent to the client except for admin access.
 type UserIdentity struct {
-	ID                  int64     `json:"id" db:"id"`
+	ID                  uuid.UUID `json:"id" db:"id"`
 	Email               string    `json:"email" db:"email"`
 	PasswordHash        string    `json:"password_hash" db:"password_hash"`
 	Verified            bool      `json:"verified" db:"verified"`
@@ -28,7 +29,13 @@ func newUserIdentity(email, password string) (*UserIdentity, error) {
 		return nil, fmt.Errorf("hash password: %w", err)
 	}
 
+	ID, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("uuid: %w", err)
+	}
+
 	userIdentity := &UserIdentity{
+		ID:                  ID,
 		Email:               email,
 		PasswordHash:        string(passwordHashBytes),
 		Verified:            false,

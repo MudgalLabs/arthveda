@@ -78,7 +78,7 @@ func Error(statusCode int, message string, errors []ApiError) ApiRes {
 
 func InternalError(err error) ApiRes {
 	errs := []ApiError{}
-	errs = append(errs, NewApiError(INERTNAL_SERVER_ERROR, err.Error(), "", ""))
+	errs = append(errs, NewApiError(INERTNAL_SERVER_ERROR, "", "", ""))
 	return new(ApiResStatusError, http.StatusInternalServerError, SOMETHING_WENT_WRONG, nil, errs)
 }
 

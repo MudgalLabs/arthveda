@@ -3,16 +3,31 @@ package trade
 import (
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/guregu/null/v6/zero"
 	"github.com/shopspring/decimal"
 )
 
 type Trade struct {
-	ID       int64           `json:"id" db:"id"`
-	TradeID  int64           `json:"trade_id" db:"trade_id"` // The ID of the Trade to which this SubTrade belongs to.
-	Kind     Kind            `json:"kind" db:"kind"`
-	Time     time.Time       `json:"time" db:"time"`
-	Quantity decimal.Decimal `json:"quantity" db:"quantity"`
-	Price    decimal.Decimal `json:"price" db:"price"`
+	ID         uuid.UUID       `json:"id" db:"id"`
+	PositionID uuid.UUID       `json:"position_id" db:"position_id"` // The ID of the Position to which this Trade belongs to.
+	CreatedAt  time.Time       `json:"created_at" db:"created_at"`
+	UpdatedAt  zero.Time       `json:"updated_at" db:"updated_at"`
+	Kind       Kind            `json:"kind" db:"kind"`
+	Time       time.Time       `json:"time" db:"time"`
+	Quantity   decimal.Decimal `json:"quantity" db:"quantity"`
+	Price      decimal.Decimal `json:"price" db:"price"`
+}
+
+type CreatePayload struct {
+	Kind     Kind            `json:"kind"`
+	Time     time.Time       `json:"time"`
+	Quantity decimal.Decimal `json:"quantity"`
+	Price    decimal.Decimal `json:"price"`
+}
+
+type UpdatePayload struct {
+	Trade
 }
 
 type Kind string
