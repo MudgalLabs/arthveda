@@ -52,10 +52,10 @@ func initRouter(a *app) http.Handler {
 			r.Get("/me", getMeHandler(a.service.UserProfileService))
 		})
 
-		r.Route("/trade", func(r chi.Router) {
+		r.Route("/position", func(r chi.Router) {
 			r.Use(authMiddleware)
 
-			r.Post("/compute-for-add", computeForAddTradeHandler(a.service.TradeService))
+			r.Post("/compute", computePositionHandler(a.service.PositionService))
 		})
 	})
 

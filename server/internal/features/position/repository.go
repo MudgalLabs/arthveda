@@ -1,4 +1,4 @@
-package trade
+package position
 
 import "github.com/jackc/pgx/v5/pgxpool"
 

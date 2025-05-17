@@ -1,4 +1,4 @@
-import { CurrencyKind } from "@/features/trade/trade";
+import { CurrencyCode } from "@/features/position/position";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -172,7 +172,7 @@ export function removeAtIndex<T>(array: T[], index: number): T[] {
 
 export function formatCurrency(
     amount: string | number,
-    currency: CurrencyKind,
+    currency: CurrencyCode,
     withSymbol: boolean = true,
     locale: string = "en-IN",
     options: Intl.NumberFormatOptions = {}
@@ -197,7 +197,7 @@ export function removeFormatCurrency(formatted: string): string {
     return cleaned;
 }
 
-export function getCurrencyLabel(currency: CurrencyKind, locale = "en") {
+export function getCurrencyLabel(currency: CurrencyCode, locale = "en") {
     const symbol = new Intl.NumberFormat(locale, {
         style: "currency",
         currency: currency,
@@ -214,7 +214,7 @@ export function getCurrencyLabel(currency: CurrencyKind, locale = "en") {
 }
 
 export function getCurrencySymbol(
-    currencyCode: CurrencyKind,
+    currencyCode: CurrencyCode,
     locale = "en"
 ): string {
     const formatted = new Intl.NumberFormat(locale, {

@@ -1,10 +1,10 @@
-import { InstrumentKind } from "@/features/trade/trade";
+import { PositionInstrument } from "@/features/position/position";
 import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
 
 interface SegmentToggleProps {
-    defaultValue?: InstrumentKind;
-    value?: InstrumentKind;
-    onChange?: (v: InstrumentKind) => void;
+    defaultValue?: PositionInstrument;
+    value?: PositionInstrument;
+    onChange?: (v: PositionInstrument) => void;
 }
 
 function InstrumentToggle({

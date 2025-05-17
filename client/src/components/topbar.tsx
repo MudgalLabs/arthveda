@@ -34,16 +34,16 @@ export const Topbar = () => {
             </div>
 
             <div className="mr-2 inline-flex gap-x-2">
-                <Link to={ROUTES.addTrade} unstyled>
+                <Link to={ROUTES.addPosition} unstyled>
                     <Button variant="outline" size="small">
-                        <IconPlus size={18} /> Add Trade
+                        <IconPlus size={18} /> Position
                     </Button>
                 </Link>
 
-                <Link to={ROUTES.importTrades} unstyled>
+                <Link to={ROUTES.importPositions} unstyled>
                     <Button variant="outline" size="small">
                         <IconImport size={18} />
-                        Import Trades
+                        Import Positions
                     </Button>
                 </Link>
             </div>

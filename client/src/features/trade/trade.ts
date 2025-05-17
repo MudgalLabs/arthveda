@@ -1,20 +1,14 @@
-type InstrumentKind = "equity" | "future " | "option";
+type TradeKind = "buy" | "sell";
 
-type OrderKind = "buy" | "sell";
+interface NewTrade {
+    kind: TradeKind;
+    time: Date;
+    quantity: string;
+    price: string;
+}
 
-type DirectionKind = "long" | "short";
+interface Trade extends NewTrade {
+    id: string;
+}
 
-type OutcomeKind = "open" | "win" | "loss" | "breakeven";
-
-// We currently support only INR.
-// TODO: Shouldn't this be somewhere else? Currency will probably be used in
-// several places. We will most likely fetch the list of currencies from API.
-type CurrencyKind = "INR";
-
-export type {
-    CurrencyKind,
-    DirectionKind,
-    InstrumentKind,
-    OrderKind,
-    OutcomeKind,
-};
+export type { NewTrade, Trade, TradeKind };

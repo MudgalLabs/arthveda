@@ -1,6 +1,6 @@
 import { Select, SelectOptionItem, SelectProps } from "@/s8ly";
 
-import { CurrencyKind } from "@/features/trade/trade";
+import { CurrencyCode } from "@/features/position/position";
 import { getCurrencyLabel } from "@/lib/utils";
 
 function CurrencySelect(props: Omit<SelectProps, "options">) {
@@ -14,7 +14,7 @@ function CurrencySelect(props: Omit<SelectProps, "options">) {
             label: getCurrencyLabel("INR"),
         },
         {
-            value: "none" as CurrencyKind,
+            value: "none" as CurrencyCode,
             label: (
                 <>
                     <p>

@@ -7,12 +7,12 @@ const Signin = lazy(() => import("@/features/auth/sign_in/sign_in"));
 const Signup = lazy(() => import("@/features/auth/sign_up/sign_up"));
 
 // Protected
-const AddTrade = lazy(() => import("@/features/trade/add/add_trade"));
+const AddPosition = lazy(() => import("@/features/position/add/add_position"));
 const Dashboard = lazy(() => import("@/features/dashboard/dashboard"));
 const ImportTrades = lazy(
-    () => import("@/features/trade/import/import_trades")
+    () => import("@/features/position/import/import_positions")
 );
-const Trades = lazy(() => import("@/features/trade/list/trade_list"));
+const Trades = lazy(() => import("@/features/position/list/list_positions"));
 const Settings = lazy(() => import("@/features/settings/settings"));
 
 export const ROUTES = {
@@ -31,10 +31,10 @@ export const ROUTES = {
     //
     dashboard: "/dashboard",
     settings: "/settings",
-    // All routes related to Trade.
-    tradeList: "/trade/list",
-    addTrade: "/trade/add",
-    importTrades: "/trade/import",
+    // All routes related to Position.
+    positionList: "/position/list",
+    addPosition: "/position/add",
+    importPositions: "/position/import",
 };
 
 export const ROUTES_PUBLIC = [
@@ -45,11 +45,11 @@ export const ROUTES_PUBLIC = [
     ROUTES.forgotPassword,
 ];
 export const ROUTES_PROTECTED = [
-    ROUTES.addTrade,
+    ROUTES.addPosition,
     ROUTES.dashboard,
-    ROUTES.importTrades,
+    ROUTES.importPositions,
     ROUTES.settings,
-    ROUTES.tradeList,
+    ROUTES.positionList,
 ];
 
 export const routes: Array<RouteObject> = [
@@ -88,10 +88,10 @@ export const routes: Array<RouteObject> = [
      * PROTECTED
      */
     {
-        path: ROUTES.addTrade,
+        path: ROUTES.addPosition,
         element: (
             <Suspense>
-                <AddTrade />
+                <AddPosition />
             </Suspense>
         ),
     },
@@ -104,7 +104,7 @@ export const routes: Array<RouteObject> = [
         ),
     },
     {
-        path: ROUTES.importTrades,
+        path: ROUTES.importPositions,
         element: (
             <Suspense>
                 <ImportTrades />
@@ -120,7 +120,7 @@ export const routes: Array<RouteObject> = [
         ),
     },
     {
-        path: ROUTES.tradeList,
+        path: ROUTES.positionList,
         element: (
             <Suspense>
                 <Trades />

@@ -1,5 +1,5 @@
 import { Input, InputProps } from "@/s8ly";
-import { CurrencyKind } from "@/features/trade/trade";
+import { CurrencyCode } from "@/features/position/position";
 import {
     cn,
     formatCurrency,
@@ -9,7 +9,7 @@ import {
 import { useControlled } from "@/hooks/use_controlled";
 
 interface CurrencyInputProps extends InputProps {
-    currency: CurrencyKind;
+    currency: CurrencyCode;
     value?: string;
 }
 

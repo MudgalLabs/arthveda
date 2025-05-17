@@ -62,13 +62,13 @@ export const Sidebar = () => {
                         />
                     </Link>
 
-                    <Link to={ROUTES.tradeList} unstyled>
+                    <Link to={ROUTES.positionList} unstyled>
                         <SidebarNavItem
                             label="Trades"
                             Icon={IconTrades}
                             open={isOpen}
-                            isActive={activeRoute === ROUTES.tradeList}
-                            onClick={() => handleClick(ROUTES.tradeList)}
+                            isActive={activeRoute === ROUTES.positionList}
+                            onClick={() => handleClick(ROUTES.positionList)}
                         />
                     </Link>
                 </div>

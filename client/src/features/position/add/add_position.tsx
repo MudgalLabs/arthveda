@@ -26,11 +26,10 @@ import {
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
 import {
-    SubTrade,
-    Trade,
-    useAddTrade,
-} from "@/features/trade/add/add_trade_context";
-import { OrderKindToggle } from "@/components/toggle/order_kind_toggle";
+    State,
+    useAddPosition,
+} from "@/features/position/add/add_position_context";
+import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
 import {
     IconAlert,
     IconCalendarRange,
@@ -44,11 +43,10 @@ import {
     useDataTableEditableCell,
 } from "@/hooks/use_data_table_editable_cell";
 import {
-    CurrencyKind,
-    DirectionKind,
-    OrderKind,
-    OutcomeKind,
-} from "@/features/trade/trade";
+    CurrencyCode,
+    PositionDirection,
+    PositionStatus,
+} from "@/features/position/position";
 import { Card, CardTitle } from "@/components/card";
 import {
     cn,
@@ -57,31 +55,31 @@ import {
     getElapsedTime,
     isSameDay,
 } from "@/lib/utils";
-import { SubTradeForAddRequest } from "@/lib/api/trade";
 import { Loading } from "@/components/loading";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { CurrencyInput } from "@/components/input/currency_input";
 import { useWrappedState } from "@/hooks/use_wrapped_state";
+import { NewTrade, Trade, TradeKind } from "@/features/trade/trade";
 
-function AddTrade() {
+function AddPosition() {
     const {
         state,
         setState,
         isComputing,
         showDiscardWarning,
         discard,
-        subTrades,
-        setSubTrades,
-        subTradesAreValid,
-        insertNewSubTrade,
-        computeForAddResult,
-    } = useAddTrade();
+        trades,
+        setTrades,
+        tradesAreValid,
+        insertNewTrade,
+        computeResult,
+    } = useAddPosition();
 
     return (
         <>
             <div className="flex items-center justify-between">
                 <div className="flex gap-x-2">
-                    <h1 className="heading">Add Trade</h1>
+                    <h1 className="heading">Add Position</h1>
                     <div>{isComputing && <Loading />}</div>
                 </div>
 
@@ -101,31 +99,27 @@ function AddTrade() {
                 <PnLCard
                     charges_amount={state.charges_amount}
                     charges_as_percentage_of_net_pnl={
-                        computeForAddResult.charges_as_percentage_of_net_pnl
+                        computeResult.charges_as_percentage_of_net_pnl
                     }
                     currency={state.currency}
-                    gross_pnl_amount={computeForAddResult.gross_pnl_amount}
-                    net_pnl_amount={computeForAddResult.net_pnl_amount}
-                    net_return_percentage={
-                        computeForAddResult.net_return_percentage
-                    }
+                    gross_pnl_amount={computeResult.gross_pnl_amount}
+                    net_pnl_amount={computeResult.net_pnl_amount}
+                    net_return_percentage={computeResult.net_return_percentage}
                 />
-                <RFactorCard r_factor={computeForAddResult.r_factor} />
+                <RFactorCard r_factor={computeResult.r_factor} />
                 <DurationCard
-                    opened_at={computeForAddResult.opened_at}
-                    closed_at={computeForAddResult.closed_at}
+                    opened_at={computeResult.opened_at}
+                    closed_at={computeResult.closed_at}
                 />
 
                 <div className="flex items-end">
                     <div className="flex h-fit gap-x-2">
-                        <DirectionTag
-                            direction={computeForAddResult.direction}
-                        />
+                        <DirectionTag direction={computeResult.direction} />
                         <OutcomeTag
                             currency={state.currency}
-                            outcome={computeForAddResult.outcome}
-                            open_price={computeForAddResult.open_price}
-                            open_quantity={computeForAddResult.open_quantity}
+                            outcome={computeResult.outcome}
+                            open_price={computeResult.open_average_price_amount}
+                            open_quantity={computeResult.open_quantity}
                         />
                     </div>
                 </div>
@@ -148,9 +142,9 @@ function AddTrade() {
                     />
                 </WithLabel>
 
-                <PlannedRiskInput
+                <RiskInput
                     currency={state.currency}
-                    value={state.planned_risk_amount}
+                    value={state.risk_amount}
                     setState={setState}
                 />
 
@@ -163,18 +157,18 @@ function AddTrade() {
 
             <div className="h-15" />
 
-            <h2 className="sub-heading">Sub Trades</h2>
+            <h2 className="sub-heading">Trades</h2>
 
             <div className="h-4" />
 
-            <SubTradesTable subTrades={subTrades} setSubTrades={setSubTrades} />
+            <TradesTable trades={trades} setTrades={setTrades} />
 
             <div className="h-8" />
 
             <div className="flex-center">
-                <AddSubTradeButton
-                    subTradesAreValid={subTradesAreValid}
-                    insertNewSubTrade={insertNewSubTrade}
+                <AddTradeButton
+                    tradesAreValid={tradesAreValid}
+                    insertNewTrade={insertNewTrade}
                 />
             </div>
 
@@ -191,13 +185,13 @@ function AddTrade() {
     );
 }
 
-const columns: ColumnDef<SubTradeForAddRequest>[] = [
+const columns: ColumnDef<NewTrade>[] = [
     {
         accessorKey: "order_kind",
         header: "Buy / Sell",
         cell: (ctx) => {
             const { value, syncWithValue } =
-                useDataTableEditableCell<OrderKind>(ctx);
+                useDataTableEditableCell<TradeKind>(ctx);
             return (
                 <OrderKindToggle
                     value={value}
@@ -212,13 +206,12 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
         cell: (ctx) => {
             const { value, setValue, sync } =
                 useDataTableEditableCell<Date>(ctx);
-            const { subTrades } = useAddTrade();
+            const { trades } = useAddPosition();
 
             // We are subtracting `2` from length because `1` will be the last one.
-            const secondLastSubTrade =
-                subTrades[Math.min(subTrades.length - 2, 0)];
+            const secondLastTrade = trades[Math.min(trades.length - 2, 0)];
 
-            // We don't want to apply a `minDate` if this is the first sub trade.
+            // We don't want to apply a `minDate` if this is the first trade.
             const applyDateTimeRestrictions = ctx.row.index > 0;
             const now = new Date();
 
@@ -231,19 +224,19 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
                     config={{
                         dates: {
                             minDate: applyDateTimeRestrictions
-                                ? secondLastSubTrade.time
+                                ? secondLastTrade.time
                                 : undefined,
                             maxDate: now,
                         },
                         time: {
                             minTime:
-                                // We wanna apply time restrictions only if we are on different sub trade
-                                // and the date is not same as previous sub trade.
+                                // We wanna apply time restrictions only if we are on different trade
+                                // and the date is not same as previous trade.
                                 applyDateTimeRestrictions &&
-                                isSameDay(value, secondLastSubTrade.time)
+                                isSameDay(value, secondLastTrade.time)
                                     ? {
-                                          h: secondLastSubTrade.time.getHours(),
-                                          m: secondLastSubTrade.time.getMinutes(),
+                                          h: secondLastTrade.time.getHours(),
+                                          m: secondLastTrade.time.getMinutes(),
                                       }
                                     : undefined,
                             maxTime: {
@@ -283,7 +276,7 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
         accessorKey: "price",
         header: "Price",
         cell: (ctx) => {
-            const { state } = useAddTrade();
+            const { state } = useAddPosition();
             const { value, setValue, sync } =
                 useDataTableEditableCell<string>(ctx);
 
@@ -308,19 +301,19 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
         id: "delete",
         header: "",
         cell: ({ row, table }) => {
-            const { removeSubTrade } = useAddTrade();
-            // We want to disable this button if we have only 1 sub trade (rows count = 1).
+            const { removeTrade } = useAddPosition();
+            // We want to disable this button if we have only 1 trade (rows count = 1).
             const disableButton = table.getRowModel().rows.length === 1;
             return (
                 <Tooltip
-                    content="There must be a Sub Trade"
+                    content="There must be a trade"
                     contentProps={{ side: "bottom" }}
                     disabled={!disableButton}
                 >
                     <Button
                         variant="destructive"
                         size="icon"
-                        onClick={() => removeSubTrade(row.index)}
+                        onClick={() => removeTrade(row.index)}
                         disabled={disableButton}
                     >
                         <IconTrash className="text-foreground" size={20} />
@@ -331,22 +324,22 @@ const columns: ColumnDef<SubTradeForAddRequest>[] = [
     },
 ];
 
-const SubTradesTable = memo(
+const TradesTable = memo(
     ({
-        subTrades,
-        setSubTrades,
+        trades,
+        setTrades,
     }: {
-        subTrades: SubTrade[];
-        setSubTrades: React.Dispatch<React.SetStateAction<SubTrade[]>>;
+        trades: Trade[];
+        setTrades: React.Dispatch<React.SetStateAction<Trade[]>>;
     }) => {
         const updateFn = useMemo(
-            () => getDataTableCellUpdateFn<SubTrade>(setSubTrades),
+            () => getDataTableCellUpdateFn<Trade>(setTrades),
             []
         );
 
         const table = useReactTable({
             columns,
-            data: subTrades,
+            data: trades,
             getCoreRowModel: getCoreRowModel(),
             meta: {
                 updateFn,
@@ -357,31 +350,31 @@ const SubTradesTable = memo(
     }
 );
 
-const AddSubTradeButton = memo(
+const AddTradeButton = memo(
     ({
-        subTradesAreValid,
-        insertNewSubTrade,
+        tradesAreValid,
+        insertNewTrade,
     }: {
-        subTradesAreValid: boolean;
-        insertNewSubTrade: () => void;
+        tradesAreValid: boolean;
+        insertNewTrade: () => void;
     }) => {
         return (
             <Tooltip
                 content={
                     <div className="flex-center gap-x-2">
                         <IconAlert size={18} />
-                        <p>Sub Trades missing some data</p>
+                        <p>Trades missing some data</p>
                     </div>
                 }
                 contentProps={{ side: "bottom" }}
-                disabled={subTradesAreValid}
+                disabled={tradesAreValid}
             >
                 <Button
                     variant="secondary"
-                    disabled={!subTradesAreValid}
-                    onClick={() => insertNewSubTrade()}
+                    disabled={!tradesAreValid}
+                    onClick={() => insertNewTrade()}
                 >
-                    <IconPlus /> Add Sub Trade
+                    <IconPlus /> Add Trade
                 </Button>
             </Tooltip>
         );
@@ -401,7 +394,7 @@ const PnLCard = memo(
         net_return_percentage: number;
         gross_pnl_amount: string;
         charges_as_percentage_of_net_pnl: number;
-        currency: CurrencyKind;
+        currency: CurrencyCode;
         charges_amount: string;
     }) => {
         let trendingIcon: ReactNode = null;
@@ -545,7 +538,7 @@ const DurationCard = memo(
     }
 );
 
-const DirectionTag = memo(({ direction }: { direction: DirectionKind }) => {
+const DirectionTag = memo(({ direction }: { direction: PositionDirection }) => {
     const isLong = direction === "long";
     return (
         <Tag variant={isLong ? "success" : "destructive"}>
@@ -561,8 +554,8 @@ const OutcomeTag = memo(
         open_quantity,
         open_price,
     }: {
-        currency: CurrencyKind;
-        outcome: OutcomeKind;
+        currency: CurrencyCode;
+        outcome: PositionStatus;
         open_quantity: string;
         open_price: string;
     }) => {
@@ -591,7 +584,7 @@ const SymbolInput = memo(
         setState,
     }: {
         value: string;
-        setState: React.Dispatch<React.SetStateAction<Trade>>;
+        setState: React.Dispatch<React.SetStateAction<State>>;
     }) => {
         const [value, setValue] = useWrappedState<string>(valueProp);
 
@@ -615,19 +608,19 @@ const SymbolInput = memo(
     }
 );
 
-const PlannedRiskInput = memo(
+const RiskInput = memo(
     ({
         currency,
         value: valueProp,
         setState,
     }: {
-        currency: CurrencyKind;
+        currency: CurrencyCode;
         value: string;
-        setState: React.Dispatch<React.SetStateAction<Trade>>;
+        setState: React.Dispatch<React.SetStateAction<State>>;
     }) => {
         const [value, setValue] = useWrappedState<string>(valueProp);
         return (
-            <WithLabel Label={<Label>Planned Risk</Label>}>
+            <WithLabel Label={<Label>Risk</Label>}>
                 <CurrencyInput
                     currency={currency}
                     value={value}
@@ -636,7 +629,7 @@ const PlannedRiskInput = memo(
                         value !== valueProp &&
                         setState((prev) => ({
                             ...prev,
-                            planned_risk_amount: value,
+                            risk_amount: value,
                         }))
                     }
                 />
@@ -651,9 +644,9 @@ const ChargesInput = memo(
         value: valueProp,
         setState,
     }: {
-        currency: CurrencyKind;
+        currency: CurrencyCode;
         value: string;
-        setState: React.Dispatch<React.SetStateAction<Trade>>;
+        setState: React.Dispatch<React.SetStateAction<State>>;
     }) => {
         const [value, setValue] = useWrappedState<string>(valueProp);
         return (
@@ -717,4 +710,4 @@ const DiscardButton = memo(
     }
 );
 
-export default AddTrade;
+export default AddPosition;

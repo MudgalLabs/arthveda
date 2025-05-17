@@ -3,7 +3,7 @@ package main
 import (
 	"arthveda/internal/db"
 	"arthveda/internal/env"
-	"arthveda/internal/features/trade"
+	"arthveda/internal/features/position"
 	"arthveda/internal/features/user_identity"
 	"arthveda/internal/features/user_profile"
 	"arthveda/internal/logger"
@@ -27,7 +27,7 @@ type app struct {
 type services struct {
 	UserIdentityService *user_identity.Service
 	UserProfileService  *user_profile.Service
-	TradeService        *trade.Service
+	PositionService     *position.Service
 }
 
 // Access to all repositories for reading.
@@ -35,7 +35,7 @@ type services struct {
 type repositories struct {
 	UserIdentity user_identity.Reader
 	UserProfile  user_profile.Reader
-	Trade        trade.Reader
+	Position     position.Reader
 }
 
 func main() {
@@ -60,20 +60,20 @@ func main() {
 	userIdentityRepository := user_identity.NewRepository(db)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
 
-	// Trade
-	tradeRepository := trade.NewRepository(db)
-	tradeService := trade.NewService(tradeRepository)
+	// Position
+	positionRepository := position.NewRepository(db)
+	positionService := position.NewService(positionRepository)
 
 	services := services{
 		UserIdentityService: userIdentityService,
 		UserProfileService:  userProfileService,
-		TradeService:        tradeService,
+		PositionService:     positionService,
 	}
 
 	repositories := repositories{
 		UserIdentity: userIdentityRepository,
 		UserProfile:  userProfileRepository,
-		Trade:        tradeRepository,
+		Position:     positionRepository,
 	}
 
 	a := &app{

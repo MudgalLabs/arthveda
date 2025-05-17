@@ -7,7 +7,7 @@ export const API_ROUTES = {
     user: {
         getMe: "/user/me",
     },
-    trade: {
-        computeForAdd: "/trade/compute-for-add",
+    position: {
+        compute: "/position/compute",
     },
 };

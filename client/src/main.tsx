@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
-import { AddTradeContextProvider } from "@/features/trade/add/add_trade_context";
+import { AddPositionContextProvider } from "@/features/position/add/add_position_context";
 import { Error } from "@/features/error/error";
 import { ToastProvider } from "@/components/toast";
 import { AuthenticationProvider } from "@/features/auth/auth_context";
@@ -39,12 +39,12 @@ root.render(
         <QueryClientProvider client={queryClient}>
             <AuthenticationProvider>
                 <SidebarProvider>
-                    <AddTradeContextProvider>
+                    <AddPositionContextProvider>
                         <TooltipPrimitive.TooltipProvider>
                             <RouterProvider router={router} />
                             <ToastProvider />
                         </TooltipPrimitive.TooltipProvider>
-                    </AddTradeContextProvider>
+                    </AddPositionContextProvider>
                 </SidebarProvider>
             </AuthenticationProvider>
         </QueryClientProvider>

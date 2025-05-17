@@ -1,10 +1,10 @@
-import { OrderKind } from "@/features/trade/trade";
+import { TradeKind } from "@/features/trade/trade";
 import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
 
 interface OrderKindToggleProps {
-    defaultValue?: OrderKind;
-    value?: OrderKind;
-    onChange?: (v: OrderKind) => void;
+    defaultValue?: TradeKind;
+    value?: TradeKind;
+    onChange?: (v: TradeKind) => void;
 }
 
 function OrderKindToggle({
