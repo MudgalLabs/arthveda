@@ -22,7 +22,7 @@ func NewService(repo ReadWriter) *Service {
 }
 
 type computeTrade struct {
-	OrderKind trade.Kind `json:"order_kind"`
+	OrderKind trade.Kind `json:"kind"`
 	Time      time.Time  `json:"time"`
 	Quantity  string     `json:"quantity"` // TODO: Can we directly use `decimal.Decimal` instead of `string` here?
 	Price     string     `json:"price"`    // TODO: Can we directly use `decimal.Decimal` instead of `string` here?

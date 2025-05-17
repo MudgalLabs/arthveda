@@ -187,7 +187,7 @@ function AddPosition() {
 
 const columns: ColumnDef<NewTrade>[] = [
     {
-        accessorKey: "order_kind",
+        accessorKey: "kind",
         header: "Buy / Sell",
         cell: (ctx) => {
             const { value, syncWithValue } =
