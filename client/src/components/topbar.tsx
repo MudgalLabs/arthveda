@@ -36,7 +36,7 @@ export const Topbar = () => {
             <div className="mr-2 inline-flex gap-x-2">
                 <Link to={ROUTES.addPosition} unstyled>
                     <Button variant="outline" size="small">
-                        <IconPlus size={18} /> Position
+                        <IconPlus size={18} /> Add Position
                     </Button>
                 </Link>
 

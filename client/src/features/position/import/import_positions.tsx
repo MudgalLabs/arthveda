@@ -1,5 +1,11 @@
+import { PageHeading } from "@/components/page_heading";
+
 export const ImportPositions = () => {
-    return <h1>Import Positions</h1>;
+    return (
+        <>
+            <PageHeading heading="Import Positions" />
+        </>
+    );
 };
 
 export default ImportPositions;

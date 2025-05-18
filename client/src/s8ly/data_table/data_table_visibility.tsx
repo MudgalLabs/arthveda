@@ -28,7 +28,7 @@ export function DataTableVisibility<TData>({
                     Columns
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[150px]">
+            <DropdownMenuContent align="end" className="min-w-[150px]">
                 {table
                     .getAllColumns()
                     .filter(

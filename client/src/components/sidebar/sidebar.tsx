@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Tooltip } from "@/s8ly/tooltip/tooltip";
@@ -26,12 +26,17 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
 import { useSidebar } from "@/components/sidebar/sidebar_context";
 
+const sidebarRoutes = [ROUTES.dashboard, ROUTES.positionList];
+
 export const Sidebar = () => {
     const { data } = useAuthentication();
     const { pathname } = useLocation();
     const { isOpen } = useSidebar();
 
-    const [activeRoute, setActiveRoute] = useState(pathname);
+    const [activeRoute, setActiveRoute] = useState("");
+    useEffect(() => {
+        setActiveRoute(sidebarRoutes.includes(pathname) ? pathname : "");
+    }, [pathname]);
 
     const navigate = useNavigate();
 

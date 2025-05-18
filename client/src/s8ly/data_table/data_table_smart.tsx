@@ -25,7 +25,6 @@ interface DataTableSmartProps<TData, TValue> {
 function DataTableSmart<TData, TValue>({
     columns,
     data,
-    showRowSelection = true,
 }: DataTableSmartProps<TData, TValue>) {
     const [rowSelection, setRowSelection] = useState({});
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -60,10 +59,7 @@ function DataTableSmart<TData, TValue>({
 
             <DataTable table={table} />
 
-            <DataTablePagination
-                table={table}
-                showRowSelection={showRowSelection}
-            />
+            <DataTablePagination table={table} />
         </div>
     );
 }

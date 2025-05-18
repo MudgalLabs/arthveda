@@ -22,21 +22,21 @@ const pageSizeOptions = [10, 20, 30, 40, 50].map((pageSize) => ({
 
 export function DataTablePagination<TData>({
     table,
-    showRowSelection = false,
 }: DataTablePaginationProps<TData>) {
     return (
         <div className="flex items-center justify-between px-2">
             <div
                 className={cn("text-muted-foreground text-sm opacity-0", {
-                    "opacity-100": showRowSelection,
+                    "opacity-100":
+                        table.getFilteredSelectedRowModel().rows.length > 0,
                 })}
             >
                 {table.getFilteredSelectedRowModel().rows.length} of{" "}
                 {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
 
-            <div className="flex">
-                <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+            <div className="flex gap-x-4">
+                <div className="flex items-center justify-center text-sm font-medium">
                     Page {table.getState().pagination.pageIndex + 1} of{" "}
                     {table.getPageCount()}
                 </div>
@@ -79,6 +79,19 @@ export function DataTablePagination<TData>({
                         <span className="sr-only">Go to last page</span>
                         <IconChevronsRight />
                     </Button>
+                </div>
+                <div className="flex items-center justify-center text-sm font-medium">
+                    {table.getState().pagination.pageIndex *
+                        table.getState().pagination.pageSize +
+                        1}
+                    {" - "}
+                    {Math.min(
+                        (table.getState().pagination.pageIndex + 1) *
+                            table.getState().pagination.pageSize,
+                        table.getFilteredRowModel().rows.length
+                    )}
+                    {" of "}
+                    {table.getFilteredRowModel().rows.length}
                 </div>
             </div>
 

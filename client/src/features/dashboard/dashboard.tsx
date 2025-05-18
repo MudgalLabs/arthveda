@@ -1,7 +1,9 @@
+import { PageHeading } from "@/components/page_heading";
+
 export const Dashboard = () => {
     return (
         <>
-            <h1>Dashboard</h1>
+            <PageHeading heading="Dashboards" />
         </>
     );
 };

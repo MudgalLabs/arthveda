@@ -14,7 +14,6 @@ import {
     Input,
     Label,
     Progress,
-    Separator,
     Tooltip,
     DialogContent,
     DialogDescription,
@@ -50,7 +49,6 @@ import {
     getElapsedTime,
     isSameDay,
 } from "@/lib/utils";
-import { Loading } from "@/components/loading";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { CurrencyInput } from "@/components/input/currency_input";
 import { useWrappedState } from "@/hooks/use_wrapped_state";
@@ -60,6 +58,7 @@ import { toast } from "@/components/toast";
 import { CreatePositionResponse } from "@/lib/api/position";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
+import { PageHeading } from "@/components/page_heading";
 
 function AddPosition() {
     const {
@@ -112,23 +111,7 @@ function AddPosition() {
 
     return (
         <>
-            <div className="flex items-center justify-between">
-                <div className="flex gap-x-2">
-                    <h1 className="heading">Add Position</h1>
-                    <div>{isComputing && <Loading />}</div>
-                </div>
-
-                <div>
-                    <CurrencySelect
-                        classNames={{ trigger: "w-fit" }}
-                        defaultValue={state.currency_code}
-                    />
-                </div>
-            </div>
-
-            <div className="h-3" />
-            <Separator />
-            <div className="h-6" />
+            <PageHeading heading="Add Position" loading={isComputing} />
 
             <div className="flex gap-x-6">
                 <PnLCard
@@ -159,6 +142,13 @@ function AddPosition() {
                             openQuantity={computeResult.open_quantity}
                         />
                     </div>
+                </div>
+
+                <div className="ml-auto">
+                    <CurrencySelect
+                        classNames={{ trigger: "w-fit" }}
+                        defaultValue={state.currency_code}
+                    />
                 </div>
             </div>
 

@@ -10,7 +10,8 @@ import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DirectionTag } from "@/features/position/components/direction_tag";
-import { StatusTag } from "../components/status_tag";
+import { StatusTag } from "@/features/position/components/status_tag";
+import { PageHeading } from "@/components/page_heading";
 
 export const ListPositions = () => {
     const { data, isLoading } = apiHooks.position.useList();
@@ -21,7 +22,7 @@ export const ListPositions = () => {
 
     return (
         <>
-            <h1 className="heading">Positions</h1>
+            <PageHeading heading="Positions" />
             <PositionsTable positions={data?.data.positions || []} />
         </>
     );
@@ -31,6 +32,7 @@ export default ListPositions;
 
 const columns: ColumnDef<Position>[] = [
     {
+        id: "Opened At",
         accessorKey: "opened_at",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Opened At" />
@@ -39,12 +41,14 @@ const columns: ColumnDef<Position>[] = [
             formatDate(new Date(row.original.opened_at), { time: true }),
     },
     {
+        id: "Symbol",
         accessorKey: "symbol",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Symbol" />
         ),
     },
     {
+        id: "Direction",
         accessorKey: "direction",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Direction" />
@@ -54,6 +58,7 @@ const columns: ColumnDef<Position>[] = [
         ),
     },
     {
+        id: "Status",
         accessorKey: "status",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Status" />
@@ -68,6 +73,7 @@ const columns: ColumnDef<Position>[] = [
         ),
     },
     {
+        id: "Instrument",
         accessorKey: "instrument",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Instrument" />
@@ -75,12 +81,14 @@ const columns: ColumnDef<Position>[] = [
         cell: ({ row }) => positionInstrumentToString(row.original.instrument),
     },
     {
+        id: "R Factor",
         accessorKey: "r_factor",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="R Factor" />
         ),
     },
     {
+        id: "Gross PnL",
         accessorKey: "gross_pnl_amount",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Gross PnL" />
@@ -92,6 +100,7 @@ const columns: ColumnDef<Position>[] = [
             ),
     },
     {
+        id: "Net PnL",
         accessorKey: "net_pnl_amount",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Net PnL" />
@@ -103,6 +112,7 @@ const columns: ColumnDef<Position>[] = [
             ),
     },
     {
+        id: "Charges",
         accessorKey: "charges_amount",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Charges" />
@@ -114,6 +124,7 @@ const columns: ColumnDef<Position>[] = [
             ),
     },
     {
+        id: "Charges %",
         accessorKey: "charges_as_percentage_of_net_pnl",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Charges" />
@@ -124,11 +135,5 @@ const columns: ColumnDef<Position>[] = [
 ];
 
 const PositionsTable = ({ positions }: { positions: Position[] }) => {
-    return (
-        <DataTableSmart
-            columns={columns}
-            data={positions}
-            showRowSelection={false}
-        />
-    );
+    return <DataTableSmart columns={columns} data={positions} />;
 };
