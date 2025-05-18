@@ -5,15 +5,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/guregu/null/v6/zero"
 	"github.com/shopspring/decimal"
 )
 
 type Position struct {
-	ID        uuid.UUID `json:"id" db:"id"`
-	UserID    uuid.UUID `json:"user_id" db:"user_id"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt zero.Time `json:"updated_at" db:"updated_at"`
+	ID        uuid.UUID  `json:"id" db:"id"`
+	UserID    uuid.UUID  `json:"user_id" db:"user_id"`
+	CreatedAt time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at" db:"updated_at"`
 
 	//
 	// Data provided by the user
@@ -33,7 +32,7 @@ type Position struct {
 	Direction                   Direction       `json:"direction" db:"direction"`
 	Status                      Status          `json:"status" db:"status"`
 	OpenedAt                    time.Time       `json:"opened_at" db:"opened_at"`
-	ClosedAt                    zero.Time       `json:"closed_at" db:"closed_at"`
+	ClosedAt                    *time.Time      `json:"closed_at" db:"closed_at"`
 	GrossPnLAmount              decimal.Decimal `json:"gross_pnl_amount" db:"gross_pnl_amount"`
 	NetPnLAmount                decimal.Decimal `json:"net_pnl_amount" db:"net_pnl_amount"`
 	RFactor                     float64         `json:"r_factor" db:"r_factor"`

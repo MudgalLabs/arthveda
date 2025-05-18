@@ -1,12 +1,17 @@
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
 import {
-    AddPositionRequest,
-    AddPositionResponse,
+    CreatePositionRequest,
+    CreatePositionResponse,
     ComputePositionRequest,
     ComputePositionResponse,
+    ListPositionsReponse,
 } from "@/lib/api/position";
-import { useMutation, AnyUseMutationOptions } from "@tanstack/react-query";
+import {
+    useMutation,
+    AnyUseMutationOptions,
+    useQuery,
+} from "@tanstack/react-query";
 
 export function useCompute(options: AnyUseMutationOptions = {}) {
     return useMutation<
@@ -22,16 +27,24 @@ export function useCompute(options: AnyUseMutationOptions = {}) {
     });
 }
 
-export function useAdd(options: AnyUseMutationOptions = {}) {
+export function useCreate(options: AnyUseMutationOptions = {}) {
     return useMutation<
-        ApiRes<AddPositionResponse>,
+        ApiRes<CreatePositionResponse>,
         unknown,
-        AddPositionRequest,
+        CreatePositionRequest,
         unknown
     >({
-        mutationFn: (body: AddPositionRequest) => {
-            return api.position.add(body);
+        mutationFn: (body: CreatePositionRequest) => {
+            return api.position.create(body);
         },
         ...options,
+    });
+}
+
+export function useList() {
+    return useQuery({
+        queryKey: ["usePositionList"],
+        queryFn: () => api.position.list(),
+        select: (res) => res.data as ApiRes<ListPositionsReponse>,
     });
 }

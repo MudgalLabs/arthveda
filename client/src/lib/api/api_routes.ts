@@ -9,6 +9,7 @@ export const API_ROUTES = {
     },
     position: {
         compute: "/positions/compute",
-        add: "/positions",
+        create: "/positions",
+        list: "/positions",
     },
 };

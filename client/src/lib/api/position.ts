@@ -17,7 +17,7 @@ export interface ComputePositionRequest {
 
 export interface ComputePositionResponse {
     direction: PositionDirection;
-    outcome: PositionStatus;
+    status: PositionStatus;
     opened_at: Date;
     closed_at: Date | null;
     gross_pnl_amount: string;
@@ -36,17 +36,27 @@ export function compute(body: ComputePositionRequest) {
     );
 }
 
-export interface AddPositionRequest extends ComputePositionRequest {
+export interface CreatePositionRequest extends ComputePositionRequest {
     symbol: string;
     instrument: PositionInstrument;
     currency_code: CurrencyCode;
 }
 
-export interface AddPositionResponse extends Position {}
+export interface CreatePositionResponse {
+    position: Position;
+}
 
-export function add(body: AddPositionRequest) {
-    return client.post<AddPositionRequest, ApiRes<AddPositionResponse>>(
-        API_ROUTES.position.add,
+export function create(body: CreatePositionRequest) {
+    return client.post<CreatePositionRequest, ApiRes<CreatePositionResponse>>(
+        API_ROUTES.position.create,
         body
     );
+}
+
+export interface ListPositionsReponse {
+    positions: Position[];
+}
+
+export function list() {
+    return client.get(API_ROUTES.position.list);
 }

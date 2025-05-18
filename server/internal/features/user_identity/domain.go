@@ -5,20 +5,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/guregu/null/v6/zero"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // NOTE: This data should **NEVER** be sent to the client except for admin access.
 type UserIdentity struct {
-	ID                  uuid.UUID `json:"id" db:"id"`
-	Email               string    `json:"email" db:"email"`
-	PasswordHash        string    `json:"password_hash" db:"password_hash"`
-	Verified            bool      `json:"verified" db:"verified"`
-	FailedLoginAttempts zero.Int  `json:"failed_login_attempts" db:"failed_login_attempts"`
-	LastLoginAt         zero.Time `json:"last_login_at" db:"last_login_at"`
-	CreatedAt           time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt           zero.Time `json:"updated_at" db:"updated_at"`
+	ID                  uuid.UUID  `json:"id" db:"id"`
+	Email               string     `json:"email" db:"email"`
+	PasswordHash        string     `json:"password_hash" db:"password_hash"`
+	Verified            bool       `json:"verified" db:"verified"`
+	FailedLoginAttempts int        `json:"failed_login_attempts" db:"failed_login_attempts"`
+	LastLoginAt         *time.Time `json:"last_login_at" db:"last_login_at"`
+	CreatedAt           time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt           *time.Time `json:"updated_at" db:"updated_at"`
 }
 
 func newUserIdentity(email, password string) (*UserIdentity, error) {
@@ -39,7 +38,7 @@ func newUserIdentity(email, password string) (*UserIdentity, error) {
 		Email:               email,
 		PasswordHash:        string(passwordHashBytes),
 		Verified:            false,
-		FailedLoginAttempts: zero.NewInt(0, true),
+		FailedLoginAttempts: 0,
 		CreatedAt:           time.Now().UTC(),
 	}
 

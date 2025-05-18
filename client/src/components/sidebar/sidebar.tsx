@@ -64,7 +64,7 @@ export const Sidebar = () => {
 
                     <Link to={ROUTES.positionList} unstyled>
                         <SidebarNavItem
-                            label="Trades"
+                            label="Positions"
                             Icon={IconTrades}
                             open={isOpen}
                             isActive={activeRoute === ROUTES.positionList}

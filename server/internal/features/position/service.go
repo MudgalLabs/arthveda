@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/guregu/null/v6/zero"
 	"github.com/shopspring/decimal"
 )
 
@@ -115,20 +114,19 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeR
 		netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
 	}
 
-	fmt.Println("AFTER:", direction)
 	result.Direction = direction
 	result.Status = status
 	result.OpenedAt = payload.Trades[0].Time
 	result.ClosedAt = closedAt
-	result.GrossPnLAmount = grossPnL
-	result.NetPnLAmount = netPnL
+	result.GrossPnLAmount = grossPnL.Round(2)
+	result.NetPnLAmount = netPnL.Round(2)
 	result.RFactor, _ = rFactor.Float64()
 	result.NetReturnPercentage, _ = netReturnPercentage.Float64()
 	result.ChargesAsPercentageOfNetPnL, _ = chargesAsPercentageOfNetPnL.Float64()
 
 	if netQty.IsPositive() {
-		result.OpenQuantity = netQty
-		result.OpenAveragePriceAmount = avgPrice
+		result.OpenQuantity = netQty.Round(4)
+		result.OpenAveragePriceAmount = avgPrice.Round(2)
 	}
 
 	return result, service.ErrNone, nil
@@ -164,7 +162,7 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload AddPaylo
 	position.Direction = computeResult.Direction
 	position.Status = computeResult.Status
 	position.OpenedAt = computeResult.OpenedAt
-	position.ClosedAt = zero.TimeFromPtr(computeResult.ClosedAt)
+	position.ClosedAt = computeResult.ClosedAt
 	position.GrossPnLAmount = computeResult.GrossPnLAmount
 	position.NetPnLAmount = computeResult.NetPnLAmount
 	position.RFactor = computeResult.RFactor
@@ -188,4 +186,20 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload AddPaylo
 	position.Trades = trades
 
 	return position, service.ErrNone, nil
+}
+
+// Returns a list of Positions for the current user.
+// User can filter this list.
+// NOTE: We do
+func (s *Service) List(ctx context.Context, userID uuid.UUID) ([]*Position, service.ErrKind, error) {
+	f := filter{
+		UserID: &userID,
+	}
+
+	positions, err := s.positionRepository.List(ctx, f)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("position service get: %w", err)
+	}
+
+	return positions, service.ErrNone, nil
 }

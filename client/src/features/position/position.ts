@@ -14,6 +14,8 @@ type CurrencyCode = "INR";
 interface Position {
     id: number;
     user_id: number;
+    created_at: Date;
+    updated_at: Date | null;
 
     symbol: string;
     instrument: PositionInstrument;

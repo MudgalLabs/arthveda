@@ -73,7 +73,7 @@ function getInitialComputeResult(): ComputePositionResponse {
         opened_at: roundToNearest15Minutes(new Date()),
         closed_at: null,
         direction: "long",
-        outcome: "open",
+        status: "open",
         gross_pnl_amount: "0",
         net_pnl_amount: "0",
         net_return_percentage: 0,

@@ -1,6 +1,7 @@
 package trade
 
 import (
+	"arthveda/internal/repository"
 	"context"
 	"fmt"
 	"time"
@@ -26,6 +27,10 @@ type ReadWriter interface {
 //
 // PostgreSQL implementation
 //
+
+type filter struct {
+	PositionID *uuid.UUID
+}
 
 type tradeRepository struct {
 	db *pgxpool.Pool
@@ -72,12 +77,35 @@ func (r *tradeRepository) Create(ctx context.Context, positionID uuid.UUID, trad
 }
 
 func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT id, position_id, created_at, updated_at, kind, time, quantity, price
-		FROM trade
-		WHERE position_id = $1
-	`, positionID)
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin: %w", err)
+	}
 
+	defer tx.Rollback(ctx)
+
+	trades, err := r.findTrades(ctx, tx, &filter{PositionID: &positionID})
+	if err != nil {
+		return nil, fmt.Errorf("find trades: %w", err)
+	}
+
+	return trades, nil
+}
+
+func (r *tradeRepository) findTrades(ctx context.Context, tx pgx.Tx, f *filter) ([]*Trade, error) {
+	var where []string
+	args := make(pgx.NamedArgs)
+
+	if v := f.PositionID; v != nil {
+		where = append(where, "position_id = @position_id")
+		args["position_id"] = v
+	}
+
+	sql := `
+	SELECT id, position_id, created_at, updated_at, kind, time, quantity, price
+	FROM trade ` + repository.WhereSQL(where)
+
+	rows, err := tx.Query(ctx, sql, args)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
@@ -104,6 +132,10 @@ func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.
 		}
 
 		trades = append(trades, &trade)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows: %w", err)
 	}
 
 	return trades, nil

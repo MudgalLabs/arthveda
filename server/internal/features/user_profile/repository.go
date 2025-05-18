@@ -43,6 +43,7 @@ func (r *userProfileRepository) FindUserProfileByUserID(ctx context.Context, use
 	if err != nil {
 		return nil, fmt.Errorf("begin: %w", err)
 	}
+
 	defer tx.Rollback(ctx)
 
 	userProfiles, err := r.findUserProfiles(ctx, tx, &filter{UserID: &userID})
@@ -80,6 +81,7 @@ func (r *userProfileRepository) findUserProfiles(ctx context.Context, tx pgx.Tx,
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
+
 	defer rows.Close()
 
 	var userProfiles []*UserProfile

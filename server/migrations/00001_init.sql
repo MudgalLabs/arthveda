@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS user_identity (
         email VARCHAR(255) NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
         verified BOOLEAN NOT NULL,
-        failed_login_attempts INT,
+        failed_login_attempts INT NOT NULL,
         last_login_at TIMESTAMP,
         created_at TIMESTAMP NOT NULL,
         updated_at TIMESTAMP

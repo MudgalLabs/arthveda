@@ -6,7 +6,7 @@ import { User } from "@/lib/api/user";
 
 export function useGetMe() {
     return useQuery({
-        queryKey: ["get-me"],
+        queryKey: ["useUserMe"],
         queryFn: () => api.user.getMe(),
         select: (res) => res.data as ApiRes<User>,
     });

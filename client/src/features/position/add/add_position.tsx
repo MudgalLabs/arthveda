@@ -60,11 +60,9 @@ import { CurrencySelect } from "@/components/select/currency_select";
 import { CurrencyInput } from "@/components/input/currency_input";
 import { useWrappedState } from "@/hooks/use_wrapped_state";
 import { NewTrade, TradeKind } from "@/features/trade/trade";
-import { useNavigate } from "react-router-dom";
-import { ROUTES } from "@/routes";
 import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
-import { AddPositionResponse } from "@/lib/api/position";
+import { CreatePositionResponse } from "@/lib/api/position";
 
 function AddPosition() {
     const {
@@ -81,26 +79,22 @@ function AddPosition() {
         canSave,
     } = useAddPosition();
 
-    const navigate = useNavigate();
-
-    const { mutateAsync: save, isPending: isSaving } = apiHooks.position.useAdd(
-        {
+    const { mutateAsync: save, isPending: isSaving } =
+        apiHooks.position.useCreate({
             onSuccess: async (res) => {
-                const data = res.data.data as AddPositionResponse;
+                const data = res.data.data as CreatePositionResponse;
                 if (!data) {
                     toast.error("Something went wrong");
                     return;
                 }
-                const id = data.id;
-                toast.success(`New position ${id} created`);
-                navigate(ROUTES.positionList);
+                toast.success(`New position created`);
+                discard();
             },
             onError: (error) => {
                 const errorMsg = error.response.data.message;
                 toast.error(errorMsg);
             },
-        }
-    );
+        });
 
     const handleClickSave = () => {
         if (!canSave) return;
@@ -159,9 +153,9 @@ function AddPosition() {
                 <div className="flex items-end">
                     <div className="flex h-fit gap-x-2">
                         <DirectionTag direction={computeResult.direction} />
-                        <OutcomeTag
+                        <StatusTag
                             currency={state.currency_code}
-                            outcome={computeResult.outcome}
+                            status={computeResult.status}
                             open_price={computeResult.open_average_price_amount}
                             open_quantity={computeResult.open_quantity}
                         />
@@ -449,8 +443,8 @@ const PnLCard = memo(
     }) => {
         let trendingIcon: ReactNode = null;
         let textColor = "text-foreground";
-        const grossPnL = BigInt(gross_pnl_amount);
-        const netPnL = BigInt(net_pnl_amount);
+        const grossPnL = Number(gross_pnl_amount);
+        const netPnL = Number(net_pnl_amount);
 
         if (netPnL > 0) {
             trendingIcon = <IconTrendingUp size={20} />;
@@ -597,21 +591,21 @@ const DirectionTag = memo(({ direction }: { direction: PositionDirection }) => {
     );
 });
 
-const OutcomeTag = memo(
+const StatusTag = memo(
     ({
         currency,
-        outcome,
+        status,
         open_quantity,
         open_price,
     }: {
         currency: CurrencyCode;
-        outcome: PositionStatus;
+        status: PositionStatus;
         open_quantity: string;
         open_price: string;
     }) => {
-        if (outcome === "win") return <Tag variant="success">Win</Tag>;
-        if (outcome === "loss") return <Tag variant="destructive">Loss</Tag>;
-        if (outcome === "breakeven")
+        if (status === "win") return <Tag variant="success">Win</Tag>;
+        if (status === "loss") return <Tag variant="destructive">Loss</Tag>;
+        if (status === "breakeven")
             return <Tag variant="primary">Breakeven</Tag>;
 
         let openTagContent = "Open";

@@ -37,13 +37,29 @@ func createPositionHandler(s *position.Service) http.HandlerFunc {
 			return
 		}
 
-		result, errKind, err := s.Create(ctx, userID, payload)
+		position, errKind, err := s.Create(ctx, userID, payload)
 
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return
 		}
 
-		successResponse(w, r, http.StatusCreated, "Position created successfully", result)
+		successResponse(w, r, http.StatusCreated, "Position created successfully", map[string]any{"position": position})
+	}
+}
+
+func listPositionsHandler(s *position.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		userID := getUserIDFromContext(ctx)
+
+		positions, errKind, err := s.List(ctx, userID)
+
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, "", map[string]any{"positions": positions})
 	}
 }
