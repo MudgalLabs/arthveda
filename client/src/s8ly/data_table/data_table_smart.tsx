@@ -19,11 +19,13 @@ import { DataTableVisibility } from "./data_table_visibility";
 interface DataTableSmartProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
+    showRowSelection?: boolean;
 }
 
 function DataTableSmart<TData, TValue>({
     columns,
     data,
+    showRowSelection = true,
 }: DataTableSmartProps<TData, TValue>) {
     const [rowSelection, setRowSelection] = useState({});
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -51,14 +53,17 @@ function DataTableSmart<TData, TValue>({
     });
 
     return (
-        <div className="w-300 space-y-4">
+        <div className="space-y-4">
             <div className="flex justify-end">
                 <DataTableVisibility table={table} />
             </div>
 
             <DataTable table={table} />
 
-            <DataTablePagination table={table} showRowSelection />
+            <DataTablePagination
+                table={table}
+                showRowSelection={showRowSelection}
+            />
         </div>
     );
 }

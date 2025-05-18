@@ -3,7 +3,7 @@ import { VariantProps, cva } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-const tagVariants = cva("font-semibold rounded-sm border-1", {
+const tagVariants = cva("w-fit text-center font-semibold rounded-sm border-1", {
     variants: {
         variant: {
             primary: "bg-accent-muted border-accent text-primary",

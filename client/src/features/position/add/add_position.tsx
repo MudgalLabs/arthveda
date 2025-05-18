@@ -15,7 +15,6 @@ import {
     Label,
     Progress,
     Separator,
-    Tag,
     Tooltip,
     DialogContent,
     DialogDescription,
@@ -42,11 +41,7 @@ import {
     getDataTableCellUpdateFn,
     useDataTableEditableCell,
 } from "@/hooks/use_data_table_editable_cell";
-import {
-    CurrencyCode,
-    PositionDirection,
-    PositionStatus,
-} from "@/features/position/position";
+import { CurrencyCode } from "@/features/position/position";
 import { Card, CardTitle } from "@/components/card";
 import {
     cn,
@@ -63,6 +58,8 @@ import { NewTrade, TradeKind } from "@/features/trade/trade";
 import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
 import { CreatePositionResponse } from "@/lib/api/position";
+import { DirectionTag } from "@/features/position/components/direction_tag";
+import { StatusTag } from "@/features/position/components/status_tag";
 
 function AddPosition() {
     const {
@@ -156,8 +153,10 @@ function AddPosition() {
                         <StatusTag
                             currency={state.currency_code}
                             status={computeResult.status}
-                            open_price={computeResult.open_average_price_amount}
-                            open_quantity={computeResult.open_quantity}
+                            openAvgPrice={
+                                computeResult.open_average_price_amount
+                            }
+                            openQuantity={computeResult.open_quantity}
                         />
                     </div>
                 </div>
@@ -228,6 +227,8 @@ function AddPosition() {
         </>
     );
 }
+
+export default AddPosition;
 
 const columns: ColumnDef<NewTrade>[] = [
     {
@@ -582,46 +583,6 @@ const DurationCard = memo(
     }
 );
 
-const DirectionTag = memo(({ direction }: { direction: PositionDirection }) => {
-    const isLong = direction === "long";
-    return (
-        <Tag variant={isLong ? "success" : "destructive"}>
-            {isLong ? "Long" : "Short"}
-        </Tag>
-    );
-});
-
-const StatusTag = memo(
-    ({
-        currency,
-        status,
-        open_quantity,
-        open_price,
-    }: {
-        currency: CurrencyCode;
-        status: PositionStatus;
-        open_quantity: string;
-        open_price: string;
-    }) => {
-        if (status === "win") return <Tag variant="success">Win</Tag>;
-        if (status === "loss") return <Tag variant="destructive">Loss</Tag>;
-        if (status === "breakeven")
-            return <Tag variant="primary">Breakeven</Tag>;
-
-        let openTagContent = "Open";
-
-        if (Number(open_quantity) > 0) {
-            openTagContent +=
-                " ~ Qty: " +
-                open_quantity +
-                " Avg: " +
-                formatCurrency(open_price, currency);
-        }
-
-        return <Tag variant="muted">{openTagContent}</Tag>;
-    }
-);
-
 const SymbolInput = memo(
     ({
         value: valueProp,
@@ -754,5 +715,3 @@ const DiscardButton = memo(
         );
     }
 );
-
-export default AddPosition;

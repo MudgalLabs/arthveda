@@ -1,10 +1,39 @@
 import { Trade } from "../trade/trade";
 
-type PositionInstrument = "equity" | "future " | "option";
+type PositionInstrument = "equity" | "future" | "option";
+
+function positionInstrumentToString(instrument: PositionInstrument): string {
+    switch (instrument) {
+        case "equity":
+            return "Equity";
+        case "future":
+            return "Future";
+        case "option":
+            return "Option";
+    }
+}
 
 type PositionDirection = "long" | "short";
 
+function positionDirectionToString(position: PositionDirection): string {
+    switch (position) {
+        case "long":
+            return "Long";
+        case "short":
+            return "Short";
+    }
+}
+
 type PositionStatus = "open" | "breakeven" | "win" | "loss";
+
+function positionStatusToString(position: PositionDirection): string {
+    switch (position) {
+        case "long":
+            return "Long";
+        case "short":
+            return "Short";
+    }
+}
 
 // We currently support only INR.
 // TODO: Shouldn't this be somewhere else? Currency will probably be used in
@@ -37,6 +66,12 @@ interface Position {
 
     trades: Trade[];
 }
+
+export {
+    positionInstrumentToString,
+    positionDirectionToString,
+    positionStatusToString,
+};
 
 export type {
     CurrencyCode,

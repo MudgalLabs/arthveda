@@ -86,7 +86,7 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeR
 		netPnL = grossPnL.Sub(payload.ChargesAmount)
 
 		if payload.RiskAmount.IsPositive() {
-			rFactor = netPnL.Div(payload.RiskAmount).Round(2)
+			rFactor = netPnL.Div(payload.RiskAmount)
 		}
 
 		if netPnL.IsZero() {
@@ -107,26 +107,26 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeR
 	}
 
 	if grossPnL.IsPositive() {
-		chargesAsPercentageOfNetPnL = payload.ChargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100)).Round(2)
+		chargesAsPercentageOfNetPnL = payload.ChargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100))
 	}
 
 	if totalCost.IsPositive() {
-		netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100)).Round(2)
+		netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100))
 	}
 
 	result.Direction = direction
 	result.Status = status
 	result.OpenedAt = payload.Trades[0].Time
 	result.ClosedAt = closedAt
-	result.GrossPnLAmount = grossPnL.Round(2)
-	result.NetPnLAmount = netPnL.Round(2)
+	result.GrossPnLAmount = grossPnL
+	result.NetPnLAmount = netPnL
 	result.RFactor, _ = rFactor.Float64()
 	result.NetReturnPercentage, _ = netReturnPercentage.Float64()
 	result.ChargesAsPercentageOfNetPnL, _ = chargesAsPercentageOfNetPnL.Float64()
 
 	if netQty.IsPositive() {
-		result.OpenQuantity = netQty.Round(4)
-		result.OpenAveragePriceAmount = avgPrice.Round(2)
+		result.OpenQuantity = netQty
+		result.OpenAveragePriceAmount = avgPrice
 	}
 
 	return result, service.ErrNone, nil
