@@ -2,6 +2,7 @@ package position
 
 import (
 	"arthveda/internal/features/trade"
+	"arthveda/internal/httpx"
 	"arthveda/internal/logger"
 	"arthveda/internal/service"
 	"context"
@@ -188,18 +189,36 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload AddPaylo
 	return position, service.ErrNone, nil
 }
 
+type ListParams struct {
+	httpx.Pagination
+	httpx.Sorting
+	listFilter
+}
+
+type ListResponse struct {
+	Positions  []*Position          `json:"positions"`
+	Pagination httpx.PaginationMeta `json:"pagination"`
+}
+
 // Returns a list of Positions for the current user.
-// User can filter this list.
-// NOTE: We do
-func (s *Service) List(ctx context.Context, userID uuid.UUID) ([]*Position, service.ErrKind, error) {
-	f := filter{
-		UserID: &userID,
-	}
+// Filtering, pagination and sorting is supported.
+func (s *Service) List(ctx context.Context, params ListParams) (ListResponse, service.ErrKind, error) {
+	response := ListResponse{}
 
-	positions, err := s.positionRepository.List(ctx, f)
+	err := params.Sorting.Validate(listSortableColumns)
 	if err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("position service get: %w", err)
+		return response, service.ErrInvalidInput, err
 	}
 
-	return positions, service.ErrNone, nil
+	params.Pagination.ApplyDefaults()
+
+	positions, totalItems, err := s.positionRepository.List(ctx, params)
+	if err != nil {
+		return response, service.ErrInternalServerError, fmt.Errorf("position repository list: %w", err)
+	}
+
+	response.Positions = positions
+	response.Pagination = params.Meta(totalItems)
+
+	return response, service.ErrNone, nil
 }

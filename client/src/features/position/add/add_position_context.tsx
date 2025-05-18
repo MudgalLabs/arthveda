@@ -88,6 +88,12 @@ const AddPositionContext = createContext<AddPositionContextType>(
     {} as AddPositionContextType
 );
 
+// We expect and let user to add Trade(s) in sequential order
+// sorted by timestamp (Time column). That means, the first trade
+// will always be when the trade was opened and the last trade will always
+// be the most recent trade. The trades will automatically be sorted by
+// the timestamp because we don't allow user to add a new trade that was
+// before the previous trade.
 function AddPositionContextProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<State>(() => getInitialState());
     const debouncedState = useDebounce(state, 500);

@@ -15,7 +15,7 @@ interface DataTablePaginationProps<TData> {
     showRowSelection?: boolean;
 }
 
-const pageSizeOptions = [10, 20, 30, 40, 50].map((pageSize) => ({
+const pageSizeOptions = [10, 25, 50, 100].map((pageSize) => ({
     value: String(pageSize),
     label: String(pageSize),
 }));

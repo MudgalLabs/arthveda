@@ -2,6 +2,7 @@ package main
 
 import (
 	"arthveda/internal/features/position"
+	"arthveda/internal/httpx"
 	"net/http"
 )
 
@@ -44,7 +45,7 @@ func createPositionHandler(s *position.Service) http.HandlerFunc {
 			return
 		}
 
-		successResponse(w, r, http.StatusCreated, "Position created successfully", map[string]any{"position": position})
+		successResponse(w, r, http.StatusCreated, "Position created successfully", position)
 	}
 }
 
@@ -53,13 +54,22 @@ func listPositionsHandler(s *position.Service) http.HandlerFunc {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
 
-		positions, errKind, err := s.List(ctx, userID)
+		var params position.ListParams
+		err := httpx.BindQuery(r, &params)
+		if err != nil {
+			malformedQueryResponse(w, r, err)
+			return
+		}
+
+		params.UserID = &userID
+
+		result, errKind, err := s.List(ctx, params)
 
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return
 		}
 
-		successResponse(w, r, http.StatusOK, "", map[string]any{"positions": positions})
+		successResponse(w, r, http.StatusOK, "", result)
 	}
 }

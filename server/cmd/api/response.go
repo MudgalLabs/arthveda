@@ -27,13 +27,19 @@ func internalServerErrorResponse(w http.ResponseWriter, r *http.Request, err err
 
 func malformedJSONResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
-	l.Warnw("malformed json response", "error", err.Error())
+	l.Infow("malformed json response", "error", err.Error())
 	writeJSONResponse(w, http.StatusBadRequest, apires.MalformedJSONError(err))
+}
+
+func malformedQueryResponse(w http.ResponseWriter, r *http.Request, err error) {
+	l := logger.FromCtx(r.Context())
+	l.Infow("malformed query response", "error", err.Error())
+	writeJSONResponse(w, http.StatusBadRequest, apires.InvalidQueryError(err))
 }
 
 func invalidInputResponse(w http.ResponseWriter, r *http.Request, errs service.InputValidationErrors) {
 	l := logger.FromCtx(r.Context())
-	l.Warnw("invalid input response", "error", errs)
+	l.Infow("invalid input response", "error", errs)
 	writeJSONResponse(w, http.StatusBadRequest, apires.InvalidInputError(errs))
 }
 
@@ -45,7 +51,7 @@ func conflictResponse(w http.ResponseWriter, r *http.Request, err error) {
 
 func notFoundResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
-	l.Warnw("not found response", "error", err)
+	l.Infow("not found response", "error", err)
 	writeJSONResponse(w, http.StatusNotFound, apires.Error(http.StatusNotFound, err.Error(), nil))
 }
 
@@ -85,7 +91,7 @@ func serviceErrResponse(w http.ResponseWriter, r *http.Request, errKind service.
 		inputValidationErrors, ok := err.(service.InputValidationErrors)
 
 		if !ok {
-			inputValidationErrors = service.NewInputValidationErrorsWithError(apires.NewApiError("Something went wrong", "invalid input", "", nil))
+			inputValidationErrors = service.NewInputValidationErrorsWithError(apires.NewApiError("Something went wrong", err.Error(), "", nil))
 		}
 
 		invalidInputResponse(w, r, inputValidationErrors)

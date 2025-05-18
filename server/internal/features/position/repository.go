@@ -1,8 +1,8 @@
 package position
 
 import (
+	"arthveda/internal/dbx"
 	"arthveda/internal/features/trade"
-	"arthveda/internal/repository"
 	"context"
 	"fmt"
 
@@ -12,7 +12,7 @@ import (
 )
 
 type Reader interface {
-	List(ctx context.Context, filter filter) ([]*Position, error)
+	List(ctx context.Context, params ListParams) ([]*Position, int, error)
 }
 
 type Writer interface {
@@ -29,9 +29,13 @@ type ReadWriter interface {
 // PostgreSQL implementation
 //
 
-type filter struct {
-	UserID *uuid.UUID
-	Symbol *string
+type listFilter struct {
+	UserID *uuid.UUID `query:"user_id"`
+	Symbol *string    `query:"symbol"`
+}
+
+var listSortableColumns = []string{
+	"p.symbol",
 }
 
 type positionRepository struct {
@@ -102,16 +106,8 @@ func (r *positionRepository) Delete(ctx context.Context, ID uuid.UUID) error {
 	return nil
 }
 
-func (r *positionRepository) List(ctx context.Context, f filter) ([]*Position, error) {
-	var where []string
-	args := make(pgx.NamedArgs)
-
-	if v := f.UserID; v != nil {
-		where = append(where, "user_id = @user_id")
-		args["user_id"] = v
-	}
-
-	sql := `
+func (r *positionRepository) List(ctx context.Context, p ListParams) ([]*Position, int, error) {
+	baseSQL := `
         SELECT
             -- position columns
             p.id, p.user_id, p.created_at, p.updated_at,
@@ -124,13 +120,27 @@ func (r *positionRepository) List(ctx context.Context, f filter) ([]*Position, e
             t.id, t.position_id, t.created_at, t.updated_at,
             t.kind, t.time, t.quantity, t.price
         FROM
-            position p
+			position p
         LEFT JOIN
-            trade t ON p.id = t.position_id ` + repository.WhereSQL(where)
+			trade t ON p.id = t.position_id `
 
-	rows, err := r.db.Query(ctx, sql, args)
+	b := dbx.NewSQLBuilder(baseSQL)
+
+	if p.UserID != nil {
+		b.AddCompareFilter("p.user_id", "=", p.UserID)
+	}
+	if p.Symbol != nil {
+		b.AddCompareFilter("p.symbol", "=", p.Symbol)
+	}
+
+	b.AddSorting(p.SortBy, p.SortOrder)
+	b.AddPagination(p.Limit, p.Offset())
+
+	sql, args := b.Build()
+
+	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("query: %w", err)
+		return nil, 0, fmt.Errorf("query: %w", err)
 	}
 
 	defer rows.Close()
@@ -157,7 +167,7 @@ func (r *positionRepository) List(ctx context.Context, f filter) ([]*Position, e
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("scan: %w", err)
+			return nil, 0, fmt.Errorf("scan: %w", err)
 		}
 
 		// Attach to position map
@@ -175,7 +185,7 @@ func (r *positionRepository) List(ctx context.Context, f filter) ([]*Position, e
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows err: %w", err)
+		return nil, 0, fmt.Errorf("rows err: %w", err)
 	}
 
 	// Convert map to slice
@@ -184,5 +194,15 @@ func (r *positionRepository) List(ctx context.Context, f filter) ([]*Position, e
 		positions = append(positions, p)
 	}
 
-	return positions, nil
+	b.AddGroupBy("p.id")
+
+	var total int
+	countSQL, countArgs := b.CountSQL("*")
+
+	err = r.db.QueryRow(ctx, countSQL, countArgs...).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return positions, total, nil
 }

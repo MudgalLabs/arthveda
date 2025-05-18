@@ -6,6 +6,7 @@ const (
 	SOMETHING_WENT_WRONG    string = "Something went wrong"
 	INERTNAL_SERVER_ERROR   string = "Internal server error"
 	INVALID_REQUEST_PAYLOAD string = "Invalid request payload"
+	INVALID_REQUEST_QUERY   string = "Invalid request query"
 )
 
 type ApiStatus = string
@@ -85,6 +86,12 @@ func InternalError(err error) ApiRes {
 func MalformedJSONError(err error) ApiRes {
 	errs := []ApiError{}
 	errs = append(errs, NewApiError(INVALID_REQUEST_PAYLOAD, err.Error(), "", ""))
+	return new(ApiResStatusError, http.StatusBadRequest, SOMETHING_WENT_WRONG, nil, errs)
+}
+
+func InvalidQueryError(err error) ApiRes {
+	errs := []ApiError{}
+	errs = append(errs, NewApiError(INVALID_REQUEST_QUERY, err.Error(), "", ""))
 	return new(ApiResStatusError, http.StatusBadRequest, SOMETHING_WENT_WRONG, nil, errs)
 }
 

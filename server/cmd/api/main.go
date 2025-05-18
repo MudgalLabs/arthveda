@@ -1,7 +1,7 @@
 package main
 
 import (
-	"arthveda/internal/db"
+	"arthveda/internal/dbx"
 	"arthveda/internal/env"
 	"arthveda/internal/features/position"
 	"arthveda/internal/features/trade"
@@ -46,7 +46,7 @@ func main() {
 	// I think it has something to do with Go sync for multi threading?
 	defer logger.Get().Sync()
 
-	db, err := db.Init()
+	db, err := dbx.Init()
 	if err != nil {
 		panic(err)
 	}
