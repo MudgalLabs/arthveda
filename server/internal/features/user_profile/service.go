@@ -19,7 +19,7 @@ func NewService(upr ReadWriter) *Service {
 	}
 }
 
-func (s *Service) GetUserProfile(ctx context.Context, id uuid.UUID) (*UserProfile, service.ErrKind, error) {
+func (s *Service) GetUserProfile(ctx context.Context, id uuid.UUID) (*UserProfile, service.Error, error) {
 	userProfile, err := s.userProfileRepository.FindUserProfileByUserID(ctx, id)
 	if err != nil {
 		if err == repository.ErrNotFound {

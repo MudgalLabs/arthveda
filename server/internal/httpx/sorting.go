@@ -2,49 +2,44 @@ package httpx
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
 type SortOrder = string
 
 const (
-	SortOrderASC  = "ASC"
-	SortOrderDESC = "DESC"
+	SortOrderASC  = "asc"
+	SortOrderDESC = "desc"
 )
 
 type Sorting struct {
-	SortBy    string    `query:"sort_by" json:"sort_by"`       // e.g., "opened_at"
-	SortOrder SortOrder `query:"sort_order" json:"sort_order"` // "ASC" or "DESC"
+	Field string    `query:"field" json:"field"` // e.g., "created_at"
+	Order SortOrder `query:"order" json:"order"`
 }
 
-func (s *Sorting) Validate(allowedColumns []string) error {
-	sortBy := strings.ToLower(s.SortBy)
-	sortOrder := strings.ToLower(s.SortOrder)
+func (s *Sorting) Validate(allowed []string) error {
+	field := strings.ToLower(s.Field)
+	order := strings.ToLower(s.Order)
 
-	if sortBy == "" {
+	if field == "" {
 		return nil // No sorting applied — that's OK
 	}
 
-	// Check if SortBy is in allowed list
-	valid := false
-	for _, col := range allowedColumns {
-		if col == sortBy {
-			valid = true
-			break
-		}
-	}
+	// Check if field is in allowed list
+	valid := slices.Contains(allowed, field)
 
 	if !valid {
-		return fmt.Errorf("invalid sort_by value: %s", s.SortBy)
+		return fmt.Errorf("invalid sort field: %s", s.Field)
 	}
 
 	// Validate sort order
-	if sortOrder != "" && sortOrder != "asc" && sortOrder != "desc" {
-		return fmt.Errorf("invalid sort_order value: %s", s.SortOrder)
+	if order != "" && order != "asc" && order != "desc" {
+		return fmt.Errorf("invalid sor order: %s", s.Order)
 	}
 
-	s.SortBy = sortBy
-	s.SortOrder = sortOrder
+	s.Field = field
+	s.Order = order
 
 	return nil
 }

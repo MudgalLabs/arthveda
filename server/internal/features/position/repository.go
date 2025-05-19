@@ -12,7 +12,7 @@ import (
 )
 
 type Reader interface {
-	List(ctx context.Context, params ListParams) ([]*Position, int, error)
+	Search(ctx context.Context, payload SearchPayload) ([]*Position, int, error)
 }
 
 type Writer interface {
@@ -29,12 +29,12 @@ type ReadWriter interface {
 // PostgreSQL implementation
 //
 
-type listFilter struct {
+type searchFilter struct {
 	UserID *uuid.UUID `query:"user_id"`
 	Symbol *string    `query:"symbol"`
 }
 
-var listSortableColumns = []string{
+var sortableFields = []string{
 	"p.symbol",
 }
 
@@ -106,7 +106,7 @@ func (r *positionRepository) Delete(ctx context.Context, ID uuid.UUID) error {
 	return nil
 }
 
-func (r *positionRepository) List(ctx context.Context, p ListParams) ([]*Position, int, error) {
+func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Position, int, error) {
 	baseSQL := `
         SELECT
             -- position columns
@@ -116,25 +116,25 @@ func (r *positionRepository) List(ctx context.Context, p ListParams) ([]*Positio
             p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
             p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
 
-            -- trade columns (nullable due to LEFT JOIN)
+            -- trade columns
             t.id, t.position_id, t.created_at, t.updated_at,
             t.kind, t.time, t.quantity, t.price
         FROM
 			position p
-        LEFT JOIN
+        JOIN
 			trade t ON p.id = t.position_id `
 
 	b := dbx.NewSQLBuilder(baseSQL)
 
-	if p.UserID != nil {
-		b.AddCompareFilter("p.user_id", "=", p.UserID)
+	if p.Filters.UserID != nil {
+		b.AddCompareFilter("p.user_id", "=", p.Filters.UserID)
 	}
-	if p.Symbol != nil {
-		b.AddCompareFilter("p.symbol", "=", p.Symbol)
+	if p.Filters.Symbol != nil {
+		b.AddCompareFilter("p.symbol", "=", p.Filters.Symbol)
 	}
 
-	b.AddSorting(p.SortBy, p.SortOrder)
-	b.AddPagination(p.Limit, p.Offset())
+	b.AddSorting(p.Sort.Field, p.Sort.Order)
+	b.AddPagination(p.Pagination.Limit, p.Pagination.Offset())
 
 	sql, args := b.Build()
 
@@ -194,10 +194,12 @@ func (r *positionRepository) List(ctx context.Context, p ListParams) ([]*Positio
 		positions = append(positions, p)
 	}
 
+	// For count we need to only care about positions only. Without this, the count will
+	// include the number of trades associated with all the positions as well.
 	b.AddGroupBy("p.id")
 
 	var total int
-	countSQL, countArgs := b.CountSQL("*")
+	countSQL, countArgs := b.Count()
 
 	err = r.db.QueryRow(ctx, countSQL, countArgs...).Scan(&total)
 	if err != nil {

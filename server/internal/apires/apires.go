@@ -89,12 +89,6 @@ func MalformedJSONError(err error) ApiRes {
 	return new(ApiResStatusError, http.StatusBadRequest, SOMETHING_WENT_WRONG, nil, errs)
 }
 
-func InvalidQueryError(err error) ApiRes {
-	errs := []ApiError{}
-	errs = append(errs, NewApiError(INVALID_REQUEST_QUERY, err.Error(), "", ""))
-	return new(ApiResStatusError, http.StatusBadRequest, SOMETHING_WENT_WRONG, nil, errs)
-}
-
 func InvalidInputError(errors []ApiError) ApiRes {
 	return new(ApiResStatusError, http.StatusBadRequest, SOMETHING_WENT_WRONG, nil, errors)
 }

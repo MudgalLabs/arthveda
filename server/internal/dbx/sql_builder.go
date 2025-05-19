@@ -5,6 +5,12 @@ import (
 	"strings"
 )
 
+type Operaor string
+
+const (
+	OperatorGT = ">"
+)
+
 type SQLBuilder struct {
 	base    strings.Builder
 	where   []string
@@ -66,14 +72,14 @@ func (b *SQLBuilder) AddGroupBy(columns ...string) {
 }
 
 // AddSorting adds an ORDER BY clause.
-func (b *SQLBuilder) AddSorting(sortBy, sortOrder string) {
-	if sortBy == "" {
+func (b *SQLBuilder) AddSorting(field, order string) {
+	if field == "" {
 		return
 	}
-	if sortOrder != "ASC" && sortOrder != "DESC" {
-		sortOrder = "ASC"
+	if order != "ASC" && order != "DESC" {
+		order = "ASC"
 	}
-	b.order = fmt.Sprintf("ORDER BY %s %s", sortBy, sortOrder)
+	b.order = fmt.Sprintf("ORDER BY %s %s", field, order)
 }
 
 // AddPagination adds LIMIT/OFFSET clauses.
@@ -115,10 +121,10 @@ func (b *SQLBuilder) Build() (string, []any) {
 	return final.String(), b.args
 }
 
-// CountSQL builds a count(*) SQL query with filters (no order/limit/offset).
-func (b *SQLBuilder) CountSQL(countExpr string) (string, []any) {
+// CountSQL builds a SQL query for counting number of rows with filters (no order/limit/offset).
+func (b *SQLBuilder) Count() (string, []any) {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("SELECT COUNT(%s) FROM (", countExpr))
+	sb.WriteString("SELECT COUNT(*) FROM (")
 
 	base := b.base.String()
 

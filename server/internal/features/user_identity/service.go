@@ -138,7 +138,7 @@ func (payload *SignUpPayload) validate() error {
 	return nil
 }
 
-func (s *Service) SignUp(ctx context.Context, payload SignUpPayload) (*user_profile.UserProfile, service.ErrKind, error) {
+func (s *Service) SignUp(ctx context.Context, payload SignUpPayload) (*user_profile.UserProfile, service.Error, error) {
 	err := payload.validate()
 	if err != nil {
 		return nil, service.ErrInvalidInput, err
@@ -171,7 +171,7 @@ type SignInPayload struct {
 	Password string `json:"password"`
 }
 
-func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*user_profile.UserProfile, string, service.ErrKind, error) {
+func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*user_profile.UserProfile, string, service.Error, error) {
 	userIdentity, err := s.userIdentityRepository.FindUserIdentityByEmail(ctx, payload.Email)
 	if err != nil {
 		if err == repository.ErrNotFound {

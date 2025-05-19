@@ -31,12 +31,6 @@ func malformedJSONResponse(w http.ResponseWriter, r *http.Request, err error) {
 	writeJSONResponse(w, http.StatusBadRequest, apires.MalformedJSONError(err))
 }
 
-func malformedQueryResponse(w http.ResponseWriter, r *http.Request, err error) {
-	l := logger.FromCtx(r.Context())
-	l.Infow("malformed query response", "error", err.Error())
-	writeJSONResponse(w, http.StatusBadRequest, apires.InvalidQueryError(err))
-}
-
 func invalidInputResponse(w http.ResponseWriter, r *http.Request, errs service.InputValidationErrors) {
 	l := logger.FromCtx(r.Context())
 	l.Infow("invalid input response", "error", errs)
@@ -68,7 +62,7 @@ func unauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, message s
 }
 
 // A helper function that translates Service.ErrKind and error to an HTTP response.
-func serviceErrResponse(w http.ResponseWriter, r *http.Request, errKind service.ErrKind, err error) {
+func serviceErrResponse(w http.ResponseWriter, r *http.Request, errKind service.Error, err error) {
 	l := logger.FromCtx(r.Context())
 
 	// Just a safety net.

@@ -35,7 +35,7 @@ type PaginationMeta struct {
 	TotalPages int `json:"total_pages"`
 }
 
-func (p *Pagination) Meta(totalItems int) PaginationMeta {
+func (p *Pagination) GetMeta(totalItems int) PaginationMeta {
 	return PaginationMeta{
 		Pagination: *p,
 		TotalItems: totalItems,

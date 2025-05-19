@@ -2,7 +2,6 @@ package main
 
 import (
 	"arthveda/internal/features/position"
-	"arthveda/internal/httpx"
 	"net/http"
 )
 
@@ -49,21 +48,21 @@ func createPositionHandler(s *position.Service) http.HandlerFunc {
 	}
 }
 
-func listPositionsHandler(s *position.Service) http.HandlerFunc {
+func searchPositionsHandler(s *position.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
 
-		var params position.ListParams
-		err := httpx.BindQuery(r, &params)
-		if err != nil {
-			malformedQueryResponse(w, r, err)
+		var payload position.SearchPayload
+		if err := decodeJSONRequest(&payload, r); err != nil {
+			malformedJSONResponse(w, r, err)
 			return
 		}
 
-		params.UserID = &userID
+		// We only want to return the positions for the authenticated user.
+		payload.Filters.UserID = &userID
 
-		result, errKind, err := s.List(ctx, params)
+		result, errKind, err := s.Search(ctx, payload)
 
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)

@@ -45,7 +45,7 @@ type computeResult struct {
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount"`
 }
 
-func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeResult, service.ErrKind, error) {
+func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeResult, service.Error, error) {
 	result := computeResult{
 		OpenedAt:  time.Now().UTC(),
 		Status:    StatusOpen,
@@ -140,7 +140,7 @@ type AddPayload struct {
 	CurrencyCode string     `json:"currency_code"`
 }
 
-func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload AddPayload) (*Position, service.ErrKind, error) {
+func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload AddPayload) (*Position, service.Error, error) {
 	logger := logger.FromCtx(ctx)
 	var err error
 
@@ -189,36 +189,26 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload AddPaylo
 	return position, service.ErrNone, nil
 }
 
-type ListParams struct {
-	httpx.Pagination
-	httpx.Sorting
-	listFilter
-}
+type SearchPayload = httpx.SearchPayload[searchFilter]
+type SearchResult = httpx.SearchResult[[]*Position]
 
 type ListResponse struct {
 	Positions  []*Position          `json:"positions"`
 	Pagination httpx.PaginationMeta `json:"pagination"`
 }
 
-// Returns a list of Positions for the current user.
-// Filtering, pagination and sorting is supported.
-func (s *Service) List(ctx context.Context, params ListParams) (ListResponse, service.ErrKind, error) {
-	response := ListResponse{}
-
-	err := params.Sorting.Validate(listSortableColumns)
+func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchResult, service.Error, error) {
+	err := payload.Init(sortableFields)
 	if err != nil {
-		return response, service.ErrInvalidInput, err
+		return nil, service.ErrInvalidInput, err
 	}
 
-	params.Pagination.ApplyDefaults()
-
-	positions, totalItems, err := s.positionRepository.List(ctx, params)
+	positions, totalItems, err := s.positionRepository.Search(ctx, payload)
 	if err != nil {
-		return response, service.ErrInternalServerError, fmt.Errorf("position repository list: %w", err)
+		return nil, service.ErrInternalServerError, fmt.Errorf("position repository list: %w", err)
 	}
 
-	response.Positions = positions
-	response.Pagination = params.Meta(totalItems)
+	result := httpx.NewSearchResult(positions, payload.Pagination.GetMeta(totalItems))
 
-	return response, service.ErrNone, nil
+	return result, service.ErrNone, nil
 }

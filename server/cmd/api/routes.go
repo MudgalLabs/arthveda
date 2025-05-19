@@ -56,8 +56,8 @@ func initRouter(a *app) http.Handler {
 			r.Use(authMiddleware)
 
 			r.Post("/", createPositionHandler(a.service.PositionService))
-			r.Get("/", listPositionsHandler(a.service.PositionService))
 			r.Post("/compute", computePositionHandler(a.service.PositionService))
+			r.Post("/search", searchPositionsHandler(a.service.PositionService))
 		})
 	})
 

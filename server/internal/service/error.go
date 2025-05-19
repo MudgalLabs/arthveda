@@ -3,16 +3,16 @@ package service
 import "arthveda/internal/apires"
 
 // Kind of errors that any service may return.
-type ErrKind string
+type Error string
 
 const (
-	ErrNone ErrKind = "no error"
+	ErrNone Error = "no error"
 
-	ErrUnauthorized        ErrKind = "unauthorized"
-	ErrConflict            ErrKind = "resource creation failed because it is conflicting with another resource"
-	ErrInvalidInput        ErrKind = "input is missing required fields or has bad values for parameters"
-	ErrInternalServerError ErrKind = "something unexpected happened"
-	ErrNotFound            ErrKind = "resource does not exist"
+	ErrUnauthorized        Error = "unauthorized"
+	ErrConflict            Error = "resource creation failed because it is conflicting with another resource"
+	ErrInvalidInput        Error = "input is missing required fields or has bad values for parameters"
+	ErrInternalServerError Error = "something unexpected happened"
+	ErrNotFound            Error = "resource does not exist"
 )
 
 // A service must return this as `error` if `ErrKind` is `ErrInvalidInput`.
