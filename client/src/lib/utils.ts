@@ -197,22 +197,6 @@ export function removeFormatCurrency(formatted: string): string {
     return cleaned;
 }
 
-export function getCurrencyLabel(currency: CurrencyCode, locale = "en") {
-    const symbol = new Intl.NumberFormat(locale, {
-        style: "currency",
-        currency: currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    })
-        .format(1)
-        .replace(/\d/g, "")
-        .trim(); // extract symbol
-    const name = new Intl.DisplayNames([locale], { type: "currency" }).of(
-        currency
-    );
-    return `${currency} – ${symbol} – ${name}`;
-}
-
 export function getCurrencySymbol(
     currencyCode: CurrencyCode,
     locale = "en"

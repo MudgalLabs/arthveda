@@ -1,3 +1,4 @@
+import { CurrencyCode } from "@/lib/api/currency";
 import { Trade } from "../trade/trade";
 
 type PositionInstrument = "equity" | "future" | "option";
@@ -34,11 +35,6 @@ function positionStatusToString(position: PositionDirection): string {
             return "Short";
     }
 }
-
-// We currently support only INR.
-// TODO: Shouldn't this be somewhere else? Currency will probably be used in
-// several places. We will most likely fetch the list of currencies from API.
-type CurrencyCode = "inr";
 
 interface Position {
     id: number;

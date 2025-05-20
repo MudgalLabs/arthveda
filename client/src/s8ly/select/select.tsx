@@ -20,6 +20,7 @@ interface SelectProps extends SelectPrimitive.SelectProps {
         trigger?: string;
         item?: string;
     };
+    loading?: boolean;
 }
 
 const Select: FC<SelectProps> = ({
@@ -27,6 +28,8 @@ const Select: FC<SelectProps> = ({
     ref,
     options,
     classNames,
+    disabled,
+    loading,
     placeholder,
     defaultValue = "",
     value: valueProp,
@@ -47,6 +50,28 @@ const Select: FC<SelectProps> = ({
         name: "open",
     });
 
+    if (loading) {
+        return (
+            <SelectPrimitive.Root disabled>
+                <SelectPrimitive.Trigger
+                    ref={ref}
+                    className={cn(
+                        "bg-muted text-foreground border-border flex h-10 w-[240px]! items-center justify-between gap-x-4 rounded-md border-1 p-3 enabled:cursor-pointer",
+                        "enabled:focus:outline-accent text-sm enabled:focus:outline-1 enabled:focus:outline-offset-0",
+                        {
+                            "text-foreground-muted": !value,
+                            "opacity-60 disabled:cursor-not-allowed":
+                                disabled || loading,
+                        },
+                        classNames?.trigger
+                    )}
+                >
+                    <div>Loading...</div>
+                </SelectPrimitive.Trigger>
+            </SelectPrimitive.Root>
+        );
+    }
+
     return (
         <SelectPrimitive.Root
             open={open}
@@ -55,17 +80,18 @@ const Select: FC<SelectProps> = ({
             onValueChange={setValue}
             defaultValue={defaultValue}
             defaultOpen={defaultOpen}
+            disabled={disabled}
             {...props}
         >
             <SelectPrimitive.Trigger
                 ref={ref}
                 className={cn(
-                    "bg-muted text-foreground border-border flex h-10 w-[300px] items-center justify-between gap-x-4 rounded-md border-1 p-3 enabled:cursor-pointer",
+                    "bg-muted text-foreground border-border flex h-10 w-[240px]! items-center justify-between gap-x-4 rounded-md border-1 p-3 enabled:cursor-pointer",
                     "focus:outline-accent text-sm focus:outline-1 focus:outline-offset-0",
                     {
                         "text-foreground-muted": !value,
                         "opacity-60 disabled:cursor-not-allowed":
-                            props.disabled,
+                            disabled || loading,
                     },
                     classNames?.trigger
                 )}
@@ -86,7 +112,7 @@ const Select: FC<SelectProps> = ({
                 <SelectPrimitive.Content
                     position="popper"
                     className={cn(
-                        "border-border bg-background-1 mt-1 w-[300px] rounded-md border-1 text-sm",
+                        "border-border bg-background-1 mt-1 w-[240px] rounded-md border-1 text-sm",
                         classNames?.content
                     )}
                 >
@@ -132,7 +158,7 @@ const SelectItem: FC<SelectItemProps> = ({
             ref={ref}
             data-disabled={disabled}
             className={cn(
-                "enabled:hover:bg-muted focus:bg-muted data-[disabled=true]:text-foreground-muted m-1 flex h-10 items-center justify-between rounded-md px-2 py-3 focus:outline-none enabled:cursor-pointer data-[disabled=true]:hover:cursor-not-allowed",
+                "enabled:hover:bg-muted focus:bg-muted data-[disabled=true]:text-foreground-muted m-1 flex h-fit items-center justify-between rounded-md px-2 py-3 focus:outline-none enabled:cursor-pointer data-[disabled=true]:hover:cursor-not-allowed",
                 className
             )}
             disabled={disabled}

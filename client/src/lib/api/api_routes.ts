@@ -4,12 +4,15 @@ export const API_ROUTES = {
         signup: "/v1/auth/sign-up",
         signout: "/v1/auth/sign-out",
     },
-    user: {
-        getMe: "/v1/users/me",
+    currency: {
+        list: "/v1/currencies",
     },
     position: {
         create: "/v1/positions",
         compute: "/v1/positions/compute",
         search: "/v1/positions/search",
+    },
+    user: {
+        me: "/v1/users/me",
     },
 };

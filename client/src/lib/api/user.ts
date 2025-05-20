@@ -10,6 +10,6 @@ export interface User {
     update_at: string;
 }
 
-export function getMe() {
-    return client.get(API_ROUTES.user.getMe);
+export function me() {
+    return client.get(API_ROUTES.user.me);
 }

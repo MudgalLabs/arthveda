@@ -1,33 +1,31 @@
 import { Select, SelectOptionItem, SelectProps } from "@/s8ly";
 
 import { CurrencyCode } from "@/features/position/position";
-import { getCurrencyLabel } from "@/lib/utils";
+import { apiHooks } from "@/hooks/api_hooks";
 
 function CurrencySelect(props: Omit<SelectProps, "options">) {
-    // TODO: This should be fetched from API.
-    // Even if we support only 1 currency, we should allow the user to set their
-    // currency ONCE otherwise we will end up with data with different currencies.
-    // So right now we are hardcoding it to INR.
-    const options: SelectOptionItem[] = [
-        {
-            value: "inr",
-            label: getCurrencyLabel("inr"),
-        },
-        {
-            value: "none" as CurrencyCode,
-            label: (
-                <>
-                    <p>
-                        Don't see your currency here? We are working on
-                        supporting more currencies!
-                    </p>
-                </>
-            ),
-            disabled: true,
-        },
-    ];
+    const { data, isLoading } = apiHooks.currency.useList();
 
-    return <Select options={options} {...props} />;
+    const items = data?.data || [];
+    const options: SelectOptionItem[] = items.map((i) => ({
+        label: `${i.name} (${i.code.toUpperCase()}) ${i.symbol}`,
+        value: i.code,
+    }));
+
+    options.push({
+        value: "none" as CurrencyCode,
+        label: (
+            <>
+                <p>
+                    Don't see your currency here? We are working on supporting
+                    more currencies!
+                </p>
+            </>
+        ),
+        disabled: true,
+    });
+
+    return <Select loading={isLoading} options={options} {...props} />;
 }
 
 export { CurrencySelect };
