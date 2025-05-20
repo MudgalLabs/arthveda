@@ -4,6 +4,7 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { IconCheck, IconChevronDown, IconChevronUp } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";
+import { Loading } from "@/components/loading";
 
 interface SelectOptionItem {
     value: string;
@@ -50,28 +51,6 @@ const Select: FC<SelectProps> = ({
         name: "open",
     });
 
-    if (loading) {
-        return (
-            <SelectPrimitive.Root disabled>
-                <SelectPrimitive.Trigger
-                    ref={ref}
-                    className={cn(
-                        "bg-muted text-foreground border-border flex h-10 w-[240px]! items-center justify-between gap-x-4 rounded-md border-1 p-3 enabled:cursor-pointer",
-                        "enabled:focus:outline-accent text-sm enabled:focus:outline-1 enabled:focus:outline-offset-0",
-                        {
-                            "text-foreground-muted": !value,
-                            "opacity-60 disabled:cursor-not-allowed":
-                                disabled || loading,
-                        },
-                        classNames?.trigger
-                    )}
-                >
-                    <div>Loading...</div>
-                </SelectPrimitive.Trigger>
-            </SelectPrimitive.Root>
-        );
-    }
-
     return (
         <SelectPrimitive.Root
             open={open}
@@ -80,7 +59,7 @@ const Select: FC<SelectProps> = ({
             onValueChange={setValue}
             defaultValue={defaultValue}
             defaultOpen={defaultOpen}
-            disabled={disabled}
+            disabled={disabled || loading}
             {...props}
         >
             <SelectPrimitive.Trigger
@@ -96,16 +75,26 @@ const Select: FC<SelectProps> = ({
                     classNames?.trigger
                 )}
             >
-                <SelectPrimitive.Value placeholder={placeholder ?? "Choose"} />
-                <SelectPrimitive.Icon
-                    className={cn("text-primary-500", {
-                        "rotate-180 transition-transform": open,
-                        "rotate-0 transition-transform": !open,
-                        "text-primary-300": value,
-                    })}
-                >
-                    <IconChevronDown size={20} />
-                </SelectPrimitive.Icon>
+                {loading ? (
+                    <div className="flex-center w-full">
+                        <Loading />
+                    </div>
+                ) : (
+                    <>
+                        <SelectPrimitive.Value
+                            placeholder={placeholder ?? "Choose"}
+                        />
+                        <SelectPrimitive.Icon
+                            className={cn("text-primary-500", {
+                                "rotate-180 transition-transform": open,
+                                "rotate-0 transition-transform": !open,
+                                "text-primary-300": value,
+                            })}
+                        >
+                            <IconChevronDown size={20} />
+                        </SelectPrimitive.Icon>
+                    </>
+                )}
             </SelectPrimitive.Trigger>
 
             <SelectPrimitive.Portal>
