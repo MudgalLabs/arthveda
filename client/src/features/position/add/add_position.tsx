@@ -59,6 +59,8 @@ import { CreatePositionResponse } from "@/lib/api/position";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
+import { Link } from "@/components/link";
+import { ROUTES } from "@/routes";
 
 function AddPosition() {
     const {
@@ -84,7 +86,18 @@ function AddPosition() {
                     return;
                 }
                 toast.success("Position Created", {
-                    description: "Go to Positions to see your positions",
+                    description: (
+                        <p>
+                            Go to{" "}
+                            <Link
+                                to={ROUTES.positionList}
+                                className="text-inherit!"
+                            >
+                                Positions
+                            </Link>{" "}
+                            to see your positions
+                        </p>
+                    ),
                 });
                 discard();
             },

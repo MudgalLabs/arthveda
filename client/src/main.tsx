@@ -7,7 +7,6 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { AddPositionContextProvider } from "@/features/position/add/add_position_context";
 import { Error } from "@/features/error/error";
-import { ToastProvider } from "@/components/toast";
 import { AuthenticationProvider } from "@/features/auth/auth_context";
 import routes from "@/routes";
 import App from "@/App";
@@ -42,7 +41,6 @@ root.render(
                     <AddPositionContextProvider>
                         <TooltipPrimitive.TooltipProvider>
                             <RouterProvider router={router} />
-                            <ToastProvider />
                         </TooltipPrimitive.TooltipProvider>
                     </AddPositionContextProvider>
                 </SidebarProvider>

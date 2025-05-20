@@ -13,6 +13,7 @@ import { useAuthentication } from "@/features/auth/auth_context";
 import { ROUTES_PUBLIC, ROUTES_PROTECTED, ROUTES } from "@/routes";
 import { AppLayout } from "@/app_layout";
 import { Loading } from "@/components/loading";
+import { ToastProvider } from "@/components/toast";
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuthentication();
@@ -64,6 +65,10 @@ export default function App() {
         <Fragment>
             <RouteHandler>
                 <Outlet />
+                {/* Putting ToastProvider here instead of in main.tsx
+                because putting it here gives Toasts access to react-router
+                hooks and state. */}
+                <ToastProvider />
             </RouteHandler>
             <ScrollRestoration />
         </Fragment>

@@ -57,7 +57,7 @@ export const Sidebar = () => {
         >
             <div>
                 <div className="mt-4 flex flex-col gap-y-2 pb-2">
-                    <Link to={ROUTES.dashboard} unstyled>
+                    <Link to={ROUTES.dashboard} variant="unstyled">
                         <SidebarNavItem
                             label="Dashboard"
                             Icon={IconDashboard}
@@ -67,7 +67,7 @@ export const Sidebar = () => {
                         />
                     </Link>
 
-                    <Link to={ROUTES.positionList} unstyled>
+                    <Link to={ROUTES.positionList} variant="unstyled">
                         <SidebarNavItem
                             label="Positions"
                             Icon={IconTrades}
@@ -273,7 +273,7 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
 
                 <DropdownMenuSeparator />
 
-                <Link to={ROUTES.settings} unstyled>
+                <Link to={ROUTES.settings} variant="unstyled">
                     <DropdownMenuItem
                         onClick={() => setActiveRoute(ROUTES.settings)}
                     >

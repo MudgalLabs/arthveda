@@ -6,18 +6,18 @@ import {
 } from "react-router-dom";
 
 interface LinkProps extends RouterLinkProps {
-    unstyled?: boolean;
+    variant?: "default" | "unstyled";
 }
 
 export const Link: FC<LinkProps> = (props) => {
-    const { children, className, unstyled, ...rest } = props;
+    const { children, className, variant, ...rest } = props;
 
     return (
         <RouterLink
             className={cn(
                 {
                     "text-base! font-normal! text-inherit! no-underline!":
-                        unstyled,
+                        variant === "unstyled",
                 },
                 className
             )}
