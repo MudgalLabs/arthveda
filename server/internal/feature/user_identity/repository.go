@@ -1,7 +1,7 @@
 package user_identity
 
 import (
-	"arthveda/internal/features/user_profile"
+	"arthveda/internal/feature/user_profile"
 	"arthveda/internal/repository"
 	"context"
 	"fmt"
@@ -137,14 +137,14 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 	VALUES (@id, @email, @password_hash, @verified, @failed_login_attempts, @last_login_at, @created_at, @updated_at)
 	`
 	identitySQLArgs := pgx.NamedArgs{
-		"id":                     userIdentity.ID,
-		"email":                  userIdentity.Email,
-		"password_hash":          userIdentity.PasswordHash,
-		"verified":               userIdentity.Verified,
-		"failed_login_attempts ": userIdentity.FailedLoginAttempts,
-		"last_login_at ":         userIdentity.LastLoginAt,
-		"created_at":             userIdentity.CreatedAt,
-		"updated_at":             userIdentity.UpdatedAt,
+		"id":                    userIdentity.ID,
+		"email":                 userIdentity.Email,
+		"password_hash":         userIdentity.PasswordHash,
+		"verified":              userIdentity.Verified,
+		"failed_login_attempts": userIdentity.FailedLoginAttempts,
+		"last_login_at ":        userIdentity.LastLoginAt,
+		"created_at":            userIdentity.CreatedAt,
+		"updated_at":            userIdentity.UpdatedAt,
 	}
 	_, err = tx.Exec(ctx, identitySQL, identitySQLArgs)
 	if err != nil {

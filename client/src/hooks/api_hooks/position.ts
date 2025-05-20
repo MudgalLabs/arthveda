@@ -41,10 +41,10 @@ export function useCreate(options: AnyUseMutationOptions = {}) {
     });
 }
 
-export function useList() {
+export function useSearch() {
     return useQuery({
-        queryKey: ["usePositionList"],
-        queryFn: () => api.position.list(),
+        queryKey: ["useSearchPositions"],
+        queryFn: () => api.position.search(),
         select: (res) => res.data as ApiRes<ListPositionsReponse>,
     });
 }

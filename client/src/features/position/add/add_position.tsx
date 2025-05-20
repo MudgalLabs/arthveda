@@ -83,7 +83,9 @@ function AddPosition() {
                     toast.error("Something went wrong");
                     return;
                 }
-                toast.success(`New position created`);
+                toast.success("Position Created", {
+                    description: "Go to Positions to see your positions",
+                });
                 discard();
             },
             onError: (error) => {
@@ -100,7 +102,7 @@ function AddPosition() {
             charges_amount: state.charges_amount || "0",
             symbol: state.symbol,
             instrument: state.instrument,
-            currency_code: state.currency_code,
+            currency: state.currency,
             trades: trades.map((t) => {
                 // @ts-ignore
                 delete t.id;
@@ -119,7 +121,7 @@ function AddPosition() {
                     charges_as_percentage_of_net_pnl={
                         computeResult.charges_as_percentage_of_net_pnl
                     }
-                    currency={state.currency_code}
+                    currency={state.currency}
                     gross_pnl_amount={computeResult.gross_pnl_amount}
                     net_pnl_amount={computeResult.net_pnl_amount}
                     net_return_percentage={computeResult.net_return_percentage}
@@ -134,7 +136,7 @@ function AddPosition() {
                     <div className="flex h-fit gap-x-2">
                         <DirectionTag direction={computeResult.direction} />
                         <StatusTag
-                            currency={state.currency_code}
+                            currency={state.currency}
                             status={computeResult.status}
                             openAvgPrice={
                                 computeResult.open_average_price_amount
@@ -147,7 +149,7 @@ function AddPosition() {
                 <div className="ml-auto">
                     <CurrencySelect
                         classNames={{ trigger: "w-fit" }}
-                        defaultValue={state.currency_code}
+                        defaultValue={state.currency}
                     />
                 </div>
             </div>
@@ -170,13 +172,13 @@ function AddPosition() {
                 </WithLabel>
 
                 <RiskInput
-                    currency={state.currency_code}
+                    currency={state.currency}
                     value={state.risk_amount}
                     setState={setState}
                 />
 
                 <ChargesInput
-                    currency={state.currency_code}
+                    currency={state.currency}
                     value={state.charges_amount}
                     setState={setState}
                 />
@@ -274,10 +276,13 @@ const columns: ColumnDef<NewTrade>[] = [
                                           m: secondLastTrade.time.getMinutes(),
                                       }
                                     : undefined,
-                            maxTime: {
-                                h: now.getHours(),
-                                m: now.getMinutes(),
-                            },
+                            // Apply maxTime restrictions if user has selected today's date.
+                            maxTime: isSameDay(value, now)
+                                ? {
+                                      h: now.getHours(),
+                                      m: now.getMinutes(),
+                                  }
+                                : undefined,
                         },
                     }}
                 />
@@ -323,7 +328,7 @@ const columns: ColumnDef<NewTrade>[] = [
 
             return (
                 <CurrencyInput
-                    currency={state.currency_code}
+                    currency={state.currency}
                     variant={error ? "error" : "default"}
                     value={value}
                     onChange={(e) => setValue(e.target.value)}

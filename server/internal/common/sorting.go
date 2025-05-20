@@ -1,4 +1,4 @@
-package httpx
+package common
 
 import (
 	"fmt"

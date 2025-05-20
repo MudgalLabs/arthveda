@@ -25,7 +25,7 @@ import { NewTrade, TradeKind } from "@/features/trade/trade";
 interface State {
     symbol: string;
     instrument: PositionInstrument;
-    currency_code: CurrencyCode;
+    currency: CurrencyCode;
     risk_amount: string;
     charges_amount: string;
 }
@@ -62,7 +62,7 @@ function getInitialState(): State {
     return {
         symbol: "",
         instrument: "equity",
-        currency_code: "INR",
+        currency: "inr",
         risk_amount: "",
         charges_amount: "",
     };

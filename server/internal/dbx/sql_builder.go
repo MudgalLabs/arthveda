@@ -3,7 +3,13 @@ package dbx
 import (
 	"fmt"
 	"strings"
+	"time"
 )
+
+type DateRange struct {
+	From time.Time `json:"from"`
+	To   time.Time `json:"to"`
+}
 
 type Operaor string
 

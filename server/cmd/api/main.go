@@ -2,11 +2,12 @@ package main
 
 import (
 	"arthveda/internal/dbx"
+	"arthveda/internal/domain/currency"
 	"arthveda/internal/env"
-	"arthveda/internal/features/position"
-	"arthveda/internal/features/trade"
-	"arthveda/internal/features/user_identity"
-	"arthveda/internal/features/user_profile"
+	"arthveda/internal/feature/position"
+	"arthveda/internal/feature/trade"
+	"arthveda/internal/feature/user_identity"
+	"arthveda/internal/feature/user_profile"
 	"arthveda/internal/logger"
 	"context"
 	"errors"
@@ -26,17 +27,18 @@ type app struct {
 
 // All the services.
 type services struct {
+	CurrencyService     *currency.Service
+	PositionService     *position.Service
 	UserIdentityService *user_identity.Service
 	UserProfileService  *user_profile.Service
-	PositionService     *position.Service
 }
 
 // Access to all repositories for reading.
 // Write access only available to services.
 type repositories struct {
+	Position     position.Reader
 	UserIdentity user_identity.Reader
 	UserProfile  user_profile.Reader
-	Position     position.Reader
 }
 
 func main() {
@@ -52,6 +54,9 @@ func main() {
 	}
 
 	defer db.Close()
+
+	// Currency
+	currencyService := currency.NewService()
 
 	// UserProfile
 	userProfileRepository := user_profile.NewRepository(db)
@@ -70,15 +75,16 @@ func main() {
 	positionService := position.NewService(positionRepository, tradeRepository)
 
 	services := services{
+		CurrencyService:     currencyService,
+		PositionService:     positionService,
 		UserIdentityService: userIdentityService,
 		UserProfileService:  userProfileService,
-		PositionService:     positionService,
 	}
 
 	repositories := repositories{
+		Position:     positionRepository,
 		UserIdentity: userIdentityRepository,
 		UserProfile:  userProfileRepository,
-		Position:     positionRepository,
 	}
 
 	a := &app{

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"arthveda/internal/features/position"
+	"arthveda/internal/feature/position"
 	"net/http"
 )
 
@@ -31,14 +31,15 @@ func createPositionHandler(s *position.Service) http.HandlerFunc {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
 
-		var payload position.AddPayload
+		var payload position.CreatePayload
 		if err := decodeJSONRequest(&payload, r); err != nil {
 			malformedJSONResponse(w, r, err)
 			return
 		}
 
-		position, errKind, err := s.Create(ctx, userID, payload)
+		payload.CreatedBy = userID
 
+		position, errKind, err := s.Create(ctx, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return
@@ -60,10 +61,9 @@ func searchPositionsHandler(s *position.Service) http.HandlerFunc {
 		}
 
 		// We only want to return the positions for the authenticated user.
-		payload.Filters.UserID = &userID
+		payload.Filters.CreatedBy = &userID
 
 		result, errKind, err := s.Search(ctx, payload)
-
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

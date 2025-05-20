@@ -2,9 +2,10 @@ package position
 
 import (
 	"arthveda/internal/dbx"
-	"arthveda/internal/features/trade"
+	"arthveda/internal/feature/trade"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -30,11 +31,26 @@ type ReadWriter interface {
 //
 
 type searchFilter struct {
-	UserID *uuid.UUID `query:"user_id"`
-	Symbol *string    `query:"symbol"`
+	CreatedBy                 *uuid.UUID   `json:"created_by"`
+	OpenedAtFrom              *time.Time   `json:"date_from"`
+	OpenedAtTill              *time.Time   `json:"date_till"`
+	Symbol                    *string      `json:"symbol"`
+	Instrument                *Instrument  `json:"instrument"`
+	Direction                 *Direction   `json:"direction"`
+	Status                    *Status      `json:"status"`
+	RFactor                   *float64     `json:"r_factor"`
+	RFactorOperator           *dbx.Operaor `json:"r_factor_operator"`
+	GrossPnL                  *string      `json:"gross_pnl"`
+	GrossPnLOperator          *dbx.Operaor `json:"gross_pnl_operator"`
+	NetPnL                    *string      `json:"net_pnl"`
+	NetPnLOperator            *dbx.Operaor `json:"net_pnl_operator"`
+	ChargesPercentage         *float64     `json:"charges_percentage"`
+	ChargesPercentageOperator *dbx.Operaor `json:"charges_percentag_operator"`
+	ReturnPercentage          *float64     `json:"return_percentage"`
+	ReturnPercentageOperator  *dbx.Operaor `json:"return_percentag_operator"`
 }
 
-var sortableFields = []string{
+var allowedSortFields = []string{
 	"p.symbol",
 }
 
@@ -49,13 +65,13 @@ func NewRepository(db *pgxpool.Pool) *positionRepository {
 func (r *positionRepository) Create(ctx context.Context, position *Position) error {
 	const sql = `
         INSERT INTO position (
-            id, user_id, created_at, updated_at, symbol, instrument, currency_code,
+            id, created_by, created_at, updated_at, symbol, instrument, currency,
             risk_amount, charges_amount, direction, status, opened_at, closed_at,
             gross_pnl_amount, net_pnl_amount, r_factor, net_return_percentage,
             charges_as_percentage_of_net_pnl, open_quantity, open_average_price_amount
         )
         VALUES (
-            @id, @user_id, @created_at, @updated_at, @symbol, @instrument, @currency_code,
+            @id, @created_by, @created_at, @updated_at, @symbol, @instrument, @currency,
             @risk_amount, @charges_amount, @direction, @status, @opened_at, @closed_at,
             @gross_pnl_amount, @net_pnl_amount, @r_factor, @net_return_percentage,
             @charges_as_percentage_of_net_pnl, @open_quantity, @open_average_price_amount
@@ -64,12 +80,12 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 
 	_, err := r.db.Exec(ctx, sql, pgx.NamedArgs{
 		"id":                               position.ID,
-		"user_id":                          position.UserID,
+		"created_by":                       position.CreatedBy,
 		"created_at":                       position.CreatedAt,
 		"updated_at":                       position.UpdatedAt,
 		"symbol":                           position.Symbol,
 		"instrument":                       position.Instrument,
-		"currency_code":                    position.CurrencyCode,
+		"currency":                         position.Currency,
 		"risk_amount":                      position.RiskAmount,
 		"charges_amount":                   position.ChargesAmount,
 		"direction":                        position.Direction,
@@ -110,8 +126,8 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 	baseSQL := `
         SELECT
             -- position columns
-            p.id, p.user_id, p.created_at, p.updated_at,
-            p.symbol, p.instrument, p.currency_code, p.risk_amount, p.charges_amount,
+            p.id, p.created_by, p.created_at, p.updated_at,
+            p.symbol, p.instrument, p.currency, p.risk_amount, p.charges_amount,
             p.direction, p.status, p.opened_at, p.closed_at,
             p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
             p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
@@ -126,8 +142,8 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 
 	b := dbx.NewSQLBuilder(baseSQL)
 
-	if p.Filters.UserID != nil {
-		b.AddCompareFilter("p.user_id", "=", p.Filters.UserID)
+	if p.Filters.CreatedBy != nil {
+		b.AddCompareFilter("p.created_by", "=", p.Filters.CreatedBy)
 	}
 	if p.Filters.Symbol != nil {
 		b.AddCompareFilter("p.symbol", "=", p.Filters.Symbol)
@@ -155,8 +171,8 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 
 		err := rows.Scan(
 			// position
-			&pos.ID, &pos.UserID, &pos.CreatedAt, &pos.UpdatedAt,
-			&pos.Symbol, &pos.Instrument, &pos.CurrencyCode, &pos.RiskAmount, &pos.ChargesAmount,
+			&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
+			&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.ChargesAmount,
 			&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
 			&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
 			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,

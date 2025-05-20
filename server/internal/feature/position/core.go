@@ -1,7 +1,8 @@
 package position
 
 import (
-	"arthveda/internal/features/trade"
+	"arthveda/internal/domain/currency"
+	"arthveda/internal/feature/trade"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,7 +11,7 @@ import (
 
 type Position struct {
 	ID        uuid.UUID  `json:"id" db:"id"`
-	UserID    uuid.UUID  `json:"user_id" db:"user_id"`
+	CreatedBy uuid.UUID  `json:"created_by" db:"created_by"`
 	CreatedAt time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at" db:"updated_at"`
 
@@ -18,11 +19,11 @@ type Position struct {
 	// Data provided by the user
 	//
 
-	Symbol        string          `json:"symbol" db:"symbol"`
-	Instrument    Instrument      `json:"instrument" db:"instrument"`
-	CurrencyCode  string          `json:"currency_code" db:"currency_code"`
-	RiskAmount    decimal.Decimal `json:"risk_amount" db:"risk_amount"`
-	ChargesAmount decimal.Decimal `json:"charges_amount" db:"charges_amount"`
+	Symbol        string            `json:"symbol" db:"symbol"`
+	Instrument    Instrument        `json:"instrument" db:"instrument"`
+	Currency      currency.Currency `json:"currency" db:"currency"`
+	RiskAmount    decimal.Decimal   `json:"risk_amount" db:"risk_amount"`
+	ChargesAmount decimal.Decimal   `json:"charges_amount" db:"charges_amount"`
 
 	//
 	// Data computed by Arthveda based on data provided by user mentioned above & related trade(s).
@@ -47,18 +48,142 @@ type Position struct {
 	Trades []*trade.Trade `json:"trades"` // All the trade(s) that are RELATED to this Position.
 }
 
-func newPosition() (*Position, error) {
+func new(payload CreatePayload) (*Position, error) {
 	now := time.Now().UTC()
-	ID, err := uuid.NewV7()
+
+	positionID, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Position{
-		ID:        ID,
-		CreatedAt: now,
-		Trades:    []*trade.Trade{},
-	}, nil
+	computeResult := compute(payload.ComputePayload)
+
+	trades := []*trade.Trade{}
+
+	for _, tradePayload := range payload.Trades {
+		// Attach the Position's ID.
+		tradePayload.PositionID = positionID
+
+		trade, err := trade.New(tradePayload)
+		if err != nil {
+			return nil, err
+		}
+
+		trades = append(trades, trade)
+	}
+
+	position := &Position{
+		ID:                          positionID,
+		CreatedBy:                   payload.CreatedBy,
+		CreatedAt:                   now,
+		Symbol:                      payload.Symbol,
+		Instrument:                  payload.Instrument,
+		Currency:                    payload.Currency,
+		RiskAmount:                  payload.RiskAmount,
+		ChargesAmount:               payload.ChargesAmount,
+		Direction:                   computeResult.Direction,
+		Status:                      computeResult.Status,
+		OpenedAt:                    computeResult.OpenedAt,
+		ClosedAt:                    computeResult.ClosedAt,
+		GrossPnLAmount:              computeResult.GrossPnLAmount,
+		NetPnLAmount:                computeResult.NetPnLAmount,
+		RFactor:                     computeResult.RFactor,
+		NetReturnPercentage:         computeResult.NetReturnPercentage,
+		ChargesAsPercentageOfNetPnL: computeResult.ChargesAsPercentageOfNetPnL,
+		OpenQuantity:                computeResult.OpenQuantity,
+		OpenAveragePriceAmount:      computeResult.OpenAveragePriceAmount,
+		Trades:                      trades,
+	}
+
+	return position, nil
+}
+
+func compute(payload ComputePayload) computeResult {
+	result := computeResult{
+		OpenedAt:  time.Now().UTC(),
+		Status:    StatusOpen,
+		Direction: DirectionLong,
+	}
+
+	if len(payload.Trades) == 0 {
+		return result
+	}
+
+	var closedAt *time.Time = nil
+	var status Status
+	var direction Direction
+	var avgPrice decimal.Decimal
+	grossPnL := decimal.NewFromFloat(0)
+	totalCost := decimal.NewFromFloat(0)
+	netQty := decimal.NewFromFloat(0)
+
+	for i := range payload.Trades {
+		trade := payload.Trades[i]
+		tradeQty := trade.Quantity
+		tradePrice := trade.Price
+
+		var pnl decimal.Decimal
+
+		avgPrice, netQty, direction, pnl, totalCost = applyTradeToPosition(avgPrice, netQty, totalCost, direction, tradeQty, tradePrice, trade.Kind)
+
+		grossPnL = grossPnL.Add(pnl)
+
+		if netQty.IsZero() {
+			closedAt = &trade.Time
+		}
+	}
+
+	var netPnL, rFactor, netReturnPercentage, chargesAsPercentageOfNetPnL decimal.Decimal
+
+	// Position is closed.
+	if netQty.IsZero() {
+		netPnL = grossPnL.Sub(payload.ChargesAmount)
+
+		if payload.RiskAmount.IsPositive() {
+			rFactor = netPnL.Div(payload.RiskAmount)
+		}
+
+		if netPnL.IsZero() {
+			status = StatusBreakeven
+		} else if netPnL.IsPositive() {
+			status = StatusWin
+		} else if netPnL.IsNegative() {
+			status = StatusLoss
+		}
+	} else {
+		// Position is open.
+		status = StatusOpen
+
+		// The position is still open but we have some realised gross pnl.
+		if grossPnL.IsPositive() {
+			netPnL = grossPnL
+		}
+	}
+
+	if grossPnL.IsPositive() {
+		chargesAsPercentageOfNetPnL = payload.ChargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100))
+	}
+
+	if totalCost.IsPositive() {
+		netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100))
+	}
+
+	result.Direction = direction
+	result.Status = status
+	result.OpenedAt = payload.Trades[0].Time
+	result.ClosedAt = closedAt
+	result.GrossPnLAmount = grossPnL
+	result.NetPnLAmount = netPnL
+	result.RFactor, _ = rFactor.Float64()
+	result.NetReturnPercentage, _ = netReturnPercentage.Float64()
+	result.ChargesAsPercentageOfNetPnL, _ = chargesAsPercentageOfNetPnL.Float64()
+
+	if netQty.IsPositive() {
+		result.OpenQuantity = netQty
+		result.OpenAveragePriceAmount = avgPrice
+	}
+
+	return result
 }
 
 type Instrument string

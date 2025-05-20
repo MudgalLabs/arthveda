@@ -3,8 +3,8 @@ package trade
 import (
 	"arthveda/internal/repository"
 	"context"
+	"errors"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -16,7 +16,7 @@ type Reader interface {
 }
 
 type Writer interface {
-	Create(ctx context.Context, positionID uuid.UUID, trades []CreatePayload) ([]*Trade, error)
+	Create(ctx context.Context, trades []*Trade) ([]*Trade, error)
 }
 
 type ReadWriter interface {
@@ -40,21 +40,28 @@ func NewRepository(db *pgxpool.Pool) *tradeRepository {
 	return &tradeRepository{db}
 }
 
-func (r *tradeRepository) Create(ctx context.Context, positionID uuid.UUID, trades []CreatePayload) ([]*Trade, error) {
-	rows := make([][]any, len(trades))
-	now := time.Now().UTC()
+func (r *tradeRepository) Create(ctx context.Context, trades []*Trade) ([]*Trade, error) {
+	if len(trades) == 0 {
+		return nil, nil
+	}
 
+	rows := make([][]any, len(trades))
+	var positionID *uuid.UUID = nil
 	for i, t := range trades {
-		ID, err := uuid.NewV7()
-		if err != nil {
-			return nil, fmt.Errorf("uuid: %w", err)
+		if positionID == nil {
+			positionID = &t.PositionID
+		} else {
+			// Making sure we don't end up creating trades for multiple positions.
+			if *positionID != t.PositionID {
+				return nil, errors.New("all trades must have same position ID but found different position IDs")
+			}
 		}
 
 		rows[i] = []any{
-			ID,
-			positionID,
-			now,
-			nil,
+			t.ID,
+			t.PositionID,
+			t.CreatedAt,
+			t.UpdatedAt,
 			t.Kind,
 			t.Time,
 			t.Quantity,
@@ -73,7 +80,7 @@ func (r *tradeRepository) Create(ctx context.Context, positionID uuid.UUID, trad
 		return nil, fmt.Errorf("batch insert: %w", err)
 	}
 
-	return r.FindByPositionID(ctx, positionID)
+	return trades, nil
 }
 
 func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error) {

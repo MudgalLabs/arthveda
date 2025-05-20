@@ -1,7 +1,7 @@
 package main
 
 import (
-	"arthveda/internal/features/user_identity"
+	"arthveda/internal/feature/user_identity"
 	"net/http"
 )
 

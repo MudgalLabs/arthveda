@@ -39,7 +39,7 @@ export function compute(body: ComputePositionRequest) {
 export interface CreatePositionRequest extends ComputePositionRequest {
     symbol: string;
     instrument: PositionInstrument;
-    currency_code: CurrencyCode;
+    currency: CurrencyCode;
 }
 
 export interface CreatePositionResponse {
@@ -54,9 +54,9 @@ export function create(body: CreatePositionRequest) {
 }
 
 export interface ListPositionsReponse {
-    positions: Position[];
+    items: Position[];
 }
 
-export function list() {
-    return client.get(API_ROUTES.position.list);
+export function search() {
+    return client.post(API_ROUTES.position.search, {});
 }

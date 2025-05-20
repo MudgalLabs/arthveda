@@ -13,8 +13,7 @@ if (!API_URL) {
 }
 
 const client = axios.create({
-    // TODO: We shouldn't append `v1` here but it should be doen in `api_routes.ts`.
-    baseURL: `${API_URL}/v1`,
+    baseURL: API_URL,
     withCredentials: true,
 });
 

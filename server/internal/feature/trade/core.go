@@ -1,6 +1,7 @@
 package trade
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,10 +20,32 @@ type Trade struct {
 }
 
 type CreatePayload struct {
-	Kind     Kind            `json:"kind"`
-	Time     time.Time       `json:"time"`
-	Quantity decimal.Decimal `json:"quantity"`
-	Price    decimal.Decimal `json:"price"`
+	PositionID uuid.UUID
+	Kind       Kind            `json:"kind"`
+	Time       time.Time       `json:"time"`
+	Quantity   decimal.Decimal `json:"quantity"`
+	Price      decimal.Decimal `json:"price"`
+}
+
+func New(payload CreatePayload) (*Trade, error) {
+	now := time.Now().UTC()
+
+	ID, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("uuid: %w", err)
+	}
+
+	trade := &Trade{
+		ID:         ID,
+		PositionID: payload.PositionID,
+		CreatedAt:  now,
+		Kind:       payload.Kind,
+		Time:       payload.Time,
+		Quantity:   payload.Quantity,
+		Price:      payload.Price,
+	}
+
+	return trade, nil
 }
 
 type UpdatePayload struct {

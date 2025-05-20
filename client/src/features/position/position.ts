@@ -38,7 +38,7 @@ function positionStatusToString(position: PositionDirection): string {
 // We currently support only INR.
 // TODO: Shouldn't this be somewhere else? Currency will probably be used in
 // several places. We will most likely fetch the list of currencies from API.
-type CurrencyCode = "INR";
+type CurrencyCode = "inr";
 
 interface Position {
     id: number;
@@ -48,7 +48,7 @@ interface Position {
 
     symbol: string;
     instrument: PositionInstrument;
-    currency_code: CurrencyCode;
+    currency: CurrencyCode;
     risk_amount: string;
     charges_amount: string;
 

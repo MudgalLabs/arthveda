@@ -10,8 +10,8 @@ function CurrencySelect(props: Omit<SelectProps, "options">) {
     // So right now we are hardcoding it to INR.
     const options: SelectOptionItem[] = [
         {
-            value: "INR",
-            label: getCurrencyLabel("INR"),
+            value: "inr",
+            label: getCurrencyLabel("inr"),
         },
         {
             value: "none" as CurrencyCode,

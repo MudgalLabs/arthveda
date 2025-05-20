@@ -14,7 +14,7 @@ import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
 
 export const ListPositions = () => {
-    const { data, isLoading } = apiHooks.position.useList();
+    const { data, isLoading } = apiHooks.position.useSearch();
 
     if (isLoading) {
         return <Loading />;
@@ -23,7 +23,7 @@ export const ListPositions = () => {
     return (
         <>
             <PageHeading heading="Positions" />
-            <PositionsTable positions={data?.data.positions || []} />
+            <PositionsTable positions={data?.data.items || []} />
         </>
     );
 };
@@ -66,7 +66,7 @@ const columns: ColumnDef<Position>[] = [
         cell: ({ row }) => (
             <StatusTag
                 status={row.original.status}
-                currency={row.original.currency_code}
+                currency={row.original.currency}
                 openQuantity={row.original.open_quantity}
                 openAvgPrice={row.original.open_average_price_amount}
             />
@@ -96,7 +96,7 @@ const columns: ColumnDef<Position>[] = [
         cell: ({ row }) =>
             formatCurrency(
                 row.original.gross_pnl_amount,
-                row.original.currency_code
+                row.original.currency
             ),
     },
     {
@@ -106,10 +106,7 @@ const columns: ColumnDef<Position>[] = [
             <DataTableColumnHeader column={column} title="Net PnL" />
         ),
         cell: ({ row }) =>
-            formatCurrency(
-                row.original.net_pnl_amount,
-                row.original.currency_code
-            ),
+            formatCurrency(row.original.net_pnl_amount, row.original.currency),
     },
     {
         id: "Charges",
@@ -118,10 +115,7 @@ const columns: ColumnDef<Position>[] = [
             <DataTableColumnHeader column={column} title="Charges" />
         ),
         cell: ({ row }) =>
-            formatCurrency(
-                row.original.charges_amount,
-                row.original.currency_code
-            ),
+            formatCurrency(row.original.charges_amount, row.original.currency),
     },
     {
         id: "Charges %",

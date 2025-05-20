@@ -1,4 +1,4 @@
-package httpx
+package common
 
 // SearchPayload is the input payload to search any <resource>.
 // It takes a generic to define resource filters type.

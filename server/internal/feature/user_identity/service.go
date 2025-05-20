@@ -3,7 +3,7 @@ package user_identity
 import (
 	"arthveda/internal/apires"
 	"arthveda/internal/env"
-	"arthveda/internal/features/user_profile"
+	"arthveda/internal/feature/user_profile"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"

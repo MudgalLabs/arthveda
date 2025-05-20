@@ -17,9 +17,9 @@ CREATE TABLE IF NOT EXISTS user_profile (
         display_name VARCHAR(255) NOT NULL,
         display_image TEXT NOT NULL,
         created_at TIMESTAMP NOT NULL,
-        updated_at TIMESTAMP,
+        updated_at TIMESTAMP
 
-        FOREIGN KEY (user_id) REFERENCES user_identity(id)
+        -- FOREIGN KEY (user_id) REFERENCES user_identity(id)
 );
 
 CREATE TYPE POSITION_INSTRUMENT AS ENUM('equity','future','option');
@@ -30,27 +30,27 @@ CREATE TYPE POSITION_STATUS AS ENUM('win', 'loss', 'breakeven', 'open');
 
 CREATE TABLE IF NOT EXISTS position (
         id UUID PRIMARY KEY,
-        user_id UUID,
+        created_by UUID,
         created_at TIMESTAMP NOT NULL,
         updated_at TIMESTAMP,
         symbol VARCHAR(255) NOT NULL,
         instrument POSITION_INSTRUMENT NOT NULL,
-        currency_code VARCHAR(3) NOT NULL,
-        risk_amount NUMERIC(14, 2) NOT NULL,
-        charges_amount NUMERIC(14, 2) NOT NULL,
+        currency VARCHAR(3) NOT NULL,
+        risk_amount NUMERIC(19, 6) NOT NULL,
+        charges_amount NUMERIC(19, 6) NOT NULL,
         direction POSITION_DIRECTION NOT NULL,
         status POSITION_STATUS NOT NULL,
         opened_at TIMESTAMP NOT NULL,
         closed_at TIMESTAMP,
-        gross_pnl_amount NUMERIC(14, 2) NOT NULL,
-        net_pnl_amount NUMERIC(14, 2) NOT NULL,
+        gross_pnl_amount NUMERIC(19, 6) NOT NULL,
+        net_pnl_amount NUMERIC(19, 6) NOT NULL,
         r_factor REAL NOT NULL,
         net_return_percentage REAL NOT NULL,
         charges_as_percentage_of_net_pnl REAL NOT NULL,
-        open_quantity NUMERIC(14, 2) NOT NULL,
-        open_average_price_amount NUMERIC(14, 2) NOT NULL,
+        open_quantity NUMERIC(19, 6) NOT NULL,
+        open_average_price_amount NUMERIC(19, 6) NOT NULL
 
-        FOREIGN KEY (user_id) REFERENCES user_profile(user_id)
+        -- FOREIGN KEY (user_id) REFERENCES user_profile(user_id)
 );
 
 CREATE TYPE TRADE_KIND AS ENUM('buy', 'sell');
@@ -62,10 +62,10 @@ CREATE TABLE IF NOT EXISTS trade (
         updated_at TIMESTAMP,
         kind TRADE_KIND NOT NULL,
         time TIMESTAMP NOT NULL,
-        quantity NUMERIC(18, 6) NOT NULL,
-        price NUMERIC(14, 2) NOT NULL,
+        quantity NUMERIC(19, 6) NOT NULL,
+        price NUMERIC(19, 6) NOT NULL
 
-        FOREIGN KEY (position_id) REFERENCES position(id)
+        -- FOREIGN KEY (position_id) REFERENCES position(id)
 );
 
 -- +goose StatementEnd
