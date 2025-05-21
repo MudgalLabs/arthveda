@@ -6,7 +6,7 @@ import (
 
 type Pagination struct {
 	Page  int `query:"page" json:"page" validate:"gte=1"`
-	Limit int `query:"limit" json:"limit" validate:"gte=1,lte=1000"`
+	Limit int `query:"limit" json:"limit" validate:"gte=1,lte=100"`
 }
 
 func (p *Pagination) ApplyDefaults() {

@@ -12,23 +12,25 @@ import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
+import { useDataTableState } from "@/hooks/use_date_table_state";
+import { ROUTES } from "@/routes";
+import { PositionSearchFilters } from "@/lib/api/position";
 
 export const ListPositions = () => {
-    const { data, isLoading } = apiHooks.position.useSearch();
-
-    if (isLoading) {
-        return <Loading />;
-    }
-
     return (
         <>
             <PageHeading heading="Positions" />
-            <PositionsTable positions={data?.data.items || []} />
+            <PositionsFilters />
+            <PositionsTable />
         </>
     );
 };
 
 export default ListPositions;
+
+const PositionsFilters = ({}: {}) => {
+    return <h1>Filters</h1>;
+};
 
 const columns: ColumnDef<Position>[] = [
     {
@@ -128,6 +130,32 @@ const columns: ColumnDef<Position>[] = [
     },
 ];
 
-const PositionsTable = ({ positions }: { positions: Position[] }) => {
-    return <DataTableSmart columns={columns} data={positions} />;
+const PositionsTable = ({ filters }: { filters?: PositionSearchFilters }) => {
+    const [state, setState] = useDataTableState(ROUTES.positionList);
+
+    const { data, isLoading } = apiHooks.position.useSearch({
+        filters,
+        pagination: {
+            page: state.pagination.pageIndex + 1,
+            limit: state.pagination.pageSize,
+        },
+    });
+
+    if (isLoading) {
+        return <Loading />;
+    }
+
+    if (data) {
+        return (
+            <DataTableSmart
+                columns={columns}
+                data={data.data.items}
+                total={data.data.pagination.total_items}
+                state={state}
+                onStateChange={setState}
+            />
+        );
+    }
+
+    return null;
 };

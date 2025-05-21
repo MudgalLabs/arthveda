@@ -10,16 +10,32 @@ export function isProd(): boolean {
     return process.env.NODE_ENV === "production";
 }
 
-export enum LocalStorageKey {
-    SIDEBAR_OPEN = "sidebar_open",
-}
+export type LocalStorageKey = string;
+
+export const LocalStorageKeySidebarOpen: LocalStorageKey = "sidebar_open";
 
 export function saveToLocalStorage(key: LocalStorageKey, value: string) {
     localStorage.setItem(key, value);
 }
 
-export function loadFromLocalStorage(key: LocalStorageKey): string {
-    return localStorage.getItem(key) || "";
+export function loadFromLocalStorage<T>(
+    key: LocalStorageKey,
+    defaultValue?: T
+): T | null {
+    try {
+        const valueStr = localStorage.getItem(key);
+
+        if (valueStr == null) {
+            return null;
+        }
+
+        const value: T = JSON.parse(valueStr);
+
+        return value;
+    } catch (err) {
+        console.error("Failed to load from LocalStorage: ", err);
+        return defaultValue || null;
+    }
 }
 
 interface formatDateOptions {
@@ -219,4 +235,8 @@ export function generateId(prefix = "id") {
     const timestamp = Date.now();
     const uniquePart = counter++;
     return `${prefix}-${timestamp}-${uniquePart}`;
+}
+
+export function isFunction(value: any): value is Function {
+    return typeof value === "function";
 }

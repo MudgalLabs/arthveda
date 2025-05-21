@@ -8,6 +8,7 @@ import {
 import { NewTrade } from "@/features/trade/trade";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { ApiRes, client } from "@/lib/api/client";
+import { SearchRequest, SearchResponse } from "@/lib/types";
 
 export interface ComputePositionRequest {
     risk_amount: string;
@@ -53,10 +54,14 @@ export function create(body: CreatePositionRequest) {
     );
 }
 
-export interface ListPositionsReponse {
-    items: Position[];
+export interface PositionSearchFilters {
+    symbol: string;
 }
 
-export function search() {
-    return client.post(API_ROUTES.position.search, {});
+export interface PositionSearchResponse extends SearchResponse<Position[]> {}
+export interface PositionSearchRequest
+    extends SearchRequest<PositionSearchFilters> {}
+
+export function search(body: PositionSearchRequest) {
+    return client.post(API_ROUTES.position.search, body);
 }

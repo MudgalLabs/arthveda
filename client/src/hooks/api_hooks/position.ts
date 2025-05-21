@@ -1,3 +1,9 @@
+import {
+    useMutation,
+    AnyUseMutationOptions,
+    useQuery,
+    keepPreviousData,
+} from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
 import {
@@ -5,13 +11,9 @@ import {
     CreatePositionResponse,
     ComputePositionRequest,
     ComputePositionResponse,
-    ListPositionsReponse,
+    PositionSearchResponse,
+    PositionSearchRequest,
 } from "@/lib/api/position";
-import {
-    useMutation,
-    AnyUseMutationOptions,
-    useQuery,
-} from "@tanstack/react-query";
 
 export function useCompute(options: AnyUseMutationOptions = {}) {
     return useMutation<
@@ -41,10 +43,11 @@ export function useCreate(options: AnyUseMutationOptions = {}) {
     });
 }
 
-export function useSearch() {
+export function useSearch(body: PositionSearchRequest) {
     return useQuery({
-        queryKey: ["useSearchPositions"],
-        queryFn: () => api.position.search(),
-        select: (res) => res.data as ApiRes<ListPositionsReponse>,
+        queryKey: ["usePositionsSearch", body],
+        queryFn: () => api.position.search(body),
+        select: (res) => res.data as ApiRes<PositionSearchResponse>,
+        placeholderData: keepPreviousData,
     });
 }

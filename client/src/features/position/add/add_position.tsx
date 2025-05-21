@@ -221,6 +221,7 @@ function AddPosition() {
                     showDiscardWarning={showDiscardWarning}
                     discard={discard}
                 />
+
                 <Button
                     onClick={handleClickSave}
                     loading={isSaving}
@@ -416,7 +417,7 @@ const AddTradeButton = memo(
                 content={
                     <div className="flex-center gap-x-2">
                         <IconAlert size={18} />
-                        <p>Trades missing some data</p>
+                        <p>Fill in missing information to proceed</p>
                     </div>
                 }
                 contentProps={{ side: "bottom" }}

@@ -1,11 +1,10 @@
 package position
 
 import (
+	"arthveda/internal/common"
 	"arthveda/internal/dbx"
-	"arthveda/internal/feature/trade"
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -31,23 +30,22 @@ type ReadWriter interface {
 //
 
 type searchFilter struct {
-	CreatedBy                 *uuid.UUID   `json:"created_by"`
-	OpenedAtFrom              *time.Time   `json:"date_from"`
-	OpenedAtTill              *time.Time   `json:"date_till"`
-	Symbol                    *string      `json:"symbol"`
-	Instrument                *Instrument  `json:"instrument"`
-	Direction                 *Direction   `json:"direction"`
-	Status                    *Status      `json:"status"`
-	RFactor                   *float64     `json:"r_factor"`
-	RFactorOperator           *dbx.Operaor `json:"r_factor_operator"`
-	GrossPnL                  *string      `json:"gross_pnl"`
-	GrossPnLOperator          *dbx.Operaor `json:"gross_pnl_operator"`
-	NetPnL                    *string      `json:"net_pnl"`
-	NetPnLOperator            *dbx.Operaor `json:"net_pnl_operator"`
-	ChargesPercentage         *float64     `json:"charges_percentage"`
-	ChargesPercentageOperator *dbx.Operaor `json:"charges_percentag_operator"`
-	ReturnPercentage          *float64     `json:"return_percentage"`
-	ReturnPercentageOperator  *dbx.Operaor `json:"return_percentag_operator"`
+	CreatedBy                 *uuid.UUID              `json:"created_by"`
+	Opened                    *common.DateRangeFilter `json:"opened"`
+	Symbol                    *string                 `json:"symbol"`
+	Instrument                *Instrument             `json:"instrument"`
+	Direction                 *Direction              `json:"direction"`
+	Status                    *Status                 `json:"status"`
+	RFactor                   *float64                `json:"r_factor"`
+	RFactorOperator           *dbx.Operaor            `json:"r_factor_operator"`
+	GrossPnL                  *string                 `json:"gross_pnl"`
+	GrossPnLOperator          *dbx.Operaor            `json:"gross_pnl_operator"`
+	NetPnL                    *string                 `json:"net_pnl"`
+	NetPnLOperator            *dbx.Operaor            `json:"net_pnl_operator"`
+	ChargesPercentage         *float64                `json:"charges_percentage"`
+	ChargesPercentageOperator *dbx.Operaor            `json:"charges_percentag_operator"`
+	ReturnPercentage          *float64                `json:"return_percentage"`
+	ReturnPercentageOperator  *dbx.Operaor            `json:"return_percentag_operator"`
 }
 
 var allowedSortFields = []string{
@@ -122,23 +120,18 @@ func (r *positionRepository) Delete(ctx context.Context, ID uuid.UUID) error {
 	return nil
 }
 
+// TODO: Add a flag argument like `attach_trades` and if true, we should loop through
+// the position(s) and fetch theit trade(s) and append it so `Postiion.Trades`.
 func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Position, int, error) {
 	baseSQL := `
         SELECT
-            -- position columns
             p.id, p.created_by, p.created_at, p.updated_at,
             p.symbol, p.instrument, p.currency, p.risk_amount, p.charges_amount,
             p.direction, p.status, p.opened_at, p.closed_at,
             p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
-            p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
-
-            -- trade columns
-            t.id, t.position_id, t.created_at, t.updated_at,
-            t.kind, t.time, t.quantity, t.price
+            p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount
         FROM
-			position p
-        JOIN
-			trade t ON p.id = t.position_id `
+			position p`
 
 	b := dbx.NewSQLBuilder(baseSQL)
 
@@ -161,58 +154,29 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 
 	defer rows.Close()
 
-	positionsMap := make(map[uuid.UUID]*Position)
+	positions := []*Position{}
 
 	for rows.Next() {
-		var (
-			pos Position
-			tr  trade.Trade
-		)
+		var pos Position
 
 		err := rows.Scan(
-			// position
 			&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
 			&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.ChargesAmount,
 			&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
 			&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
 			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
-
-			// trade
-			&tr.ID, &tr.PositionID, &tr.CreatedAt, &tr.UpdatedAt,
-			&tr.Kind, &tr.Time, &tr.Quantity, &tr.Price,
 		)
 
 		if err != nil {
 			return nil, 0, fmt.Errorf("scan: %w", err)
 		}
 
-		// Attach to position map
-		p := positionsMap[pos.ID]
-		if p == nil {
-			pos.Trades = []*trade.Trade{}
-			positionsMap[pos.ID] = &pos
-			p = &pos
-		}
-
-		// If a trade is present (LEFT JOIN can return NULLs)
-		if tr.ID.String() != "" {
-			p.Trades = append(p.Trades, &tr)
-		}
+		positions = append(positions, &pos)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, 0, fmt.Errorf("rows err: %w", err)
 	}
-
-	// Convert map to slice
-	positions := make([]*Position, 0, len(positionsMap))
-	for _, p := range positionsMap {
-		positions = append(positions, p)
-	}
-
-	// For count we need to only care about positions only. Without this, the count will
-	// include the number of trades associated with all the positions as well.
-	b.AddGroupBy("p.id")
 
 	var total int
 	countSQL, countArgs := b.Count()

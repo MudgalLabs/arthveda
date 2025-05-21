@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CellContext, RowData } from "@tanstack/react-table";
+import { Setter } from "@/lib/types";
 
 declare module "@tanstack/react-table" {
     interface TableMeta<TData extends RowData> {
@@ -48,8 +49,6 @@ type DataTableCellUpdateFn = (
     columnId: string,
     value: unknown
 ) => void;
-
-type Setter<T> = (value: T[] | ((prev: T[]) => T[])) => void;
 
 function getDataTableCellUpdateFn<T = unknown>(
     setter: Setter<T>

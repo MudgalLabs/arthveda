@@ -1,17 +1,7 @@
-import {
-    createContext,
-    FC,
-    PropsWithChildren,
-    useContext,
-    useEffect,
-    useState,
-} from "react";
+import { createContext, FC, PropsWithChildren, useContext } from "react";
 
-import {
-    loadFromLocalStorage,
-    LocalStorageKey,
-    saveToLocalStorage,
-} from "@/lib/utils";
+import { LocalStorageKeySidebarOpen } from "@/lib/utils";
+import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 
 interface SidebarContextType {
     isOpen: boolean;
@@ -24,22 +14,14 @@ const SidebarContext = createContext<SidebarContextType>({
 });
 
 export const SidebarProvider: FC<PropsWithChildren> = ({ children }) => {
-    const [isOpen, setIsOpen] = useState<boolean>(
-        JSON.parse(
-            loadFromLocalStorage(LocalStorageKey.SIDEBAR_OPEN) || "false"
-        )
+    const [isOpen, setIsOpen] = useLocalStorageState<boolean>(
+        LocalStorageKeySidebarOpen,
+        false
     );
 
     function toggleSidebar() {
         setIsOpen((prev) => !prev);
     }
-
-    useEffect(() => {
-        saveToLocalStorage(
-            LocalStorageKey.SIDEBAR_OPEN,
-            JSON.stringify(isOpen)
-        );
-    }, [isOpen]);
 
     return (
         <SidebarContext.Provider

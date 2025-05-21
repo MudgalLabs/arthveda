@@ -349,7 +349,7 @@ function Time() {
     useLayoutEffect(() => {
         if (activeTimeRef.current) {
             activeTimeRef.current.scrollIntoView({
-                behavior: "smooth",
+                behavior: "instant",
                 block: "center",
             });
         }

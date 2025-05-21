@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
     ColumnDef,
+    PaginationState,
     SortingState,
     VisibilityState,
     getCoreRowModel,
@@ -16,40 +17,80 @@ import { DataTablePagination } from "./data_table_pagination";
 import { DataTable } from "./data_table";
 import { DataTableVisibility } from "./data_table_visibility";
 
+interface DataTableState {
+    columnVisibility: VisibilityState;
+    sorting: SortingState;
+    pagination: PaginationState;
+}
+
 interface DataTableSmartProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
-    showRowSelection?: boolean;
+    total?: number;
+    state?: Partial<DataTableState>;
+    onStateChange?: (newState: DataTableState) => void;
 }
 
 function DataTableSmart<TData, TValue>({
     columns,
     data,
+    total,
+    state: stateProp,
+    onStateChange,
 }: DataTableSmartProps<TData, TValue>) {
-    const [rowSelection, setRowSelection] = useState({});
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-        {}
+        () => stateProp?.columnVisibility ?? {}
     );
-    const [sorting, setSorting] = useState<SortingState>([]);
+    const [pagination, setPagination] = useState<PaginationState>(
+        () => stateProp?.pagination ?? { pageIndex: 0, pageSize: 10 }
+    );
+    const [sorting, setSorting] = useState<SortingState>(
+        stateProp?.sorting ?? []
+    );
+    const [rowSelection, setRowSelection] = useState({});
+
+    if (stateProp?.pagination && total === undefined) {
+        throw new Error(
+            "DataTableSmart: you provided `state.pagination` but no `total`"
+        );
+    }
 
     const table = useReactTable({
         data,
         columns,
         state: {
-            sorting,
             columnVisibility,
             rowSelection,
+            sorting,
+            pagination,
         },
+        rowCount: total,
+        manualPagination: stateProp?.pagination && total ? true : false,
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
         onColumnVisibilityChange: setColumnVisibility,
+        onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFacetedRowModel: getFacetedRowModel(),
         getFacetedUniqueValues: getFacetedUniqueValues(),
     });
+
+    const tableState = table.getState();
+    useEffect(() => {
+        const newState: DataTableState = {
+            columnVisibility: tableState.columnVisibility,
+            sorting: tableState.sorting,
+            pagination: tableState.pagination,
+        };
+        onStateChange?.(newState);
+    }, [
+        tableState.sorting,
+        tableState.columnVisibility,
+        tableState.pagination,
+    ]);
 
     return (
         <div className="space-y-4">
@@ -59,10 +100,10 @@ function DataTableSmart<TData, TValue>({
 
             <DataTable table={table} />
 
-            <DataTablePagination table={table} />
+            <DataTablePagination table={table} total={total} />
         </div>
     );
 }
 
 export { DataTableSmart };
-export type { DataTableSmartProps };
+export type { DataTableSmartProps, DataTableState };

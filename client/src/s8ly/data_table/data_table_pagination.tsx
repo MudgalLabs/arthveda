@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 
 interface DataTablePaginationProps<TData> {
     table: Table<TData>;
-    /** If set to `true`, we will show how many rows are selected. @default false */
-    showRowSelection?: boolean;
+    /** Total number of rows/items. */
+    total?: number;
 }
 
 const pageSizeOptions = [10, 25, 50, 100].map((pageSize) => ({
@@ -22,6 +22,7 @@ const pageSizeOptions = [10, 25, 50, 100].map((pageSize) => ({
 
 export function DataTablePagination<TData>({
     table,
+    total,
 }: DataTablePaginationProps<TData>) {
     return (
         <div className="flex items-center justify-between px-2">
@@ -91,7 +92,7 @@ export function DataTablePagination<TData>({
                         table.getFilteredRowModel().rows.length
                     )}
                     {" of "}
-                    {table.getFilteredRowModel().rows.length}
+                    {total ?? table.getFilteredRowModel().rows.length}
                 </div>
             </div>
 
@@ -100,8 +101,8 @@ export function DataTablePagination<TData>({
                     <p className="text-sm font-medium">Rows per page</p>
                     <Select
                         classNames={{
-                            trigger: "h-8 w-[80px]",
-                            content: "w-[80px]",
+                            trigger: "h-8 w-[80px]!",
+                            content: "w-[80px]!",
                             item: "h-8",
                         }}
                         options={pageSizeOptions}

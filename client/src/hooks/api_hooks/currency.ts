@@ -9,5 +9,9 @@ export function useList() {
         queryKey: ["useCurrencyList"],
         queryFn: () => api.currency.list(),
         select: (res) => res.data as ApiRes<Currency[]>,
+        // We are sure currencies won't change during runtime. If we were to
+        // allow uers to change currenceis (default/preference etc) then
+        // we can invalidate this query later.
+        staleTime: Infinity,
     });
 }
