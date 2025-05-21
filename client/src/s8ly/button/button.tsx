@@ -2,6 +2,7 @@ import { ComponentProps, FC, memo } from "react";
 
 import { VariantProps, cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { Loading } from "@/components/loading";
 
 const buttonVariants = cva(
     "inline-flex items-center justify-center rounded-md font-heading font-content font-medium transition-all disabled:opacity-69 disabled:cursor-not-allowed enabled:active:scale-[0.98] cursor-pointer outline-none focus-visible:ring-foreground/10 focus-visible:ring-offset-[1px] focus-visible:ring-[1px]",
@@ -58,7 +59,12 @@ const Button: FC<ButtonProps> = memo((props) => {
             disabled={disabled || loading}
             {...rest}
         >
-            {loading && <Loading />}
+            {loading && (
+                <div className="absolute inline-flex items-center">
+                    <Loading color="var(--color-foreground)" />
+                </div>
+            )}
+
             <span
                 className={cn(
                     "inline-flex items-center justify-center gap-2 whitespace-nowrap transition",
@@ -73,14 +79,6 @@ const Button: FC<ButtonProps> = memo((props) => {
         </button>
     );
 });
-
-const Loading: FC = () => {
-    return (
-        <div className="inline-fle absolute items-center">
-            <div className="border-foreground x h-5 w-5 animate-spin rounded-full border-2 border-b-transparent" />
-        </div>
-    );
-};
 
 Button.displayName = "s8ly_Button";
 
