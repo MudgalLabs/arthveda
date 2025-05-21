@@ -1,4 +1,4 @@
-import { Table } from "@tanstack/react-table";
+import { RowData, Table } from "@tanstack/react-table";
 
 import {
     Button,
@@ -8,6 +8,12 @@ import {
     DropdownMenuContent,
 } from "@/s8ly";
 import { IconSettings2 } from "@/components/icons";
+
+declare module "@tanstack/react-table" {
+    interface ColumnMeta<TData extends RowData, TValue> {
+        columnVisibilityHeader?: string;
+    }
+}
 
 interface DataTableVisibilityProps<TData> {
     table: Table<TData>;
@@ -46,7 +52,8 @@ export function DataTableVisibility<TData>({
                                     column.toggleVisibility(!!value)
                                 }
                             >
-                                {column.id}
+                                {column.columnDef.meta
+                                    ?.columnVisibilityHeader || column.id}
                             </DropdownMenuCheckboxItem>
                         );
                     })}

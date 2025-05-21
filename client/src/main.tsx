@@ -10,6 +10,7 @@ import { Error } from "@/features/error/error";
 import { AuthenticationProvider } from "@/features/auth/auth_context";
 import routes from "@/routes";
 import App from "@/App";
+import { ListPositionContextProvider } from "./features/position/list/list_positions_context";
 
 const container = document.getElementById("root") as HTMLElement;
 
@@ -39,9 +40,11 @@ root.render(
             <AuthenticationProvider>
                 <SidebarProvider>
                     <AddPositionContextProvider>
-                        <TooltipPrimitive.TooltipProvider>
-                            <RouterProvider router={router} />
-                        </TooltipPrimitive.TooltipProvider>
+                        <ListPositionContextProvider>
+                            <TooltipPrimitive.TooltipProvider>
+                                <RouterProvider router={router} />
+                            </TooltipPrimitive.TooltipProvider>
+                        </ListPositionContextProvider>
                     </AddPositionContextProvider>
                 </SidebarProvider>
             </AuthenticationProvider>

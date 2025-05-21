@@ -1,7 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-import { Loading } from "@/components/loading";
-import { apiHooks } from "@/hooks/api_hooks";
 import {
     Position,
     positionInstrumentToString,
@@ -12,14 +10,15 @@ import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
-import { useDataTableState } from "@/hooks/use_date_table_state";
-import { ROUTES } from "@/routes";
-import { PositionSearchFilters } from "@/lib/api/position";
+import { useListPositions } from "./list_positions_context";
+import { Loading } from "@/components/loading";
 
 export const ListPositions = () => {
+    const { loading } = useListPositions();
+
     return (
         <>
-            <PageHeading heading="Positions" />
+            <PageHeading heading="Positions" loading={loading} />
             <PositionsFilters />
             <PositionsTable />
         </>
@@ -34,7 +33,10 @@ const PositionsFilters = ({}: {}) => {
 
 const columns: ColumnDef<Position>[] = [
     {
-        id: "Opened At",
+        id: "opened",
+        meta: {
+            columnVisibilityHeader: "Opened At",
+        },
         accessorKey: "opened_at",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Opened At" />
@@ -43,14 +45,20 @@ const columns: ColumnDef<Position>[] = [
             formatDate(new Date(row.original.opened_at), { time: true }),
     },
     {
-        id: "Symbol",
+        id: "symbol",
+        meta: {
+            columnVisibilityHeader: "Symbol",
+        },
         accessorKey: "symbol",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Symbol" />
         ),
     },
     {
-        id: "Direction",
+        id: "direction",
+        meta: {
+            columnVisibilityHeader: "Direction",
+        },
         accessorKey: "direction",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Direction" />
@@ -60,7 +68,10 @@ const columns: ColumnDef<Position>[] = [
         ),
     },
     {
-        id: "Status",
+        id: "status",
+        meta: {
+            columnVisibilityHeader: "Status",
+        },
         accessorKey: "status",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Status" />
@@ -69,13 +80,14 @@ const columns: ColumnDef<Position>[] = [
             <StatusTag
                 status={row.original.status}
                 currency={row.original.currency}
-                openQuantity={row.original.open_quantity}
-                openAvgPrice={row.original.open_average_price_amount}
             />
         ),
     },
     {
-        id: "Instrument",
+        id: "instrument",
+        meta: {
+            columnVisibilityHeader: "Instrument",
+        },
         accessorKey: "instrument",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Instrument" />
@@ -83,14 +95,20 @@ const columns: ColumnDef<Position>[] = [
         cell: ({ row }) => positionInstrumentToString(row.original.instrument),
     },
     {
-        id: "R Factor",
+        id: "r_factor",
+        meta: {
+            columnVisibilityHeader: "R Factor",
+        },
         accessorKey: "r_factor",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="R Factor" />
         ),
     },
     {
-        id: "Gross PnL",
+        id: "gross_pnl",
+        meta: {
+            columnVisibilityHeader: "Gross PnL",
+        },
         accessorKey: "gross_pnl_amount",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Gross PnL" />
@@ -102,7 +120,10 @@ const columns: ColumnDef<Position>[] = [
             ),
     },
     {
-        id: "Net PnL",
+        id: "net_pnl",
+        meta: {
+            columnVisibilityHeader: "Net PnL",
+        },
         accessorKey: "net_pnl_amount",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Net PnL" />
@@ -111,16 +132,10 @@ const columns: ColumnDef<Position>[] = [
             formatCurrency(row.original.net_pnl_amount, row.original.currency),
     },
     {
-        id: "Charges",
-        accessorKey: "charges_amount",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Charges" />
-        ),
-        cell: ({ row }) =>
-            formatCurrency(row.original.charges_amount, row.original.currency),
-    },
-    {
-        id: "Charges %",
+        id: "charges_percentage",
+        meta: {
+            columnVisibilityHeader: "Charges %",
+        },
         accessorKey: "charges_as_percentage_of_net_pnl",
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Charges" />
@@ -128,22 +143,22 @@ const columns: ColumnDef<Position>[] = [
         cell: ({ row }) =>
             `${Number(row.original.charges_as_percentage_of_net_pnl).toFixed(2)}%`,
     },
+    {
+        id: "net_return_percentage",
+        meta: {
+            columnVisibilityHeader: "Net Return %",
+        },
+        accessorKey: "net_return_percentage",
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="Net Return %" />
+        ),
+        cell: ({ row }) =>
+            `${Number(row.original.net_return_percentage).toFixed(2)}%`,
+    },
 ];
 
-const PositionsTable = ({ filters }: { filters?: PositionSearchFilters }) => {
-    const [state, setState] = useDataTableState(ROUTES.positionList);
-
-    const { data, isLoading } = apiHooks.position.useSearch({
-        filters,
-        pagination: {
-            page: state.pagination.pageIndex + 1,
-            limit: state.pagination.pageSize,
-        },
-    });
-
-    if (isLoading) {
-        return <Loading />;
-    }
+const PositionsTable = () => {
+    const { data, state, setState } = useListPositions();
 
     if (data) {
         return (
@@ -157,5 +172,5 @@ const PositionsTable = ({ filters }: { filters?: PositionSearchFilters }) => {
         );
     }
 
-    return null;
+    return <Loading />;
 };

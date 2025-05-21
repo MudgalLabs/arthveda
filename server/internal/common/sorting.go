@@ -14,11 +14,11 @@ const (
 )
 
 type Sorting struct {
-	Field string    `query:"field" json:"field"` // e.g., "created_at"
-	Order SortOrder `query:"order" json:"order"`
+	Field SearchField `query:"field" json:"field"` // e.g., "created_at"
+	Order SortOrder   `query:"order" json:"order"`
 }
 
-func (s *Sorting) Validate(allowed []string) error {
+func (s *Sorting) Validate(allowed []SearchField) error {
 	field := strings.ToLower(s.Field)
 	order := strings.ToLower(s.Order)
 

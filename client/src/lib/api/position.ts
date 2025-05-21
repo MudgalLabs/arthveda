@@ -1,3 +1,4 @@
+import { CompareOperator } from "@/components/select/compare_select";
 import {
     CurrencyCode,
     Position,
@@ -8,7 +9,7 @@ import {
 import { NewTrade } from "@/features/trade/trade";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { ApiRes, client } from "@/lib/api/client";
-import { SearchRequest, SearchResponse } from "@/lib/types";
+import { DateRangeFilter, SearchRequest, SearchResponse } from "@/lib/types";
 
 export interface ComputePositionRequest {
     risk_amount: string;
@@ -55,7 +56,21 @@ export function create(body: CreatePositionRequest) {
 }
 
 export interface PositionSearchFilters {
-    symbol: string;
+    opened?: DateRangeFilter;
+    symbol?: string;
+    instrument?: PositionInstrument;
+    direction?: PositionDirection;
+    status?: PositionStatus;
+    r_factor?: number;
+    r_factor_operator?: CompareOperator;
+    gross_pnl?: number;
+    gross_pnl_operator?: CompareOperator;
+    net_pnl?: number;
+    net_pnl_operator?: CompareOperator;
+    charges_percentage?: number;
+    charges_percentage_operator?: CompareOperator;
+    return_percentage?: number;
+    return_percentage_operator?: CompareOperator;
 }
 
 export interface PositionSearchResponse extends SearchResponse<Position[]> {}

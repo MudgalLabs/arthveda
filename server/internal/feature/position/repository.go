@@ -29,27 +29,62 @@ type ReadWriter interface {
 // PostgreSQL implementation
 //
 
+const (
+	searchFieldOpened              common.SearchField = "opened"
+	searchFieldSymbol              common.SearchField = "symbol"
+	searchFieldInstrument          common.SearchField = "instrument"
+	searchFieldDirection           common.SearchField = "direction"
+	searchFieldStatus              common.SearchField = "status"
+	searchFieldRFactor             common.SearchField = "r_factor"
+	searchFieldGrossPnL            common.SearchField = "gross_pnl"
+	searchFieldNetPnL              common.SearchField = "net_pnl"
+	searchFieldNetReturnPercentage common.SearchField = "net_return_percentage"
+	searchFieldChargesPercentage   common.SearchField = "charges_percentage"
+)
+
 type searchFilter struct {
-	CreatedBy                 *uuid.UUID              `json:"created_by"`
-	Opened                    *common.DateRangeFilter `json:"opened"`
-	Symbol                    *string                 `json:"symbol"`
-	Instrument                *Instrument             `json:"instrument"`
-	Direction                 *Direction              `json:"direction"`
-	Status                    *Status                 `json:"status"`
-	RFactor                   *float64                `json:"r_factor"`
-	RFactorOperator           *dbx.Operaor            `json:"r_factor_operator"`
-	GrossPnL                  *string                 `json:"gross_pnl"`
-	GrossPnLOperator          *dbx.Operaor            `json:"gross_pnl_operator"`
-	NetPnL                    *string                 `json:"net_pnl"`
-	NetPnLOperator            *dbx.Operaor            `json:"net_pnl_operator"`
-	ChargesPercentage         *float64                `json:"charges_percentage"`
-	ChargesPercentageOperator *dbx.Operaor            `json:"charges_percentag_operator"`
-	ReturnPercentage          *float64                `json:"return_percentage"`
-	ReturnPercentageOperator  *dbx.Operaor            `json:"return_percentag_operator"`
+	CreatedBy                   *uuid.UUID              `json:"created_by"`
+	Opened                      *common.DateRangeFilter `json:"opened"`
+	Symbol                      *string                 `json:"symbol"`
+	Instrument                  *Instrument             `json:"instrument"`
+	Direction                   *Direction              `json:"direction"`
+	Status                      *Status                 `json:"status"`
+	RFactor                     *float64                `json:"r_factor"`
+	RFactorOperator             *dbx.Operator           `json:"r_factor_operator"`
+	GrossPnL                    *string                 `json:"gross_pnl"`
+	GrossPnLOperator            *dbx.Operator           `json:"gross_pnl_operator"`
+	NetPnL                      *string                 `json:"net_pnl"`
+	NetPnLOperator              *dbx.Operator           `json:"net_pnl_operator"`
+	NetReturnPercentage         *float64                `json:"net_return_percentage"`
+	NetReturnPercentageOperator *dbx.Operator           `json:"net_return_percentage_operator"`
+	ChargesPercentage           *float64                `json:"charges_percentage"`
+	ChargesPercentageOperator   *dbx.Operator           `json:"charges_percentage_operator"`
 }
 
-var allowedSortFields = []string{
-	"p.symbol",
+var allowedSortFields = []common.SearchField{
+	searchFieldOpened,
+	searchFieldSymbol,
+	searchFieldInstrument,
+	searchFieldDirection,
+	searchFieldStatus,
+	searchFieldRFactor,
+	searchFieldGrossPnL,
+	searchFieldNetPnL,
+	searchFieldNetReturnPercentage,
+	searchFieldChargesPercentage,
+}
+
+var sortFieldsSQL = map[common.SearchField]string{
+	searchFieldOpened:              "p.opened_at",
+	searchFieldSymbol:              "p.symbol",
+	searchFieldInstrument:          "p.instrument",
+	searchFieldDirection:           "p.direction",
+	searchFieldStatus:              "p.status",
+	searchFieldRFactor:             "p.r_factor",
+	searchFieldGrossPnL:            "p.gross_pnl_amount",
+	searchFieldNetPnL:              "p.net_pnl_amount",
+	searchFieldNetReturnPercentage: "p.net_return_percentage",
+	searchFieldChargesPercentage:   "p.charges_as_percentage_of_net_pnl",
 }
 
 type positionRepository struct {
@@ -142,7 +177,7 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 		b.AddCompareFilter("p.symbol", "=", p.Filters.Symbol)
 	}
 
-	b.AddSorting(p.Sort.Field, p.Sort.Order)
+	b.AddSorting(sortFieldsSQL[p.Sort.Field], p.Sort.Order)
 	b.AddPagination(p.Pagination.Limit, p.Pagination.Offset())
 
 	sql, args := b.Build()

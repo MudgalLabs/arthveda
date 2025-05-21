@@ -1,5 +1,8 @@
 package common
 
+// SearchField will be unique field that can be used for sorting and/or filtering.
+type SearchField = string
+
 // SearchPayload is the input payload to search any <resource>.
 // It takes a generic to define resource filters type.
 type SearchPayload[T any] struct {

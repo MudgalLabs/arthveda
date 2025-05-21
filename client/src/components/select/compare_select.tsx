@@ -1,13 +1,13 @@
 import { Select, SelectProps } from "@/s8ly";
 import { cn } from "@/lib/utils";
 
-const enum Compare {
+const enum CompareOperator {
     /** Equal or greater than */
-    EGT = "egt",
+    GTE = "gte",
     /**  Greater than */
     GT = "gt",
     /**  Equal or less than */
-    ELT = "elt",
+    LTE = "lte",
     /** Less than */
     LT = "lt",
     /** Equal to */
@@ -15,11 +15,11 @@ const enum Compare {
 }
 
 const options = [
-    { value: Compare.EGT, label: ">=" },
-    { value: Compare.GT, label: ">" },
-    { value: Compare.ELT, label: "<=" },
-    { value: Compare.LT, label: "<" },
-    { value: Compare.EQ, label: "==" },
+    { value: CompareOperator.GTE, label: ">=" },
+    { value: CompareOperator.GT, label: ">" },
+    { value: CompareOperator.LTE, label: "<=" },
+    { value: CompareOperator.LT, label: "<" },
+    { value: CompareOperator.EQ, label: "==" },
 ];
 
 function CompareSelect({ classNames, ...props }: Omit<SelectProps, "options">) {
@@ -30,10 +30,11 @@ function CompareSelect({ classNames, ...props }: Omit<SelectProps, "options">) {
                 content: cn("w-20", classNames?.content),
             }}
             options={options}
-            defaultValue={Compare.EGT}
+            defaultValue={CompareOperator.GTE}
             {...props}
         />
     );
 }
 
 export { CompareSelect };
+export type { CompareOperator };

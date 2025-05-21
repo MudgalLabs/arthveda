@@ -11,11 +11,36 @@ type DateRange struct {
 	To   time.Time `json:"to"`
 }
 
-type Operaor string
+type Operator string
 
 const (
-	OperatorGT = ">"
+	OperatorGTE Operator = "gte"
+	OperatorGT  Operator = "gt"
+	OperatorLTE Operator = "lte"
+	OperatorLT  Operator = "lt"
+	OperatorEQ  Operator = "eq"
 )
+
+func (o *Operator) String() string {
+	return string(*o)
+}
+
+func (o *Operator) SQL() string {
+	switch *o {
+	case OperatorGTE:
+		return ">="
+	case OperatorGT:
+		return ">"
+	case OperatorLTE:
+		return "<="
+	case OperatorLT:
+		return "<"
+	case OperatorEQ:
+		return "=="
+	}
+
+	panic(fmt.Sprintf("found invalid operator: %s", o))
+}
 
 type SQLBuilder struct {
 	base    strings.Builder

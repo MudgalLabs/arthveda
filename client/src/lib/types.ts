@@ -17,6 +17,11 @@ export interface PaginationMeta extends Pagination {
     total_pages: number;
 }
 
+export interface DateRangeFilter {
+    from?: Date;
+    to?: Date;
+}
+
 export interface SearchRequest<TFilters> {
     filters?: Partial<TFilters>;
     sort?: Sorting;

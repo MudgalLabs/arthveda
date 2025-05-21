@@ -5,6 +5,7 @@ import {
 } from "@/lib/utils";
 import { isFunction } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
+import { useDebounce } from "./use_debounce";
 
 interface Options<T> {
     /** Use this function to modify the state however you want before it is persisted. */
@@ -28,16 +29,17 @@ export function useLocalStorageState<T>(
     const [state, setState] = useState<T>(
         () => loadFromLocalStorage(key) ?? defaultValue
     );
+    const debouncedState = useDebounce(state, 500);
 
     useEffect(() => {
-        let toSave: Partial<T> = state;
+        let toSave: Partial<T> = debouncedState;
 
         if (isFunction(options?.saveFn)) {
-            toSave = options.saveFn(state);
+            toSave = options.saveFn(debouncedState);
         }
 
         saveToLocalStorage(key, JSON.stringify(toSave));
-    }, [state]);
+    }, [debouncedState]);
 
     return [state, setState];
 }

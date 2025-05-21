@@ -69,6 +69,7 @@ function DataTableSmart<TData, TValue>({
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
+        enableSortingRemoval: false,
         onColumnVisibilityChange: setColumnVisibility,
         onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
