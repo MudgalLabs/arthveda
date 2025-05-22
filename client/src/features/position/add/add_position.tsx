@@ -50,18 +50,18 @@ import {
     isSameDay,
 } from "@/lib/utils";
 import { CurrencySelect } from "@/components/select/currency_select";
-import { CurrencyInput } from "@/components/input/currency_input";
+import { DecimalInput } from "@/components/input/decimal_input";
 import { useWrappedState } from "@/hooks/use_wrapped_state";
 import { NewTrade, TradeKind } from "@/features/trade/trade";
 import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
-import { CreatePositionResponse } from "@/lib/api/position";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes";
 import { apiErrorHandler } from "@/lib/api";
+import { DecimalString } from "@/lib/types";
 
 function AddPosition() {
     const {
@@ -80,12 +80,7 @@ function AddPosition() {
 
     const { mutateAsync: save, isPending: isSaving } =
         apiHooks.position.useCreate({
-            onSuccess: async (res) => {
-                const data = res.data.data as CreatePositionResponse;
-                if (!data) {
-                    toast.error("Something went wrong");
-                    return;
-                }
+            onSuccess: async () => {
                 toast.success("Position Created", {
                     description: (
                         <p>
@@ -94,12 +89,13 @@ function AddPosition() {
                                 to={ROUTES.positionList}
                                 className="text-inherit!"
                             >
-                                Positions
+                                Positions Tab
                             </Link>{" "}
                             to see your positions
                         </p>
                     ),
                 });
+
                 discard();
             },
             onError: apiErrorHandler,
@@ -339,11 +335,12 @@ const columns: ColumnDef<NewTrade>[] = [
             }, [value]);
 
             return (
-                <CurrencyInput
+                <DecimalInput
+                    kind="amount"
                     currency={state.currency}
                     variant={error ? "error" : "default"}
                     value={value}
-                    onChange={(e) => setValue(e.target.value)}
+                    onChange={(v) => setValue(v)}
                     onBlur={sync}
                 />
             );
@@ -442,12 +439,12 @@ const PnLCard = memo(
         net_pnl_amount,
         net_return_percentage,
     }: {
-        net_pnl_amount: string;
+        net_pnl_amount: DecimalString;
         net_return_percentage: number;
-        gross_pnl_amount: string;
+        gross_pnl_amount: DecimalString;
         charges_as_percentage_of_net_pnl: number;
         currency: CurrencyCode;
-        charges_amount: string;
+        charges_amount: DecimalString;
     }) => {
         let trendingIcon: ReactNode = null;
         let textColor = "text-foreground";
@@ -615,6 +612,8 @@ const SymbolInput = memo(
                             symbol: value,
                         }))
                     }
+                    aria-invalid={!value}
+                    aria-describedby="first-name-error"
                 />
             </WithLabel>
         );
@@ -634,10 +633,11 @@ const RiskInput = memo(
         const [value, setValue] = useWrappedState<string>(valueProp);
         return (
             <WithLabel Label={<Label>Risk</Label>}>
-                <CurrencyInput
+                <DecimalInput
+                    kind="amount"
                     currency={currency}
                     value={value}
-                    onChange={(e) => setValue(e.target.value)}
+                    onChange={(v) => setValue(v)}
                     onBlur={() =>
                         value !== valueProp &&
                         setState((prev) => ({
@@ -661,13 +661,14 @@ const ChargesInput = memo(
         value: string;
         setState: React.Dispatch<React.SetStateAction<State>>;
     }) => {
-        const [value, setValue] = useWrappedState<string>(valueProp);
+        const [value, setValue] = useWrappedState<DecimalString>(valueProp);
         return (
             <WithLabel Label={<Label>Charges</Label>}>
-                <CurrencyInput
+                <DecimalInput
+                    kind="amount"
                     currency={currency}
                     value={value}
-                    onChange={(e) => setValue(e.target.value)}
+                    onChange={(v) => setValue(v)}
                     onBlur={() =>
                         value !== valueProp &&
                         setState((prev) => ({

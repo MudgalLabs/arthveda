@@ -21,13 +21,14 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { useDebounce } from "@/hooks/use_debounce";
 import { NewTrade, TradeKind } from "@/features/trade/trade";
 import { apiErrorHandler } from "@/lib/api";
+import { DecimalString } from "@/lib/types";
 
 interface State {
     symbol: string;
     instrument: PositionInstrument;
     currency: CurrencyCode;
-    risk_amount: string;
-    charges_amount: string;
+    risk_amount: DecimalString;
+    charges_amount: DecimalString;
 }
 
 interface AddPositionContextType {

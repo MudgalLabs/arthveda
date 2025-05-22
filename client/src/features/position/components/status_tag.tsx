@@ -3,12 +3,13 @@ import { Tag } from "@/s8ly";
 
 import { CurrencyCode, PositionStatus } from "@/features/position/position";
 import { formatCurrency } from "@/lib/utils";
+import { DecimalString } from "@/lib/types";
 
 interface StatusTagProps {
     currency: CurrencyCode;
     status: PositionStatus;
-    openQuantity?: string;
-    openAvgPrice?: string;
+    openQuantity?: DecimalString;
+    openAvgPrice?: DecimalString;
 }
 
 const StatusTag: FC<StatusTagProps> = memo(

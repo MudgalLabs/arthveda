@@ -32,3 +32,5 @@ export interface SearchResponse<TItems> {
     items: TItems;
     pagination: PaginationMeta;
 }
+
+export type DecimalString = string;

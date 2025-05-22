@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, memo } from "react";
 import { Separator } from "@/s8ly";
 import { Loading } from "@/components/loading";
 
@@ -7,7 +7,7 @@ interface PageHeadingProps {
     loading?: boolean;
 }
 
-const PageHeading: FC<PageHeadingProps> = ({ heading, loading }) => {
+const PageHeading: FC<PageHeadingProps> = memo(({ heading, loading }) => {
     return (
         <div>
             <div className="flex items-end gap-x-2">
@@ -20,6 +20,6 @@ const PageHeading: FC<PageHeadingProps> = ({ heading, loading }) => {
             <div className="h-6" />
         </div>
     );
-};
+});
 
 export { PageHeading };

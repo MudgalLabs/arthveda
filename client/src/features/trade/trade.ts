@@ -1,10 +1,12 @@
+import { DecimalString } from "@/lib/types";
+
 type TradeKind = "buy" | "sell";
 
 interface NewTrade {
     kind: TradeKind;
     time: Date;
-    quantity: string;
-    price: string;
+    quantity: DecimalString;
+    price: DecimalString;
 }
 
 interface Trade extends NewTrade {

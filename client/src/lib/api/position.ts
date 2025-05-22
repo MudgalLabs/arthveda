@@ -9,11 +9,16 @@ import {
 import { NewTrade } from "@/features/trade/trade";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { ApiRes, client } from "@/lib/api/client";
-import { DateRangeFilter, SearchRequest, SearchResponse } from "@/lib/types";
+import {
+    DateRangeFilter,
+    DecimalString,
+    SearchRequest,
+    SearchResponse,
+} from "@/lib/types";
 
 export interface ComputePositionRequest {
-    risk_amount: string;
-    charges_amount: string;
+    risk_amount: DecimalString;
+    charges_amount: DecimalString;
     trades: NewTrade[];
 }
 
@@ -22,13 +27,13 @@ export interface ComputePositionResponse {
     status: PositionStatus;
     opened_at: Date;
     closed_at: Date | null;
-    gross_pnl_amount: string;
-    net_pnl_amount: string;
+    gross_pnl_amount: DecimalString;
+    net_pnl_amount: DecimalString;
     r_factor: number;
     net_return_percentage: number;
     charges_as_percentage_of_net_pnl: number;
-    open_quantity: string;
-    open_average_price_amount: string;
+    open_quantity: DecimalString;
+    open_average_price_amount: DecimalString;
 }
 
 export function compute(body: ComputePositionRequest) {
@@ -63,9 +68,9 @@ export interface PositionSearchFilters {
     status?: PositionStatus;
     r_factor?: number;
     r_factor_operator?: CompareOperator;
-    gross_pnl?: number;
+    gross_pnl?: DecimalString;
     gross_pnl_operator?: CompareOperator;
-    net_pnl?: number;
+    net_pnl?: DecimalString;
     net_pnl_operator?: CompareOperator;
     charges_percentage?: number;
     charges_percentage_operator?: CompareOperator;

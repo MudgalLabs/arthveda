@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 
 import {
@@ -11,7 +12,7 @@ import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
 import { useListPositions } from "./list_positions_context";
-import { Loading } from "@/components/loading";
+import { useEffectOnce } from "@/hooks/use_effect_once";
 
 export const ListPositions = () => {
     const { queryResult } = useListPositions();
@@ -27,9 +28,9 @@ export const ListPositions = () => {
 
 export default ListPositions;
 
-const PositionsFilters = ({}: {}) => {
+const PositionsFilters = memo(({}: {}) => {
     return <h1>Filters</h1>;
-};
+});
 
 const columns: ColumnDef<Position>[] = [
     {
@@ -157,8 +158,16 @@ const columns: ColumnDef<Position>[] = [
     },
 ];
 
-const PositionsTable = () => {
+const PositionsTable = memo(() => {
     const { queryResult, state, setState } = useListPositions();
+
+    useEffectOnce(
+        () => {
+            queryResult.refetch();
+        },
+        [queryResult],
+        (deps) => !!deps[0].data
+    );
 
     return (
         <DataTableSmart
@@ -170,4 +179,4 @@ const PositionsTable = () => {
             onStateChange={setState}
         />
     );
-};
+});
