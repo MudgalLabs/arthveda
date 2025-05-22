@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 
+import { Input, Label } from "@/s8ly";
 import {
     Position,
     positionInstrumentToString,
@@ -12,7 +13,7 @@ import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
 import { useListPositions } from "./list_positions_context";
-import { useEffectOnce } from "@/hooks/use_effect_once";
+import { WithLabel } from "@/components/with_label";
 
 export const ListPositions = () => {
     const { queryResult } = useListPositions();
@@ -29,7 +30,25 @@ export const ListPositions = () => {
 export default ListPositions;
 
 const PositionsFilters = memo(({}: {}) => {
-    return <h1>Filters</h1>;
+    const { searchFilters, setSearchFilters } = useListPositions();
+
+    return (
+        <div>
+            <WithLabel Label={<Label>Symbol</Label>}>
+                <Input
+                    value={searchFilters.symbol}
+                    onChange={(e) =>
+                        setSearchFilters((prev) => ({
+                            ...prev,
+                            symbol: e.target.value,
+                        }))
+                    }
+                />
+            </WithLabel>
+
+            <div className="h-15" />
+        </div>
+    );
 });
 
 const columns: ColumnDef<Position>[] = [
@@ -159,15 +178,7 @@ const columns: ColumnDef<Position>[] = [
 ];
 
 const PositionsTable = memo(() => {
-    const { queryResult, state, setState } = useListPositions();
-
-    useEffectOnce(
-        () => {
-            queryResult.refetch();
-        },
-        [queryResult],
-        (deps) => !!deps[0].data
-    );
+    const { queryResult, tableState, setTableState } = useListPositions();
 
     return (
         <DataTableSmart
@@ -175,8 +186,8 @@ const PositionsTable = memo(() => {
             data={queryResult.data?.data.items || []}
             loading={queryResult.isLoading}
             total={queryResult.data?.data.pagination.total_items || 0}
-            state={state}
-            onStateChange={setState}
+            state={tableState}
+            onStateChange={setTableState}
         />
     );
 });

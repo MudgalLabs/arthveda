@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { type RouteObject } from "react-router-dom";
+import { ListPositionContextProvider } from "@/features/position/list/list_positions_context";
 
 // Public
 const NotFound = lazy(() => import("@/features/not_found/not_found"));
@@ -12,7 +13,9 @@ const Dashboard = lazy(() => import("@/features/dashboard/dashboard"));
 const ImportTrades = lazy(
     () => import("@/features/position/import/import_positions")
 );
-const Trades = lazy(() => import("@/features/position/list/list_positions"));
+const ListPositions = lazy(
+    () => import("@/features/position/list/list_positions")
+);
 const Settings = lazy(() => import("@/features/settings/settings"));
 
 export const ROUTES = {
@@ -123,7 +126,9 @@ export const routes: Array<RouteObject> = [
         path: ROUTES.positionList,
         element: (
             <Suspense>
-                <Trades />
+                <ListPositionContextProvider>
+                    <ListPositions />
+                </ListPositionContextProvider>
             </Suspense>
         ),
     },

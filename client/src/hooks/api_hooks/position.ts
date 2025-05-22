@@ -49,5 +49,6 @@ export function useSearch(body: PositionSearchRequest) {
         queryFn: () => api.position.search(body),
         select: (res) => res.data as ApiRes<PositionSearchResponse>,
         placeholderData: keepPreviousData,
+        refetchOnMount: true,
     });
 }

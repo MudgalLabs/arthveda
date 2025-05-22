@@ -5,6 +5,7 @@ import {
     ScrollRestoration,
     useLocation,
 } from "react-router-dom";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import "@/index.css";
 
@@ -14,6 +15,10 @@ import { ROUTES_PUBLIC, ROUTES_PROTECTED, ROUTES } from "@/routes";
 import { AppLayout } from "@/app_layout";
 import { Loading } from "@/components/loading";
 import { ToastProvider } from "@/components/toast";
+import { ListPositionContextProvider } from "@/features/position/list/list_positions_context";
+import { AuthenticationProvider } from "@/features/auth/auth_context";
+import { SidebarProvider } from "@/components/sidebar/sidebar_context";
+import { AddPositionContextProvider } from "@/features/position/add/add_position_context";
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuthentication();
@@ -68,9 +73,17 @@ export default function App() {
                 hooks and state. */}
             <ToastProvider />
 
-            <RouteHandler>
-                <Outlet />
-            </RouteHandler>
+            <AuthenticationProvider>
+                <SidebarProvider>
+                    <AddPositionContextProvider>
+                        <TooltipPrimitive.TooltipProvider>
+                            <RouteHandler>
+                                <Outlet />
+                            </RouteHandler>
+                        </TooltipPrimitive.TooltipProvider>
+                    </AddPositionContextProvider>
+                </SidebarProvider>
+            </AuthenticationProvider>
             <ScrollRestoration />
         </Fragment>
     );

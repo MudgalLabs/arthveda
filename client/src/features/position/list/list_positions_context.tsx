@@ -3,40 +3,55 @@ import { createContext, FC, ReactNode, useContext, useMemo } from "react";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useDataTableState } from "@/hooks/use_date_table_state";
 import { ApiRes } from "@/lib/api/client";
-import { PositionSearchResponse } from "@/lib/api/position";
+import {
+    PositionSearchFilters,
+    PositionSearchResponse,
+} from "@/lib/api/position";
 import { ROUTES } from "@/routes";
 import { DataTableState } from "@/s8ly/data_table/data_table_smart";
 import { UseQueryResult } from "@tanstack/react-query";
 import { apiErrorHandler } from "@/lib/api";
+import { useURLState } from "@/hooks/use_url_state";
+import { useDebounce } from "@/hooks/use_debounce";
 
-export { ListPositionContextProvider, useListPositions };
+const defaultSearchFilters: PositionSearchFilters = {};
 
 interface ListPositionsContextType {
     queryResult: UseQueryResult<ApiRes<PositionSearchResponse>, Error>;
-    state: DataTableState;
-    setState: React.Dispatch<React.SetStateAction<DataTableState>>;
+    tableState: DataTableState;
+    setTableState: React.Dispatch<React.SetStateAction<DataTableState>>;
+    searchFilters: PositionSearchFilters;
+    setSearchFilters: React.Dispatch<
+        React.SetStateAction<PositionSearchFilters>
+    >;
 }
 
 const ListPositionsContext = createContext<ListPositionsContextType>(
     {} as ListPositionsContextType
 );
 
-const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
+export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
     children,
 }) => {
-    const [state, setState] = useDataTableState(ROUTES.positionList);
+    const [tableState, setTableState] = useDataTableState(ROUTES.positionList);
+    const [searchFilters, setSearchFilters] =
+        useURLState<PositionSearchFilters>(
+            "position_list_filters",
+            defaultSearchFilters
+        );
+    const searchFiltersDebouned = useDebounce(searchFilters, 300);
 
     const queryResult = apiHooks.position.useSearch({
-        filters: {},
+        filters: searchFiltersDebouned,
         pagination: {
-            page: state.pagination.pageIndex + 1,
-            limit: state.pagination.pageSize,
+            page: tableState.pagination.pageIndex + 1,
+            limit: tableState.pagination.pageSize,
         },
         sort:
-            state.sorting.length === 1
+            tableState.sorting.length === 1
                 ? {
-                      field: state.sorting[0].id,
-                      order: state.sorting[0].desc ? "desc" : "asc",
+                      field: tableState.sorting[0].id,
+                      order: tableState.sorting[0].desc ? "desc" : "asc",
                   }
                 : undefined,
     });
@@ -48,10 +63,18 @@ const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
     const value = useMemo(
         () => ({
             queryResult,
-            state,
-            setState,
+            tableState,
+            setTableState,
+            searchFilters,
+            setSearchFilters,
         }),
-        [queryResult, state, setState]
+        [
+            queryResult,
+            tableState,
+            setTableState,
+            searchFilters,
+            setSearchFilters,
+        ]
     );
 
     return (
@@ -61,7 +84,7 @@ const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
     );
 };
 
-const useListPositions = () => {
+export const useListPositions = () => {
     const context = useContext(ListPositionsContext);
 
     if (!context) {

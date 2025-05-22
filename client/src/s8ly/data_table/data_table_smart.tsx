@@ -67,7 +67,9 @@ function DataTableSmart<TData, TValue>({
             pagination,
         },
         rowCount: total,
-        manualPagination: stateProp?.pagination && total ? true : false,
+        manualPagination:
+            stateProp?.pagination === undefined && total ? true : false,
+        manualSorting: stateProp?.sorting === undefined,
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,

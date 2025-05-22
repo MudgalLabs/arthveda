@@ -173,7 +173,7 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 	if p.Filters.CreatedBy != nil {
 		b.AddCompareFilter("p.created_by", "=", p.Filters.CreatedBy)
 	}
-	if p.Filters.Symbol != nil {
+	if p.Filters.Symbol != nil && *p.Filters.Symbol != "" {
 		b.AddCompareFilter("p.symbol", "=", p.Filters.Symbol)
 	}
 

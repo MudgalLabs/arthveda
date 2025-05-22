@@ -29,8 +29,10 @@ export function useLocalStorageState<T>(
     const [state, setState] = useState<T>(
         () => loadFromLocalStorage(key) ?? defaultValue
     );
-    const debouncedState = useDebounce(state, 500);
 
+    const debouncedState = useDebounce(state, 300);
+
+    // Sync LocalStorage when state changes.
     useEffect(() => {
         let toSave: Partial<T> = debouncedState;
 
