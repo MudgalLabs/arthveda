@@ -15,6 +15,7 @@ import { PageHeading } from "@/components/page_heading";
 import { useListPositions } from "./list_positions_context";
 import { WithLabel } from "@/components/with_label";
 import { PositionSearchFilters } from "@/lib/api/position";
+import { Loading } from "@/components/loading";
 
 export const ListPositions = () => {
     const { queryResult } = useListPositions();
@@ -31,7 +32,6 @@ export const ListPositions = () => {
 export default ListPositions;
 
 function getOpenedFilterValue(filters: PositionSearchFilters): Date[] {
-    console.log({ filters });
     const dates: Date[] = [];
     const from: Date | undefined = filters.opened?.from;
     const to: Date | undefined = filters.opened?.to;
@@ -214,14 +214,24 @@ const columns: ColumnDef<Position>[] = [
 const PositionsTable = memo(() => {
     const { queryResult, tableState, setTableState } = useListPositions();
 
-    return (
-        <DataTableSmart
-            columns={columns}
-            data={queryResult.data?.data.items || []}
-            loading={queryResult.isLoading}
-            total={queryResult.data?.data.pagination.total_items || 0}
-            state={tableState}
-            onStateChange={setTableState}
-        />
-    );
+    if (queryResult.isError) {
+        return <p className="text-foreground-red">Failed to fetch positions</p>;
+    }
+
+    if (queryResult.isLoading) {
+        return <Loading />;
+    }
+
+    if (queryResult.data) {
+        return (
+            <DataTableSmart
+                columns={columns}
+                data={queryResult.data.data.items}
+                loading={queryResult.isLoading}
+                total={queryResult.data.data.pagination.total_items}
+                state={tableState}
+                onStateChange={setTableState}
+            />
+        );
+    }
 });

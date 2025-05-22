@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 
-const emptyArr = [] as unknown;
+const emptyObj = {} as unknown;
 
 const defaultConditionFn = () => true;
 
-export function useEffectOnce<T extends readonly unknown[]>(
+export function useEffectOnce<T extends unknown>(
     callbackFn: (deps: T) => void,
-    dependencies: T = emptyArr as any as T,
+    dependencies: T = emptyObj as any as T,
     conditionFn: (deps: T) => boolean = defaultConditionFn
 ) {
     const calledRef = useRef(false);
@@ -19,5 +19,5 @@ export function useEffectOnce<T extends readonly unknown[]>(
             callbackFn(dependencies);
             calledRef.current = true;
         }
-    }, [callbackFn, conditionFn, ...dependencies]);
+    }, [callbackFn, conditionFn, dependencies]);
 }

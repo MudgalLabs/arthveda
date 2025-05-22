@@ -13,6 +13,7 @@ import { UseQueryResult } from "@tanstack/react-query";
 import { apiErrorHandler } from "@/lib/api";
 import { useURLState } from "@/hooks/use_url_state";
 import { useDebounce } from "@/hooks/use_debounce";
+import { useEffectOnce } from "@/hooks/use_effect_once";
 
 const defaultSearchFilters: PositionSearchFilters = {};
 
@@ -36,7 +37,7 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
     const [tableState, setTableState] = useDataTableState(ROUTES.positionList);
     const [searchFilters, setSearchFilters] =
         useURLState<PositionSearchFilters>("filters", defaultSearchFilters);
-    const searchFiltersDebouned = useDebounce(searchFilters, 300);
+    const searchFiltersDebouned = useDebounce(searchFilters, 500);
 
     const queryResult = apiHooks.position.useSearch({
         filters: searchFiltersDebouned,
@@ -53,9 +54,15 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
                 : undefined,
     });
 
-    if (queryResult.isError) {
-        apiErrorHandler(queryResult.error);
-    }
+    useEffectOnce(
+        (deps) => {
+            if (deps.queryResult.isError) {
+                apiErrorHandler(queryResult.error);
+            }
+        },
+        { queryResult },
+        (deps) => deps.queryResult.isError
+    );
 
     const value = useMemo(
         () => ({

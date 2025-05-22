@@ -25,8 +25,6 @@ export function useURLState<T>(
 
         const parsed = deepParseObject<T>(raw as T, customParsers);
 
-        console.log({ raw, parsed });
-
         return parsed;
     }, [location.search]);
 
