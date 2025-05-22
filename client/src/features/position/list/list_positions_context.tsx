@@ -35,10 +35,7 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
 }) => {
     const [tableState, setTableState] = useDataTableState(ROUTES.positionList);
     const [searchFilters, setSearchFilters] =
-        useURLState<PositionSearchFilters>(
-            "position_list_filters",
-            defaultSearchFilters
-        );
+        useURLState<PositionSearchFilters>("filters", defaultSearchFilters);
     const searchFiltersDebouned = useDebounce(searchFilters, 300);
 
     const queryResult = apiHooks.position.useSearch({

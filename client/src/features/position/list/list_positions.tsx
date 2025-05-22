@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 
-import { Input, Label } from "@/s8ly";
+import { DatePicker, Input, Label } from "@/s8ly";
 import {
     Position,
     positionInstrumentToString,
@@ -14,6 +14,7 @@ import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
 import { useListPositions } from "./list_positions_context";
 import { WithLabel } from "@/components/with_label";
+import { PositionSearchFilters } from "@/lib/api/position";
 
 export const ListPositions = () => {
     const { queryResult } = useListPositions();
@@ -29,25 +30,58 @@ export const ListPositions = () => {
 
 export default ListPositions;
 
+function getOpenedFilterValue(filters: PositionSearchFilters): Date[] {
+    console.log({ filters });
+    const dates: Date[] = [];
+    const from: Date | undefined = filters.opened?.from;
+    const to: Date | undefined = filters.opened?.to;
+    if (from) {
+        dates.push(from);
+    }
+    if (to) {
+        dates.push(to);
+    }
+    return dates;
+}
+
 const PositionsFilters = memo(({}: {}) => {
     const { searchFilters, setSearchFilters } = useListPositions();
 
     return (
-        <div>
-            <WithLabel Label={<Label>Symbol</Label>}>
-                <Input
-                    value={searchFilters.symbol}
-                    onChange={(e) =>
-                        setSearchFilters((prev) => ({
-                            ...prev,
-                            symbol: e.target.value,
-                        }))
-                    }
-                />
-            </WithLabel>
+        <>
+            <div className="flex flex-wrap gap-x-16 gap-y-8">
+                <WithLabel Label={<Label>Opened</Label>}>
+                    <DatePicker
+                        mode="range"
+                        config={{ dates: { toggle: true } }}
+                        dates={getOpenedFilterValue(searchFilters)}
+                        onDatesChange={(v) =>
+                            setSearchFilters((prev) => ({
+                                ...prev,
+                                opened: {
+                                    from: v[0],
+                                    to: v[1],
+                                },
+                            }))
+                        }
+                    />
+                </WithLabel>
+
+                <WithLabel Label={<Label>Symbol</Label>}>
+                    <Input
+                        value={searchFilters.symbol}
+                        onChange={(e) =>
+                            setSearchFilters((prev) => ({
+                                ...prev,
+                                symbol: e.target.value,
+                            }))
+                        }
+                    />
+                </WithLabel>
+            </div>
 
             <div className="h-15" />
-        </div>
+        </>
     );
 });
 

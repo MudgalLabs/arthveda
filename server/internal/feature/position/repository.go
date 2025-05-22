@@ -30,6 +30,7 @@ type ReadWriter interface {
 //
 
 const (
+	searchFieldCreatedBy           common.SearchField = "created_by"
 	searchFieldOpened              common.SearchField = "opened"
 	searchFieldSymbol              common.SearchField = "symbol"
 	searchFieldInstrument          common.SearchField = "instrument"
@@ -74,7 +75,8 @@ var allowedSortFields = []common.SearchField{
 	searchFieldChargesPercentage,
 }
 
-var sortFieldsSQL = map[common.SearchField]string{
+var searchFieldsSQLColumn = map[common.SearchField]string{
+	searchFieldCreatedBy:           "p.created_by",
 	searchFieldOpened:              "p.opened_at",
 	searchFieldSymbol:              "p.symbol",
 	searchFieldInstrument:          "p.instrument",
@@ -171,13 +173,21 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 	b := dbx.NewSQLBuilder(baseSQL)
 
 	if p.Filters.CreatedBy != nil {
-		b.AddCompareFilter("p.created_by", "=", p.Filters.CreatedBy)
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldCreatedBy], "=", p.Filters.CreatedBy)
 	}
 	if p.Filters.Symbol != nil && *p.Filters.Symbol != "" {
-		b.AddCompareFilter("p.symbol", "=", p.Filters.Symbol)
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldSymbol], "=", p.Filters.Symbol)
+	}
+	if p.Filters.Opened != nil {
+		if p.Filters.Opened.From != nil {
+			b.AddCompareFilter(searchFieldsSQLColumn[searchFieldOpened], ">=", p.Filters.Opened.From)
+		}
+		if p.Filters.Opened.To != nil {
+			b.AddCompareFilter(searchFieldsSQLColumn[searchFieldOpened], "<=", p.Filters.Opened.To)
+		}
 	}
 
-	b.AddSorting(sortFieldsSQL[p.Sort.Field], p.Sort.Order)
+	b.AddSorting(searchFieldsSQLColumn[p.Sort.Field], p.Sort.Order)
 	b.AddPagination(p.Pagination.Limit, p.Pagination.Offset())
 
 	sql, args := b.Build()
