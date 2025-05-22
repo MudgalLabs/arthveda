@@ -61,6 +61,7 @@ import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes";
+import { apiErrorHandler } from "@/lib/api";
 
 function AddPosition() {
     const {
@@ -101,10 +102,7 @@ function AddPosition() {
                 });
                 discard();
             },
-            onError: (error) => {
-                const errorMsg = error.response.data.message;
-                toast.error(errorMsg);
-            },
+            onError: apiErrorHandler,
         });
 
     const handleClickSave = () => {

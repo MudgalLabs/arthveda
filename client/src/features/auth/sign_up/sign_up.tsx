@@ -10,6 +10,7 @@ import { ContinueWithGoogle } from "@/components/continue_with_google";
 import { Link } from "@/components/link";
 import { PasswordInput } from "@/components/input/password_input";
 import { WithLabel } from "@/components/with_label";
+import { apiErrorHandler } from "@/lib/api";
 
 export const SignupFormSchema = z
     .object({
@@ -61,10 +62,7 @@ export default function SignUp() {
                 description: "Sign in to start using Arthveda",
             });
         },
-        onError: (error) => {
-            const errorMsg = error.response.data.message;
-            toast.error(errorMsg);
-        },
+        onError: apiErrorHandler,
     });
 
     const [name, setName] = useState("");

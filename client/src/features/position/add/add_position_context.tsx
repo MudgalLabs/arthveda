@@ -19,8 +19,8 @@ import {
 import { ComputePositionResponse } from "@/lib/api/position";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useDebounce } from "@/hooks/use_debounce";
-import { toast } from "@/components/toast";
 import { NewTrade, TradeKind } from "@/features/trade/trade";
+import { apiErrorHandler } from "@/lib/api";
 
 interface State {
     symbol: string;
@@ -117,10 +117,7 @@ function AddPositionContextProvider({ children }: { children: ReactNode }) {
                     closed_at: data.closed_at ? new Date(data.closed_at) : null,
                 });
             },
-            onError: (error) => {
-                const errorMsg = error.response.data.message;
-                toast.error(errorMsg);
-            },
+            onError: apiErrorHandler,
         });
 
     const tradesAreValid = useMemo(() => {

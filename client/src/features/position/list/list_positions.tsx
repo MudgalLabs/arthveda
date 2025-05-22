@@ -14,11 +14,11 @@ import { useListPositions } from "./list_positions_context";
 import { Loading } from "@/components/loading";
 
 export const ListPositions = () => {
-    const { loading } = useListPositions();
+    const { queryResult } = useListPositions();
 
     return (
         <>
-            <PageHeading heading="Positions" loading={loading} />
+            <PageHeading heading="Positions" loading={queryResult.isFetching} />
             <PositionsFilters />
             <PositionsTable />
         </>
@@ -158,19 +158,16 @@ const columns: ColumnDef<Position>[] = [
 ];
 
 const PositionsTable = () => {
-    const { data, state, setState } = useListPositions();
+    const { queryResult, state, setState } = useListPositions();
 
-    if (data) {
-        return (
-            <DataTableSmart
-                columns={columns}
-                data={data.data.items}
-                total={data.data.pagination.total_items}
-                state={state}
-                onStateChange={setState}
-            />
-        );
-    }
-
-    return <Loading />;
+    return (
+        <DataTableSmart
+            columns={columns}
+            data={queryResult.data?.data.items || []}
+            loading={queryResult.isLoading}
+            total={queryResult.data?.data.pagination.total_items || 0}
+            state={state}
+            onStateChange={setState}
+        />
+    );
 };

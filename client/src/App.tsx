@@ -63,12 +63,13 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
 export default function App() {
     return (
         <Fragment>
-            <RouteHandler>
-                <Outlet />
-                {/* Putting ToastProvider here instead of in main.tsx
+            {/* Putting ToastProvider here instead of in main.tsx
                 because putting it here gives Toasts access to react-router
                 hooks and state. */}
-                <ToastProvider />
+            <ToastProvider />
+
+            <RouteHandler>
+                <Outlet />
             </RouteHandler>
             <ScrollRestoration />
         </Fragment>

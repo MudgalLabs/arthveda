@@ -175,7 +175,7 @@ func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*user_prof
 	userIdentity, err := s.userIdentityRepository.FindUserIdentityByEmail(ctx, payload.Email)
 	if err != nil {
 		if err == repository.ErrNotFound {
-			return nil, "", service.ErrUnauthorized, errors.New("Incorrect email or password")
+			return nil, "", service.ErrBadRequest, errors.New("Incorrect email or password")
 		}
 
 		return nil, "", service.ErrInternalServerError, fmt.Errorf("find user identity by email: %w", err)
@@ -184,7 +184,7 @@ func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*user_prof
 	userProfile, err := s.userProfileRepository.FindUserProfileByUserID(ctx, userIdentity.ID)
 	if err != nil {
 		if err == repository.ErrNotFound {
-			return nil, "", service.ErrUnauthorized, errors.New("Incorrect email or password")
+			return nil, "", service.ErrBadRequest, errors.New("Incorrect email or password")
 		}
 
 		return nil, "", service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
@@ -193,8 +193,7 @@ func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*user_prof
 	err = bcrypt.CompareHashAndPassword([]byte(userIdentity.PasswordHash), []byte(payload.Password))
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			// errorResponse(w, r, http.StatusBadRequest, "Incorrect email or password", nil)
-			return nil, "", service.ErrUnauthorized, errors.New("Incorrect email or password")
+			return nil, "", service.ErrBadRequest, errors.New("Incorrect email or password")
 		} else {
 			return nil, "", service.ErrInternalServerError, fmt.Errorf("compare hash and password: %w", err)
 		}

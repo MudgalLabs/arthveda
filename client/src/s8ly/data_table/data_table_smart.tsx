@@ -26,6 +26,7 @@ interface DataTableState {
 interface DataTableSmartProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
+    loading?: boolean;
     total?: number;
     state?: Partial<DataTableState>;
     onStateChange?: (newState: DataTableState) => void;
@@ -34,6 +35,7 @@ interface DataTableSmartProps<TData, TValue> {
 function DataTableSmart<TData, TValue>({
     columns,
     data,
+    loading,
     total,
     state: stateProp,
     onStateChange,
@@ -99,7 +101,7 @@ function DataTableSmart<TData, TValue>({
                 <DataTableVisibility table={table} />
             </div>
 
-            <DataTable table={table} />
+            <DataTable table={table} loading={loading} />
 
             <DataTablePagination table={table} total={total} />
         </div>

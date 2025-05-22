@@ -25,6 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
 import { useSidebar } from "@/components/sidebar/sidebar_context";
+import { apiErrorHandler } from "@/lib/api";
 
 const sidebarRoutes = [ROUTES.dashboard, ROUTES.positionList];
 
@@ -237,6 +238,7 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
                     icon: <p>👋</p>,
                 });
             },
+            onError: apiErrorHandler,
         });
 
     return (

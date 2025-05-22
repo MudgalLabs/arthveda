@@ -8,12 +8,14 @@ import {
     TableHeader,
     TableRow,
 } from "@/s8ly";
+import { Loading } from "@/components/loading";
 
 interface DataTableProps<TData> {
     table: TableProp<TData>;
+    loading?: boolean;
 }
 
-function DataTable<TData>({ table }: DataTableProps<TData>) {
+function DataTable<TData>({ table, loading }: DataTableProps<TData>) {
     return (
         <div className="border-border w-full rounded-md border-1">
             <Table>
@@ -40,7 +42,16 @@ function DataTable<TData>({ table }: DataTableProps<TData>) {
                     ))}
                 </TableHeader>
                 <TableBody>
-                    {table.getRowModel().rows?.length ? (
+                    {loading ? (
+                        <TableRow>
+                            <TableCell
+                                colSpan={table.getAllColumns().length}
+                                className="h-24 text-center"
+                            >
+                                <Loading />
+                            </TableCell>
+                        </TableRow>
+                    ) : table.getRowModel().rows?.length ? (
                         table.getRowModel().rows.map((row) => (
                             <TableRow
                                 key={row.id}

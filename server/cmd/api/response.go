@@ -67,12 +67,15 @@ func serviceErrResponse(w http.ResponseWriter, r *http.Request, errKind service.
 
 	// Just a safety net.
 	if err == nil || errKind == service.ErrNone {
-		l.DPanicw("errKind and/ore err is not present", "error", err, "errKind", errKind)
-		internalServerErrorResponse(w, r, err)
+		l.DPanicw("errKind and/or err is not present", "error", err, "errKind", errKind)
 		return
 	}
 
 	switch {
+	case errKind == service.ErrBadRequest:
+		errorResponse(w, r, http.StatusBadRequest, err.Error(), nil)
+		return
+
 	case errKind == service.ErrUnauthorized:
 		unauthorizedErrorResponse(w, r, err.Error(), err)
 		return

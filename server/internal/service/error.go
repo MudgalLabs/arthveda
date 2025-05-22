@@ -8,10 +8,11 @@ type Error string
 const (
 	ErrNone Error = "no error"
 
+	ErrBadRequest          Error = "bad request"
 	ErrUnauthorized        Error = "unauthorized"
 	ErrConflict            Error = "resource creation failed because it is conflicting with another resource"
 	ErrInvalidInput        Error = "input is missing required fields or has bad values for parameters"
-	ErrInternalServerError Error = "something unexpected happened"
+	ErrInternalServerError Error = "internal server error"
 	ErrNotFound            Error = "resource does not exist"
 )
 

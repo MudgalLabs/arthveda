@@ -6,13 +6,13 @@ import { ApiRes } from "@/lib/api/client";
 import { PositionSearchResponse } from "@/lib/api/position";
 import { ROUTES } from "@/routes";
 import { DataTableState } from "@/s8ly/data_table/data_table_smart";
-import { toast } from "@/components/toast";
+import { UseQueryResult } from "@tanstack/react-query";
+import { apiErrorHandler } from "@/lib/api";
 
 export { ListPositionContextProvider, useListPositions };
 
 interface ListPositionsContextType {
-    loading: boolean;
-    data: ApiRes<PositionSearchResponse> | undefined;
+    queryResult: UseQueryResult<ApiRes<PositionSearchResponse>, Error>;
     state: DataTableState;
     setState: React.Dispatch<React.SetStateAction<DataTableState>>;
 }
@@ -26,7 +26,7 @@ const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
 }) => {
     const [state, setState] = useDataTableState(ROUTES.positionList);
 
-    const { data, isFetching, isError } = apiHooks.position.useSearch({
+    const queryResult = apiHooks.position.useSearch({
         filters: {},
         pagination: {
             page: state.pagination.pageIndex + 1,
@@ -41,18 +41,17 @@ const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
                 : undefined,
     });
 
-    if (isError) {
-        toast.error("Failed to get Positions");
+    if (queryResult.isError) {
+        apiErrorHandler(queryResult.error);
     }
 
     const value = useMemo(
         () => ({
-            loading: isFetching,
-            data,
+            queryResult,
             state,
             setState,
         }),
-        [isFetching, data, state, setState]
+        [queryResult, state, setState]
     );
 
     return (

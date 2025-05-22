@@ -2,6 +2,7 @@ import { createContext, FC, PropsWithChildren, useContext } from "react";
 
 import { apiHooks } from "@/hooks/api_hooks";
 import { User } from "@/lib/api/user";
+import { apiErrorHandler } from "@/lib/api";
 
 interface AuthenticationContextType {
     isLoading: boolean;
@@ -16,7 +17,12 @@ const AuthenticationContext = createContext<AuthenticationContextType>({
 });
 
 export const AuthenticationProvider: FC<PropsWithChildren> = ({ children }) => {
-    const { data, isSuccess, isLoading } = apiHooks.user.useMe();
+    const { data, isSuccess, isLoading, isError, error } =
+        apiHooks.user.useMe();
+
+    if (isError) {
+        apiErrorHandler(error);
+    }
 
     const value = {
         isLoading,

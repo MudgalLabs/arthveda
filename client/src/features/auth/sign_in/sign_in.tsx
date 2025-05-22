@@ -10,6 +10,7 @@ import { ROUTES } from "@/routes";
 import { Link } from "@/components/link";
 import { PasswordInput } from "@/components/input/password_input";
 import { WithLabel } from "@/components/with_label";
+import { apiErrorHandler } from "@/lib/api";
 
 export default function SignIn() {
     const client = useQueryClient();
@@ -25,10 +26,7 @@ export default function SignIn() {
             });
             navigate(ROUTES.dashboard);
         },
-        onError: (error) => {
-            const errorMsg = error.response.data.message;
-            toast.error(errorMsg);
-        },
+        onError: apiErrorHandler,
     });
 
     const [email, setEmail] = useState("");
