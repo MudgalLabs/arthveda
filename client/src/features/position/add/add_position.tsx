@@ -170,6 +170,7 @@ function AddPosition() {
                     <InstrumentToggle
                         value={state.instrument}
                         onChange={(value) =>
+                            value &&
                             setState((prev) => ({
                                 ...prev,
                                 instrument: value,
@@ -587,6 +588,7 @@ const DurationCard = memo(
     }
 );
 
+// TODO: Use `WithDebounce` instead.
 const SymbolInput = memo(
     ({
         value: valueProp,
@@ -620,6 +622,7 @@ const SymbolInput = memo(
     }
 );
 
+// TODO: Use `WithDebounce` instead.
 const RiskInput = memo(
     ({
         currency,
@@ -653,6 +656,7 @@ const RiskInput = memo(
     }
 );
 
+// TODO: Use `WithDebounce` instead.
 const ChargesInput = memo(
     ({
         currency,

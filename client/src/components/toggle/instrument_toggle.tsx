@@ -2,12 +2,12 @@ import { PositionInstrument } from "@/features/position/position";
 import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
 
 interface SegmentToggleProps {
-    defaultValue?: PositionInstrument;
-    value?: PositionInstrument;
-    onChange?: (v: PositionInstrument) => void;
+    defaultValue?: PositionInstrument | "";
+    value?: PositionInstrument | "";
+    onChange?: (v: PositionInstrument | "") => void;
 }
 
-function InstrumentToggle({
+export function InstrumentToggle({
     defaultValue,
     value,
     onChange,
@@ -33,5 +33,3 @@ function InstrumentToggle({
         </ToggleGroup>
     );
 }
-
-export { InstrumentToggle };

@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Button, DatePicker, Input, Label } from "@/s8ly";
@@ -7,22 +7,35 @@ import {
     positionInstrumentToString,
 } from "@/features/position/position";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import {
+    dateRangeFilterToDatesArray,
+    formatCurrency,
+    formatDate,
+} from "@/lib/utils";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
 import { useListPositions } from "@/features/position/list/list_positions_context";
 import { WithLabel } from "@/components/with_label";
-import { PositionSearchFilters } from "@/lib/api/position";
 import { Loading } from "@/components/loading";
+import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
+import { DirectionToggle } from "@/components/toggle/direction_toggle";
+import { PositionStatusSelect } from "@/components/select/position_status_select";
+import { WithCompare } from "@/components/with_compare";
+import { CompareSelect } from "@/components/select/compare_select";
+import { DecimalInput } from "@/components/input/decimal_input";
+import { WithDebounce } from "@/components/with_debounce";
 
 export const ListPositions = () => {
     const { queryResult } = useListPositions();
 
     return (
         <>
-            <PageHeading heading="Positions" loading={queryResult.isFetching} />
+            <PageHeading
+                heading="Positions"
+                loading={queryResult?.isFetching}
+            />
             <PositionsFilters />
             <PositionsTable />
         </>
@@ -31,63 +44,320 @@ export const ListPositions = () => {
 
 export default ListPositions;
 
-function getOpenedFilterValue(filters: PositionSearchFilters): Date[] {
-    const dates: Date[] = [];
-    const from: Date | undefined = filters.opened?.from;
-    const to: Date | undefined = filters.opened?.to;
-    if (from) {
-        dates.push(from);
-    }
-    if (to) {
-        dates.push(to);
-    }
-    return dates;
-}
-
 const PositionsFilters = memo(({}: {}) => {
-    const { searchFilters, setSearchFilters } = useListPositions();
+    const { queryResult, searchFilters, setSearchFilters } = useListPositions();
     // We keep local state of filters and only update the `searchFilters`
     // when user clicks on the `Search` button.
     const [localFilters, setLocalFilters] = useState(searchFilters);
 
     return (
         <>
-            <div className="flex flex-wrap gap-x-16 gap-y-8">
-                <WithLabel Label={<Label>Opened</Label>}>
-                    <DatePicker
-                        mode="range"
-                        config={{ dates: { toggle: true } }}
-                        dates={getOpenedFilterValue(localFilters)}
-                        onDatesChange={(v) =>
+            <form>
+                <div className="flex flex-wrap gap-x-16 gap-y-8">
+                    <WithLabel Label={<Label>Opened</Label>}>
+                        <DatePicker
+                            mode="range"
+                            config={{ dates: { toggle: true } }}
+                            dates={dateRangeFilterToDatesArray(
+                                localFilters.opened
+                            )}
+                            onDatesChange={(v) =>
+                                setLocalFilters((prev) => ({
+                                    ...prev,
+                                    opened: {
+                                        from: v[0],
+                                        to: v[1],
+                                    },
+                                }))
+                            }
+                        />
+                    </WithLabel>
+
+                    <WithDebounce
+                        state={localFilters.symbol}
+                        onDebounce={(v) => {
                             setLocalFilters((prev) => ({
                                 ...prev,
-                                opened: {
-                                    from: v[0],
-                                    to: v[1],
-                                },
-                            }))
-                        }
-                    />
-                </WithLabel>
+                                symbol: v,
+                            }));
+                        }}
+                    >
+                        {(value, setValue) => (
+                            <WithLabel Label={<Label>Symbol</Label>}>
+                                <Input
+                                    value={value}
+                                    onChange={(e) => setValue(e.target.value)}
+                                />
+                            </WithLabel>
+                        )}
+                    </WithDebounce>
 
-                <WithLabel Label={<Label>Symbol</Label>}>
-                    <Input
-                        value={localFilters.symbol}
-                        onChange={(e) =>
+                    <WithDebounce
+                        state={localFilters.instrument}
+                        onDebounce={(v) => {
                             setLocalFilters((prev) => ({
                                 ...prev,
-                                symbol: e.target.value,
+                                instrument: v,
+                            }));
+                        }}
+                    >
+                        {(value, setValue) => (
+                            <WithLabel Label={<Label>Instrument</Label>}>
+                                <InstrumentToggle
+                                    value={value}
+                                    onChange={(v) => setValue(v)}
+                                />
+                            </WithLabel>
+                        )}
+                    </WithDebounce>
+
+                    <WithLabel Label={<Label>Direction</Label>}>
+                        <DirectionToggle
+                            value={localFilters.direction}
+                            onChange={(v) =>
+                                setLocalFilters((prev) => ({
+                                    ...prev,
+                                    direction: v,
+                                }))
+                            }
+                        />
+                    </WithLabel>
+
+                    <WithLabel Label={<Label>Status</Label>}>
+                        <PositionStatusSelect
+                            value={localFilters.status}
+                            onValueChange={(v) =>
+                                setLocalFilters((prev) => ({
+                                    ...prev,
+                                    status: v,
+                                }))
+                            }
+                        />
+                    </WithLabel>
+
+                    <WithDebounce
+                        state={localFilters.r_factor}
+                        onDebounce={(v) => {
+                            setLocalFilters((prev) => ({
+                                ...prev,
+                                r_factor: v,
+                            }));
+                        }}
+                    >
+                        {(value, setValue) => (
+                            <WithLabel Label={<Label>R Factor</Label>}>
+                                <WithCompare
+                                    Compare={
+                                        <CompareSelect
+                                            value={
+                                                localFilters.r_factor_operator
+                                            }
+                                            onValueChange={(v) =>
+                                                setLocalFilters((prev) => ({
+                                                    ...prev,
+                                                    r_factor_operator: v,
+                                                }))
+                                            }
+                                        />
+                                    }
+                                >
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={value}
+                                        onChange={(e) =>
+                                            setValue(
+                                                e.target.value
+                                                    ? Number(e.target.value)
+                                                    : ""
+                                            )
+                                        }
+                                    />
+                                </WithCompare>
+                            </WithLabel>
+                        )}
+                    </WithDebounce>
+
+                    <WithDebounce
+                        state={localFilters.gross_pnl}
+                        onDebounce={(v) =>
+                            setLocalFilters((prev) => ({
+                                ...prev,
+                                gross_pnl: v,
                             }))
                         }
-                    />
-                </WithLabel>
-            </div>
+                    >
+                        {(value, setValue) => (
+                            <WithLabel Label={<Label>Gross PnL</Label>}>
+                                <WithCompare
+                                    Compare={
+                                        <CompareSelect
+                                            value={
+                                                localFilters.gross_pnl_operator
+                                            }
+                                            onValueChange={(v) =>
+                                                setLocalFilters((prev) => ({
+                                                    ...prev,
+                                                    gross_pnl_operator: v,
+                                                }))
+                                            }
+                                        />
+                                    }
+                                >
+                                    <DecimalInput
+                                        kind="amount"
+                                        value={value}
+                                        onChange={(e) =>
+                                            setValue(e.target.value)
+                                        }
+                                    />
+                                </WithCompare>
+                            </WithLabel>
+                        )}
+                    </WithDebounce>
 
-            <div className="h-8" />
+                    <WithDebounce
+                        state={localFilters.net_pnl}
+                        onDebounce={(v) =>
+                            setLocalFilters((prev) => ({
+                                ...prev,
+                                net_pnl: v,
+                            }))
+                        }
+                    >
+                        {(value, setValue) => (
+                            <WithLabel Label={<Label>Net PnL</Label>}>
+                                <WithCompare
+                                    Compare={
+                                        <CompareSelect
+                                            value={
+                                                localFilters.net_pnl_operator
+                                            }
+                                            onValueChange={(v) =>
+                                                setLocalFilters((prev) => ({
+                                                    ...prev,
+                                                    net_pnl_operator: v,
+                                                }))
+                                            }
+                                        />
+                                    }
+                                >
+                                    <DecimalInput
+                                        kind="amount"
+                                        value={value}
+                                        onChange={(e) =>
+                                            setValue(e.target.value)
+                                        }
+                                    />
+                                </WithCompare>
+                            </WithLabel>
+                        )}
+                    </WithDebounce>
 
-            <Button onClick={() => setSearchFilters(localFilters)}>
-                Search
-            </Button>
+                    <WithDebounce
+                        state={localFilters.net_return_percentage}
+                        onDebounce={(v) => {
+                            setLocalFilters((prev) => ({
+                                ...prev,
+                                net_return_percentage: v,
+                            }));
+                        }}
+                    >
+                        {(value, setValue) => (
+                            <WithLabel Label={<Label>Net Return %</Label>}>
+                                <WithCompare
+                                    Compare={
+                                        <CompareSelect
+                                            value={
+                                                localFilters.net_return_percentage_operator
+                                            }
+                                            onValueChange={(v) =>
+                                                setLocalFilters((prev) => ({
+                                                    ...prev,
+                                                    net_return_percentage_operator:
+                                                        v,
+                                                }))
+                                            }
+                                        />
+                                    }
+                                >
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={value}
+                                        onChange={(e) =>
+                                            setValue(
+                                                e.target.value
+                                                    ? Number(e.target.value)
+                                                    : ""
+                                            )
+                                        }
+                                    />
+                                </WithCompare>
+                            </WithLabel>
+                        )}
+                    </WithDebounce>
+
+                    <WithDebounce
+                        state={localFilters.charges_percentage}
+                        onDebounce={(v) =>
+                            setLocalFilters((prev) => ({
+                                ...prev,
+                                charges_percentage: v,
+                            }))
+                        }
+                    >
+                        {(value, setValue) => (
+                            <WithLabel
+                                Label={<Label>Charges % of Net PnL</Label>}
+                            >
+                                <WithCompare
+                                    Compare={
+                                        <CompareSelect
+                                            value={
+                                                localFilters.charges_percentage_operator
+                                            }
+                                            onValueChange={(v) =>
+                                                setLocalFilters((prev) => ({
+                                                    ...prev,
+                                                    charges_percentage_operator:
+                                                        v,
+                                                }))
+                                            }
+                                        />
+                                    }
+                                >
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={value}
+                                        onChange={(e) =>
+                                            setValue(
+                                                e.target.value
+                                                    ? Number(e.target.value)
+                                                    : ""
+                                            )
+                                        }
+                                    />
+                                </WithCompare>
+                            </WithLabel>
+                        )}
+                    </WithDebounce>
+                </div>
+
+                <div className="h-8" />
+
+                <Button
+                    type="submit"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        setSearchFilters(localFilters);
+                    }}
+                    loading={queryResult.isFetching}
+                >
+                    Search
+                </Button>
+            </form>
 
             <div className="h-15" />
         </>
@@ -101,8 +371,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "Opened At",
         },
         accessorKey: "opened_at",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Opened At" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="Opened At"
+                column={column}
+                disabled={table.options.meta?.isFetching}
+            />
         ),
         cell: ({ row }) =>
             formatDate(new Date(row.original.opened_at), { time: true }),
@@ -113,8 +387,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "Symbol",
         },
         accessorKey: "symbol",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Symbol" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="Symbol"
+                column={column}
+                disabled={table.options.meta?.isFetching}
+            />
         ),
     },
     {
@@ -123,8 +401,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "Direction",
         },
         accessorKey: "direction",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Direction" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="Direction"
+                column={column}
+                disabled={table.options.meta?.isFetching}
+            />
         ),
         cell: ({ row }) => (
             <DirectionTag className="w-16" direction={row.original.direction} />
@@ -136,8 +418,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "Status",
         },
         accessorKey: "status",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Status" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="Status"
+                column={column}
+                disabled={table.options.meta?.isFetching}
+            />
         ),
         cell: ({ row }) => (
             <StatusTag
@@ -152,8 +438,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "Instrument",
         },
         accessorKey: "instrument",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Instrument" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="Instrument"
+                column={column}
+                disabled={table.options.meta?.isFetching}
+            />
         ),
         cell: ({ row }) => positionInstrumentToString(row.original.instrument),
     },
@@ -163,8 +453,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "R Factor",
         },
         accessorKey: "r_factor",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="R Factor" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="R Factor"
+                column={column}
+                disabled={table.options.meta?.isFetching}
+            />
         ),
     },
     {
@@ -173,8 +467,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "Gross PnL",
         },
         accessorKey: "gross_pnl_amount",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Gross PnL" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="Gross PnL"
+                column={column}
+                disabled={table.options.meta?.isFetching}
+            />
         ),
         cell: ({ row }) =>
             formatCurrency(
@@ -188,8 +486,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "Net PnL",
         },
         accessorKey: "net_pnl_amount",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Net PnL" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="Net PnL"
+                column={column}
+                disabled={table.options.meta?.isFetching}
+            />
         ),
         cell: ({ row }) =>
             formatCurrency(row.original.net_pnl_amount, row.original.currency),
@@ -200,8 +502,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "Charges %",
         },
         accessorKey: "charges_as_percentage_of_net_pnl",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Charges" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="Charges %"
+                disabled={table.options.meta?.isFetching}
+                column={column}
+            />
         ),
         cell: ({ row }) =>
             `${Number(row.original.charges_as_percentage_of_net_pnl).toFixed(2)}%`,
@@ -212,8 +518,12 @@ const columns: ColumnDef<Position>[] = [
             columnVisibilityHeader: "Net Return %",
         },
         accessorKey: "net_return_percentage",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Net Return %" />
+        header: ({ column, table }) => (
+            <DataTableColumnHeader
+                title="Net Return %"
+                disabled={table.options.meta?.isFetching}
+                column={column}
+            />
         ),
         cell: ({ row }) =>
             `${Number(row.original.net_return_percentage).toFixed(2)}%`,
@@ -236,10 +546,10 @@ const PositionsTable = memo(() => {
             <DataTableSmart
                 columns={columns}
                 data={queryResult.data.data.items}
-                loading={queryResult.isLoading}
                 total={queryResult.data.data.pagination.total_items}
                 state={tableState}
                 onStateChange={setTableState}
+                isFetching={queryResult?.isFetching}
             />
         );
     }

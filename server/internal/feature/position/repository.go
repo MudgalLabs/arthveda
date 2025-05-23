@@ -5,6 +5,7 @@ import (
 	"arthveda/internal/dbx"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -46,7 +47,8 @@ const (
 type searchFilter struct {
 	// Only ADMIN clients should have access to `CreatedBy`
 	// For people using arthveda.io client, this filter will be set to their user ID.
-	CreatedBy                   *uuid.UUID              `json:"created_by"`
+	CreatedBy *uuid.UUID `json:"created_by"`
+
 	Opened                      *common.DateRangeFilter `json:"opened"`
 	Symbol                      *string                 `json:"symbol"`
 	Instrument                  *Instrument             `json:"instrument"`
@@ -80,7 +82,7 @@ var allowedSortFields = []common.SearchField{
 var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldCreatedBy:           "p.created_by",
 	searchFieldOpened:              "p.opened_at",
-	searchFieldSymbol:              "p.symbol",
+	searchFieldSymbol:              "UPPER(p.symbol)", // Make sure to do `strings.ToUpper` when passing the symbol filter value.
 	searchFieldInstrument:          "p.instrument",
 	searchFieldDirection:           "p.direction",
 	searchFieldStatus:              "p.status",
@@ -177,9 +179,11 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 	if p.Filters.CreatedBy != nil {
 		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldCreatedBy], "=", p.Filters.CreatedBy)
 	}
+
 	if p.Filters.Symbol != nil && *p.Filters.Symbol != "" {
-		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldSymbol], "=", p.Filters.Symbol)
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldSymbol], "=", strings.ToUpper(*p.Filters.Symbol))
 	}
+
 	if p.Filters.Opened != nil {
 		if p.Filters.Opened.From != nil {
 			b.AddCompareFilter(searchFieldsSQLColumn[searchFieldOpened], ">=", p.Filters.Opened.From)
@@ -187,6 +191,38 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 		if p.Filters.Opened.To != nil {
 			b.AddCompareFilter(searchFieldsSQLColumn[searchFieldOpened], "<=", p.Filters.Opened.To)
 		}
+	}
+
+	if p.Filters.Instrument != nil && *p.Filters.Instrument != "" {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldInstrument], "=", *p.Filters.Instrument)
+	}
+
+	if p.Filters.Direction != nil && *p.Filters.Direction != "" {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldDirection], "=", *p.Filters.Direction)
+	}
+
+	if p.Filters.Status != nil && *p.Filters.Status != "" && *p.Filters.Status != "all" {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldStatus], "=", *p.Filters.Status)
+	}
+
+	if p.Filters.RFactor != nil {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldRFactor], *p.Filters.RFactorOperator, *p.Filters.RFactor)
+	}
+
+	if p.Filters.GrossPnL != nil && *p.Filters.GrossPnL != "" {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldGrossPnL], *p.Filters.GrossPnLOperator, *p.Filters.GrossPnL)
+	}
+
+	if p.Filters.NetPnL != nil && *p.Filters.NetPnL != "" {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldNetPnL], *p.Filters.NetPnLOperator, *p.Filters.NetPnL)
+	}
+
+	if p.Filters.NetReturnPercentage != nil {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldNetReturnPercentage], *p.Filters.NetReturnPercentageOperator, *p.Filters.NetReturnPercentage)
+	}
+
+	if p.Filters.ChargesPercentage != nil {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldChargesPercentage], *p.Filters.ChargesPercentageOperator, *p.Filters.ChargesPercentage)
 	}
 
 	b.AddSorting(searchFieldsSQLColumn[p.Sort.Field], p.Sort.Order)

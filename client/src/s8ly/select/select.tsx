@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";
 import { Loading } from "@/components/loading";
 
-interface SelectOptionItem {
-    value: string;
+interface SelectOptionItem<T = string> {
+    value: T;
     label: string | ReactNode;
     disabled?: boolean;
 }
@@ -60,6 +60,7 @@ const Select: FC<SelectProps> = ({
             defaultValue={defaultValue}
             defaultOpen={defaultOpen}
             disabled={disabled || loading}
+            data-disabled={disabled || loading}
             {...props}
         >
             <SelectPrimitive.Trigger
@@ -147,7 +148,7 @@ const SelectItem: FC<SelectItemProps> = ({
             ref={ref}
             data-disabled={disabled}
             className={cn(
-                "enabled:hover:bg-muted focus:bg-muted data-[disabled=true]:text-foreground-muted m-1 flex h-fit items-center justify-between rounded-md px-2 py-3 focus:outline-none enabled:cursor-pointer data-[disabled=true]:hover:cursor-not-allowed",
+                "enabled:hover:bg-muted focus:bg-muted data-[disabled=true]:text-foreground-muted m-1 flex h-fit items-center justify-between rounded-md px-2 py-3 focus:outline-none data-[disabled=false]:hover:cursor-pointer data-[disabled=true]:hover:cursor-not-allowed",
                 className
             )}
             disabled={disabled}

@@ -9,12 +9,6 @@ import {
 } from "@/s8ly";
 import { IconSettings2 } from "@/components/icons";
 
-declare module "@tanstack/react-table" {
-    interface ColumnMeta<TData extends RowData, TValue> {
-        columnVisibilityHeader?: string;
-    }
-}
-
 interface DataTableVisibilityProps<TData> {
     table: Table<TData>;
 }

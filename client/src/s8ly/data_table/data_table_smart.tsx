@@ -26,19 +26,19 @@ interface DataTableState {
 interface DataTableSmartProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
-    loading?: boolean;
     total?: number;
     state?: Partial<DataTableState>;
     onStateChange?: (newState: DataTableState) => void;
+    isFetching?: boolean;
 }
 
 function DataTableSmart<TData, TValue>({
     columns,
     data,
-    loading,
     total,
     state: stateProp,
     onStateChange,
+    isFetching,
 }: DataTableSmartProps<TData, TValue>) {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
         () => stateProp?.columnVisibility ?? {}
@@ -81,6 +81,9 @@ function DataTableSmart<TData, TValue>({
         getSortedRowModel: getSortedRowModel(),
         getFacetedRowModel: getFacetedRowModel(),
         getFacetedUniqueValues: getFacetedUniqueValues(),
+        meta: {
+            isFetching,
+        },
     });
 
     const tableState = table.getState();
@@ -103,7 +106,7 @@ function DataTableSmart<TData, TValue>({
                 <DataTableVisibility table={table} />
             </div>
 
-            <DataTable table={table} loading={loading} />
+            <DataTable table={table} />
 
             <DataTablePagination table={table} total={total} />
         </div>

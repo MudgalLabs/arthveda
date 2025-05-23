@@ -1,6 +1,7 @@
 import { CurrencyCode } from "@/features/position/position";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { DateRangeFilter } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -239,4 +240,21 @@ export function generateId(prefix = "id") {
 
 export function isFunction(value: any): value is Function {
     return typeof value === "function";
+}
+
+export function dateRangeFilterToDatesArray(
+    filter: DateRangeFilter | undefined
+): Date[] {
+    if (!filter) return [];
+
+    const dates: Date[] = [];
+    const from: Date | undefined = filter?.from;
+    const to: Date | undefined = filter?.to;
+    if (from) {
+        dates.push(from);
+    }
+    if (to) {
+        dates.push(to);
+    }
+    return dates;
 }

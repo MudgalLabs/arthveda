@@ -8,16 +8,18 @@ import {
     IconChevronsUpDown,
 } from "@/components/icons";
 
-interface DataTableColumnHeaderProps<TData, TValue>
-    extends React.HTMLAttributes<HTMLDivElement> {
+interface DataTableColumnHeaderProps<TData, TValue> {
     column: Column<TData, TValue>;
     title: string;
+    className?: string;
+    disabled?: boolean;
 }
 
 export function DataTableColumnHeader<TData, TValue>({
     column,
     title,
     className,
+    disabled = false,
 }: DataTableColumnHeaderProps<TData, TValue>) {
     if (!column.getCanSort()) {
         return <div className={cn(className)}>{title}</div>;
@@ -30,6 +32,7 @@ export function DataTableColumnHeader<TData, TValue>({
                 size="small"
                 className="mx-1 h-8 w-full justify-start"
                 onClick={() => column.toggleSorting()}
+                disabled={disabled}
             >
                 <span>{title}</span>
                 {column.getIsSorted() === "desc" ? (

@@ -36,10 +36,36 @@ func (o *Operator) SQL() string {
 	case OperatorLT:
 		return "<"
 	case OperatorEQ:
-		return "=="
+		return "="
+	default:
+		return ""
+	}
+}
+
+func (o *Operator) IsValid() bool {
+	switch *o {
+	case OperatorGTE, OperatorGT, OperatorLTE, OperatorLT, OperatorEQ:
+		return true
+	default:
+		return false
+	}
+}
+
+// parseOperator will check if the string provided is `Operator` enum
+// or a valid string SQL for compare.
+func parseOperator(o Operator) string {
+	// If `""` that measn `op` wasn't of type `Operator`.
+	if o.SQL() != "" {
+		return o.SQL()
 	}
 
-	panic(fmt.Sprintf("found invalid operator: %s", o))
+	// Allow raw SQL operators directly
+	switch o.String() {
+	case "=", "!=", "<", "<=", ">", ">=":
+		return o.String()
+	}
+
+	return "" // invalid
 }
 
 type SQLBuilder struct {
@@ -68,11 +94,14 @@ func NewSQLBuilder(baseSQL string) *SQLBuilder {
 }
 
 // AddCompareFilter adds a single condition like "column = $N", "column >= $N"
-func (b *SQLBuilder) AddCompareFilter(column string, operator string, value any) {
+func (b *SQLBuilder) AddCompareFilter(column string, operator Operator, value any) {
 	if column == "" || operator == "" || value == nil {
 		return
 	}
-	condition := fmt.Sprintf("%s %s $%d", column, operator, b.nextArg())
+
+	operatorSQL := parseOperator(operator)
+
+	condition := fmt.Sprintf("%s %s $%d", column, operatorSQL, b.nextArg())
 	b.where = append(b.where, condition)
 	b.args = append(b.args, value)
 }

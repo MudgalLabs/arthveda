@@ -1,3 +1,16 @@
+import { RowData } from "@tanstack/react-table";
+
+declare module "@tanstack/react-table" {
+    interface TableMeta<TData extends RowData> {
+        updateFn?: (rowIndex: number, columnId: string, value: unknown) => void;
+        isFetching?: boolean;
+    }
+
+    interface ColumnMeta<TData extends RowData, TValue> {
+        columnVisibilityHeader?: string;
+    }
+}
+
 export type Setter<T> = (value: T[] | ((prev: T[]) => T[])) => void;
 
 export interface Sorting {

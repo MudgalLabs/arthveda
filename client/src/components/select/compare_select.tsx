@@ -22,15 +22,18 @@ const options = [
     { value: CompareOperator.EQ, label: "==" },
 ];
 
-export function CompareSelect({
-    classNames,
-    ...props
-}: Omit<SelectProps, "options">) {
+interface CompareSelectProps extends Omit<SelectProps, "options"> {
+    defaultValue?: CompareOperator;
+    value?: CompareOperator;
+    onValueChange?: (value: CompareOperator) => void;
+}
+
+export function CompareSelect({ classNames, ...props }: CompareSelectProps) {
     return (
         <Select
             classNames={{
-                trigger: cn("w-20", classNames?.trigger),
-                content: cn("w-20", classNames?.content),
+                trigger: cn("w-20!", classNames?.trigger),
+                content: cn("w-20!", classNames?.content),
             }}
             options={options}
             defaultValue={CompareOperator.GTE}

@@ -11,15 +11,10 @@ import { cn, formatCurrency, getCurrencySymbol } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";
 import { DecimalString } from "@/lib/types";
 
-export interface DecimalInputProps
-    extends Omit<InputProps, "onChange" | "onFocus" | "onBlur"> {
+export interface DecimalInputProps extends InputProps {
     kind: DecimalFieldKind;
-    className?: string;
     currency?: CurrencyCode;
-    value?: DecimalString;
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-    onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
+    value?: DecimalString; // To improve types.
 }
 
 export function DecimalInput(props: DecimalInputProps) {
