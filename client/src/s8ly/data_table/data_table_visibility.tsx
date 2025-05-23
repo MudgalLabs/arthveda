@@ -1,4 +1,4 @@
-import { RowData, Table } from "@tanstack/react-table";
+import { Table } from "@tanstack/react-table";
 
 import {
     Button,
