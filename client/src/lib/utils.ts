@@ -189,7 +189,7 @@ export function removeAtIndex<T>(array: T[], index: number): T[] {
 
 export function formatCurrency(
     amount: string | number,
-    currency: CurrencyCode,
+    currency: CurrencyCode = "inr",
     withSymbol: boolean = true,
     locale: string = "en-IN",
     options: Intl.NumberFormatOptions = {}

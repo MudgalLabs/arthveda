@@ -7,6 +7,9 @@ export const API_ROUTES = {
     currency: {
         list: "/v1/currencies",
     },
+    dashboard: {
+        get: "/v1/dashboard",
+    },
     position: {
         create: "/v1/positions",
         compute: "/v1/positions/compute",

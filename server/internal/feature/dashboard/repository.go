@@ -10,7 +10,7 @@ import (
 )
 
 type Reader interface {
-	Get(ctx context.Context, userID uuid.UUID) (*dashboardGetResponse, error)
+	Get(ctx context.Context, userID uuid.UUID) (*getDashboardReponse, error)
 }
 
 type Writer interface{}
@@ -28,7 +28,7 @@ func NewRepository(db *pgxpool.Pool) *dashboardRepository {
 	return &dashboardRepository{db}
 }
 
-func (r *dashboardRepository) Get(ctx context.Context, userID uuid.UUID) (*dashboardGetResponse, error) {
+func (r *dashboardRepository) Get(ctx context.Context, userID uuid.UUID) (*getDashboardReponse, error) {
 	pnlSQL := `
 		SELECT
 			COALESCE(SUM(p.gross_pnl_amount), 0) AS gross_pnl,
@@ -77,7 +77,7 @@ func (r *dashboardRepository) Get(ctx context.Context, userID uuid.UUID) (*dashb
 		return nil, fmt.Errorf("winrate sql scan: %w", err)
 	}
 
-	result := &dashboardGetResponse{
+	result := &getDashboardReponse{
 		GrossPnL:          grossPnL,
 		NetPnL:            netPnL,
 		WinRatePercentage: winRatePercentage,

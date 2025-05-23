@@ -4,12 +4,14 @@ import { ApiRes } from "@/lib/api/client";
 import { toast } from "@/components/toast";
 import * as auth from "@/lib/api/auth";
 import * as currency from "@/lib/api/currency";
+import * as dashboard from "@/lib/api/dashboard";
 import * as position from "@/lib/api/position";
 import * as user from "@/lib/api/user";
 
 export const api = {
     auth,
     currency,
+    dashboard,
     position,
     user,
 };

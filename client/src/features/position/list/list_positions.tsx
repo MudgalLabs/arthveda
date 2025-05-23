@@ -543,14 +543,18 @@ const PositionsTable = memo(() => {
 
     if (queryResult.data) {
         return (
-            <DataTableSmart
-                columns={columns}
-                data={queryResult.data.data.items}
-                total={queryResult.data.data.pagination.total_items}
-                state={tableState}
-                onStateChange={setTableState}
-                isFetching={queryResult?.isFetching}
-            />
+            <>
+                <DataTableSmart
+                    columns={columns}
+                    data={queryResult.data.data.items}
+                    total={queryResult.data.data.pagination.total_items}
+                    state={tableState}
+                    onStateChange={setTableState}
+                    isFetching={queryResult?.isFetching}
+                />
+
+                <div className="h-10" />
+            </>
         );
     }
 });

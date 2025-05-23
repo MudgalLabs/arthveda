@@ -1,14 +1,58 @@
 import { Label } from "@/s8ly";
 
 import { PageHeading } from "@/components/page_heading";
+import { apiHooks } from "@/hooks/api_hooks";
+import { cn, formatCurrency } from "@/lib/utils";
 
 export const Dashboard = () => {
-    return (
-        <>
-            <PageHeading heading="Dashboards" />
-            <Label>PnL</Label>
-        </>
-    );
+    const { data, isLoading } = apiHooks.dashboard.useGet();
+
+    const grossPnL = data?.data.gross_pnl || "";
+    const netPnL = data?.data.net_pnl;
+    const winRate = data?.data.win_rate_percentage;
+
+    if (data) {
+        return (
+            <>
+                <PageHeading heading="Dashboards" loading={isLoading} />
+
+                <div className="[&_div]:border-border-muted [&_div]:bg-muted flex gap-x-8 [&_div]:rounded-md [&_div]:border-1 [&_div]:px-4 [&_div]:py-2">
+                    <div>
+                        <Label className="sub-heading">Gross PnL</Label>
+                        <p
+                            className={cn("big-heading", {
+                                "text-foreground-green": Number(grossPnL) > 0,
+                                "text-foreground-red": Number(grossPnL) < 0,
+                            })}
+                        >
+                            {formatCurrency(data.data.gross_pnl)}
+                        </p>
+                    </div>
+
+                    <div>
+                        <Label className="sub-heading">Net PnL</Label>
+                        <p
+                            className={cn("big-heading", {
+                                "text-foreground-green": Number(netPnL) > 0,
+                                "text-foreground-red": Number(netPnL) < 0,
+                            })}
+                        >
+                            {formatCurrency(data.data.net_pnl)}
+                        </p>
+                    </div>
+
+                    <div>
+                        <Label className="sub-heading">Win Rate</Label>
+                        <p className="big-heading">
+                            {data.data.win_rate_percentage}%
+                        </p>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    return null;
 };
 
 export default Dashboard;
