@@ -7,12 +7,7 @@ import {
     PopoverTrigger,
 } from "@/s8ly";
 import { CurrencyCode } from "@/features/position/position";
-import {
-    cn,
-    formatCurrency,
-    getCurrencySymbol,
-    removeFormatCurrency,
-} from "@/lib/utils";
+import { cn, formatCurrency, getCurrencySymbol } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";
 import { DecimalString } from "@/lib/types";
 
@@ -22,7 +17,7 @@ export interface DecimalInputProps
     className?: string;
     currency?: CurrencyCode;
     value?: DecimalString;
-    onChange?: (v: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
     onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
@@ -46,6 +41,8 @@ export function DecimalInput(props: DecimalInputProps) {
         default: "",
         name: "value",
     });
+    const [displayValue, setDisplayValue] = useState(valueProp || "");
+    const [isFocused, setIsFocused] = useState(false);
 
     // If the `value` is invalid, why it is invalid.
     const [error, setError] = useState<string | null>(null);
@@ -53,6 +50,18 @@ export function DecimalInput(props: DecimalInputProps) {
     // State to manange the popover state whether to show or hide
     // the popover to show the `error` if any.
     const [open, setOpen] = useState(false);
+
+    useEffect(() => {
+        if (!isFocused) {
+            setDisplayValue(
+                isCurrency && value
+                    ? formatCurrency(value, currency, false)
+                    : value
+            );
+        } else {
+            setDisplayValue(value);
+        }
+    }, [value, isCurrency, isFocused, currency]);
 
     useEffect(() => {
         setOpen(!!error);
@@ -63,7 +72,7 @@ export function DecimalInput(props: DecimalInputProps) {
         const { valid, error } = validateDecimalString(value, kind);
 
         setValue(value);
-        onChangeProp?.(value, e);
+        onChangeProp?.(e);
 
         if (value === "" || valid) {
             setError(null);
@@ -73,31 +82,13 @@ export function DecimalInput(props: DecimalInputProps) {
     }
 
     function onFocus(e: React.FocusEvent<HTMLInputElement>) {
-        let newValue = value;
-
-        if (value) {
-            if (isCurrency) {
-                newValue = removeFormatCurrency(value);
-            }
-        }
-
-        setValue(newValue);
-        onChangeProp?.(newValue, e);
+        setIsFocused(true);
         onFocusProp?.(e);
         setOpen(!!error);
     }
 
     function onBlur(e: React.FocusEvent<HTMLInputElement>) {
-        let newValue = value;
-
-        if (value) {
-            if (isCurrency) {
-                newValue = formatCurrency(value, currency, false);
-            }
-        }
-
-        setValue(newValue);
-        onChangeProp?.(newValue, e);
+        setIsFocused(false);
         onBlurProp?.(e);
         setOpen(false);
     }
@@ -122,10 +113,10 @@ export function DecimalInput(props: DecimalInputProps) {
                             className
                         )}
                         variant={error ? "error" : "default"}
-                        value={value}
+                        value={displayValue}
                         onChange={onChange}
-                        onBlur={onBlur}
                         onFocus={onFocus}
+                        onBlur={onBlur}
                         {...rest}
                     />
                 </div>
@@ -134,8 +125,12 @@ export function DecimalInput(props: DecimalInputProps) {
                 side="top"
                 align="start"
                 sideOffset={4}
-                onOpenAutoFocus={(e) => e.preventDefault()}
-                onCloseAutoFocus={(e) => e.preventDefault()}
+                onOpenAutoFocus={(e) => {
+                    e.preventDefault();
+                }}
+                onCloseAutoFocus={(e) => {
+                    e.preventDefault();
+                }}
                 className="text-sm"
             >
                 {error}

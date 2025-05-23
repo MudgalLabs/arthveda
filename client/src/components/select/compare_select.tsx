@@ -1,7 +1,7 @@
 import { Select, SelectProps } from "@/s8ly";
 import { cn } from "@/lib/utils";
 
-const enum CompareOperator {
+export const enum CompareOperator {
     /** Equal or greater than */
     GTE = "gte",
     /**  Greater than */
@@ -22,7 +22,10 @@ const options = [
     { value: CompareOperator.EQ, label: "==" },
 ];
 
-function CompareSelect({ classNames, ...props }: Omit<SelectProps, "options">) {
+export function CompareSelect({
+    classNames,
+    ...props
+}: Omit<SelectProps, "options">) {
     return (
         <Select
             classNames={{
@@ -35,6 +38,3 @@ function CompareSelect({ classNames, ...props }: Omit<SelectProps, "options">) {
         />
     );
 }
-
-export { CompareSelect };
-export type { CompareOperator };

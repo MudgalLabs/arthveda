@@ -44,6 +44,8 @@ const (
 )
 
 type searchFilter struct {
+	// Only ADMIN clients should have access to `CreatedBy`
+	// For people using arthveda.io client, this filter will be set to their user ID.
 	CreatedBy                   *uuid.UUID              `json:"created_by"`
 	Opened                      *common.DateRangeFilter `json:"opened"`
 	Symbol                      *string                 `json:"symbol"`

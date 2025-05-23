@@ -22,10 +22,7 @@ export function useURLState<T>(
             ignoreQueryPrefix: true,
             allowDots: true,
         });
-
-        const parsed = deepParseObject<T>(raw as T, customParsers);
-
-        return parsed;
+        return deepParseObject<T>(raw as T, customParsers);
     }, [location.search]);
 
     const [state, setState] = useState<T>(() => ({
@@ -93,8 +90,8 @@ export function deepParseObject<T>(
             return isNaN(date.getTime()) ? input : date;
         }
 
-        // Number check
-        if (!isNaN(Number(input))) {
+        // Number check — skip empty strings
+        if (input.trim() !== "" && !isNaN(Number(input))) {
             return Number(input) as any;
         }
 

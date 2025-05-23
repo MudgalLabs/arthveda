@@ -63,19 +63,19 @@ export function create(body: CreatePositionRequest) {
 export interface PositionSearchFilters {
     opened?: DateRangeFilter;
     symbol?: string;
-    instrument?: PositionInstrument;
-    direction?: PositionDirection;
-    status?: PositionStatus;
-    r_factor?: number;
+    instrument?: PositionInstrument | "";
+    direction?: PositionDirection | "";
+    status?: PositionStatus | "";
+    r_factor?: number | "";
     r_factor_operator?: CompareOperator;
-    gross_pnl?: DecimalString;
+    gross_pnl?: DecimalString | "";
     gross_pnl_operator?: CompareOperator;
-    net_pnl?: DecimalString;
+    net_pnl?: DecimalString | "";
     net_pnl_operator?: CompareOperator;
-    charges_percentage?: number;
+    charges_percentage?: number | "";
     charges_percentage_operator?: CompareOperator;
-    return_percentage?: number;
-    return_percentage_operator?: CompareOperator;
+    net_return_percentage?: number | "";
+    net_return_percentage_operator?: CompareOperator;
 }
 
 export interface PositionSearchResponse extends SearchResponse<Position[]> {}

@@ -1,7 +1,7 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 
-import { DatePicker, Input, Label } from "@/s8ly";
+import { Button, DatePicker, Input, Label } from "@/s8ly";
 import {
     Position,
     positionInstrumentToString,
@@ -12,7 +12,7 @@ import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
-import { useListPositions } from "./list_positions_context";
+import { useListPositions } from "@/features/position/list/list_positions_context";
 import { WithLabel } from "@/components/with_label";
 import { PositionSearchFilters } from "@/lib/api/position";
 import { Loading } from "@/components/loading";
@@ -46,6 +46,9 @@ function getOpenedFilterValue(filters: PositionSearchFilters): Date[] {
 
 const PositionsFilters = memo(({}: {}) => {
     const { searchFilters, setSearchFilters } = useListPositions();
+    // We keep local state of filters and only update the `searchFilters`
+    // when user clicks on the `Search` button.
+    const [localFilters, setLocalFilters] = useState(searchFilters);
 
     return (
         <>
@@ -54,9 +57,9 @@ const PositionsFilters = memo(({}: {}) => {
                     <DatePicker
                         mode="range"
                         config={{ dates: { toggle: true } }}
-                        dates={getOpenedFilterValue(searchFilters)}
+                        dates={getOpenedFilterValue(localFilters)}
                         onDatesChange={(v) =>
-                            setSearchFilters((prev) => ({
+                            setLocalFilters((prev) => ({
                                 ...prev,
                                 opened: {
                                     from: v[0],
@@ -69,9 +72,9 @@ const PositionsFilters = memo(({}: {}) => {
 
                 <WithLabel Label={<Label>Symbol</Label>}>
                     <Input
-                        value={searchFilters.symbol}
+                        value={localFilters.symbol}
                         onChange={(e) =>
-                            setSearchFilters((prev) => ({
+                            setLocalFilters((prev) => ({
                                 ...prev,
                                 symbol: e.target.value,
                             }))
@@ -79,6 +82,12 @@ const PositionsFilters = memo(({}: {}) => {
                     />
                 </WithLabel>
             </div>
+
+            <div className="h-8" />
+
+            <Button onClick={() => setSearchFilters(localFilters)}>
+                Search
+            </Button>
 
             <div className="h-15" />
         </>

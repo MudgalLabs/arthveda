@@ -310,8 +310,8 @@ const columns: ColumnDef<NewTrade>[] = [
             }, [value]);
 
             return (
-                <Input
-                    type="number"
+                <DecimalInput
+                    kind="quantity"
                     variant={error ? "error" : "default"}
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
@@ -340,7 +340,7 @@ const columns: ColumnDef<NewTrade>[] = [
                     currency={state.currency}
                     variant={error ? "error" : "default"}
                     value={value}
-                    onChange={(v) => setValue(v)}
+                    onChange={(e) => setValue(e.target.value)}
                     onBlur={sync}
                 />
             );
@@ -637,14 +637,15 @@ const RiskInput = memo(
                     kind="amount"
                     currency={currency}
                     value={value}
-                    onChange={(v) => setValue(v)}
-                    onBlur={() => {
-                        if (value !== valueProp) {
+                    onChange={(e) => {
+                        setValue(e.target.value);
+                    }}
+                    onBlur={(e) => {
+                        value !== valueProp &&
                             setState((prev) => ({
                                 ...prev,
-                                risk_amount: value,
+                                risk_amount: e.target.value,
                             }));
-                        }
                     }}
                 />
             </WithLabel>
@@ -669,12 +670,12 @@ const ChargesInput = memo(
                     kind="amount"
                     currency={currency}
                     value={value}
-                    onChange={(v) => setValue(v)}
-                    onBlur={() =>
+                    onChange={(e) => setValue(e.target.value)}
+                    onBlur={(e) =>
                         value !== valueProp &&
                         setState((prev) => ({
                             ...prev,
-                            charges_amount: value,
+                            charges_amount: e.target.value,
                         }))
                     }
                 />
