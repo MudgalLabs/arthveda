@@ -3,6 +3,8 @@ import { Label } from "@/s8ly";
 import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
 import { cn, formatCurrency } from "@/lib/utils";
+import { Link } from "@/components/link";
+import { ROUTES } from "@/routes";
 
 export const Dashboard = () => {
     const { data, isLoading } = apiHooks.dashboard.useGet();
@@ -12,6 +14,22 @@ export const Dashboard = () => {
     const winRate = data?.data.win_rate_percentage;
 
     if (data) {
+        if (!!grossPnL && !!netPnL && !winRate) {
+            return (
+                <div className="mt-10 text-center">
+                    <p className="text-sm">
+                        You have no{" "}
+                        <Link to={ROUTES.positionList}>Positions</Link>
+                    </p>
+                    <div className="h-4" />
+                    <p className="text-sm">
+                        Start using Arthveda by{" "}
+                        <Link to={ROUTES.addPosition}>adding</Link> a Position
+                    </p>
+                </div>
+            );
+        }
+
         return (
             <>
                 <PageHeading heading="Dashboards" loading={isLoading} />
@@ -43,9 +61,7 @@ export const Dashboard = () => {
 
                     <div>
                         <Label className="sub-heading">Win Rate</Label>
-                        <p className="big-heading">
-                            {data.data.win_rate_percentage}%
-                        </p>
+                        <p className="big-heading">{winRate}%</p>
                     </div>
                 </div>
             </>

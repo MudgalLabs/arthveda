@@ -58,12 +58,12 @@ func (r *dashboardRepository) Get(ctx context.Context, userID uuid.UUID) (*getDa
 
 	winRateSQL := `
 		SELECT
-			ROUND(
+			COALESCE(ROUND(
 				100.0 *
 				SUM(CASE WHEN status IN ('win', 'breakeven', 'open') THEN 1 ELSE 0 END) /
 				NULLIF(COUNT(*), 0),
 				2
-			) AS win_rate
+			), 0) AS win_rate
 		FROM
 			position
 		WHERE
