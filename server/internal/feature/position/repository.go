@@ -165,7 +165,7 @@ func (r *positionRepository) Delete(ctx context.Context, ID uuid.UUID) error {
 // the position(s) and fetch theit trade(s) and append it so `Postiion.Trades`.
 func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Position, int, error) {
 	baseSQL := `
-        SELECT
+		SELECT
             p.id, p.created_by, p.created_at, p.updated_at,
             p.symbol, p.instrument, p.currency, p.risk_amount, p.charges_amount,
             p.direction, p.status, p.opened_at, p.closed_at,

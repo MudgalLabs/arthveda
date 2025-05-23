@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/dbx"
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/env"
+	"arthveda/internal/feature/dashboard"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/feature/user_identity"
@@ -28,6 +29,7 @@ type app struct {
 // All the services.
 type services struct {
 	CurrencyService     *currency.Service
+	DashboardService    *dashboard.Service
 	PositionService     *position.Service
 	UserIdentityService *user_identity.Service
 	UserProfileService  *user_profile.Service
@@ -36,6 +38,7 @@ type services struct {
 // Access to all repositories for reading.
 // Write access only available to services.
 type repositories struct {
+	Dashboard    dashboard.Reader
 	Position     position.Reader
 	UserIdentity user_identity.Reader
 	UserProfile  user_profile.Reader
@@ -55,33 +58,29 @@ func main() {
 
 	defer db.Close()
 
-	// Currency
-	currencyService := currency.NewService()
-
-	// UserProfile
+	dashboardRepository := dashboard.NewRepository(db)
 	userProfileRepository := user_profile.NewRepository(db)
-	userProfileService := user_profile.NewService(userProfileRepository)
-
-	// UserIdentity
 	userIdentityRepository := user_identity.NewRepository(db)
-	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
-
-	// Trade
 	tradeRepository := trade.NewRepository(db)
-	// tradeService := trade.NewService(tradeRepository)
-
-	// Position
 	positionRepository := position.NewRepository(db)
+
+	currencyService := currency.NewService()
+	dashboardService := dashboard.NewService(dashboardRepository, positionRepository)
+	userProfileService := user_profile.NewService(userProfileRepository)
+	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
+	// tradeService := trade.NewService(tradeRepository)
 	positionService := position.NewService(positionRepository, tradeRepository)
 
 	services := services{
 		CurrencyService:     currencyService,
+		DashboardService:    dashboardService,
 		PositionService:     positionService,
 		UserIdentityService: userIdentityService,
 		UserProfileService:  userProfileService,
 	}
 
 	repositories := repositories{
+		Dashboard:    dashboardRepository,
 		Position:     positionRepository,
 		UserIdentity: userIdentityRepository,
 		UserProfile:  userProfileRepository,

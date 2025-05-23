@@ -52,6 +52,12 @@ func initRouter(a *app) http.Handler {
 			r.Get("/", getCurrenciesHandler(a.service.CurrencyService))
 		})
 
+		r.Route("/dashboard", func(r chi.Router) {
+			r.Use(authMiddleware)
+
+			r.Get("/", getDashboardHandler(a.service.DashboardService))
+		})
+
 		r.Route("/positions", func(r chi.Router) {
 			r.Use(authMiddleware)
 
