@@ -62,6 +62,7 @@ import { Link } from "@/components/link";
 import { ROUTES } from "@/routes";
 import { apiErrorHandler } from "@/lib/api";
 import { DecimalString } from "@/lib/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 function AddPosition() {
     const {
@@ -77,6 +78,8 @@ function AddPosition() {
         computeResult,
         canSave,
     } = useAddPosition();
+
+    const queryClient = useQueryClient();
 
     const { mutateAsync: save, isPending: isSaving } =
         apiHooks.position.useCreate({
@@ -97,6 +100,9 @@ function AddPosition() {
                 });
 
                 discard();
+                queryClient.invalidateQueries({
+                    queryKey: ["useGetDashboard"],
+                });
             },
             onError: apiErrorHandler,
         });
