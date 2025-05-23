@@ -638,13 +638,14 @@ const RiskInput = memo(
                     currency={currency}
                     value={value}
                     onChange={(v) => setValue(v)}
-                    onBlur={() =>
-                        value !== valueProp &&
-                        setState((prev) => ({
-                            ...prev,
-                            risk_amount: value,
-                        }))
-                    }
+                    onBlur={() => {
+                        if (value !== valueProp) {
+                            setState((prev) => ({
+                                ...prev,
+                                risk_amount: value,
+                            }));
+                        }
+                    }}
                 />
             </WithLabel>
         );

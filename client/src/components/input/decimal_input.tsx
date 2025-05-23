@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
     Input,
     InputProps,
@@ -14,7 +15,6 @@ import {
 } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";
 import { DecimalString } from "@/lib/types";
-import { useEffect, useState } from "react";
 
 export interface DecimalInputProps
     extends Omit<InputProps, "onChange" | "onFocus" | "onBlur"> {
@@ -22,18 +22,9 @@ export interface DecimalInputProps
     className?: string;
     currency?: CurrencyCode;
     value?: DecimalString;
-    onChange?: (
-        value: DecimalString,
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => void;
-    onBlur?: (
-        value: DecimalString,
-        e: React.FocusEvent<HTMLInputElement>
-    ) => void;
-    onFocus?: (
-        value: DecimalString,
-        e: React.FocusEvent<HTMLInputElement>
-    ) => void;
+    onChange?: (v: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+    onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+    onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
 
 export function DecimalInput(props: DecimalInputProps) {
@@ -68,46 +59,54 @@ export function DecimalInput(props: DecimalInputProps) {
     }, [error]);
 
     function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const val = e.target.value;
-        const { valid, error } = validateDecimalString(val, kind);
+        const value = e.target.value;
+        const { valid, error } = validateDecimalString(value, kind);
 
-        if (val === "" || valid) {
+        setValue(value);
+        onChangeProp?.(value, e);
+
+        if (value === "" || valid) {
             setError(null);
-            setValue(val);
-            onChangeProp?.(val, e);
         } else {
             setError(error ?? "Invalid input");
         }
     }
 
     function onFocus(e: React.FocusEvent<HTMLInputElement>) {
+        let newValue = value;
+
         if (value) {
             if (isCurrency) {
-                setValue(removeFormatCurrency(value));
+                newValue = removeFormatCurrency(value);
             }
         }
 
+        setValue(newValue);
+        onChangeProp?.(newValue, e);
+        onFocusProp?.(e);
         setOpen(!!error);
-
-        onFocusProp?.(value, e);
     }
 
     function onBlur(e: React.FocusEvent<HTMLInputElement>) {
+        let newValue = value;
+
         if (value) {
             if (isCurrency) {
-                setValue(formatCurrency(value, currency, false));
+                newValue = formatCurrency(value, currency, false);
             }
         }
 
+        setValue(newValue);
+        onChangeProp?.(newValue, e);
+        onBlurProp?.(e);
         setOpen(false);
-        onBlurProp?.(value, e);
     }
 
     const symbol = getCurrencySymbol(currency);
 
     return (
         <Popover open={open}>
-            <PopoverTrigger>
+            <PopoverTrigger asChild>
                 <div className="relative">
                     {isCurrency && (
                         <span className="text-foreground-muted absolute top-1/2 left-3 -translate-y-1/2 select-none">
@@ -131,7 +130,6 @@ export function DecimalInput(props: DecimalInputProps) {
                     />
                 </div>
             </PopoverTrigger>
-
             <PopoverContent
                 side="top"
                 align="start"
