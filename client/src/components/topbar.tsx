@@ -30,7 +30,9 @@ export const Topbar = () => {
                     </Button>
                 </Tooltip>
 
-                <Branding className="hidden sm:inline-flex" size="small" />
+                <Link to={ROUTES.dashboard} variant="unstyled">
+                    <Branding className="hidden sm:inline-flex" size="small" />
+                </Link>
             </div>
 
             <div className="mr-2 inline-flex gap-x-2">
