@@ -4,7 +4,7 @@ import { IconGithub } from "./components/icons";
 
 export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
     return (
-        <div className="flex h-dvh flex-col items-center justify-between">
+        <div className="flex h-dvh flex-col items-center justify-between overflow-auto">
             <div />
             <div className="flex w-[85%] items-center justify-center md:justify-between lg:w-[70%] xl:w-[55%]">
                 <main className="flex flex-col items-center justify-center">
