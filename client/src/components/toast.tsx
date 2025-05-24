@@ -5,6 +5,7 @@ import { Loading } from "@/components/loading";
 const ToastProvider = () => {
     return (
         <Toaster
+            expand
             theme="dark"
             richColors
             visibleToasts={5}
@@ -14,7 +15,7 @@ const ToastProvider = () => {
             }}
             toastOptions={{
                 classNames: {
-                    info: "bg-accent-muted! border-primary/30! text-foreground! font-content! text-sm!",
+                    info: "bg-background-3! border-border-muted! text-foreground! font-content! text-sm!",
                 },
             }}
         />
