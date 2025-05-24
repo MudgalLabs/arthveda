@@ -1,5 +1,5 @@
-import { Leapfrog } from "ldrs/react";
-import "ldrs/react/Leapfrog.css";
+import { DotPulse } from "ldrs/react";
+import "ldrs/react/DotPulse.css";
 
 interface LoadingNewProps {
     size?: number | string;
@@ -8,5 +8,5 @@ interface LoadingNewProps {
 }
 
 export const Loading = (props: LoadingNewProps) => (
-    <Leapfrog size="25" speed="1.69" color="var(--color-primary)" {...props} />
+    <DotPulse size="25" speed="1" color="var(--color-primary)" {...props} />
 );
