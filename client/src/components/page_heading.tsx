@@ -10,7 +10,7 @@ interface PageHeadingProps {
 const PageHeading: FC<PageHeadingProps> = memo(({ heading, loading }) => {
     return (
         <div>
-            <div className="flex items-end gap-x-2">
+            <div className="flex items-center gap-x-2">
                 <h1 className="heading">{heading}</h1>
                 <div>{loading && <Loading />}</div>
             </div>
