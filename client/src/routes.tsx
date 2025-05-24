@@ -1,22 +1,16 @@
-import { lazy, Suspense } from "react";
 import { type RouteObject } from "react-router-dom";
-import { ListPositionContextProvider } from "@/features/position/list/list_positions_context";
 
 // Public
-const NotFound = lazy(() => import("@/features/not_found/not_found"));
-const Signin = lazy(() => import("@/features/auth/sign_in/sign_in"));
-const Signup = lazy(() => import("@/features/auth/sign_up/sign_up"));
+import NotFound from "@/features/not_found/not_found";
+import SignIn from "@/features/auth/sign_in/sign_in";
+import SignUp from "@/features/auth/sign_up/sign_up";
 
 // Protected
-const AddPosition = lazy(() => import("@/features/position/add/add_position"));
-const Dashboard = lazy(() => import("@/features/dashboard/dashboard"));
-const ImportTrades = lazy(
-    () => import("@/features/position/import/import_positions")
-);
-const ListPositions = lazy(
-    () => import("@/features/position/list/list_positions")
-);
-const Settings = lazy(() => import("@/features/settings/settings"));
+import DashboardLazy from "@/features/dashboard/dashboard_lazy";
+import AddPositionLazy from "@/features/position/add/add_position_lazy";
+import ListPositionsLazy from "@/features/position/list/list_positions_lazy";
+import ImportPositions from "@/features/position/import/import_positions";
+import Settings from "@/features/settings/settings";
 
 export const ROUTES = {
     //
@@ -65,72 +59,38 @@ export const routes: Array<RouteObject> = [
     },
     {
         path: ROUTES.notFound,
-        element: (
-            <Suspense>
-                <NotFound />
-            </Suspense>
-        ),
+        element: <NotFound />,
     },
     {
         path: ROUTES.signIn,
-        element: (
-            <Suspense>
-                <Signin />
-            </Suspense>
-        ),
+        element: <SignIn />,
     },
     {
         path: ROUTES.signUp,
-        element: (
-            <Suspense>
-                <Signup />
-            </Suspense>
-        ),
+        element: <SignUp />,
     },
     /**
      * PROTECTED
      */
     {
         path: ROUTES.addPosition,
-        element: (
-            <Suspense>
-                <AddPosition />
-            </Suspense>
-        ),
+        element: <AddPositionLazy />,
     },
     {
         path: ROUTES.dashboard,
-        element: (
-            <Suspense>
-                <Dashboard />
-            </Suspense>
-        ),
+        element: <DashboardLazy />,
     },
     {
         path: ROUTES.importPositions,
-        element: (
-            <Suspense>
-                <ImportTrades />
-            </Suspense>
-        ),
+        element: <ImportPositions />,
     },
     {
         path: ROUTES.settings,
-        element: (
-            <Suspense>
-                <Settings />
-            </Suspense>
-        ),
+        element: <Settings />,
     },
     {
         path: ROUTES.positionList,
-        element: (
-            <Suspense>
-                <ListPositionContextProvider>
-                    <ListPositions />
-                </ListPositionContextProvider>
-            </Suspense>
-        ),
+        element: <ListPositionsLazy />,
     },
 ];
 

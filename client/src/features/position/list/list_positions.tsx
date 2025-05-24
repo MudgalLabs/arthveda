@@ -16,7 +16,10 @@ import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
-import { useListPositions } from "@/features/position/list/list_positions_context";
+import {
+    ListPositionContextProvider,
+    useListPositions,
+} from "@/features/position/list/list_positions_context";
 import { WithLabel } from "@/components/with_label";
 import { Loading } from "@/components/loading";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
@@ -42,7 +45,11 @@ export const ListPositions = () => {
     );
 };
 
-export default ListPositions;
+export default () => (
+    <ListPositionContextProvider>
+        <ListPositions />
+    </ListPositionContextProvider>
+);
 
 const PositionsFilters = memo(({}: {}) => {
     const { queryResult, searchFilters, setSearchFilters } = useListPositions();
