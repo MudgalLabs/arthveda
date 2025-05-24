@@ -25,8 +25,8 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
 
     if (isLoading) {
         return (
-            <div className="h-screen w-screen">
-                <LoadingScreen />
+            <div className="h-full w-full">
+                <LoadingScreen withLogo />
             </div>
         );
     }

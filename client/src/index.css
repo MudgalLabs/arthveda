@@ -77,11 +77,6 @@
     box-sizing: border-box;
 }
 
-html {
-    /* Show the scrollbar always to keep the layout stable.  */
-    overflow-y: scroll;
-}
-
 body {
     background: var(--color-background-1);
     color: var(--color-foreground);
