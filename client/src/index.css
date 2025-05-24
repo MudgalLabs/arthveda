@@ -35,20 +35,17 @@
     --color-background-2: hsl(224, 76%, 8%);
     --color-background-3: hsl(224, 76%, 11%);
     --color-background-4: hsl(224, 76%, 14%);
-    --color-background-red: hsl(345, 83%, 41%);
-    --color-background-red-muted: hsl(343, 88%, 16%);
+    --color-background-red: hsl(352, 60%, 26%);
     --color-background-green: hsl(161, 94%, 30%);
     --color-background-green-muted: hsl(166, 91%, 9%);
 
     --color-foreground: hsl(210, 40%, 98%);
     --color-foreground-muted: hsl(219, 18%, 65%);
-    --color-foreground-red: hsl(351, 95%, 71%);
+    --color-foreground-red: #f8d7da;
     --color-foreground-green: hsl(158, 64%, 52%);
 
     --color-border: hsl(240, 4%, 16%);
     --color-border-muted: hsl(222, 40%, 30%);
-    --color-border-red: hsl(343, 80%, 35%);
-    --color-border-green: hsl(163, 88%, 20%);
 
     --color-muted: hsl(222, 40%, 11%);
     --color-muted-foreground: hsl(223, 7%, 81%);
@@ -60,6 +57,14 @@
     --color-link: hsl(221, 82%, 67%);
 
     --color-logo: hsl(199, 89%, 48%);
+
+    --color-error-bg: hsl(357, 64%, 10%);
+    --color-error-border: hsl(357, 62%, 21%);
+    --color-error-text: hsl(356, 56%, 77%);
+
+    --color-success-bg: hsl(150, 90%, 6%);
+    --color-success-border: hsl(150, 85%, 16%);
+    --color-success-text: hsl(145, 100%, 68%);
 
     --font-heading: Poppins;
     --font-content: Karla;

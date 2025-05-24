@@ -17,7 +17,7 @@ const buttonVariants = cva(
                 outline:
                     "bg-transparent text-foreground border-1 border-accent-muted enabled:hover:bg-accent-muted enabled:hover:text-foreground",
                 destructive:
-                    "bg-background-red text-foreground enabled:hover:bg-background-red/90 focus-visible:bg-background-red/20",
+                    "bg-background-red text-foreground-red enabled:hover:bg-background-red/90 focus-visible:bg-background-red/20",
                 success:
                     "bg-background-green text-foreground enabled:hover:bg-background-green/90 focus-visible:bg-background-green/20",
                 ghost: "enabled:hover:bg-accent-muted enabled:hover:text-foreground",

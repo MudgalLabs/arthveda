@@ -8,10 +8,8 @@ const tagVariants = cva("w-fit text-center font-semibold rounded-sm border-1", {
         variant: {
             primary: "bg-accent-muted border-accent text-primary",
             muted: "bg-accent-muted border-border-muted text-muted-foreground",
-            success:
-                "bg-background-green-muted border-border-green text-foreground-green",
-            destructive:
-                "bg-background-red-muted border-border-red text-foreground-red",
+            success: "bg-success-bg border-success-border text-success-text",
+            destructive: "bg-error-bg border-error-border text-error-text",
         },
         size: {
             default: "text-sm px-3 py-1",
