@@ -63,6 +63,7 @@ import { ROUTES } from "@/routes";
 import { apiErrorHandler } from "@/lib/api";
 import { DecimalString } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 
 function AddPosition() {
     const {
@@ -240,7 +241,9 @@ export default AddPosition;
 const columns: ColumnDef<NewTrade>[] = [
     {
         accessorKey: "kind",
-        header: "Buy / Sell",
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="Buy / Sell" />
+        ),
         cell: (ctx) => {
             const { value, syncWithValue } =
                 useDataTableEditableCell<TradeKind>(ctx);
@@ -254,7 +257,9 @@ const columns: ColumnDef<NewTrade>[] = [
     },
     {
         accessorKey: "time",
-        header: "Time",
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="Time" />
+        ),
         cell: (ctx) => {
             const { value, setValue, sync } =
                 useDataTableEditableCell<Date>(ctx);
@@ -306,7 +311,9 @@ const columns: ColumnDef<NewTrade>[] = [
     },
     {
         accessorKey: "quantity",
-        header: "Quantity",
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="Quantity" />
+        ),
         cell: (ctx) => {
             const { value, setValue, sync } =
                 useDataTableEditableCell<string>(ctx);
@@ -329,7 +336,9 @@ const columns: ColumnDef<NewTrade>[] = [
     },
     {
         accessorKey: "price",
-        header: "Price",
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="Price" />
+        ),
         cell: (ctx) => {
             const { state } = useAddPosition();
             const { value, setValue, sync } =
@@ -397,6 +406,7 @@ const TradesTable = memo(
             columns,
             data: trades,
             getCoreRowModel: getCoreRowModel(),
+            enableSorting: false,
             meta: {
                 updateFn,
             },
