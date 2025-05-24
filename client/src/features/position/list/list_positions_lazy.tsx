@@ -1,10 +1,10 @@
 import React, { lazy, Suspense } from "react";
-import { Loading } from "@/components/loading";
+import { LoadingScreen } from "@/components/loading_screen";
 
 const ListPositions = lazy(() => import("./list_positions"));
 
 const ListPositionsLazy: React.FC = () => (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<LoadingScreen />}>
         <ListPositions />
     </Suspense>
 );

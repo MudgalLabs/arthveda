@@ -1,10 +1,10 @@
 import React, { lazy, Suspense } from "react";
-import { Loading } from "@/components/loading";
+import { LoadingScreen } from "@/components/loading_screen";
 
 const Dashboard = lazy(() => import("./dashboard"));
 
 const DashboardLazy: React.FC = () => (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<LoadingScreen />}>
         <Dashboard />
     </Suspense>
 );

@@ -13,11 +13,11 @@ import { AuthLayout } from "@/auth_layout";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { ROUTES_PUBLIC, ROUTES_PROTECTED, ROUTES } from "@/routes";
 import { AppLayout } from "@/app_layout";
-import { Loading } from "@/components/loading";
 import { ToastProvider } from "@/components/toast";
 import { AuthenticationProvider } from "@/features/auth/auth_context";
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { AddPositionContextProvider } from "@/features/position/add/add_position_context";
+import { LoadingScreen } from "./components/loading_screen";
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuthentication();
@@ -26,7 +26,7 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     if (isLoading) {
         return (
             <div className="h-screen w-screen">
-                <Loading />
+                <LoadingScreen />
             </div>
         );
     }
