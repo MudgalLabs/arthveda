@@ -381,7 +381,7 @@ const columns: ColumnDef<NewTrade>[] = [
                         onClick={() => removeTrade(row.index)}
                         disabled={disableButton}
                     >
-                        <IconTrash className="text-foreground-red" size={20} />
+                        <IconTrash className="text-red-foreground" size={20} />
                     </Button>
                 </Tooltip>
             );
