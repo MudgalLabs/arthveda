@@ -3,29 +3,15 @@
 /* Font-face */
 
 @font-face {
-    font-family: Poppins;
-    src: url("./assets/fonts/Poppins_Regular.ttf");
-    font-weight: normal;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: Poppins;
-    src: url("./assets/fonts/Poppins_Bold.ttf");
-    font-weight: bold;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: Karla;
-    src: url("./assets/fonts/Karla.ttf");
-}
-
-@font-face {
     font-family: Museo Sans;
     src: url("./assets/fonts/MuseoSans_Medium.otf");
     font-weight: 500;
     font-style: normal;
+}
+
+@font-face {
+    font-family: IBM Plex Sans;
+    src: url("./assets/fonts/IBMPlexSans.ttf");
 }
 
 /* Theme*/
@@ -66,8 +52,8 @@
     --color-success-border: hsl(150, 85%, 16%);
     --color-success-text: hsl(145, 100%, 68%);
 
-    --font-heading: Poppins;
-    --font-content: Karla;
+    --font-heading: IBM Plex Sans;
+    --font-content: IBM Plex Sans;
     --font-logo: Museo Sans;
 }
 
@@ -114,10 +100,10 @@ select:-webkit-autofill:focus {
 /* Typography */
 
 @utility big-heading {
-    @apply font-heading text-[32px] font-bold;
+    @apply font-heading text-[32px] font-semibold;
 }
 @utility heading {
-    @apply font-heading text-[24px] font-bold;
+    @apply font-heading text-[24px] font-semibold;
 }
 @utility sub-heading {
     @apply font-heading text-[20px] font-semibold;

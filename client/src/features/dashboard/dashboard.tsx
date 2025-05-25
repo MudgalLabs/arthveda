@@ -32,7 +32,7 @@ export const Dashboard = () => {
 
         return (
             <>
-                <PageHeading heading="Dashboards" loading={isLoading} />
+                <PageHeading heading="Dashboard" loading={isLoading} />
 
                 <div className="[&_div]:border-border-muted [&_div]:bg-muted flex gap-x-8 [&_div]:rounded-md [&_div]:border-1 [&_div]:px-4 [&_div]:py-2">
                     <div>
