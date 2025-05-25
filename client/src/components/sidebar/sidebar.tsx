@@ -49,7 +49,7 @@ export const Sidebar = () => {
     return (
         <div
             className={cn(
-                "bg-background-1 border-r-accent-muted relative flex h-full flex-col justify-between border-r-1 px-3",
+                "bg-background border-r-accent-muted relative flex h-full flex-col justify-between border-r-1 px-3",
                 {
                     "min-w-[280px]!": isOpen,
                     "min-w-fit": !isOpen,
@@ -111,7 +111,7 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
     const content = (
         <div
             className={cn(
-                "bg-background-1 text-foreground-muted w-full rounded-md border-l-[3px] border-transparent p-3",
+                "bg-background text-foreground-muted w-full rounded-md border-l-[3px] border-transparent p-3",
                 {
                     "bg-accent-muted text-foreground border-l-primary border-l-[3px]":
                         isActive,

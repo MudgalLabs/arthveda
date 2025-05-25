@@ -17,7 +17,7 @@
 /* Theme*/
 
 @theme {
-    --color-background-1: hsl(224, 76%, 5%);
+    --color-background: hsl(224, 76%, 5%);
     --color-background-red: hsl(352, 60%, 26%);
     --color-background-green: hsl(161, 94%, 30%);
     --color-background-green-muted: hsl(166, 91%, 9%);
@@ -65,7 +65,7 @@
 }
 
 body {
-    background: var(--color-background-1);
+    background: var(--color-background);
     color: var(--color-foreground);
 
     @apply font-content text-base font-normal;
