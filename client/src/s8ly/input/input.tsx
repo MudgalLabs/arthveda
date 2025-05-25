@@ -41,7 +41,7 @@ const Input: FC<InputProps> = (props) => {
                 "disabled:opacity-69",
                 "transition-all outline-none disabled:cursor-not-allowed",
                 {
-                    "border-border-red! border-1 focus:border-none":
+                    "border-border-red! focus-visible:ring-border-red! border-1 focus:border-none":
                         variant === "error",
                 },
                 className

@@ -23,10 +23,7 @@ import {
 } from "@/s8ly";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
-import {
-    State,
-    useAddPosition,
-} from "@/features/position/add/add_position_context";
+import { useAddPosition } from "@/features/position/add/add_position_context";
 import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
 import {
     IconAlert,
@@ -51,7 +48,6 @@ import {
 } from "@/lib/utils";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
-import { useWrappedState } from "@/hooks/use_wrapped_state";
 import { NewTrade, TradeKind } from "@/features/trade/trade";
 import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
@@ -64,6 +60,7 @@ import { apiErrorHandler } from "@/lib/api";
 import { DecimalString } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
+import { WithDebounce } from "@/components/with_debounce";
 
 function AddPosition() {
     const {
@@ -171,7 +168,29 @@ function AddPosition() {
             <div className="h-15" />
 
             <div className="flex items-center justify-between">
-                <SymbolInput value={state.symbol} setState={setState} />
+                <WithDebounce
+                    state={state.symbol}
+                    onDebounce={(v) => {
+                        setState((prev) => ({
+                            ...prev,
+                            symbol: v,
+                        }));
+                    }}
+                >
+                    {(value, setValue) => (
+                        <WithLabel Label={<Label>Symbol</Label>}>
+                            <Input
+                                type="text"
+                                autoFocus
+                                variant={value ? "default" : "error"}
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                aria-invalid={!value}
+                                aria-describedby="first-name-error"
+                            />
+                        </WithLabel>
+                    )}
+                </WithDebounce>
 
                 <WithLabel Label={<Label>Instrument</Label>}>
                     <InstrumentToggle
@@ -186,17 +205,49 @@ function AddPosition() {
                     />
                 </WithLabel>
 
-                <RiskInput
-                    currency={state.currency}
-                    value={state.risk_amount}
-                    setState={setState}
-                />
+                <WithDebounce
+                    state={state.risk_amount}
+                    onDebounce={(v) => {
+                        setState((prev) => ({
+                            ...prev,
+                            risk_amount: v,
+                        }));
+                    }}
+                >
+                    {(value, setValue) => (
+                        <WithLabel Label={<Label>Risk</Label>}>
+                            <DecimalInput
+                                kind="amount"
+                                currency={state.currency}
+                                value={value}
+                                onChange={(e) => {
+                                    setValue(e.target.value);
+                                }}
+                            />
+                        </WithLabel>
+                    )}
+                </WithDebounce>
 
-                <ChargesInput
-                    currency={state.currency}
-                    value={state.charges_amount}
-                    setState={setState}
-                />
+                <WithDebounce
+                    state={state.charges_amount}
+                    onDebounce={(v) => {
+                        setState((prev) => ({
+                            ...prev,
+                            charges_amount: v,
+                        }));
+                    }}
+                >
+                    {(value, setValue) => (
+                        <WithLabel Label={<Label>Charges</Label>}>
+                            <DecimalInput
+                                kind="amount"
+                                currency={state.currency}
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                            />
+                        </WithLabel>
+                    )}
+                </WithDebounce>
             </div>
 
             <div className="h-15" />
@@ -315,22 +366,30 @@ const columns: ColumnDef<NewTrade>[] = [
             <DataTableColumnHeader column={column} title="Quantity" />
         ),
         cell: (ctx) => {
-            const { value, setValue, sync } =
-                useDataTableEditableCell<string>(ctx);
+            const { syncWithValue } = useDataTableEditableCell<string>(ctx);
             const [error, setError] = useState(false);
 
             useEffect(() => {
-                setError(Number(value) === 0);
-            }, [value]);
+                setError(
+                    ctx.row.original.quantity === "" ||
+                        Number(ctx.row.original.quantity) < 0
+                );
+            }, [ctx.row.original.quantity]);
 
             return (
-                <DecimalInput
-                    kind="quantity"
-                    variant={error ? "error" : "default"}
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    onBlur={sync}
-                />
+                <WithDebounce
+                    state={ctx.row.original.quantity}
+                    onDebounce={(v) => syncWithValue(v)}
+                >
+                    {(value, setValue) => (
+                        <DecimalInput
+                            kind="quantity"
+                            variant={error ? "error" : "default"}
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
+                        />
+                    )}
+                </WithDebounce>
             );
         },
     },
@@ -341,24 +400,31 @@ const columns: ColumnDef<NewTrade>[] = [
         ),
         cell: (ctx) => {
             const { state } = useAddPosition();
-            const { value, setValue, sync } =
-                useDataTableEditableCell<string>(ctx);
-
+            const { syncWithValue } = useDataTableEditableCell<string>(ctx);
             const [error, setError] = useState(false);
 
             useEffect(() => {
-                setError(Number(value) === 0);
-            }, [value]);
+                setError(
+                    ctx.row.original.price === "" ||
+                        Number(ctx.row.original.price) < 0
+                );
+            }, [ctx.row.original.price]);
 
             return (
-                <DecimalInput
-                    kind="amount"
-                    currency={state.currency}
-                    variant={error ? "error" : "default"}
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    onBlur={sync}
-                />
+                <WithDebounce
+                    state={ctx.row.original.price}
+                    onDebounce={(v) => syncWithValue(v)}
+                >
+                    {(value, setValue) => (
+                        <DecimalInput
+                            kind="amount"
+                            currency={state.currency}
+                            variant={error ? "error" : "default"}
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
+                        />
+                    )}
+                </WithDebounce>
             );
         },
     },
@@ -600,106 +666,6 @@ const DurationCard = memo(
                     </div>
                 </Card>
             </div>
-        );
-    }
-);
-
-// TODO: Use `WithDebounce` instead.
-const SymbolInput = memo(
-    ({
-        value: valueProp,
-        setState,
-    }: {
-        value: string;
-        setState: React.Dispatch<React.SetStateAction<State>>;
-    }) => {
-        const [value, setValue] = useWrappedState<string>(valueProp);
-
-        return (
-            <WithLabel Label={<Label>Symbol</Label>}>
-                <Input
-                    type="text"
-                    autoFocus
-                    variant={value ? "default" : "error"}
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    onBlur={() =>
-                        value !== valueProp &&
-                        setState((prev) => ({
-                            ...prev,
-                            symbol: value,
-                        }))
-                    }
-                    aria-invalid={!value}
-                    aria-describedby="first-name-error"
-                />
-            </WithLabel>
-        );
-    }
-);
-
-// TODO: Use `WithDebounce` instead.
-const RiskInput = memo(
-    ({
-        currency,
-        value: valueProp,
-        setState,
-    }: {
-        currency: CurrencyCode;
-        value: string;
-        setState: React.Dispatch<React.SetStateAction<State>>;
-    }) => {
-        const [value, setValue] = useWrappedState<string>(valueProp);
-        return (
-            <WithLabel Label={<Label>Risk</Label>}>
-                <DecimalInput
-                    kind="amount"
-                    currency={currency}
-                    value={value}
-                    onChange={(e) => {
-                        setValue(e.target.value);
-                    }}
-                    onBlur={(e) => {
-                        value !== valueProp &&
-                            setState((prev) => ({
-                                ...prev,
-                                risk_amount: e.target.value,
-                            }));
-                    }}
-                />
-            </WithLabel>
-        );
-    }
-);
-
-// TODO: Use `WithDebounce` instead.
-const ChargesInput = memo(
-    ({
-        currency,
-        value: valueProp,
-        setState,
-    }: {
-        currency: CurrencyCode;
-        value: string;
-        setState: React.Dispatch<React.SetStateAction<State>>;
-    }) => {
-        const [value, setValue] = useWrappedState<DecimalString>(valueProp);
-        return (
-            <WithLabel Label={<Label>Charges</Label>}>
-                <DecimalInput
-                    kind="amount"
-                    currency={currency}
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    onBlur={(e) =>
-                        value !== valueProp &&
-                        setState((prev) => ({
-                            ...prev,
-                            charges_amount: e.target.value,
-                        }))
-                    }
-                />
-            </WithLabel>
         );
     }
 );

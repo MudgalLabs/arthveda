@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     Input,
     InputProps,
@@ -26,6 +26,7 @@ export function DecimalInput(props: DecimalInputProps) {
         onChange: onChangeProp,
         onFocus: onFocusProp,
         onBlur: onBlurProp,
+        variant: variantProp,
         ...rest
     } = props;
 
@@ -48,6 +49,10 @@ export function DecimalInput(props: DecimalInputProps) {
 
     useEffect(() => {
         if (!isFocused) {
+            if (value.trim() === "") {
+                return setDisplayValue("");
+            }
+
             setDisplayValue(
                 isCurrency && value
                     ? formatCurrency(value, currency, false)
@@ -64,12 +69,19 @@ export function DecimalInput(props: DecimalInputProps) {
 
     function onChange(e: React.ChangeEvent<HTMLInputElement>) {
         const value = e.target.value;
+
+        if (!/^[-]?\d*(\.\d*)?$/.test(value)) {
+            return {
+                valid: false,
+                error: "Only digits and at most one decimal point are allowed.",
+            };
+        }
+
         const { valid, error } = validateDecimalString(value, kind);
 
-        setValue(value);
-        onChangeProp?.(e);
-
         if (value === "" || valid) {
+            setValue(value);
+            onChangeProp?.(e);
             setError(null);
         } else {
             setError(error ?? "Invalid input");
@@ -90,6 +102,19 @@ export function DecimalInput(props: DecimalInputProps) {
 
     const symbol = getCurrencySymbol(currency);
 
+    const variant = useMemo(() => {
+        // If the variantProp is passed as error, we use that.
+        if (variantProp === "error") return "error";
+        // If it's passed as default, we check if there is an error.
+        if (variantProp === "default") {
+            if (error) return "error";
+        }
+        // If the variantProp is not passed, we check if there is an error.
+        if (error) return "error";
+        // Otherwise, we return the default variant.
+        return "default";
+    }, [variantProp, error]);
+
     return (
         <Popover open={open}>
             <PopoverTrigger asChild>
@@ -107,7 +132,7 @@ export function DecimalInput(props: DecimalInputProps) {
                             },
                             className
                         )}
-                        variant={error ? "error" : "default"}
+                        variant={variant}
                         value={displayValue}
                         onChange={onChange}
                         onFocus={onFocus}
@@ -149,13 +174,6 @@ function validateDecimalString(
     kind: DecimalFieldKind
 ): { valid: boolean; error?: string } {
     const { precision, scale } = decimalConstraints[kind];
-
-    if (!/^[-]?\d*(\.\d*)?$/.test(value)) {
-        return {
-            valid: false,
-            error: "Only digits and at most one decimal point are allowed.",
-        };
-    }
 
     const [intPartRaw = "", fracPart = ""] = value.split(".");
     const intPart = intPartRaw.replace("-", "").replace(/^0+/, "") || "0";
