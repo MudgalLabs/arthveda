@@ -42,7 +42,7 @@ export default function SignIn() {
 
     return (
         <div className="border-border rounded-md border-1 p-6">
-            <h1 className="font-heading text-foreground mb-1 text-[24px] font-bold">
+            <h1 className="font-heading text-foreground heading mb-1 text-[24px]">
                 Sign in
             </h1>
             <p className="text-foreground-muted mb-6 text-sm">

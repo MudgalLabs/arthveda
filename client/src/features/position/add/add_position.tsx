@@ -520,7 +520,7 @@ const PnLCard = memo(
                 <Card className="flex h-full min-w-50 flex-col items-start justify-center">
                     <div className={`flex items-end gap-x-2 ${textColor}`}>
                         <p
-                            className={`font-heading text-[32px] leading-none font-bold`}
+                            className={`font-heading text-[32px] leading-none font-semibold`}
                         >
                             {formatCurrency(net_pnl_amount, currency)}
                         </p>
@@ -583,11 +583,11 @@ const DurationCard = memo(
             <div className="flex flex-col gap-y-2">
                 <CardTitle>Duration</CardTitle>
                 <Card className="flex h-full flex-col items-center gap-y-2">
-                    <p className="font-heading text-2xl font-bold">
+                    <p className="font-heading text-2xl font-semibold">
                         {days} days {hours} hours {minutes} mins
                     </p>
 
-                    <div className="text-foreground-muted flex items-center gap-x-1 text-sm">
+                    <div className="flex items-center gap-x-1 text-sm">
                         <IconCalendarRange />
                         <div className="space-x-2">
                             <span>{formatDate(opened_at, { time: true })}</span>
