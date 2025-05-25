@@ -17,9 +17,9 @@ const buttonVariants = cva(
                 outline:
                     "bg-transparent text-foreground border-1 border-accent-muted enabled:hover:bg-accent-muted enabled:hover:text-foreground",
                 destructive:
-                    "bg-red-bg text-red-text enabled:hover:bg-red-bg/90 focus-visible:ring-foreground!",
+                    "bg-red-bg text-red-foreground enabled:hover:bg-red-bg/90 focus-visible:ring-foreground!",
                 success:
-                    "bg-green-bg text-green-text enabled:hover:bg-green-bg/90 focus-visible:ring-foreground!",
+                    "bg-green-bg text-green-foreground enabled:hover:bg-green-bg/90 focus-visible:ring-foreground!",
                 ghost: "enabled:hover:bg-accent-muted enabled:hover:text-foreground",
                 link: "text-link underline-offset-4 hover:underline",
             },

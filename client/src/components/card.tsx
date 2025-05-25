@@ -29,7 +29,7 @@ function CardTitle({ children, className }: CardTitleProps) {
     return (
         <div
             className={cn(
-                "text-surface-text text-base font-semibold",
+                "text-surface-foreground text-base font-semibold",
                 className
             )}
         >

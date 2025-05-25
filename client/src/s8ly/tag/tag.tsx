@@ -6,10 +6,13 @@ import { cn } from "@/lib/utils";
 const tagVariants = cva("w-fit text-center font-medium rounded-sm border-1", {
     variants: {
         variant: {
-            primary: "bg-surface-bg border-surface-border text-surface-text",
+            primary:
+                "bg-surface-bg border-surface-border text-surface-foreground",
             muted: "bg-muted border-border text-foreground",
-            success: "bg-success-bg border-success-border text-success-text",
-            destructive: "bg-error-bg border-error-border text-error-text",
+            success:
+                "bg-success-bg border-success-border text-success-foreground",
+            destructive:
+                "bg-error-bg border-error-border text-error-foreground",
         },
         size: {
             default: "text-sm px-3 py-1",

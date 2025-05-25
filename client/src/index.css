@@ -20,17 +20,19 @@
     --color-background: hsl(224, 76%, 5%);
 
     --color-red-bg: hsl(352, 60%, 26%);
-    --color-red-text: hsl(354, 77%, 90%);
+    --color-red-foreground: hsl(354, 77%, 90%);
 
     --color-green-bg: hsl(146, 50%, 30%);
-    --color-green-text: hsl(146, 50%, 85%);
+    --color-green-foreground: hsl(146, 50%, 85%);
 
     --color-foreground: hsl(210, 40%, 98%);
     --color-foreground-muted: hsl(219, 18%, 65%);
+    --color-foreground-red: hsl(4, 73%, 60%);
     --color-foreground-green: hsl(158, 64%, 52%);
 
     --color-border: hsl(240, 4%, 16%);
     --color-border-muted: hsl(222, 40%, 30%);
+    --color-border-red: hsl(17, 92.5%, 62.9%, 0.5);
 
     --color-muted: hsl(222, 40%, 11%);
     --color-muted-foreground: hsl(223, 7%, 81%);
@@ -45,15 +47,15 @@
 
     --color-surface-bg: hsl(224, 76%, 8%);
     --color-surface-border: hsl(215, 52%, 24%);
-    --color-surface-text: hsl(216, 100%, 70%);
+    --color-surface-foreground: hsl(216, 100%, 70%);
 
     --color-error-bg: hsl(357, 64%, 10%);
     --color-error-border: hsl(357, 62%, 21%);
-    --color-error-text: hsl(356, 56%, 77%);
+    --color-error-foreground: hsl(356, 56%, 77%);
 
     --color-success-bg: hsl(150, 90%, 6%);
     --color-success-border: hsl(150, 85%, 16%);
-    --color-success-text: hsl(145, 100%, 68%);
+    --color-success-foreground: hsl(145, 100%, 68%);
 
     --font-heading: IBM Plex Sans;
     --font-content: IBM Plex Sans;

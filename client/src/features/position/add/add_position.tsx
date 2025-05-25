@@ -473,7 +473,7 @@ const PnLCard = memo(
             textColor = "text-foreground-green";
         } else if (netPnL < 0) {
             trendingIcon = <IconTrendingDown />;
-            textColor = "text-error-text";
+            textColor = "text-foreground-red";
         }
 
         const tooltipContent = (

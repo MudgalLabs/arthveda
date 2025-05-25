@@ -123,7 +123,9 @@ export default function SignUp() {
                 </WithLabel>
 
                 {formErrors.name?.length > 0 && (
-                    <p className="text-red mt-2 text-sm">{formErrors.name}</p>
+                    <p className="text-foreground-red mt-2 text-sm">
+                        {formErrors.name}
+                    </p>
                 )}
                 <div className="mb-4"></div>
 
@@ -143,7 +145,9 @@ export default function SignUp() {
                 </WithLabel>
 
                 {formErrors.email?.length > 0 && (
-                    <p className="text-red mt-2 text-sm">{formErrors.email}</p>
+                    <p className="text-foreground-red mt-2 text-sm">
+                        {formErrors.email}
+                    </p>
                 )}
                 <div className="mb-4"></div>
 
@@ -165,7 +169,7 @@ export default function SignUp() {
                 </WithLabel>
 
                 {formErrors.password?.length > 0 && (
-                    <div className="text-red mt-2 text-sm">
+                    <div className="text-foreground-red mt-2 text-sm">
                         <p>Password must:</p>
                         <ul>
                             {formErrors.password.map((error) => (
@@ -194,7 +198,7 @@ export default function SignUp() {
                 </WithLabel>
 
                 {formErrors.confirmPassword?.length > 0 && (
-                    <p className="text-red mt-2 text-sm">
+                    <p className="text-foreground-red mt-2 text-sm">
                         {formErrors.confirmPassword}
                     </p>
                 )}
