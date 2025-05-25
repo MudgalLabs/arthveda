@@ -1,6 +1,6 @@
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
-import { DecimalString } from "../types";
+import { DecimalString } from "@/lib/types";
 
 export interface GetDashboardResponse {
     gross_pnl: DecimalString;

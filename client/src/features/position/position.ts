@@ -1,5 +1,5 @@
 import { CurrencyCode } from "@/lib/api/currency";
-import { Trade } from "../trade/trade";
+import { Trade } from "@/features/trade/trade";
 
 type PositionInstrument = "equity" | "future" | "option";
 

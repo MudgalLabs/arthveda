@@ -13,9 +13,9 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 
-import { DataTablePagination } from "./data_table_pagination";
-import { DataTable } from "./data_table";
-import { DataTableVisibility } from "./data_table_visibility";
+import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
+import { DataTable } from "@/s8ly/data_table/data_table";
+import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
 
 interface DataTableState {
     columnVisibility: VisibilityState;

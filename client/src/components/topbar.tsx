@@ -4,7 +4,7 @@ import { IconImport, IconPlus, IconSidebarToggle } from "@/components/icons";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes";
-import { Tooltip } from "../s8ly/tooltip/tooltip";
+import { Tooltip } from "@/s8ly";
 
 export const Topbar = () => {
     const { isOpen, toggleSidebar } = useSidebar();

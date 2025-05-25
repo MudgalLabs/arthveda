@@ -1,7 +1,7 @@
 import { CurrencyCode } from "@/features/position/position";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { DateRangeFilter } from "./types";
+import { DateRangeFilter } from "@/lib/types";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));

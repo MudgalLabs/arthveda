@@ -5,7 +5,7 @@ import {
 } from "@/lib/utils";
 import { isFunction } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import { useDebounce } from "./use_debounce";
+import { useDebounce } from "@/hooks/use_debounce";
 
 interface Options<T> {
     /** Use this function to modify the state however you want before it is persisted. */

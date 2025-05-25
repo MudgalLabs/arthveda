@@ -1,6 +1,6 @@
 import { FC, PropsWithChildren } from "react";
-import { Branding } from "./components/branding";
-import { IconGithub } from "./components/icons";
+import { Branding } from "@/components/branding";
+import { IconGithub } from "@/components/icons";
 
 export const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
     return (

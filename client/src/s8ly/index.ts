@@ -5,38 +5,38 @@
  */
 
 // Button
-export * from "./button/button";
+export * from "@/s8ly/button/button";
 // Calendar
-export * from "./calendar/calendar";
+export * from "@/s8ly/calendar/calendar";
 // Checkbox
-export * from "./checkbox/checkbox";
+export * from "@/s8ly/checkbox/checkbox";
 // DataTable
-export * from "./data_table/data_table";
+export * from "@/s8ly/data_table/data_table";
 // DatePicker
-export * from "./date_picker/date_picker";
+export * from "@/s8ly/date_picker/date_picker";
 // Dialog
-export * from "./dialog/dialog";
+export * from "@/s8ly/dialog/dialog";
 // DropdownMenu
-export * from "./dropdown_menu/dropdown_menu";
+export * from "@/s8ly/dropdown_menu/dropdown_menu";
 // Label
-export * from "./label/label";
+export * from "@/s8ly/label/label";
 // Input
-export * from "./input/input";
+export * from "@/s8ly/input/input";
 // Popover
-export * from "./popover/popover";
+export * from "@/s8ly/popover/popover";
 // Progress
-export * from "./progress/progress";
+export * from "@/s8ly/progress/progress";
 // Select
-export * from "./select/select";
+export * from "@/s8ly/select/select";
 // Seperator
-export * from "./seperator/seperator";
+export * from "@/s8ly/seperator/seperator";
 // Tag
-export * from "./tag/tag";
+export * from "@/s8ly/tag/tag";
 // Table
-export * from "./table/table";
+export * from "@/s8ly/table/table";
 // Toggle
-export * from "./toggle/toggle";
+export * from "@/s8ly/toggle/toggle";
 // ToggleGroup
-export * from "./toggle_group/toggle_group";
+export * from "@/s8ly/toggle_group/toggle_group";
 // Tooltip
-export * from "./tooltip/tooltip";
+export * from "@/s8ly/tooltip/tooltip";
