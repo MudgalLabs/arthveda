@@ -36,7 +36,7 @@ const DropdownMenuContent: FC<DropdownMenuContentProps> = ({
         <DropdownMenuPrimitive.Portal>
             <DropdownMenuPrimitive.Content
                 className={cn(
-                    "bg-muted border-border rounded-md border-1 p-1 font-medium",
+                    "bg-muted border-border rounded-md border-1 p-1 font-medium focus-visible:ring-transparent!",
                     className
                 )}
                 {...props}

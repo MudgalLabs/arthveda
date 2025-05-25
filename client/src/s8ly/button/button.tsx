@@ -5,21 +5,21 @@ import { cn } from "@/lib/utils";
 import { Loading } from "@/components/loading";
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center rounded-md font-heading font-content font-medium transition-all disabled:opacity-69 disabled:cursor-not-allowed enabled:active:scale-[0.98] cursor-pointer outline-none focus-visible:ring-foreground/10 focus-visible:ring-offset-[1px] focus-visible:ring-[1px]",
+    "inline-flex items-center justify-center rounded-md font-heading font-content font-medium transition-all disabled:opacity-69 disabled:cursor-not-allowed enabled:active:scale-[0.98] cursor-pointer",
 
     {
         variants: {
             variant: {
                 primary:
-                    "bg-primary text-foreground enabled:hover:bg-primary/90 enabled:active:bg-primary",
+                    "bg-primary text-foreground enabled:hover:bg-primary/90 enabled:active:bg-primary focus-visible:ring-foreground!",
                 secondary:
                     "bg-secondary text-foreground enabled:hover:bg-secondary/80 enabled:active:bg-secondary",
                 outline:
                     "bg-transparent text-foreground border-1 border-accent-muted enabled:hover:bg-accent-muted enabled:hover:text-foreground",
                 destructive:
-                    "bg-background-red text-foreground-red enabled:hover:bg-background-red/90 focus-visible:bg-background-red/20",
+                    "bg-background-red text-foreground-red enabled:hover:bg-background-red/90 focus-visible:ring-foreground!",
                 success:
-                    "bg-background-green text-foreground enabled:hover:bg-background-green/90 focus-visible:bg-background-green/20",
+                    "bg-background-green text-foreground enabled:hover:bg-background-green/90 focus-visible:ring-foreground!",
                 ghost: "enabled:hover:bg-accent-muted enabled:hover:text-foreground",
                 link: "text-link underline-offset-4 hover:underline",
             },
