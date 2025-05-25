@@ -49,7 +49,7 @@ func signInHandler(s *user_identity.Service) http.HandlerFunc {
 			MaxAge:   3600 * 24 * 30, // 30 days
 			Secure:   false,
 			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
+			SameSite: http.SameSiteNoneMode,
 		}
 
 		http.SetCookie(w, &cookie)
