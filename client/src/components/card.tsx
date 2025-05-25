@@ -11,7 +11,7 @@ function Card({ children, className }: CardProps) {
     return (
         <div
             className={cn(
-                "border-border-muted rounded-md border-1 p-6",
+                "bg-surface-bg border-surface-border rounded-md border-1 p-3",
                 className
             )}
         >
@@ -27,7 +27,12 @@ interface CardTitleProps {
 
 function CardTitle({ children, className }: CardTitleProps) {
     return (
-        <div className={cn("text-base font-semibold", className)}>
+        <div
+            className={cn(
+                "text-surface-text text-base font-semibold",
+                className
+            )}
+        >
             {children}
         </div>
     );

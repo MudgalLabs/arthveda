@@ -18,9 +18,6 @@
 
 @theme {
     --color-background-1: hsl(224, 76%, 5%);
-    --color-background-2: hsl(224, 76%, 8%);
-    --color-background-3: hsl(224, 76%, 11%);
-    --color-background-4: hsl(224, 76%, 14%);
     --color-background-red: hsl(352, 60%, 26%);
     --color-background-green: hsl(161, 94%, 30%);
     --color-background-green-muted: hsl(166, 91%, 9%);
@@ -43,6 +40,10 @@
     --color-link: hsl(221, 82%, 67%);
 
     --color-logo: hsl(199, 89%, 48%);
+
+    --color-surface-bg: hsl(224, 76%, 8%);
+    --color-surface-border: hsl(215, 52%, 24%);
+    --color-surface-text: hsl(216, 100%, 70%);
 
     --color-error-bg: hsl(357, 64%, 10%);
     --color-error-border: hsl(357, 62%, 21%);

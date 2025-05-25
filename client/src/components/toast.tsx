@@ -15,7 +15,7 @@ const ToastProvider = () => {
             }}
             toastOptions={{
                 classNames: {
-                    info: "bg-background-3! border-border-muted! text-foreground! font-content! text-sm!",
+                    info: "bg-surface-bg! border-surface-border! text-surface-text! font-content! text-sm!",
                     error: "bg-error-bg! border-error-border! text-error-text! font-content! text-sm!",
                     success:
                         "bg-success-bg! border-success-border! text-success-text! font-content! text-sm!",

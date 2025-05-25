@@ -9,9 +9,8 @@ interface LoadingScreenProps {
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     withLogo = false,
 }) => {
-    console.log({ withLogo });
     return (
-        <div className="mt-[10%] flex h-full w-full flex-col items-center gap-y-15">
+        <div className="mt-[15%] flex h-full w-full flex-col items-center gap-y-15">
             {withLogo && <img src={Logo} className="h-[36px]" />}
 
             <Loading />

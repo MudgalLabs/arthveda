@@ -1,10 +1,9 @@
-import { Label } from "@/s8ly";
-
 import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes";
+import { Card, CardTitle } from "@/components/card";
 
 export const Dashboard = () => {
     const { data, isLoading } = apiHooks.dashboard.useGet();
@@ -34,9 +33,10 @@ export const Dashboard = () => {
             <>
                 <PageHeading heading="Dashboard" loading={isLoading} />
 
-                <div className="[&_div]:border-border-muted [&_div]:bg-muted flex gap-x-8 [&_div]:rounded-md [&_div]:border-1 [&_div]:px-4 [&_div]:py-2">
-                    <div>
-                        <Label className="sub-heading">Gross PnL</Label>
+                <div className="flex gap-x-4">
+                    <Card>
+                        <CardTitle>Gross PnL</CardTitle>
+
                         <p
                             className={cn("big-heading", {
                                 "text-foreground-green": Number(grossPnL) > 0,
@@ -45,10 +45,10 @@ export const Dashboard = () => {
                         >
                             {formatCurrency(data.data.gross_pnl)}
                         </p>
-                    </div>
+                    </Card>
 
-                    <div>
-                        <Label className="sub-heading">Net PnL</Label>
+                    <Card>
+                        <CardTitle>Net PnL</CardTitle>
                         <p
                             className={cn("big-heading", {
                                 "text-foreground-green": Number(netPnL) > 0,
@@ -57,12 +57,12 @@ export const Dashboard = () => {
                         >
                             {formatCurrency(data.data.net_pnl)}
                         </p>
-                    </div>
+                    </Card>
 
-                    <div>
-                        <Label className="sub-heading">Win Rate</Label>
+                    <Card>
+                        <CardTitle>Win Rate</CardTitle>
                         <p className="big-heading">{winRate}%</p>
-                    </div>
+                    </Card>
                 </div>
             </>
         );
