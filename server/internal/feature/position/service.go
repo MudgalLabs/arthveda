@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -365,6 +366,18 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 	// Add any remaining open positions to the finalized positions
 	for _, openPosition := range openPositions {
 		finalizedPositions = append(finalizedPositions, openPosition)
+	}
+
+	// Sort finalizedPositions by opened_at in descending order
+	sort.Slice(finalizedPositions, func(i, j int) bool {
+		return finalizedPositions[i].OpenedAt.After(finalizedPositions[j].OpenedAt)
+	})
+
+	// Sort trades within each finalized position by trade time in ascending order
+	for _, position := range finalizedPositions {
+		sort.Slice(position.Trades, func(i, j int) bool {
+			return position.Trades[i].Time.Before(position.Trades[j].Time)
+		})
 	}
 
 	fmt.Printf("Total positions created: %d\n", len(positions))
