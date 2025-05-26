@@ -583,11 +583,52 @@ const PnLCard = memo(
             </div>
         );
 
+        const cardContent = (
+            <>
+                <div className={`flex items-end gap-x-2 ${textColor}`}>
+                    <p className="heading leading-none">
+                        {formatCurrency(net_pnl_amount, currency)}
+                    </p>
+                    <p>{net_return_percentage}%</p>
+                    <p>{trendingIcon}</p>
+                </div>
+
+                {Number(net_pnl_amount) > 0 && (
+                    <div className="w-full">
+                        <div className="h-4" />
+                        <Tooltip
+                            content={tooltipContent}
+                            contentProps={{
+                                side: "bottom",
+                                className:
+                                    "min-w-(--radix-tooltip-trigger-width)",
+                            }}
+                        >
+                            <Progress
+                                value={100 - charges_as_percentage_of_net_pnl}
+                            />
+                        </Tooltip>
+                    </div>
+                )}
+            </>
+        );
+
+        if (net_return_percentage === 0 && grossPnL.isZero()) {
+            return (
+                <Card className="relative min-w-60 flex-col gap-y-2">
+                    <CardTitle>PnL</CardTitle>
+                    <CardContent className="absolute-center">
+                        {cardContent}
+                    </CardContent>
+                </Card>
+            );
+        }
+
         return (
-            <Card className="flex min-w-80 flex-col gap-y-2">
+            <Card className="flex flex-col gap-y-2">
                 <CardTitle>PnL</CardTitle>
 
-                <CardContent className="flex h-full min-w-50 flex-col items-start">
+                <CardContent className="flex h-full flex-col items-start">
                     <div className={`flex items-end gap-x-2 ${textColor}`}>
                         <p className="heading leading-none">
                             {formatCurrency(net_pnl_amount, currency)}
@@ -691,8 +732,7 @@ const DiscardButton = memo(
                     <DialogHeader>
                         <DialogTitle>Discard</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to disacard the trade you were
-                            adding?
+                            Are you sure you want to disacard this position?
                         </DialogDescription>
                     </DialogHeader>
 
