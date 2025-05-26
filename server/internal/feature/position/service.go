@@ -200,20 +200,26 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 		}
 	}
 
-	// Map to group trade create payload by Order ID.
-	orderIDToCreateTradePayloadMap := make(map[string]trade.CreatePayload)
 	// Map to store the symbol for each Order ID.
 	orderIDToSymbolMap := make(map[string]string)
 	// Map to store the instrument for each Order ID.
 	orderIDToInstrumentMap := make(map[string]Instrument)
 
-	// Array to store all positions
-	positions := []*Position{}
 	// Map to track open positions by Symbol
 	openPositions := make(map[string]*Position)
 	// Array to store all finalized positions
 	finalizedPositions := []*Position{}
 
+	// Define a struct to store trades with their Order IDs
+	type TradeWithOrderID struct {
+		OrderID string
+		Payload trade.CreatePayload
+	}
+
+	// Slice to store trades with their Order IDs
+	tradesWithOrderIDs := []TradeWithOrderID{}
+
+	// Replace the map with a slice and populate it
 	for rowIdx, row := range rows[headerRowIdx+1:] {
 		l.Debugf("Processing row %d: %v\n", rowIdx+headerRowIdx+1, row)
 
@@ -254,38 +260,37 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 			return nil, service.ErrBadRequest, fmt.Errorf("Invalid time at row %d: %v", rowIdx+headerRowIdx+1, err)
 		}
 
-		// Check if the Order ID already exists in the map
-		if existingTrade, exists := orderIDToCreateTradePayloadMap[orderID]; exists {
-			// Safety check: Ensure the existing trade kind matches the new trade kind.
-			if existingTrade.Kind != tradeKind {
-				return nil, service.ErrBadRequest, fmt.Errorf("Mismatched trade kind for Order ID %s: existing %s, new %s", orderID, existingTrade.Kind, tradeKind)
-			}
-
-			// Combine the quantities
-			existingTrade.Quantity = existingTrade.Quantity.Add(decimal.NewFromFloat(quantity))
-			orderIDToCreateTradePayloadMap[orderID] = existingTrade
-		} else {
-			// Create a new trade payload
-			orderIDToCreateTradePayloadMap[orderID] = trade.CreatePayload{
+		// Add the trade to the slice
+		tradesWithOrderIDs = append(tradesWithOrderIDs, TradeWithOrderID{
+			OrderID: orderID,
+			Payload: trade.CreatePayload{
 				Kind:     tradeKind,
 				Quantity: decimal.NewFromFloat(quantity),
 				Price:    price,
 				Time:     tradeTime,
-			}
+			},
+		})
 
-			orderIDToSymbolMap[orderID] = symbol
+		orderIDToSymbolMap[orderID] = symbol
 
-			var instrument Instrument
-
-			if segment == "EQ" {
-				instrument = InstrumentEquity
-			}
-
-			orderIDToInstrumentMap[orderID] = instrument
+		var instrument Instrument
+		if segment == "EQ" {
+			instrument = InstrumentEquity
 		}
+
+		orderIDToInstrumentMap[orderID] = instrument
 	}
 
-	for orderID, tradePayload := range orderIDToCreateTradePayloadMap {
+	// Sort the trades by execution time
+	sort.Slice(tradesWithOrderIDs, func(i, j int) bool {
+		return tradesWithOrderIDs[i].Payload.Time.Before(tradesWithOrderIDs[j].Payload.Time)
+	})
+
+	// Process the sorted trades
+	for _, tradeWithOrderID := range tradesWithOrderIDs {
+		orderID := tradeWithOrderID.OrderID
+		tradePayload := tradeWithOrderID.Payload
+
 		symbol, exists := orderIDToSymbolMap[orderID]
 		if !exists {
 			return nil, service.ErrInternalServerError, fmt.Errorf("Order ID %s not found in symbol map", orderID)
@@ -321,13 +326,15 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 			openPosition.NetReturnPercentage = computeResult.NetReturnPercentage
 			openPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
 
-			// If the position is closed, finalize it
-			if computeResult.OpenQuantity.IsZero() && computeResult.Direction == "" {
+			// If the position is closed (net quantity is 0), finalize it
+			if computeResult.OpenQuantity.IsZero() {
+				// Finalize the position
 				finalizedPositions = append(finalizedPositions, openPosition)
-				delete(openPositions, symbol) // Remove the open position for the Symbol
+				// Remove the finalized position from the openPositions map
+				delete(openPositions, symbol)
 			}
 		} else {
-			// Create a new position for the Symbol
+			// If no open position exists, create a new one
 			instrument, exists := orderIDToInstrumentMap[orderID]
 			if !exists {
 				return nil, service.ErrInternalServerError, fmt.Errorf("Order ID %s not found in instrument map", orderID)
@@ -379,8 +386,6 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 			return position.Trades[i].Time.Before(position.Trades[j].Time)
 		})
 	}
-
-	fmt.Printf("Total positions created: %d\n", len(positions))
 
 	if tradebookStr == "" {
 		return nil, service.ErrBadRequest, fmt.Errorf("Tradebook information not found in the Excel file")
