@@ -72,3 +72,29 @@ func searchPositionsHandler(s *position.Service) http.HandlerFunc {
 		successResponse(w, r, http.StatusOK, "", result)
 	}
 }
+
+func handleImportTrades(s *position.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		// Get the file from the form
+		file, _, err := r.FormFile("file")
+		if err != nil {
+			http.Error(w, "Failed to read form file: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+
+		payload := position.ImportPayload{
+			File: file,
+		}
+
+		result, errKind, err := s.Import(ctx, payload)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, "Trades imported successfully", result)
+	}
+}

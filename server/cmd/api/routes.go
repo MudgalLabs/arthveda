@@ -64,6 +64,7 @@ func initRouter(a *app) http.Handler {
 			r.Post("/", createPositionHandler(a.service.PositionService))
 			r.Post("/compute", computePositionHandler(a.service.PositionService))
 			r.Post("/search", searchPositionsHandler(a.service.PositionService))
+			r.Post("/import", handleImportTrades(a.service.PositionService))
 		})
 
 		r.Route("/users", func(r chi.Router) {

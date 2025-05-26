@@ -8,10 +8,17 @@ import (
 	"arthveda/internal/service"
 	"context"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"github.com/xuri/excelize/v2"
 )
 
 type Service struct {
@@ -101,6 +108,302 @@ func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchRes
 	}
 
 	result := common.NewSearchResult(positions, payload.Pagination.GetMeta(totalItems))
+
+	return result, service.ErrNone, nil
+}
+
+type ImportPayload struct {
+	File multipart.File
+}
+
+func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string]any, service.Error, error) {
+	l := logger.FromCtx(ctx)
+
+	// Save it temporarily (excelize works with file paths or io.Reader)
+	tempFile, err := os.CreateTemp("", "upload-*.xlsx")
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to create temp file: %w", err)
+	}
+
+	defer os.Remove(tempFile.Name()) // clean up
+
+	io.Copy(tempFile, payload.File) // copy the uploaded file to the temp file
+	tempFile.Close()
+
+	// Open Excel file
+	f, err := excelize.OpenFile(tempFile.Name())
+	if err != nil {
+		return nil, service.ErrBadRequest, fmt.Errorf("Unable to read excel file")
+	}
+
+	defer f.Close()
+
+	// Get first sheet name
+	sheet := f.GetSheetName(0)
+
+	// Get all rows
+	rows, err := f.GetRows(sheet)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to read rows from excel file: %w", err)
+	}
+
+	if len(rows) == 0 {
+		return nil, service.ErrBadRequest, fmt.Errorf("Excel file is empty")
+	}
+
+	fmt.Println("Number of rows in the sheet:", len(rows))
+
+	var tradebookStr string
+	var headerRowIdx int
+	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIdColumnIdx, timeColumnIdx int
+
+	for rowIdx, row := range rows {
+		for columnIdx, colCell := range row {
+			if strings.Contains(colCell, "Tradebook") {
+				tradebookStr = colCell
+			}
+
+			if strings.Contains(colCell, "Symbol") {
+				symbolColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Segment") {
+				segmentColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Trade Type") {
+				tradeTypeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Quantity") {
+				quantityColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Price") {
+				priceColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Order ID") {
+				orderIdColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Order Execution Time") {
+				headerRowIdx = rowIdx
+				timeColumnIdx = columnIdx
+			}
+
+			// Check if we have found all the required columns.
+			if headerRowIdx > 0 {
+				break
+			}
+		}
+	}
+
+	// Map to group trade create payload by Order ID.
+	orderIDToCreateTradePayloadMap := make(map[string]trade.CreatePayload)
+	// Map to store the symbol for each Order ID.
+	orderIDToSymbolMap := make(map[string]string)
+	// Map to store the instrument for each Order ID.
+	orderIDToInstrumentMap := make(map[string]Instrument)
+
+	// Array to store all positions
+	positions := []*Position{}
+	// Map to track open positions by Symbol
+	openPositions := make(map[string]*Position)
+	// Array to store all finalized positions
+	finalizedPositions := []*Position{}
+
+	for rowIdx, row := range rows[headerRowIdx+1:] {
+		l.Debugf("Processing row %d: %v\n", rowIdx+headerRowIdx+1, row)
+
+		symbol := row[symbolColumnIdx]
+		if symbol == "" {
+			return nil, service.ErrBadRequest, fmt.Errorf("Symbol is empty in row %d", rowIdx+headerRowIdx+1)
+		}
+
+		segment := row[segmentColumnIdx]
+		if segment == "" {
+			return nil, service.ErrBadRequest, fmt.Errorf("Segment is empty in row %d", rowIdx+headerRowIdx+1)
+		}
+
+		orderID := row[orderIdColumnIdx]
+		if orderID == "" {
+			return nil, service.ErrBadRequest, fmt.Errorf("Order ID is empty in row %d", rowIdx+headerRowIdx+1)
+		}
+
+		// Parse trade details from the row
+		tradeTypeStr := row[tradeTypeColumnIdx]
+		quantityStr := row[quantityColumnIdx]
+		priceStr := row[priceColumnIdx]
+		timeStr := row[timeColumnIdx]
+
+		tradeKind := trade.Kind(tradeTypeStr)
+		quantity, err := strconv.ParseFloat(quantityStr, 64)
+		if err != nil {
+			return nil, service.ErrBadRequest, fmt.Errorf("Invalid quantity at row %d: %v", rowIdx+headerRowIdx+1, err)
+		}
+
+		price, err := decimal.NewFromString(priceStr)
+		if err != nil {
+			return nil, service.ErrBadRequest, fmt.Errorf("Invalid price at row %d: %v", rowIdx+headerRowIdx+1, err)
+		}
+
+		tradeTime, err := time.Parse("2006-01-02T15:04:05", timeStr)
+		if err != nil {
+			return nil, service.ErrBadRequest, fmt.Errorf("Invalid time at row %d: %v", rowIdx+headerRowIdx+1, err)
+		}
+
+		// Check if the Order ID already exists in the map
+		if existingTrade, exists := orderIDToCreateTradePayloadMap[orderID]; exists {
+			// Safety check: Ensure the existing trade kind matches the new trade kind.
+			if existingTrade.Kind != tradeKind {
+				return nil, service.ErrBadRequest, fmt.Errorf("Mismatched trade kind for Order ID %s: existing %s, new %s", orderID, existingTrade.Kind, tradeKind)
+			}
+
+			// Combine the quantities
+			existingTrade.Quantity = existingTrade.Quantity.Add(decimal.NewFromFloat(quantity))
+			orderIDToCreateTradePayloadMap[orderID] = existingTrade
+		} else {
+			// Create a new trade payload
+			orderIDToCreateTradePayloadMap[orderID] = trade.CreatePayload{
+				Kind:     tradeKind,
+				Quantity: decimal.NewFromFloat(quantity),
+				Price:    price,
+				Time:     tradeTime,
+			}
+
+			orderIDToSymbolMap[orderID] = symbol
+
+			var instrument Instrument
+
+			if segment == "EQ" {
+				instrument = InstrumentEquity
+			}
+
+			orderIDToInstrumentMap[orderID] = instrument
+		}
+	}
+
+	for orderID, tradePayload := range orderIDToCreateTradePayloadMap {
+		symbol, exists := orderIDToSymbolMap[orderID]
+		if !exists {
+			return nil, service.ErrInternalServerError, fmt.Errorf("Order ID %s not found in symbol map", orderID)
+		}
+
+		newTrade, err := trade.New(tradePayload)
+		if err != nil {
+			l.Errorw("failed to create trade from payload", "error", err, "tradePayload", tradePayload)
+			return nil, service.ErrInternalServerError, fmt.Errorf("failed to create trade from payload: %w", err)
+		}
+
+		// Check if there is an open position for the Symbol
+		if openPosition, exists := openPositions[symbol]; exists {
+			// Append the trade to the open position
+			openPosition.Trades = append(openPosition.Trades, newTrade)
+
+			// Use the compute function to update the position state
+			computePayload := ComputePayload{
+				RiskAmount:    decimal.Zero,
+				ChargesAmount: decimal.Zero,
+				Trades:        convertTradesToCreatePayload(openPosition.Trades),
+			}
+			computeResult := compute(computePayload)
+
+			// Update the position with the compute result
+			openPosition.Direction = computeResult.Direction
+			openPosition.Status = computeResult.Status
+			openPosition.OpenedAt = computeResult.OpenedAt
+			openPosition.ClosedAt = computeResult.ClosedAt
+			openPosition.GrossPnLAmount = computeResult.GrossPnLAmount
+			openPosition.NetPnLAmount = computeResult.NetPnLAmount
+			openPosition.RFactor = computeResult.RFactor
+			openPosition.NetReturnPercentage = computeResult.NetReturnPercentage
+			openPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
+
+			// If the position is closed, finalize it
+			if computeResult.OpenQuantity.IsZero() && computeResult.Direction == "" {
+				finalizedPositions = append(finalizedPositions, openPosition)
+				delete(openPositions, symbol) // Remove the open position for the Symbol
+			}
+		} else {
+			// Create a new position for the Symbol
+			instrument, exists := orderIDToInstrumentMap[orderID]
+			if !exists {
+				return nil, service.ErrInternalServerError, fmt.Errorf("Order ID %s not found in instrument map", orderID)
+			}
+
+			// Initialize the position with the first trade
+			computePayload := ComputePayload{
+				RiskAmount:    decimal.Zero,
+				ChargesAmount: decimal.Zero,
+				Trades:        []trade.CreatePayload{tradePayload},
+			}
+			computeResult := compute(computePayload)
+
+			trades := []*trade.Trade{
+				newTrade,
+			}
+
+			openPositions[symbol] = &Position{
+				Symbol:                      symbol,
+				Instrument:                  instrument,
+				Currency:                    currency.CurrencyINR,
+				Trades:                      trades,
+				Direction:                   computeResult.Direction,
+				Status:                      computeResult.Status,
+				OpenedAt:                    computeResult.OpenedAt,
+				ClosedAt:                    computeResult.ClosedAt,
+				GrossPnLAmount:              computeResult.GrossPnLAmount,
+				NetPnLAmount:                computeResult.NetPnLAmount,
+				RFactor:                     computeResult.RFactor,
+				NetReturnPercentage:         computeResult.NetReturnPercentage,
+				ChargesAsPercentageOfNetPnL: computeResult.ChargesAsPercentageOfNetPnL,
+			}
+		}
+	}
+
+	// Add any remaining open positions to the finalized positions
+	for _, openPosition := range openPositions {
+		finalizedPositions = append(finalizedPositions, openPosition)
+	}
+
+	fmt.Printf("Total positions created: %d\n", len(positions))
+
+	if tradebookStr == "" {
+		return nil, service.ErrBadRequest, fmt.Errorf("Tradebook information not found in the Excel file")
+	}
+
+	// Define regex to extract two dates in YYYY-MM-DD format
+	re := regexp.MustCompile(`from (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})`)
+	matches := re.FindStringSubmatch(tradebookStr)
+
+	if len(matches) != 3 {
+		fmt.Println("Failed to extract dates")
+		return nil, service.ErrBadRequest, fmt.Errorf("Unable to extract date range from tradebook string")
+	}
+
+	fromStr := matches[1]
+	toStr := matches[2]
+
+	// Parse the strings into time.Time
+	layout := "2006-01-02"
+	fromDate, err := time.Parse(layout, fromStr)
+	if err != nil {
+		fmt.Println("Invalid from date:", err)
+		return nil, service.ErrBadRequest, fmt.Errorf("Invalid from date format")
+	}
+
+	toDate, err := time.Parse(layout, toStr)
+	if err != nil {
+		fmt.Println("Invalid to date:", err)
+		return nil, service.ErrBadRequest, fmt.Errorf("Invalid to date format")
+	}
+
+	result := map[string]any{
+		"fromDate":           fromDate,
+		"toDate":             toDate,
+		"finalizedPositions": finalizedPositions,
+	}
 
 	return result, service.ErrNone, nil
 }

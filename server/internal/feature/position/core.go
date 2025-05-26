@@ -314,3 +314,16 @@ func applyTradeToPosition(
 	newTotalCost = totalCost.Add(tradePrice.Mul(newQty))
 	return tradePrice, netQty, newDirection, realizedPnL, newTotalCost
 }
+
+func convertTradesToCreatePayload(trades []*trade.Trade) []trade.CreatePayload {
+	createPayloads := make([]trade.CreatePayload, len(trades))
+	for i, t := range trades {
+		createPayloads[i] = trade.CreatePayload{
+			Kind:     t.Kind,
+			Quantity: t.Quantity,
+			Price:    t.Price,
+			Time:     t.Time,
+		}
+	}
+	return createPayloads
+}
