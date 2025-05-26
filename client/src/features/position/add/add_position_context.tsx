@@ -192,15 +192,21 @@ function AddPositionContextProvider({ children }: { children: ReactNode }) {
     }, []);
 
     useEffect(() => {
-        if (!tradesAreValid) return;
+        // if (!tradesAreValid) return;
 
         compute({
             risk_amount: debouncedState.risk_amount || "0",
             charges_amount: debouncedState.charges_amount || "0",
             trades: debouncedTrades.map((s) => {
+                const copy = { ...s };
+                if (copy.quantity === "") copy.quantity = "0";
+                if (copy.price === "") copy.price = "0";
+
                 // @ts-ignore
-                delete s.id;
-                return s;
+                // Removing the `id` because we use it only for ReactTable
+                // but the API will throw error if we send it.
+                delete copy.id;
+                return copy;
             }),
         });
     }, [debouncedState, debouncedTrades]);

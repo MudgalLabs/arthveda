@@ -117,6 +117,20 @@ func compute(payload ComputePayload) computeResult {
 	totalCost := decimal.NewFromFloat(0)
 	netQty := decimal.NewFromFloat(0)
 
+	// If there is only one trade, we know the trade is the opening trade.
+	if len(payload.Trades) == 1 {
+		result.OpenedAt = payload.Trades[0].Time
+		result.Status = StatusOpen
+
+		if payload.Trades[0].Kind == trade.TradeKindBuy {
+			result.Direction = DirectionLong
+		} else {
+			result.Direction = DirectionShort
+		}
+
+		return result
+	}
+
 	for i := range payload.Trades {
 		trade := payload.Trades[i]
 		tradeQty := trade.Quantity

@@ -586,7 +586,7 @@ const PnLCard = memo(
         const cardContent = (
             <>
                 <div className={`flex items-end gap-x-2 ${textColor}`}>
-                    <p className="heading leading-none">
+                    <p className="big-heading leading-none">
                         {formatCurrency(net_pnl_amount, currency)}
                     </p>
                     <p>{net_return_percentage}%</p>
@@ -630,7 +630,7 @@ const PnLCard = memo(
 
                 <CardContent className="flex h-full flex-col items-start">
                     <div className={`flex items-end gap-x-2 ${textColor}`}>
-                        <p className="heading leading-none">
+                        <p className="big-heading leading-none">
                             {formatCurrency(net_pnl_amount, currency)}
                         </p>
                         <p>{net_return_percentage}%</p>
@@ -671,7 +671,7 @@ const RFactorCard = memo(({ r_factor }: { r_factor: number }) => {
         <Card className="relative min-w-30">
             <CardTitle>R Factor</CardTitle>
             <CardContent className="absolute-center">
-                <p className={`heading ${textColor}`}>{r_factor}</p>
+                <p className={`big-heading ${textColor}`}>{r_factor}</p>
             </CardContent>
         </Card>
     );

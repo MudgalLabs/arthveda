@@ -23,9 +23,9 @@ const StatusTag: FC<StatusTagProps> = memo(
 
         if (Number(openQuantity) > 0) {
             openTagContent +=
-                " ~ Qty. " +
+                " : " +
                 openQuantity +
-                " Avg. " +
+                " @ " +
                 formatCurrency(openAvgPrice, currency);
         }
 
