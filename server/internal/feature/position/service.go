@@ -152,8 +152,6 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 		return nil, service.ErrBadRequest, fmt.Errorf("Excel file is empty")
 	}
 
-	fmt.Println("Number of rows in the sheet:", len(rows))
-
 	var tradebookStr string
 	var headerRowIdx int
 	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIdColumnIdx, timeColumnIdx int
@@ -396,7 +394,6 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 	matches := re.FindStringSubmatch(tradebookStr)
 
 	if len(matches) != 3 {
-		fmt.Println("Failed to extract dates")
 		return nil, service.ErrBadRequest, fmt.Errorf("Unable to extract date range from tradebook string")
 	}
 
@@ -407,13 +404,11 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 	layout := "2006-01-02"
 	fromDate, err := time.Parse(layout, fromStr)
 	if err != nil {
-		fmt.Println("Invalid from date:", err)
 		return nil, service.ErrBadRequest, fmt.Errorf("Invalid from date format")
 	}
 
 	toDate, err := time.Parse(layout, toStr)
 	if err != nil {
-		fmt.Println("Invalid to date:", err)
 		return nil, service.ErrBadRequest, fmt.Errorf("Invalid to date format")
 	}
 
