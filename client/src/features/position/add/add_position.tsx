@@ -39,7 +39,7 @@ import {
     useDataTableEditableCell,
 } from "@/hooks/use_data_table_editable_cell";
 import { CurrencyCode } from "@/features/position/position";
-import { Card, CardTitle } from "@/components/card";
+import { Card, CardContent, CardTitle } from "@/components/card";
 import {
     cn,
     formatCurrency,
@@ -127,7 +127,7 @@ function AddPosition() {
         <>
             <PageHeading heading="Add Position" loading={isComputing} />
 
-            <div className="flex gap-x-6">
+            <div className="flex items-stretch gap-x-6">
                 <PnLCard
                     charges_amount={state.charges_amount}
                     charges_as_percentage_of_net_pnl={
@@ -138,7 +138,9 @@ function AddPosition() {
                     net_pnl_amount={computeResult.net_pnl_amount}
                     net_return_percentage={computeResult.net_return_percentage}
                 />
+
                 <RFactorCard r_factor={computeResult.r_factor} />
+
                 <DurationCard
                     opened_at={computeResult.opened_at}
                     closed_at={computeResult.closed_at}
@@ -582,13 +584,12 @@ const PnLCard = memo(
         );
 
         return (
-            <div className="flex min-w-80 flex-col gap-y-2">
+            <Card className="flex min-w-80 flex-col gap-y-2">
                 <CardTitle>PnL</CardTitle>
-                <Card className="flex h-full min-w-50 flex-col items-start justify-center">
+
+                <CardContent className="flex h-full min-w-50 flex-col items-start">
                     <div className={`flex items-end gap-x-2 ${textColor}`}>
-                        <p
-                            className={`font-heading text-[32px] leading-none font-semibold`}
-                        >
+                        <p className="heading leading-none">
                             {formatCurrency(net_pnl_amount, currency)}
                         </p>
                         <p>{net_return_percentage}%</p>
@@ -614,8 +615,8 @@ const PnLCard = memo(
                             </Tooltip>
                         </div>
                     )}
-                </Card>
-            </div>
+                </CardContent>
+            </Card>
         );
     }
 );
@@ -626,14 +627,12 @@ const RFactorCard = memo(({ r_factor }: { r_factor: number }) => {
     if (r_factor < 0) textColor = "text-foreground-red";
 
     return (
-        <div className="flex flex-col gap-y-2">
+        <Card className="relative min-w-30">
             <CardTitle>R Factor</CardTitle>
-            <Card className="flex-center h-full min-w-25">
-                <p className={`font-heading text-2xl font-bold ${textColor}`}>
-                    {r_factor}
-                </p>
-            </Card>
-        </div>
+            <CardContent className="absolute-center">
+                <p className={`heading ${textColor}`}>{r_factor}</p>
+            </CardContent>
+        </Card>
     );
 });
 
@@ -647,10 +646,11 @@ const DurationCard = memo(
         );
 
         return (
-            <div className="flex flex-col gap-y-2">
+            <Card className="flex flex-col gap-y-2">
                 <CardTitle>Duration</CardTitle>
-                <Card className="flex h-full flex-col items-center gap-y-2">
-                    <p className="font-heading text-2xl font-semibold">
+
+                <CardContent className="flex h-full flex-col items-center gap-y-2">
+                    <p className="heading">
                         {days} days {hours} hours {minutes} mins
                     </p>
 
@@ -665,8 +665,8 @@ const DurationCard = memo(
                             )}
                         </div>
                     </div>
-                </Card>
-            </div>
+                </CardContent>
+            </Card>
         );
     }
 );

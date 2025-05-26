@@ -58,6 +58,8 @@ export function DecimalInput(props: DecimalInputProps) {
                     ? formatCurrency(value, currency, false)
                     : value
             );
+
+            setError(null);
         } else {
             setDisplayValue(value);
         }

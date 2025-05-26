@@ -29,7 +29,7 @@ function CardTitle({ children, className }: CardTitleProps) {
     return (
         <div
             className={cn(
-                "text-surface-foreground text-base font-semibold",
+                "text-surface-foreground text-sm font-medium",
                 className
             )}
         >
@@ -38,4 +38,12 @@ function CardTitle({ children, className }: CardTitleProps) {
     );
 }
 
-export { Card, CardTitle };
+function CardContent({ children, className }: CardProps) {
+    return (
+        <div className={cn("text-foreground text-sm", className)}>
+            {children}
+        </div>
+    );
+}
+
+export { Card, CardTitle, CardContent };
