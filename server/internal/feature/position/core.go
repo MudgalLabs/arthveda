@@ -174,9 +174,9 @@ func compute(payload ComputePayload) computeResult {
 	result.ClosedAt = closedAt
 	result.GrossPnLAmount = grossPnL
 	result.NetPnLAmount = netPnL
-	result.RFactor, _ = rFactor.Float64()
-	result.NetReturnPercentage, _ = netReturnPercentage.Float64()
-	result.ChargesAsPercentageOfNetPnL, _ = chargesAsPercentageOfNetPnL.Float64()
+	result.RFactor, _ = rFactor.Round(2).Float64()
+	result.NetReturnPercentage, _ = netReturnPercentage.Round(2).Float64()
+	result.ChargesAsPercentageOfNetPnL, _ = chargesAsPercentageOfNetPnL.Round(2).Float64()
 
 	if netQty.IsPositive() {
 		result.OpenQuantity = netQty

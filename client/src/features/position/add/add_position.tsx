@@ -1,4 +1,5 @@
 import { memo, ReactNode, useEffect, useMemo, useState } from "react";
+import Decimal from "decimal.js";
 import {
     ColumnDef,
     getCoreRowModel,
@@ -531,13 +532,13 @@ const PnLCard = memo(
     }) => {
         let trendingIcon: ReactNode = null;
         let textColor = "text-foreground";
-        const grossPnL = Number(gross_pnl_amount);
-        const netPnL = Number(net_pnl_amount);
+        const grossPnL = new Decimal(gross_pnl_amount);
+        const netPnL = new Decimal(net_pnl_amount);
 
-        if (netPnL > 0) {
+        if (!netPnL.isZero() && netPnL.isPositive()) {
             trendingIcon = <IconTrendingUp size={20} />;
             textColor = "text-foreground-green";
-        } else if (netPnL < 0) {
+        } else if (netPnL.isNegative()) {
             trendingIcon = <IconTrendingDown />;
             textColor = "text-foreground-red";
         }
@@ -549,8 +550,8 @@ const PnLCard = memo(
                         Gross{" "}
                         <span
                             className={cn({
-                                "text-foreground-green": grossPnL > 0,
-                                "text-foreground-red": grossPnL < 0,
+                                "text-foreground-green": grossPnL.isPositive(),
+                                "text-foreground-red": grossPnL.isNegative(),
                             })}
                         >
                             {formatCurrency(gross_pnl_amount, currency)}
