@@ -15,7 +15,7 @@ const buttonVariants = cva(
                 secondary:
                     "bg-secondary text-foreground enabled:hover:bg-secondary/80 enabled:active:bg-secondary",
                 outline:
-                    "bg-transparent text-foreground border-1 border-accent-muted enabled:hover:bg-accent-muted enabled:hover:text-foreground",
+                    "bg-transparent text-foreground border-1 border-accent-muted enabled:hover:bg-accent-muted",
                 destructive:
                     "bg-red-bg text-red-foreground enabled:hover:bg-red-bg/90 focus-visible:ring-foreground!",
                 success:

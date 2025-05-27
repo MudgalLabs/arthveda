@@ -4,7 +4,15 @@ import { cn } from "@/lib/utils";
 
 interface InputProps extends ComponentProps<"input"> {
     hidePlaceholderOnFocus?: boolean;
-    type?: "email" | "number" | "password" | "search" | "tel" | "text" | "url";
+    type?:
+        | "email"
+        | "number"
+        | "password"
+        | "search"
+        | "tel"
+        | "text"
+        | "url"
+        | "file";
     value?: string | number;
     variant?: "default" | "error" | undefined;
 }
@@ -43,6 +51,8 @@ const Input: FC<InputProps> = (props) => {
                 {
                     "border-border-red! focus-visible:ring-border-red! border-1 focus:border-none":
                         variant === "error",
+                    "file:bg-accent-muted file:text-foreground hover:file:bg-accent min-w-[480px] p-0 file:mr-4 file:h-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold hover:cursor-pointer hover:file:cursor-pointer":
+                        props.type === "file",
                 },
                 className
             )}

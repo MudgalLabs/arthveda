@@ -32,7 +32,7 @@ import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { Button } from "@/s8ly";
 
 // CSS for range picker styles.
-import "./calendar.css";
+import "@/s8ly/calendar/calendar.css";
 
 interface CalendarProps {
     dates: Date[];
