@@ -13,7 +13,7 @@ import (
 
 type Reader interface {
 	FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error)
-	AllBrokerTradeIDs(ctx context.Context, brokerID uuid.UUID) ([]string, error)
+	AllBrokerTradeIDs(ctx context.Context, brokerID uuid.UUID) (map[string]struct{}, error)
 }
 
 type Writer interface {
@@ -101,7 +101,7 @@ func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.
 	return trades, nil
 }
 
-func (r *tradeRepository) AllBrokerTradeIDs(ctx context.Context, brokerID uuid.UUID) ([]string, error) {
+func (r *tradeRepository) AllBrokerTradeIDs(ctx context.Context, brokerID uuid.UUID) (map[string]struct{}, error) {
 	sql := `
 	SELECT trade.broker_trade_id
 	FROM trade
@@ -115,16 +115,16 @@ func (r *tradeRepository) AllBrokerTradeIDs(ctx context.Context, brokerID uuid.U
 
 	defer rows.Close()
 
-	var brokerTradeIDs []string
+	brokerTradeIDs := make(map[string]struct{})
 	for rows.Next() {
 		var brokerTradeID *string
 		if err := rows.Scan(&brokerTradeID); err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
 
-		// Only append non-nil BrokerTradeIDs
+		// Only add non-nil BrokerTradeIDs to the set
 		if brokerTradeID != nil {
-			brokerTradeIDs = append(brokerTradeIDs, *brokerTradeID)
+			brokerTradeIDs[*brokerTradeID] = struct{}{}
 		}
 	}
 

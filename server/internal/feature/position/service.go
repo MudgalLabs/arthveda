@@ -120,6 +120,7 @@ func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchRes
 type ImportPayload struct {
 	File     multipart.File
 	BrokerID uuid.UUID `form:"broker_id"`
+	Confirm  bool
 }
 
 func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPayload) (map[string]any, service.Error, error) {
@@ -233,6 +234,9 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		// Slice to store trades with their Order IDs
 		tradesWithOrderIDs := []TradeWithOrderID{}
 
+		// Map to aggregate trades by Order ID.
+		// This will help in calculating the weighted average price for trades with the same Order ID.
+		// When a user places a trade, the execution can happen in multiple parts leading to multiple trades with the same Order ID.
 		aggregatedTrades := make(map[string]struct {
 			Quantity   decimal.Decimal
 			TotalPrice decimal.Decimal
@@ -330,9 +334,24 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			return tradesWithOrderIDs[i].Payload.Time.Before(tradesWithOrderIDs[j].Payload.Time)
 		})
 
+		brokerTradeIDs, err := s.tradeRepository.AllBrokerTradeIDs(ctx, broker.ID)
+		if err != nil {
+			l.Errorw("failed to get all broker trade IDs", "error", err, "broker_id", broker.ID)
+			// Not returning an error here, as we can still process trades without existing broker trade IDs.
+		}
+
+		duplicateTradesCount := 0
+
 		// Process the sorted trades
 		for _, tradeWithOrderID := range tradesWithOrderIDs {
 			orderID := tradeWithOrderID.OrderID
+
+			if common.ExistsInSet(brokerTradeIDs, orderID) {
+				l.Infow("Skipping trade with existing broker trade ID", "orderID", orderID)
+				duplicateTradesCount += 1
+				continue // Skip trades that already exist in the broker's trade IDs
+			}
+
 			tradePayload := tradeWithOrderID.Payload
 
 			symbol, exists := orderIDToSymbolMap[orderID]
@@ -423,9 +442,14 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 					RFactor:                     computeResult.RFactor,
 					NetReturnPercentage:         computeResult.NetReturnPercentage,
 					ChargesAsPercentageOfNetPnL: computeResult.ChargesAsPercentageOfNetPnL,
+					IsImported:                  true,
+					BrokerID:                    &broker.ID,
 				}
 			}
 		}
+
+		fmt.Println("BrokerOrderIDs count:", len(brokerTradeIDs))
+		fmt.Println("Duplicate trades skipped:", duplicateTradesCount)
 
 		// Add any remaining open positions to the finalized positions
 		for _, openPosition := range openPositions {
@@ -472,9 +496,28 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		}
 
 		result := map[string]any{
-			"from_date": fromDate,
-			"to_date":   toDate,
-			"positions": finalizedPositions,
+			"from_date":               fromDate,
+			"to_date":                 toDate,
+			"trades_already_imported": duplicateTradesCount,
+			"positions":               finalizedPositions,
+		}
+
+		// If confirm is true, we will create the positions in the database.
+		if payload.Confirm {
+			for _, position := range finalizedPositions {
+				// Create the position in the database
+				err := s.positionRepository.Create(ctx, position)
+				if err != nil {
+					return nil, service.ErrInternalServerError, err
+				}
+
+				// Create the trades in the database
+				_, err = s.tradeRepository.Create(ctx, position.Trades)
+				if err != nil {
+					s.positionRepository.Delete(ctx, position.ID)
+					return nil, service.ErrInternalServerError, err
+				}
+			}
 		}
 
 		return result, service.ErrNone, nil

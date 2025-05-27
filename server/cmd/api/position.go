@@ -6,6 +6,7 @@ import (
 	"arthveda/internal/service"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 )
@@ -98,9 +99,23 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 			return
 		}
 
+		var confirm bool
+		confirmStr := r.FormValue("confirm")
+
+		if confirmStr != "" {
+			confirm, err = strconv.ParseBool(confirmStr)
+			if err != nil {
+				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
+					apires.NewApiError("", "Confirm must be a boolean", "confirm", confirmStr),
+				))
+				return
+			}
+		}
+
 		payload := position.ImportPayload{
 			File:     file,
 			BrokerID: brokerID,
+			Confirm:  confirm,
 		}
 
 		result, errKind, err := s.Import(ctx, userID, payload)

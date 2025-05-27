@@ -47,7 +47,7 @@ func Init() {
 		DB_USER = "postgres"
 		DB_PASSWORD = "postgres"
 		JWT_SECRET = "this_is_a_very_strong_jwt_secret_i_promise"
-		LOG_LEVEL = "debug"
+		LOG_LEVEL = "warn"
 		LOG_FILE = "arthveda_go.log"
 	}
 }
