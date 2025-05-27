@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS trade (
         kind TRADE_KIND NOT NULL,
         time TIMESTAMP NOT NULL,
         quantity NUMERIC(14, 2) NOT NULL,
-        price NUMERIC(14, 2) NOT NULL
+        price NUMERIC(14, 2) NOT NULL,
+        broker_trade_id VARCHAR(255)
 
         -- FOREIGN KEY (position_id) REFERENCES position(id)
 );
@@ -88,5 +89,7 @@ DROP TYPE TRADE_KIND CASCADE;
 DROP TABLE user_identity CASCADE;
 DROP TABLE user_profile CASCADE;
 DROP TABLE position CASCADE;
-DROP TABLE trade;
+DROP TABLE trade CASCADE;
+DROP TABLE broker CASCADE;
 -- +goose StatementEnd
+

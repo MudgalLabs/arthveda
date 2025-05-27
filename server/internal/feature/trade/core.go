@@ -17,6 +17,10 @@ type Trade struct {
 	Time       time.Time       `json:"time" db:"time"`
 	Quantity   decimal.Decimal `json:"quantity" db:"quantity"`
 	Price      decimal.Decimal `json:"price" db:"price"`
+
+	// The ID of the trade in the broker's system, if applicable.
+	// This will help us to prevent duplicate trades.
+	BrokerTradeID *string `json:"broker_trade_id" db:"broker_trade_id"`
 }
 
 type CreatePayload struct {

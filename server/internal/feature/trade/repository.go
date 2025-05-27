@@ -13,6 +13,7 @@ import (
 
 type Reader interface {
 	FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error)
+	AllBrokerTradeIDs(ctx context.Context, brokerID uuid.UUID) ([]string, error)
 }
 
 type Writer interface {
@@ -66,13 +67,14 @@ func (r *tradeRepository) Create(ctx context.Context, trades []*Trade) ([]*Trade
 			t.Time,
 			t.Quantity,
 			t.Price,
+			t.BrokerTradeID,
 		}
 	}
 
 	_, err := r.db.CopyFrom(
 		ctx,
 		pgx.Identifier{"trade"},
-		[]string{"id", "position_id", "created_at", "updated_at", "kind", "time", "quantity", "price"},
+		[]string{"id", "position_id", "created_at", "updated_at", "kind", "time", "quantity", "price", "broker_trade_id"},
 		pgx.CopyFromRows(rows),
 	)
 
@@ -99,6 +101,40 @@ func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.
 	return trades, nil
 }
 
+func (r *tradeRepository) AllBrokerTradeIDs(ctx context.Context, brokerID uuid.UUID) ([]string, error) {
+	sql := `
+	SELECT trade.broker_trade_id
+	FROM trade
+	JOIN position ON position.id = trade.position_id
+	WHERE position.broker_id = $1`
+
+	rows, err := r.db.Query(ctx, sql, brokerID)
+	if err != nil {
+		return nil, fmt.Errorf("query: %w", err)
+	}
+
+	defer rows.Close()
+
+	var brokerTradeIDs []string
+	for rows.Next() {
+		var brokerTradeID *string
+		if err := rows.Scan(&brokerTradeID); err != nil {
+			return nil, fmt.Errorf("scan: %w", err)
+		}
+
+		// Only append non-nil BrokerTradeIDs
+		if brokerTradeID != nil {
+			brokerTradeIDs = append(brokerTradeIDs, *brokerTradeID)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows: %w", err)
+	}
+
+	return brokerTradeIDs, nil
+}
+
 func (r *tradeRepository) findTrades(ctx context.Context, tx pgx.Tx, f *filter) ([]*Trade, error) {
 	var where []string
 	args := make(pgx.NamedArgs)
@@ -109,7 +145,7 @@ func (r *tradeRepository) findTrades(ctx context.Context, tx pgx.Tx, f *filter) 
 	}
 
 	sql := `
-	SELECT id, position_id, created_at, updated_at, kind, time, quantity, price
+	SELECT id, position_id, created_at, updated_at, kind, time, quantity, price, broker_trade_id
 	FROM trade ` + repository.WhereSQL(where)
 
 	rows, err := tx.Query(ctx, sql, args)
@@ -132,6 +168,7 @@ func (r *tradeRepository) findTrades(ctx context.Context, tx pgx.Tx, f *filter) 
 			&trade.Time,
 			&trade.Quantity,
 			&trade.Price,
+			&trade.BrokerTradeID,
 		)
 
 		if err != nil {

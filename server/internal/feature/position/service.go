@@ -233,6 +233,13 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		// Slice to store trades with their Order IDs
 		tradesWithOrderIDs := []TradeWithOrderID{}
 
+		aggregatedTrades := make(map[string]struct {
+			Quantity   decimal.Decimal
+			TotalPrice decimal.Decimal
+			TradeKind  trade.Kind
+			Time       time.Time
+		})
+
 		// Replace the map with a slice and populate it
 		for rowIdx, row := range rows[headerRowIdx+1:] {
 			l.Debugf("Processing row %d: %v\n", rowIdx+headerRowIdx+1, row)
@@ -274,16 +281,25 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				return nil, service.ErrBadRequest, fmt.Errorf("Invalid time at row %d: %v", rowIdx+headerRowIdx+1, err)
 			}
 
-			// Add the trade to the slice
-			tradesWithOrderIDs = append(tradesWithOrderIDs, TradeWithOrderID{
-				OrderID: orderID,
-				Payload: trade.CreatePayload{
-					Kind:     tradeKind,
-					Quantity: decimal.NewFromFloat(quantity),
-					Price:    price,
-					Time:     tradeTime,
-				},
-			})
+			// Aggregate trades by orderID
+			if existing, found := aggregatedTrades[orderID]; found {
+				existing.Quantity = existing.Quantity.Add(decimal.NewFromFloat(quantity))
+				existing.TotalPrice = existing.TotalPrice.Add(price.Mul(decimal.NewFromFloat(quantity)))
+				existing.Time = tradeTime // Update time to the latest trade time
+				aggregatedTrades[orderID] = existing
+			} else {
+				aggregatedTrades[orderID] = struct {
+					Quantity   decimal.Decimal
+					TotalPrice decimal.Decimal
+					TradeKind  trade.Kind
+					Time       time.Time
+				}{
+					Quantity:   decimal.NewFromFloat(quantity),
+					TotalPrice: price.Mul(decimal.NewFromFloat(quantity)),
+					TradeKind:  tradeKind,
+					Time:       tradeTime,
+				}
+			}
 
 			orderIDToSymbolMap[orderID] = symbol
 
@@ -293,6 +309,20 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			}
 
 			orderIDToInstrumentMap[orderID] = instrument
+		}
+
+		// Convert aggregated trades to tradesWithOrderIDs
+		for orderID, aggregatedTrade := range aggregatedTrades {
+			averagePrice := aggregatedTrade.TotalPrice.Div(aggregatedTrade.Quantity) // Correct weighted average price calculation
+			tradesWithOrderIDs = append(tradesWithOrderIDs, TradeWithOrderID{
+				OrderID: orderID,
+				Payload: trade.CreatePayload{
+					Kind:     aggregatedTrade.TradeKind,
+					Quantity: aggregatedTrade.Quantity,
+					Price:    averagePrice,
+					Time:     aggregatedTrade.Time,
+				},
+			})
 		}
 
 		// Sort the trades by execution time
@@ -319,6 +349,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			// Check if there is an open position for the Symbol
 			if openPosition, exists := openPositions[symbol]; exists {
 				newTrade.PositionID = openPosition.ID
+				newTrade.BrokerTradeID = &orderID
 				// Append the trade to the open position
 				openPosition.Trades = append(openPosition.Trades, newTrade)
 
@@ -369,6 +400,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				}
 
 				newTrade.PositionID = positionID
+				newTrade.BrokerTradeID = &orderID
 
 				trades := []*trade.Trade{
 					newTrade,
