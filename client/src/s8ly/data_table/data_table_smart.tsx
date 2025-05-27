@@ -57,10 +57,6 @@ function DataTableSmart<TData, TValue>({
         );
     }
 
-    useEffect(() => {
-        console.log("Data is updated in DataTableSmart", data);
-    }, [data]);
-
     const table = useReactTable({
         data,
         columns,
@@ -100,13 +96,12 @@ function DataTableSmart<TData, TValue>({
             sorting: tableState.sorting,
             pagination: tableState.pagination,
         };
-        // Ensure onStateChange is called even if sorting toggles on the same column
         onStateChange?.(newState);
     }, [
-        tableState.sorting, // Trigger effect on sorting changes
+        tableState.sorting,
         tableState.columnVisibility,
         tableState.pagination,
-        onStateChange, // Include onStateChange in dependencies
+        onStateChange,
     ]);
 
     return (

@@ -136,7 +136,7 @@ func (b *SQLBuilder) AddSorting(field, order string) {
 	if field == "" {
 		return
 	}
-	if order != "ASC" && order != "DESC" {
+	if strings.ToUpper(order) != "ASC" && strings.ToUpper(order) != "DESC" {
 		order = "ASC"
 	}
 	b.order = fmt.Sprintf("ORDER BY %s %s", field, order)

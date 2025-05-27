@@ -15,7 +15,7 @@ interface DataTablePaginationProps<TData> {
     total?: number;
 }
 
-const pageSizeOptions = [2, 10, 25, 50, 100].map((pageSize) => ({
+const pageSizeOptions = [10, 25, 50, 100].map((pageSize) => ({
     value: String(pageSize),
     label: String(pageSize),
 }));
