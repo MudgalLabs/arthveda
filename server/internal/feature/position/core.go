@@ -42,6 +42,10 @@ type Position struct {
 	OpenQuantity                decimal.Decimal `json:"open_quantity" db:"open_quantity"`
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount" db:"open_average_price_amount"`
 
+	// If this Position is imported, then the following fields are used to track the source of the import.
+	IsImported bool       `json:"is_imported" db:"is_imported"` // Whether this Position is imported from a CSV file or not.
+	BrokerID   *uuid.UUID `json:"broker_id" db:"broker_id"`     // The ID of the Broker from which this Position is imported.
+
 	//
 	// Everything above is present in the DATABASE but everything below isn't.
 	//

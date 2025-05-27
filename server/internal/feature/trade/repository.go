@@ -135,7 +135,7 @@ func (r *tradeRepository) findTrades(ctx context.Context, tx pgx.Tx, f *filter) 
 		)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("scan: %w", err)
 		}
 
 		trades = append(trades, &trade)

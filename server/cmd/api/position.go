@@ -1,8 +1,13 @@
 package main
 
 import (
+	"arthveda/internal/apires"
 	"arthveda/internal/feature/position"
+	"arthveda/internal/service"
+	"errors"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 func computePositionHandler(s *position.Service) http.HandlerFunc {
@@ -76,25 +81,34 @@ func searchPositionsHandler(s *position.Service) http.HandlerFunc {
 func handleImportTrades(s *position.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+		userID := getUserIDFromContext(ctx)
 
-		// Get the file from the form
 		file, _, err := r.FormFile("file")
 		if err != nil {
-			http.Error(w, "Failed to read form file: "+err.Error(), http.StatusBadRequest)
+			badRequestResponse(w, r, errors.New("Unable to read file"))
+			invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(apires.NewApiError("Unable to read file", "", "file", nil)))
 			return
 		}
+
 		defer file.Close()
 
-		payload := position.ImportPayload{
-			File: file,
+		brokerID, err := uuid.Parse(r.FormValue("broker_id"))
+		if err != nil {
+			invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(apires.NewApiError("Broker is invalid or not supported", "", "broker_id", r.FormValue("broker_id"))))
+			return
 		}
 
-		result, errKind, err := s.Import(ctx, payload)
+		payload := position.ImportPayload{
+			File:     file,
+			BrokerID: brokerID,
+		}
+
+		result, errKind, err := s.Import(ctx, userID, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return
 		}
 
-		successResponse(w, r, http.StatusOK, "Trades imported successfully", result)
+		successResponse(w, r, http.StatusOK, "Positions imported successfully", result)
 	}
 }

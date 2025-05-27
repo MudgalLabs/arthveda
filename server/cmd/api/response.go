@@ -25,6 +25,12 @@ func internalServerErrorResponse(w http.ResponseWriter, r *http.Request, err err
 	writeJSONResponse(w, http.StatusInternalServerError, apires.InternalError(err))
 }
 
+func badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	l := logger.FromCtx(r.Context())
+	l.Infow("bad request response", "error", err)
+	writeJSONResponse(w, http.StatusBadRequest, apires.Error(http.StatusBadRequest, err.Error(), nil))
+}
+
 func malformedJSONResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
 	l.Infow("malformed json response", "error", err.Error())
@@ -73,7 +79,7 @@ func serviceErrResponse(w http.ResponseWriter, r *http.Request, errKind service.
 
 	switch {
 	case errKind == service.ErrBadRequest:
-		errorResponse(w, r, http.StatusBadRequest, err.Error(), nil)
+		badRequestResponse(w, r, err)
 		return
 
 	case errKind == service.ErrUnauthorized:

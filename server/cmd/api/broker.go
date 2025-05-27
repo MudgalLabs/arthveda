@@ -9,7 +9,11 @@ func getBrokersHandler(s *broker.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		result := s.List(ctx)
+		result, errKind, err := s.List(ctx)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
 
 		successResponse(w, r, http.StatusOK, "", result)
 	}

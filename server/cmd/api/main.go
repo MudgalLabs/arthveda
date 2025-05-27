@@ -40,6 +40,7 @@ type services struct {
 // Access to all repositories for reading.
 // Write access only available to services.
 type repositories struct {
+	Broker       broker.Reader
 	Dashboard    dashboard.Reader
 	Position     position.Reader
 	UserIdentity user_identity.Reader
@@ -60,19 +61,20 @@ func main() {
 
 	defer db.Close()
 
+	brokerRepository := broker.NewRepository(db)
 	dashboardRepository := dashboard.NewRepository(db)
 	userProfileRepository := user_profile.NewRepository(db)
 	userIdentityRepository := user_identity.NewRepository(db)
 	tradeRepository := trade.NewRepository(db)
 	positionRepository := position.NewRepository(db)
 
-	brokerService := broker.NewService()
+	brokerService := broker.NewService(brokerRepository)
 	currencyService := currency.NewService()
 	dashboardService := dashboard.NewService(dashboardRepository, positionRepository)
 	userProfileService := user_profile.NewService(userProfileRepository)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
 	// tradeService := trade.NewService(tradeRepository)
-	positionService := position.NewService(positionRepository, tradeRepository)
+	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository)
 
 	services := services{
 		BrokerService:       brokerService,
@@ -84,6 +86,7 @@ func main() {
 	}
 
 	repositories := repositories{
+		Broker:       brokerRepository,
 		Dashboard:    dashboardRepository,
 		Position:     positionRepository,
 		UserIdentity: userIdentityRepository,

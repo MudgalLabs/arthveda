@@ -99,9 +99,7 @@ export const ImportPositions = () => {
                                         <Button
                                             type="button"
                                             variant="destructive"
-                                            onClick={() =>
-                                                setShowConfirm(false)
-                                            }
+                                            onClick={handleCancel}
                                         >
                                             Discard
                                         </Button>

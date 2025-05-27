@@ -22,6 +22,13 @@ CREATE TABLE IF NOT EXISTS user_profile (
         -- FOREIGN KEY (user_id) REFERENCES user_identity(id)
 );
 
+CREATE TABLE IF NOT EXISTS broker (
+        id UUID PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE
+);
+
+INSERT INTO broker (id, name) VALUES (gen_random_uuid(), 'Zerodha');
+
 CREATE TYPE POSITION_INSTRUMENT AS ENUM('equity','future','option');
 
 CREATE TYPE POSITION_DIRECTION AS ENUM('long','short');
@@ -48,7 +55,9 @@ CREATE TABLE IF NOT EXISTS position (
         net_return_percentage REAL NOT NULL,
         charges_as_percentage_of_net_pnl REAL NOT NULL,
         open_quantity NUMERIC(20, 8) NOT NULL,
-        open_average_price_amount NUMERIC(14, 2) NOT NULL
+        open_average_price_amount NUMERIC(14, 2) NOT NULL,
+        is_imported BOOLEAN NOT NULL DEFAULT FALSE,
+        broker_id UUID REFERENCES broker(id)
 
         -- FOREIGN KEY (user_id) REFERENCES user_profile(user_id)
 );
@@ -67,7 +76,6 @@ CREATE TABLE IF NOT EXISTS trade (
 
         -- FOREIGN KEY (position_id) REFERENCES position(id)
 );
-
 -- +goose StatementEnd
 
 -- +goose Down
