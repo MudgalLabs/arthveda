@@ -340,17 +340,9 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			// Not returning an error here, as we can still process trades without existing broker trade IDs.
 		}
 
-		duplicateTradesCount := 0
-
 		// Process the sorted trades
 		for _, tradeWithOrderID := range tradesWithOrderIDs {
 			orderID := tradeWithOrderID.OrderID
-
-			if common.ExistsInSet(brokerTradeIDs, orderID) {
-				l.Infow("Skipping trade with existing broker trade ID", "orderID", orderID)
-				duplicateTradesCount += 1
-				continue // Skip trades that already exist in the broker's trade IDs
-			}
 
 			tradePayload := tradeWithOrderID.Payload
 
@@ -442,14 +434,10 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 					RFactor:                     computeResult.RFactor,
 					NetReturnPercentage:         computeResult.NetReturnPercentage,
 					ChargesAsPercentageOfNetPnL: computeResult.ChargesAsPercentageOfNetPnL,
-					IsImported:                  true,
 					BrokerID:                    &broker.ID,
 				}
 			}
 		}
-
-		fmt.Println("BrokerOrderIDs count:", len(brokerTradeIDs))
-		fmt.Println("Duplicate trades skipped:", duplicateTradesCount)
 
 		// Add any remaining open positions to the finalized positions
 		for _, openPosition := range openPositions {
@@ -495,16 +483,34 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			return nil, service.ErrBadRequest, fmt.Errorf("Invalid to date format")
 		}
 
-		result := map[string]any{
-			"from_date":               fromDate,
-			"to_date":                 toDate,
-			"trades_already_imported": duplicateTradesCount,
-			"positions":               finalizedPositions,
-		}
+		duplicatePositionsCount := 0
 
-		// If confirm is true, we will create the positions in the database.
-		if payload.Confirm {
-			for _, position := range finalizedPositions {
+		for positionIdx, position := range finalizedPositions {
+			var isDuplicate bool
+
+			for _, trade := range position.Trades {
+				orderID := trade.BrokerTradeID
+
+				if common.ExistsInSet(brokerTradeIDs, *orderID) {
+					isDuplicate = true
+
+					// If we find a duplicate, we can break out of the loop early.
+					// Because if one trade in the position is a duplicate,
+					// the whole position is considered a duplicate.
+					break
+				}
+			}
+
+			if isDuplicate {
+				l.Infow("skipping position because it is a duplicate", "symbol", position.Symbol, "opened_at", position.OpenedAt)
+				duplicatePositionsCount += 1
+				finalizedPositions[positionIdx].IsDuplicate = true
+				// We skip the position if it has any duplicate trades.
+				continue
+			}
+
+			// If confirm is true, we will create the positions in the database.
+			if payload.Confirm {
 				// Create the position in the database
 				err := s.positionRepository.Create(ctx, position)
 				if err != nil {
@@ -518,6 +524,15 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 					return nil, service.ErrInternalServerError, err
 				}
 			}
+		}
+
+		l.Infof("Duplicate positions skipped: %d", duplicatePositionsCount)
+
+		result := map[string]any{
+			"from_date":                 fromDate,
+			"to_date":                   toDate,
+			"duplicate_positions_count": duplicatePositionsCount,
+			"positions":                 finalizedPositions,
 		}
 
 		return result, service.ErrNone, nil

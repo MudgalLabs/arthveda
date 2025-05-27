@@ -42,7 +42,6 @@ const (
 	searchFieldNetPnL              common.SearchField = "net_pnl"
 	searchFieldNetReturnPercentage common.SearchField = "net_return_percentage"
 	searchFieldChargesPercentage   common.SearchField = "charges_percentage"
-	searchFieldIsImported          common.SearchField = "is_imported"
 	searchFieldBrokerID            common.SearchField = "broker_id"
 )
 
@@ -93,7 +92,6 @@ var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldNetPnL:              "p.net_pnl_amount",
 	searchFieldNetReturnPercentage: "p.net_return_percentage",
 	searchFieldChargesPercentage:   "p.charges_as_percentage_of_net_pnl",
-	searchFieldIsImported:          "p.is_imported",
 	searchFieldBrokerID:            "p.broker_id",
 }
 
@@ -112,14 +110,14 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
             risk_amount, charges_amount, direction, status, opened_at, closed_at,
             gross_pnl_amount, net_pnl_amount, r_factor, net_return_percentage,
             charges_as_percentage_of_net_pnl, open_quantity, open_average_price_amount,
-            is_imported, broker_id
+            broker_id
         )
         VALUES (
             @id, @created_by, @created_at, @updated_at, @symbol, @instrument, @currency,
             @risk_amount, @charges_amount, @direction, @status, @opened_at, @closed_at,
             @gross_pnl_amount, @net_pnl_amount, @r_factor, @net_return_percentage,
             @charges_as_percentage_of_net_pnl, @open_quantity, @open_average_price_amount,
-            @is_imported, @broker_id
+            @broker_id
         )
     `
 
@@ -144,7 +142,6 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"charges_as_percentage_of_net_pnl": position.ChargesAsPercentageOfNetPnL,
 		"open_quantity":                    position.OpenQuantity,
 		"open_average_price_amount":        position.OpenAveragePriceAmount,
-		"is_imported":                      position.IsImported,
 		"broker_id":                        position.BrokerID,
 	})
 
@@ -179,7 +176,7 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
             p.direction, p.status, p.opened_at, p.closed_at,
             p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
             p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
-            p.is_imported, p.broker_id
+            p.broker_id
         FROM
 			position p`
 
@@ -257,7 +254,7 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 			&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
 			&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
 			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
-			&pos.IsImported, &pos.BrokerID,
+			&pos.BrokerID,
 		)
 
 		if err != nil {

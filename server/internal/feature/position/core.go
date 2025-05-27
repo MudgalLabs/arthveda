@@ -43,13 +43,16 @@ type Position struct {
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount" db:"open_average_price_amount"`
 
 	// If this Position is imported, then the following fields are used to track the source of the import.
-	IsImported bool       `json:"is_imported" db:"is_imported"` // Whether this Position is imported from a CSV file or not.
-	BrokerID   *uuid.UUID `json:"broker_id" db:"broker_id"`     // The ID of the Broker from which this Position is imported.
+	BrokerID *uuid.UUID `json:"broker_id" db:"broker_id"` // The ID of the Broker from which this Position is imported.
 
 	//
 	// Everything above is present in the DATABASE but everything below isn't.
 	//
 	Trades []*trade.Trade `json:"trades"` // All the trade(s) that are RELATED to this Position.
+
+	// Whether this Position is a duplicate of another Position or not.
+	// This flag is used when we are importing positions from Brokers.
+	IsDuplicate bool `json:"is_duplicate"`
 }
 
 func new(payload CreatePayload) (*Position, error) {
