@@ -20,6 +20,9 @@ import {
 import { useMemo, useState } from "react";
 import { Position } from "@/features/position/position";
 import { PositionsTable } from "@/features/position/components/list_table";
+import { ImportPositionsResponse } from "@/lib/api/position";
+import { Link } from "@/components/link";
+import { ROUTES } from "@/routes";
 
 export const ImportPositions = () => {
     const [file, setFile] = useState<File>();
@@ -29,18 +32,50 @@ export const ImportPositions = () => {
     const [showConfirm, setShowConfirm] = useState(false);
 
     const { mutateAsync, isPending } = apiHooks.position.useImport({
-        onSuccess: (data) => {
-            const importedPositions = data?.data?.data?.positions || [];
+        onSuccess: (res) => {
+            const data = res?.data?.data as ImportPositionsResponse;
+            const positions = data.positions || [];
 
-            if (importedPositions.length > 0) {
-                toast.success("Positions Imported", {
-                    description:
-                        "Verify the positions and click confirm to finish",
-                });
-                setPositions(importedPositions);
-                setShowConfirm(true);
+            // If `showConfirm` was already true, that means we called
+            // mutateAsync to confirm the import. Meaning, the API
+            // tried to store the parsed positions into the database.
+            if (showConfirm) {
+                if (data.positions_imported_count > 0) {
+                    toast.success("Positions Imported", {
+                        description: (
+                            <>
+                                <p>Imported {data.positions_count} positions</p>
+                                <p>
+                                    Go to{" "}
+                                    <Link
+                                        to={ROUTES.positionList}
+                                        className="text-inherit!"
+                                    >
+                                        Positions Tab
+                                    </Link>{" "}
+                                    to view them
+                                </p>
+                            </>
+                        ),
+                    });
+
+                    // We can reset the state after a successful import.
+                    handleCancel();
+                } else {
+                    toast.warning("No positions were imported");
+                }
             } else {
-                toast.warning("No positions found in the file");
+                // If `showConfirm` is false, that means we are just
+                // parsing the file and showing the positions to the user.
+                if (positions.length > 0) {
+                    toast.success("Positions Parsed", {
+                        description: `Found ${data.positions_count} positions and ${data.duplicate_positions_count} were duplicates`,
+                    });
+                    setPositions(positions);
+                    setShowConfirm(true);
+                } else {
+                    toast.warning("Found no positions in the file");
+                }
             }
         },
         onError: (error) => {
@@ -64,6 +99,16 @@ export const ImportPositions = () => {
         setBrokerID("");
         setPositions([]);
         setShowConfirm(false);
+    };
+
+    const handleConfirm = () => {
+        if (!file || !brokerID || positions.length === 0) return;
+
+        mutateAsync({
+            file,
+            broker_id: brokerID,
+            confirm: true,
+        });
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,7 +153,9 @@ export const ImportPositions = () => {
                             </DialogContent>
                         </Dialog>
 
-                        <Button variant="primary">Confirm</Button>
+                        <Button variant="primary" onClick={handleConfirm}>
+                            Confirm
+                        </Button>
                     </div>
                 </>
             );
@@ -144,6 +191,7 @@ export const ImportPositions = () => {
         isPending,
         handleCancel,
         handleSubmit,
+        handleConfirm,
     ]);
 
     return (

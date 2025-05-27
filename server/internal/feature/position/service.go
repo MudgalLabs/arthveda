@@ -484,6 +484,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		}
 
 		duplicatePositionsCount := 0
+		positionsImported := 0
 
 		for positionIdx, position := range finalizedPositions {
 			var isDuplicate bool
@@ -523,16 +524,20 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 					s.positionRepository.Delete(ctx, position.ID)
 					return nil, service.ErrInternalServerError, err
 				}
+
+				positionsImported += 1
 			}
 		}
 
 		l.Infof("Duplicate positions skipped: %d", duplicatePositionsCount)
 
 		result := map[string]any{
+			"positions":                 finalizedPositions,
+			"positions_count":           len(finalizedPositions), // Client can check length of positions?
+			"duplicate_positions_count": duplicatePositionsCount,
+			"positions_imported_count":  positionsImported,
 			"from_date":                 fromDate,
 			"to_date":                   toDate,
-			"duplicate_positions_count": duplicatePositionsCount,
-			"positions":                 finalizedPositions,
 		}
 
 		return result, service.ErrNone, nil
