@@ -4,8 +4,20 @@ import { toast } from "@/components/toast";
 import { WithLabel } from "@/components/with_label";
 import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
-import { Button, Input, Label } from "@/s8ly";
-import { useState } from "react";
+import {
+    Button,
+    Input,
+    Label,
+    Dialog,
+    DialogFooter,
+    DialogHeader,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+    DialogTrigger,
+    DialogClose,
+} from "@/s8ly";
+import { useMemo, useState } from "react";
 import { Position } from "@/features/position/position";
 import { PositionsTable } from "@/features/position/components/list_table";
 
@@ -59,47 +71,88 @@ export const ImportPositions = () => {
         setFile(selectedFile);
     };
 
-    if (showConfirm) {
-        return (
-            <>
-                <PositionsTable positions={positions} />
+    const content = useMemo(() => {
+        if (showConfirm) {
+            return (
+                <>
+                    <PositionsTable positions={positions} />
 
-                <div className="h-8" />
+                    <div className="h-8" />
 
-                <div className="space-x-2">
-                    <Button variant="secondary" onClick={handleCancel}>
-                        Cancel
+                    <div className="space-x-2">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="secondary">Discard</Button>
+                            </DialogTrigger>
+
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Discard</DialogTitle>
+                                    <DialogDescription>
+                                        Are you sure you want to discard
+                                        importing these positions?
+                                    </DialogDescription>
+                                </DialogHeader>
+
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            onClick={() =>
+                                                setShowConfirm(false)
+                                            }
+                                        >
+                                            Discard
+                                        </Button>
+                                    </DialogClose>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+
+                        <Button variant="primary">Confirm</Button>
+                    </div>
+                </>
+            );
+        } else {
+            return (
+                <form onSubmit={handleSubmit}>
+                    <div className="flex flex-wrap gap-x-16 gap-y-8">
+                        <WithLabel Label={<Label>Broker</Label>}>
+                            <BrokerSelect
+                                value={brokerID}
+                                onValueChange={(v) => setBrokerID(v)}
+                            />
+                        </WithLabel>
+
+                        <WithLabel Label={<Label>File</Label>}>
+                            <Input type="file" onChange={handleFileChange} />
+                        </WithLabel>
+                    </div>
+
+                    <div className="h-8" />
+
+                    <Button disabled={!file || !brokerID} loading={isPending}>
+                        Import
                     </Button>
-                    <Button variant="primary">Confirm</Button>
-                </div>
-            </>
-        );
-    }
+                </form>
+            );
+        }
+    }, [
+        showConfirm,
+        positions,
+        file,
+        brokerID,
+        isPending,
+        handleCancel,
+        handleSubmit,
+    ]);
 
     return (
         <>
             <PageHeading heading="Import Positions" />
 
-            <form onSubmit={handleSubmit}>
-                <div className="flex flex-wrap gap-x-16 gap-y-8">
-                    <WithLabel Label={<Label>Broker</Label>}>
-                        <BrokerSelect
-                            value={brokerID}
-                            onValueChange={(v) => setBrokerID(v)}
-                        />
-                    </WithLabel>
-
-                    <WithLabel Label={<Label>File</Label>}>
-                        <Input type="file" onChange={handleFileChange} />
-                    </WithLabel>
-                </div>
-
-                <div className="h-8" />
-
-                <Button disabled={!file || !brokerID} loading={isPending}>
-                    Import
-                </Button>
-            </form>
+            {content}
         </>
     );
 };

@@ -68,7 +68,7 @@ function AddPosition() {
         state,
         setState,
         isComputing,
-        showDiscardWarning,
+        canDiscard,
         discard,
         trades,
         setTrades,
@@ -273,10 +273,7 @@ function AddPosition() {
             <div className="h-10" />
 
             <div className="flex justify-start space-x-4">
-                <DiscardButton
-                    showDiscardWarning={showDiscardWarning}
-                    discard={discard}
-                />
+                <DiscardButton canDiscard={canDiscard} discard={discard} />
 
                 <Button
                     onClick={handleClickSave}
@@ -713,17 +710,11 @@ const DurationCard = memo(
 );
 
 const DiscardButton = memo(
-    ({
-        showDiscardWarning,
-        discard,
-    }: {
-        showDiscardWarning: boolean;
-        discard: () => void;
-    }) => {
+    ({ canDiscard, discard }: { canDiscard: boolean; discard: () => void }) => {
         return (
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button variant="secondary" disabled={!showDiscardWarning}>
+                    <Button variant="secondary" disabled={!canDiscard}>
                         Discard
                     </Button>
                 </DialogTrigger>

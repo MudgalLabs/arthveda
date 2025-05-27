@@ -42,7 +42,7 @@ interface AddPositionContextType {
     removeTrade: (tradeID: number) => void;
     computeResult: ComputePositionResponse;
     isComputing: boolean;
-    showDiscardWarning: boolean;
+    canDiscard: boolean;
     discard: () => void;
 }
 
@@ -141,7 +141,7 @@ function AddPositionContextProvider({ children }: { children: ReactNode }) {
         return true;
     }, [tradesAreValid, state]);
 
-    const showDiscardWarning = useMemo(() => {
+    const canDiscard = useMemo(() => {
         let flag = false;
 
         if (state.symbol) flag = true;
@@ -222,7 +222,7 @@ function AddPositionContextProvider({ children }: { children: ReactNode }) {
             removeTrade,
             computeResult,
             isComputing,
-            showDiscardWarning,
+            canDiscard,
             discard,
             canSave,
         }),
@@ -236,7 +236,7 @@ function AddPositionContextProvider({ children }: { children: ReactNode }) {
             removeTrade,
             computeResult,
             isComputing,
-            showDiscardWarning,
+            canDiscard,
             discard,
             canSave,
         ]
