@@ -79,10 +79,34 @@ export interface PositionSearchFilters {
     charges_percentage_operator?: CompareOperator;
 }
 
-export interface PositionSearchResponse extends SearchResponse<Position[]> {}
 export interface PositionSearchRequest
     extends SearchRequest<PositionSearchFilters> {}
+export interface PositionSearchResponse extends SearchResponse<Position[]> {}
 
 export function search(body: PositionSearchRequest) {
     return client.post(API_ROUTES.position.search, body);
+}
+
+export interface ImportPositionsRequest {
+    file: File;
+    broker_id: string;
+}
+export interface ImportPositionsResponse {
+    positions: Position[];
+}
+
+export function importPositions(body: ImportPositionsRequest) {
+    const formData = new FormData();
+    formData.append("file", body.file);
+    formData.append("broker_id", body.broker_id);
+
+    return client.post<ImportPositionsRequest, ApiRes<ImportPositionsResponse>>(
+        API_ROUTES.position.import,
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+    );
 }

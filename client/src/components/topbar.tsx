@@ -35,18 +35,18 @@ export const Topbar = () => {
                 </Link>
             </div>
 
-            <div className="mr-2 inline-flex gap-x-2">
-                <Link to={ROUTES.addPosition} variant="unstyled">
-                    <Button variant="outline" size="small">
+            <div className="mr-2 inline-flex gap-x-6">
+                <Link to={ROUTES.addPosition}>
+                    <span className="flex-center gap-x-2">
                         <IconPlus size={18} /> Add Position
-                    </Button>
+                    </span>
                 </Link>
 
-                <Link to={ROUTES.importPositions} variant="unstyled">
-                    <Button variant="outline" size="small">
+                <Link to={ROUTES.importPositions}>
+                    <span className="flex-center gap-x-2">
                         <IconImport size={18} />
                         Import Positions
-                    </Button>
+                    </span>
                 </Link>
             </div>
         </div>

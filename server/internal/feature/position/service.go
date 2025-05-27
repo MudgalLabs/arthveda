@@ -350,7 +350,13 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 				newTrade,
 			}
 
+			positionID, err := uuid.NewV7()
+			if err != nil {
+				return nil, service.ErrInternalServerError, fmt.Errorf("failed to generate UUID for position: %w", err)
+			}
+
 			openPositions[symbol] = &Position{
+				ID:                          positionID,
 				Symbol:                      symbol,
 				Instrument:                  instrument,
 				Currency:                    currency.CurrencyINR,
@@ -413,9 +419,9 @@ func (s *Service) Import(ctx context.Context, payload ImportPayload) (map[string
 	}
 
 	result := map[string]any{
-		"fromDate":           fromDate,
-		"toDate":             toDate,
-		"finalizedPositions": finalizedPositions,
+		"from_date": fromDate,
+		"to_date":   toDate,
+		"positions": finalizedPositions,
 	}
 
 	return result, service.ErrNone, nil

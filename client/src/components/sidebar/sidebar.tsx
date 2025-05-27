@@ -9,7 +9,7 @@ import {
     IconDashboard,
     IconExpandUpDown,
     IconLogout,
-    IconSettings,
+    // IconSettings,
     IconTrades,
     IconType,
 } from "@/components/icons";
@@ -195,8 +195,8 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
             {expanded && (
                 <div className="flex w-full items-center justify-between">
                     <div>
-                        <p className="text-sm">{displayName}</p>
-                        <p className="text-[12px]">{email}</p>
+                        <p>{displayName}</p>
+                        <p className="text-sm font-normal">{email}</p>
                     </div>
 
                     {clickable && <IconExpandUpDown size={18} className="" />}
@@ -217,7 +217,7 @@ interface SidebarProfileMenuProps {
 const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
     const {
         sidebarOpen,
-        setActiveRoute,
+        // setActiveRoute,
         email,
         displayName = "Set Your Name",
         profileImageURL = "",
@@ -275,14 +275,14 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
 
                 <DropdownMenuSeparator />
 
-                <Link to={ROUTES.settings} variant="unstyled">
+                {/* <Link to={ROUTES.settings} variant="unstyled">
                     <DropdownMenuItem
                         onClick={() => setActiveRoute(ROUTES.settings)}
                     >
                         <IconSettings size={18} />
                         Settings
                     </DropdownMenuItem>
-                </Link>
+                </Link> */}
 
                 <DropdownMenuSeparator />
 

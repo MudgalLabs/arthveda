@@ -272,7 +272,7 @@ function AddPosition() {
 
             <div className="h-10" />
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-start space-x-4">
                 <DiscardButton
                     showDiscardWarning={showDiscardWarning}
                     discard={discard}

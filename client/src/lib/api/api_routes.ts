@@ -4,6 +4,9 @@ export const API_ROUTES = {
         signup: "/v1/auth/sign-up",
         signout: "/v1/auth/sign-out",
     },
+    broker: {
+        list: "/v1/brokers",
+    },
     currency: {
         list: "/v1/currencies",
     },
@@ -13,6 +16,7 @@ export const API_ROUTES = {
     position: {
         create: "/v1/positions",
         compute: "/v1/positions/compute",
+        import: "/v1/positions/import",
         search: "/v1/positions/search",
     },
     user: {

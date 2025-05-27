@@ -4,8 +4,8 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 
-function CurrencySelect(props: Omit<SelectProps, "options">) {
-    const { data, isLoading, error, isError } = apiHooks.currency.useList();
+function BrokerSelect(props: Omit<SelectProps, "options">) {
+    const { data, isLoading, error, isError } = apiHooks.broker.useList();
 
     useEffectOnce(
         (deps) => {
@@ -21,8 +21,8 @@ function CurrencySelect(props: Omit<SelectProps, "options">) {
 
     const items = data?.data || [];
     const options: SelectOptionItem[] = items.map((i) => ({
-        label: `${i.name} (${i.code.toUpperCase()}) ${i.symbol}`,
-        value: i.code,
+        label: i.name,
+        value: i.id,
     }));
 
     options.push({
@@ -30,8 +30,8 @@ function CurrencySelect(props: Omit<SelectProps, "options">) {
         label: (
             <>
                 <p>
-                    Don't see your currency here? We are working on supporting
-                    more currencies!
+                    Don't see your broker here? We are working on supporting
+                    more brokers!
                 </p>
             </>
         ),
@@ -41,4 +41,4 @@ function CurrencySelect(props: Omit<SelectProps, "options">) {
     return <Select loading={isLoading} options={options} {...props} />;
 }
 
-export { CurrencySelect };
+export { BrokerSelect };

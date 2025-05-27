@@ -13,6 +13,8 @@ import {
     ComputePositionResponse,
     PositionSearchResponse,
     PositionSearchRequest,
+    ImportPositionsRequest,
+    ImportPositionsResponse,
 } from "@/lib/api/position";
 
 export function useCompute(options: AnyUseMutationOptions = {}) {
@@ -50,5 +52,19 @@ export function useSearch(body: PositionSearchRequest) {
         select: (res) => res.data as ApiRes<PositionSearchResponse>,
         placeholderData: keepPreviousData,
         refetchOnMount: true,
+    });
+}
+
+export function useImport(options: AnyUseMutationOptions = {}) {
+    return useMutation<
+        ApiRes<ImportPositionsResponse>,
+        unknown,
+        ImportPositionsRequest,
+        unknown
+    >({
+        mutationFn: (body: ImportPositionsRequest) => {
+            return api.position.importPositions(body);
+        },
+        ...options,
     });
 }

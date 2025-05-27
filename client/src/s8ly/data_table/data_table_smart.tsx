@@ -57,6 +57,10 @@ function DataTableSmart<TData, TValue>({
         );
     }
 
+    useEffect(() => {
+        console.log("Data is updated in DataTableSmart", data);
+    }, [data]);
+
     const table = useReactTable({
         data,
         columns,
@@ -67,9 +71,8 @@ function DataTableSmart<TData, TValue>({
             pagination,
         },
         rowCount: total,
-        manualPagination:
-            stateProp?.pagination === undefined && total ? true : false,
-        manualSorting: stateProp?.sorting === undefined,
+        manualPagination: !!stateProp?.pagination, // Controlled if pagination state is provided
+        manualSorting: !!stateProp?.sorting, // Controlled if sorting state is provided
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
@@ -77,8 +80,12 @@ function DataTableSmart<TData, TValue>({
         onColumnVisibilityChange: setColumnVisibility,
         onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: !stateProp?.pagination
+            ? getPaginationRowModel()
+            : undefined, // Use client-side pagination if uncontrolled
+        getSortedRowModel: !stateProp?.sorting
+            ? getSortedRowModel()
+            : undefined, // Use client-side sorting if uncontrolled
         getFacetedRowModel: getFacetedRowModel(),
         getFacetedUniqueValues: getFacetedUniqueValues(),
         meta: {
@@ -93,11 +100,13 @@ function DataTableSmart<TData, TValue>({
             sorting: tableState.sorting,
             pagination: tableState.pagination,
         };
+        // Ensure onStateChange is called even if sorting toggles on the same column
         onStateChange?.(newState);
     }, [
-        tableState.sorting,
+        tableState.sorting, // Trigger effect on sorting changes
         tableState.columnVisibility,
         tableState.pagination,
+        onStateChange, // Include onStateChange in dependencies
     ]);
 
     return (

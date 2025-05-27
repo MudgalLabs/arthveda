@@ -46,6 +46,12 @@ func initRouter(a *app) http.Handler {
 			r.Post("/sign-out", signOutHandler(a.service.UserIdentityService))
 		})
 
+		r.Route("/brokers", func(r chi.Router) {
+			r.Use(authMiddleware)
+
+			r.Get("/", getBrokersHandler(a.service.BrokerService))
+		})
+
 		r.Route("/currencies", func(r chi.Router) {
 			r.Use(authMiddleware)
 

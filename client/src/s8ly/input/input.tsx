@@ -13,7 +13,7 @@ interface InputProps extends ComponentProps<"input"> {
         | "text"
         | "url"
         | "file";
-    value?: string | number;
+    value?: string | number | readonly string[] | undefined;
     variant?: "default" | "error" | undefined;
 }
 
@@ -49,10 +49,9 @@ const Input: FC<InputProps> = (props) => {
                 "disabled:opacity-69",
                 "transition-all outline-none disabled:cursor-not-allowed",
                 {
-                    "border-border-red! focus-visible:ring-border-red! border-1 focus:border-none":
-                        variant === "error",
                     "file:bg-accent-muted file:text-foreground hover:file:bg-accent min-w-[480px] p-0 file:mr-4 file:h-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold hover:cursor-pointer hover:file:cursor-pointer":
                         props.type === "file",
+                    "border-border-red!": variant === "error",
                 },
                 className
             )}

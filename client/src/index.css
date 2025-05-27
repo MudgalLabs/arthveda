@@ -66,7 +66,8 @@
 
 * {
     box-sizing: border-box;
-    @apply focus-visible:ring-primary outline-none focus-visible:ring-[2px];
+
+    /* @apply focus-visible:ring-primary outline-none focus-visible:ring-[2px]; */
 }
 
 body {

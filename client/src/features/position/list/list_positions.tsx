@@ -1,27 +1,13 @@
-import { memo, useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
+import { memo, useState, useMemo } from "react";
 
 import { Button, DatePicker, Input, Label } from "@/s8ly";
-import {
-    Position,
-    positionInstrumentToString,
-} from "@/features/position/position";
-import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
-import {
-    dateRangeFilterToDatesArray,
-    formatCurrency,
-    formatDate,
-} from "@/lib/utils";
-import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
-import { DirectionTag } from "@/features/position/components/direction_tag";
-import { StatusTag } from "@/features/position/components/status_tag";
+import { dateRangeFilterToDatesArray } from "@/lib/utils";
 import { PageHeading } from "@/components/page_heading";
 import {
     ListPositionContextProvider,
     useListPositions,
 } from "@/features/position/list/list_positions_context";
 import { WithLabel } from "@/components/with_label";
-import { Loading } from "@/components/loading";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { DirectionToggle } from "@/components/toggle/direction_toggle";
 import { PositionStatusSelect } from "@/components/select/position_status_select";
@@ -29,9 +15,17 @@ import { WithCompare } from "@/components/with_compare";
 import { CompareSelect } from "@/components/select/compare_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { WithDebounce } from "@/components/with_debounce";
+import { PositionsTable } from "@/features/position/components/list_table";
 
 export const ListPositions = () => {
-    const { queryResult } = useListPositions();
+    const { queryResult, tableState, setTableState } = useListPositions();
+
+    const positions = useMemo(() => {
+        if (queryResult.data?.data.items) {
+            return Array.from(queryResult.data?.data.items);
+        }
+        return [];
+    }, [queryResult]);
 
     return (
         <>
@@ -40,7 +34,24 @@ export const ListPositions = () => {
                 loading={queryResult?.isFetching}
             />
             <PositionsFilters />
-            <PositionsTable />
+
+            {queryResult.data && (
+                <>
+                    <PositionsTable
+                        positions={positions}
+                        totalItems={
+                            queryResult.data.data.pagination.total_items
+                        }
+                        state={tableState}
+                        onStateChange={setTableState}
+                        isLoading={queryResult.isLoading}
+                        isError={queryResult.isError}
+                        isFetching={queryResult.isFetching}
+                    />
+
+                    <div className="h-10" />
+                </>
+            )}
         </>
     );
 };
@@ -369,199 +380,4 @@ const PositionsFilters = memo(({}: {}) => {
             <div className="h-15" />
         </>
     );
-});
-
-const columns: ColumnDef<Position>[] = [
-    {
-        id: "opened",
-        meta: {
-            columnVisibilityHeader: "Opened At",
-        },
-        accessorKey: "opened_at",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Opened At"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
-        ),
-        cell: ({ row }) =>
-            formatDate(new Date(row.original.opened_at), { time: true }),
-    },
-    {
-        id: "symbol",
-        meta: {
-            columnVisibilityHeader: "Symbol",
-        },
-        accessorKey: "symbol",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Symbol"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
-        ),
-    },
-    {
-        id: "direction",
-        meta: {
-            columnVisibilityHeader: "Direction",
-        },
-        accessorKey: "direction",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Direction"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
-        ),
-        cell: ({ row }) => (
-            <DirectionTag className="w-16" direction={row.original.direction} />
-        ),
-    },
-    {
-        id: "status",
-        meta: {
-            columnVisibilityHeader: "Status",
-        },
-        accessorKey: "status",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Status"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
-        ),
-        cell: ({ row }) => (
-            <StatusTag
-                status={row.original.status}
-                currency={row.original.currency}
-            />
-        ),
-    },
-    {
-        id: "instrument",
-        meta: {
-            columnVisibilityHeader: "Instrument",
-        },
-        accessorKey: "instrument",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Instrument"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
-        ),
-        cell: ({ row }) => positionInstrumentToString(row.original.instrument),
-    },
-    {
-        id: "r_factor",
-        meta: {
-            columnVisibilityHeader: "R Factor",
-        },
-        accessorKey: "r_factor",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="R Factor"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
-        ),
-    },
-    {
-        id: "gross_pnl",
-        meta: {
-            columnVisibilityHeader: "Gross PnL",
-        },
-        accessorKey: "gross_pnl_amount",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Gross PnL"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
-        ),
-        cell: ({ row }) =>
-            formatCurrency(
-                row.original.gross_pnl_amount,
-                row.original.currency
-            ),
-    },
-    {
-        id: "net_pnl",
-        meta: {
-            columnVisibilityHeader: "Net PnL",
-        },
-        accessorKey: "net_pnl_amount",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Net PnL"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
-        ),
-        cell: ({ row }) =>
-            formatCurrency(row.original.net_pnl_amount, row.original.currency),
-    },
-    {
-        id: "charges_percentage",
-        meta: {
-            columnVisibilityHeader: "Charges %",
-        },
-        accessorKey: "charges_as_percentage_of_net_pnl",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Charges %"
-                disabled={table.options.meta?.isFetching}
-                column={column}
-            />
-        ),
-        cell: ({ row }) =>
-            `${Number(row.original.charges_as_percentage_of_net_pnl).toFixed(2)}%`,
-    },
-    {
-        id: "net_return_percentage",
-        meta: {
-            columnVisibilityHeader: "Net Return %",
-        },
-        accessorKey: "net_return_percentage",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Net Return %"
-                disabled={table.options.meta?.isFetching}
-                column={column}
-            />
-        ),
-        cell: ({ row }) =>
-            `${Number(row.original.net_return_percentage).toFixed(2)}%`,
-    },
-];
-
-const PositionsTable = memo(() => {
-    const { queryResult, tableState, setTableState } = useListPositions();
-
-    if (queryResult.isError) {
-        return <p className="text-foreground-red">Failed to fetch positions</p>;
-    }
-
-    if (queryResult.isLoading) {
-        return <Loading />;
-    }
-
-    if (queryResult.data) {
-        return (
-            <>
-                <DataTableSmart
-                    columns={columns}
-                    data={queryResult.data.data.items}
-                    total={queryResult.data.data.pagination.total_items}
-                    state={tableState}
-                    onStateChange={setTableState}
-                    isFetching={queryResult?.isFetching}
-                />
-
-                <div className="h-10" />
-            </>
-        );
-    }
 });
