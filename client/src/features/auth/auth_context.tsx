@@ -1,8 +1,16 @@
-import { createContext, FC, PropsWithChildren, useContext } from "react";
+import {
+    createContext,
+    FC,
+    PropsWithChildren,
+    useContext,
+    useEffect,
+    useMemo,
+} from "react";
 
 import { apiHooks } from "@/hooks/api_hooks";
 import { User } from "@/lib/api/user";
 import { apiErrorHandler } from "@/lib/api";
+import { toast } from "@/components/toast";
 
 interface AuthenticationContextType {
     isLoading: boolean;
@@ -20,15 +28,26 @@ export const AuthenticationProvider: FC<PropsWithChildren> = ({ children }) => {
     const { data, isSuccess, isLoading, isError, error } =
         apiHooks.user.useMe();
 
-    if (isError) {
-        apiErrorHandler(error);
-    }
+    useEffect(() => {
+        if (isSuccess) {
+            toast.info(`Good to see you ${data?.data.display_name}!`, {
+                icon: <p>🚀</p>,
+            });
+        }
 
-    const value = {
-        isLoading,
-        isAuthenticated: isSuccess,
-        data: data?.data,
-    };
+        if (isError) {
+            apiErrorHandler(error);
+        }
+    }, [isSuccess, data, isError, error]);
+
+    const value = useMemo(
+        () => ({
+            isLoading,
+            isAuthenticated: isSuccess,
+            data: data?.data,
+        }),
+        [isLoading, isSuccess, data]
+    );
 
     return (
         <AuthenticationContext.Provider value={value}>

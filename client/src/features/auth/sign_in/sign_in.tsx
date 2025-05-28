@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { apiHooks } from "@/hooks/api_hooks";
 import { Button, Input, Label } from "@/s8ly";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/components/toast";
 import { ContinueWithGoogle } from "@/components/continue_with_google";
 import { ROUTES } from "@/routes";
 import { Link } from "@/components/link";
@@ -21,9 +20,6 @@ export default function SignIn() {
             // NOTE: await otherwise there will be a time when the toast is
             // shown as if we are signed in but we are still on sign in screen.
             await client.invalidateQueries();
-            toast.info("Welcome to Arthveda.", {
-                icon: <p>🚀</p>,
-            });
             navigate(ROUTES.dashboard);
         },
         onError: apiErrorHandler,
