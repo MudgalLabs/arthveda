@@ -23,7 +23,6 @@ import {
 import { useMemo, useState } from "react";
 import { PositionsTable } from "@/features/position/components/list_table";
 import { ImportPositionsResponse } from "@/lib/api/position";
-import { Link } from "@/components/link";
 import { ROUTES } from "@/routes";
 
 export const ImportPositions = () => {
