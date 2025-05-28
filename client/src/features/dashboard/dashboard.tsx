@@ -58,7 +58,7 @@ export const Dashboard = () => {
         }
 
         return (
-            <div className="flex gap-x-4">
+            <div className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
                 <Card>
                     <CardTitle>Gross PnL</CardTitle>
 

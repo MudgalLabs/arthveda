@@ -9,7 +9,7 @@ import {
     IconDashboard,
     IconExpandUpDown,
     IconLogout,
-    // IconSettings,
+    IconSettings,
     IconTrades,
     IconType,
 } from "@/components/icons";
@@ -26,18 +26,28 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
 import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { apiErrorHandler } from "@/lib/api";
+import { useIsMobile } from "@/hooks/use_is_mobile";
 
 const sidebarRoutes = [ROUTES.dashboard, ROUTES.positionList];
 
 export const Sidebar = () => {
     const { data } = useAuthentication();
     const { pathname } = useLocation();
-    const { isOpen } = useSidebar();
+    const { isOpen, setIsOpen } = useSidebar();
+    const isMobile = useIsMobile();
 
     const [activeRoute, setActiveRoute] = useState("");
     useEffect(() => {
         setActiveRoute(sidebarRoutes.includes(pathname) ? pathname : "");
-    }, [pathname]);
+
+        if (isMobile) {
+            // Close sidebar on route change in mobile view.
+            setIsOpen(false);
+        }
+    }, [pathname, isMobile, setIsOpen]);
+
+    // Make sure sidebar is closed when we load the component on mobile.
+    useEffect(() => setIsOpen(false), [isMobile, setIsOpen]);
 
     const navigate = useNavigate();
 
@@ -53,6 +63,8 @@ export const Sidebar = () => {
                 {
                     "min-w-[280px]!": isOpen,
                     "min-w-fit": !isOpen,
+                    hidden: isMobile && !isOpen, // On mobile, we don't show the sidebar when it's closed
+                    "w-screen": isMobile && isOpen,
                 }
             )}
         >
@@ -91,6 +103,7 @@ export const Sidebar = () => {
                     email={data!.email}
                     displayName={data?.display_name}
                     profileImageURL={data?.display_image}
+                    isMobile={isMobile}
                 />
             </div>
         </div>
@@ -212,15 +225,17 @@ interface SidebarProfileMenuProps {
     email: string;
     profileImageURL?: string;
     displayName?: string;
+    isMobile?: boolean;
 }
 
 const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
     const {
         sidebarOpen,
-        // setActiveRoute,
+        setActiveRoute,
         email,
         displayName = "Set Your Name",
         profileImageURL = "",
+        isMobile,
     } = props;
 
     const [menuOpened, setMenuOpened] = useState(false);
@@ -234,7 +249,7 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
                 // NOTE: Make sure to await otherwise the screen will flicker.
                 await client.invalidateQueries();
                 navigate("/");
-                toast.info("Goodbye. Thank you for using Arthveda.", {
+                toast.info("Goodbye! Thank you for using Arthveda", {
                     icon: <p>👋</p>,
                 });
             },
@@ -255,8 +270,8 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent
-                side="right"
-                align="end"
+                side={isMobile ? "top" : "right"}
+                align={isMobile ? "start" : "end"}
                 className="min-w-[240px]"
             >
                 <DropdownMenuItem
@@ -275,14 +290,14 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
 
                 <DropdownMenuSeparator />
 
-                {/* <Link to={ROUTES.settings} variant="unstyled">
+                <Link to={ROUTES.settings} variant="unstyled">
                     <DropdownMenuItem
                         onClick={() => setActiveRoute(ROUTES.settings)}
                     >
                         <IconSettings size={18} />
                         Settings
                     </DropdownMenuItem>
-                </Link> */}
+                </Link>
 
                 <DropdownMenuSeparator />
 

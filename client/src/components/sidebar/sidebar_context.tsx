@@ -5,11 +5,13 @@ import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 
 interface SidebarContextType {
     isOpen: boolean;
+    setIsOpen: (isOpen: boolean) => void;
     toggleSidebar: () => void;
 }
 
 const SidebarContext = createContext<SidebarContextType>({
     isOpen: false,
+    setIsOpen: () => {},
     toggleSidebar: () => {},
 });
 
@@ -27,6 +29,7 @@ export const SidebarProvider: FC<PropsWithChildren> = ({ children }) => {
         <SidebarContext.Provider
             value={{
                 isOpen,
+                setIsOpen,
                 toggleSidebar,
             }}
         >

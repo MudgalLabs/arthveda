@@ -49,7 +49,7 @@ const Input: FC<InputProps> = (props) => {
                 "disabled:opacity-69",
                 "transition-all outline-none disabled:cursor-not-allowed",
                 {
-                    "file:bg-accent-muted file:text-foreground hover:file:bg-accent min-w-[480px] p-0 file:mr-4 file:h-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold hover:cursor-pointer hover:file:cursor-pointer":
+                    "file:bg-accent-muted file:text-foreground hover:file:bg-accent w-full p-0 file:mr-4 file:h-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold hover:cursor-pointer hover:file:cursor-pointer sm:min-w-[420px]":
                         props.type === "file",
                     "border-border-red!": variant === "error",
                 },
