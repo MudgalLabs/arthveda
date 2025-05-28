@@ -215,6 +215,33 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			}
 		}
 
+		if tradebookStr == "" {
+			return nil, service.ErrBadRequest, fmt.Errorf("Unable to find Tradebook data in the file")
+		}
+
+		// Define regex to extract two dates in YYYY-MM-DD format
+		re := regexp.MustCompile(`from (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})`)
+		matches := re.FindStringSubmatch(tradebookStr)
+
+		if len(matches) != 3 {
+			return nil, service.ErrBadRequest, fmt.Errorf("Unable to extract date range from tradebook string")
+		}
+
+		fromStr := matches[1]
+		toStr := matches[2]
+
+		// Parse the strings into time.Time
+		layout := "2006-01-02"
+		fromDate, err := time.Parse(layout, fromStr)
+		if err != nil {
+			return nil, service.ErrBadRequest, fmt.Errorf("Invalid from date format")
+		}
+
+		toDate, err := time.Parse(layout, toStr)
+		if err != nil {
+			return nil, service.ErrBadRequest, fmt.Errorf("Invalid to date format")
+		}
+
 		// Map to store the symbol for each Order ID.
 		orderIDToSymbolMap := make(map[string]string)
 		// Map to store the instrument for each Order ID.
@@ -334,7 +361,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			return tradesWithOrderIDs[i].Payload.Time.Before(tradesWithOrderIDs[j].Payload.Time)
 		})
 
-		brokerTradeIDs, err := s.tradeRepository.AllBrokerTradeIDs(ctx, broker.ID)
+		brokerTradeIDs, err := s.tradeRepository.AllBrokerTradeIDs(ctx, &userID, &broker.ID)
 		if err != nil {
 			l.Errorw("failed to get all broker trade IDs", "error", err, "broker_id", broker.ID)
 			// Not returning an error here, as we can still process trades without existing broker trade IDs.
@@ -454,33 +481,6 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			sort.Slice(position.Trades, func(i, j int) bool {
 				return position.Trades[i].Time.Before(position.Trades[j].Time)
 			})
-		}
-
-		if tradebookStr == "" {
-			return nil, service.ErrBadRequest, fmt.Errorf("Tradebook information not found in the Excel file")
-		}
-
-		// Define regex to extract two dates in YYYY-MM-DD format
-		re := regexp.MustCompile(`from (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})`)
-		matches := re.FindStringSubmatch(tradebookStr)
-
-		if len(matches) != 3 {
-			return nil, service.ErrBadRequest, fmt.Errorf("Unable to extract date range from tradebook string")
-		}
-
-		fromStr := matches[1]
-		toStr := matches[2]
-
-		// Parse the strings into time.Time
-		layout := "2006-01-02"
-		fromDate, err := time.Parse(layout, fromStr)
-		if err != nil {
-			return nil, service.ErrBadRequest, fmt.Errorf("Invalid from date format")
-		}
-
-		toDate, err := time.Parse(layout, toStr)
-		if err != nil {
-			return nil, service.ErrBadRequest, fmt.Errorf("Invalid to date format")
 		}
 
 		duplicatePositionsCount := 0

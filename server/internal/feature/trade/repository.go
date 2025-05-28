@@ -1,6 +1,7 @@
 package trade
 
 import (
+	"arthveda/internal/dbx"
 	"arthveda/internal/repository"
 	"context"
 	"errors"
@@ -13,7 +14,7 @@ import (
 
 type Reader interface {
 	FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error)
-	AllBrokerTradeIDs(ctx context.Context, brokerID uuid.UUID) (map[string]struct{}, error)
+	AllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]struct{}, error)
 }
 
 type Writer interface {
@@ -101,14 +102,27 @@ func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.
 	return trades, nil
 }
 
-func (r *tradeRepository) AllBrokerTradeIDs(ctx context.Context, brokerID uuid.UUID) (map[string]struct{}, error) {
-	sql := `
+func (r *tradeRepository) AllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]struct{}, error) {
+	baseSQL := `
 	SELECT trade.broker_trade_id
 	FROM trade
-	JOIN position ON position.id = trade.position_id
-	WHERE position.broker_id = $1`
+	JOIN position ON position.id = trade.position_id `
 
-	rows, err := r.db.Query(ctx, sql, brokerID)
+	b := dbx.NewSQLBuilder(baseSQL)
+
+	// Only apply value if filter provided with valid UUID.
+	if brokerID != nil && brokerID.String() != "" {
+		b.AddCompareFilter("position.broker_id", "=", brokerID)
+	}
+
+	// Only apply value if filter provided with valid UUID.
+	if userID != nil && userID.String() != "" {
+		b.AddCompareFilter("position.created_by", "=", userID)
+	}
+
+	sql, args := b.Build()
+
+	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
