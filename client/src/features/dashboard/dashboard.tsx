@@ -43,12 +43,11 @@ export const Dashboard = () => {
                             >
                                 adding
                             </Link>{" "}
-                            a position or
+                            a position or{" "}
                             <Link
                                 className="text-base!"
                                 to={ROUTES.importPositions}
                             >
-                                {" "}
                                 importing
                             </Link>{" "}
                             positions from your broker.
