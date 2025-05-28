@@ -1,3 +1,6 @@
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+
 import { PageHeading } from "@/components/page_heading";
 import { BrokerSelect } from "@/components/select/broker_select";
 import { toast } from "@/components/toast";
@@ -18,7 +21,6 @@ import {
     DialogClose,
 } from "@/s8ly";
 import { useMemo, useState } from "react";
-import { Position } from "@/features/position/position";
 import { PositionsTable } from "@/features/position/components/list_table";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { Link } from "@/components/link";
@@ -27,54 +29,58 @@ import { ROUTES } from "@/routes";
 export const ImportPositions = () => {
     const [file, setFile] = useState<File>();
     const [brokerID, setBrokerID] = useState<string>("");
-    const [positions, setPositions] = useState<Position[]>([]);
+    const [data, setData] = useState<ImportPositionsResponse>();
     // Show the confirm screen if we have positions after importing.
     const [showConfirm, setShowConfirm] = useState(false);
+
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
     const { mutateAsync, isPending } = apiHooks.position.useImport({
         onSuccess: (res) => {
             const data = res?.data?.data as ImportPositionsResponse;
-            const positions = data.positions || [];
 
             // If `showConfirm` was already true, that means we called
             // mutateAsync to confirm the import. Meaning, the API
             // tried to store the parsed positions into the database.
             if (showConfirm) {
                 if (data.positions_imported_count > 0) {
-                    toast.success("Positions Imported", {
-                        description: (
-                            <>
-                                <p>Imported {data.positions_count} positions</p>
-                                <p>
-                                    Go to{" "}
-                                    <Link
-                                        to={ROUTES.positionList}
-                                        className="text-inherit!"
-                                    >
-                                        Positions Tab
-                                    </Link>{" "}
-                                    to view them
-                                </p>
-                            </>
-                        ),
-                    });
+                    toast.success(
+                        `Imported ${data.positions_count} positions`,
+                        {
+                            action: {
+                                label: "View Positions",
+                                onClick: () => {
+                                    navigate(ROUTES.positionList);
+                                },
+                            },
+                        }
+                    );
 
+                    // Invalidate the dashbaord cache to reflect the new positions.
+                    queryClient.invalidateQueries({
+                        queryKey: ["useGetDashboard"],
+                    });
                     // We can reset the state after a successful import.
                     handleCancel();
                 } else {
-                    toast.warning("No positions were imported");
+                    toast.warning("No new positions to import");
                 }
             } else {
                 // If `showConfirm` is false, that means we are just
                 // parsing the file and showing the positions to the user.
-                if (positions.length > 0) {
-                    toast.success("Positions Parsed", {
-                        description: `Found ${data.positions_count} positions and ${data.duplicate_positions_count} were duplicates`,
-                    });
-                    setPositions(positions);
+                if (data.positions.length > 0) {
+                    let message = `Found ${data.positions_count} positions`;
+
+                    if (data.duplicate_positions_count > 0) {
+                        message += ` and ${data.duplicate_positions_count} already exist`;
+                    }
+
+                    toast.success(message);
+                    setData(data);
                     setShowConfirm(true);
                 } else {
-                    toast.warning("Found no positions in the file");
+                    toast.warning("No positions found in the file");
                 }
             }
         },
@@ -83,7 +89,7 @@ export const ImportPositions = () => {
         },
     });
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleStartImport = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (!file || !brokerID) return;
@@ -97,12 +103,12 @@ export const ImportPositions = () => {
     const handleCancel = () => {
         setFile(undefined);
         setBrokerID("");
-        setPositions([]);
+        setData(undefined);
         setShowConfirm(false);
     };
 
     const handleConfirm = () => {
-        if (!file || !brokerID || positions.length === 0) return;
+        if (!file || !brokerID || data?.positions?.length === 0) return;
 
         mutateAsync({
             file,
@@ -120,7 +126,7 @@ export const ImportPositions = () => {
         if (showConfirm) {
             return (
                 <>
-                    <PositionsTable positions={positions} />
+                    <PositionsTable positions={data?.positions || []} />
 
                     <div className="h-8" />
 
@@ -153,15 +159,19 @@ export const ImportPositions = () => {
                             </DialogContent>
                         </Dialog>
 
-                        <Button variant="primary" onClick={handleConfirm}>
-                            Confirm
+                        <Button
+                            variant="primary"
+                            onClick={handleConfirm}
+                            loading={isPending}
+                        >
+                            Finish Import
                         </Button>
                     </div>
                 </>
             );
         } else {
             return (
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleStartImport}>
                     <div className="flex flex-wrap gap-x-16 gap-y-8">
                         <WithLabel Label={<Label>Broker</Label>}>
                             <BrokerSelect
@@ -178,19 +188,19 @@ export const ImportPositions = () => {
                     <div className="h-8" />
 
                     <Button disabled={!file || !brokerID} loading={isPending}>
-                        Import
+                        Start Import
                     </Button>
                 </form>
             );
         }
     }, [
         showConfirm,
-        positions,
+        data,
         file,
         brokerID,
         isPending,
         handleCancel,
-        handleSubmit,
+        handleStartImport,
         handleConfirm,
     ]);
 

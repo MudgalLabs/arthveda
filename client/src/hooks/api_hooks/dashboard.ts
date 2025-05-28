@@ -9,7 +9,7 @@ export function useGet() {
         queryKey: ["useGetDashboard"],
         queryFn: () => api.dashboard.get(),
         select: (res) => res.data as ApiRes<GetDashboardResponse>,
-        // We will manually invalidate this cache if user creates/updaets/deletes any position(s).
+        // We will manually invalidate this cache if user creates/updates/deletes any position(s).
         staleTime: Infinity,
     });
 }

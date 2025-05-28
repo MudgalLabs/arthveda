@@ -5,7 +5,6 @@ import { Loading } from "@/components/loading";
 const ToastProvider = () => {
     return (
         <Toaster
-            expand
             theme="dark"
             richColors
             visibleToasts={5}
