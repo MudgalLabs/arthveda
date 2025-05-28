@@ -20,7 +20,7 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
 
                 {/* Main content area */}
                 <div className="flex-1 overflow-y-auto">
-                    <div className="flex justify-center">
+                    <div className="flex h-full justify-center">
                         <div className="m-6 w-full max-w-[1440px]">
                             {children}
                         </div>
