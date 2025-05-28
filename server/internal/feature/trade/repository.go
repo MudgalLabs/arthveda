@@ -14,7 +14,7 @@ import (
 
 type Reader interface {
 	FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error)
-	AllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]struct{}, error)
+	GetAllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]struct{}, error)
 }
 
 type Writer interface {
@@ -102,7 +102,7 @@ func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.
 	return trades, nil
 }
 
-func (r *tradeRepository) AllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]struct{}, error) {
+func (r *tradeRepository) GetAllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]struct{}, error) {
 	baseSQL := `
 	SELECT trade.broker_trade_id
 	FROM trade

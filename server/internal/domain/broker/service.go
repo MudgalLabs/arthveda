@@ -1,6 +1,8 @@
 package broker
 
 import (
+	"arthveda/internal/apires"
+	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
 	"fmt"
@@ -10,11 +12,10 @@ type Service struct {
 	brokerRepository ReadWriter
 }
 
-func NewService(brokerRepository ReadWriter) *Service {
+func NewService(br ReadWriter) *Service {
 	return &Service{
-		brokerRepository: brokerRepository,
+		brokerRepository: br,
 	}
-
 }
 
 type supportedBroker struct {
@@ -27,17 +28,30 @@ type CreatePayload struct {
 }
 
 func (s *Service) Create(ctx context.Context, payload CreatePayload) (*Broker, service.Error, error) {
-	broker, err := new(payload.Name)
+	if payload.Name == "" {
+		return nil, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError("Broker name cannot be empty", "", "name", payload.Name))
+	}
+
+	existingBroker, err := s.brokerRepository.GetByName(ctx, payload.Name)
+	if err != nil && err != repository.ErrNotFound {
+		return nil, service.ErrInternalServerError, fmt.Errorf("get broker by name: %w", err)
+	}
+
+	if existingBroker != nil {
+		return nil, service.ErrConflict, fmt.Errorf("Broker %s already exists", payload.Name)
+	}
+
+	newBroker, err := new(payload.Name)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("new: %w", err)
 	}
 
-	err = s.brokerRepository.Create(ctx, broker)
+	err = s.brokerRepository.Create(ctx, newBroker)
 	if err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("create: %w", err)
+		return nil, service.ErrInternalServerError, fmt.Errorf("repository create: %w", err)
 	}
 
-	return broker, service.ErrNone, nil
+	return newBroker, service.ErrNone, nil
 }
 
 func (s *Service) List(ctx context.Context) ([]*Broker, service.Error, error) {

@@ -361,7 +361,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			return tradesWithOrderIDs[i].Payload.Time.Before(tradesWithOrderIDs[j].Payload.Time)
 		})
 
-		brokerTradeIDs, err := s.tradeRepository.AllBrokerTradeIDs(ctx, &userID, &broker.ID)
+		brokerTradeIDs, err := s.tradeRepository.GetAllBrokerTradeIDs(ctx, &userID, &broker.ID)
 		if err != nil {
 			l.Errorw("failed to get all broker trade IDs", "error", err, "broker_id", broker.ID)
 			// Not returning an error here, as we can still process trades without existing broker trade IDs.

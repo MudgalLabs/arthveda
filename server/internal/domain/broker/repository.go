@@ -1,12 +1,12 @@
 package broker
 
 import (
+	"arthveda/internal/dbx"
 	"arthveda/internal/repository"
 	"context"
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -93,25 +93,22 @@ func (r *brokerRepository) List(ctx context.Context) ([]*Broker, error) {
 }
 
 func (r *brokerRepository) findBrokers(ctx context.Context, f filters) ([]*Broker, error) {
-	var where []string
-	args := make(pgx.NamedArgs)
+	baseSQL := "SELECT id, name FROM broker"
+	builder := dbx.NewSQLBuilder(baseSQL)
 
 	if v := f.ID; v != nil {
-		where = append(where, "id = @id")
-		args["id"] = v
+		builder.AddCompareFilter("id", "=", v)
 	}
 
 	if v := f.Name; v != nil {
-		where = append(where, "name = @name")
-		args["name"] = v
+		builder.AddCompareFilter("name", "=", v)
 	}
 
-	sql := `
-		SELECT id, name
-		FROM broker
-	` + repository.WhereSQL(where)
+	builder.AddSorting("name", "ASC")
 
-	rows, err := r.db.Query(ctx, sql, args)
+	sql, args := builder.Build()
+
+	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
