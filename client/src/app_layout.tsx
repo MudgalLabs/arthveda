@@ -23,6 +23,7 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
                     <div className="flex h-full justify-center">
                         <div className="w-full max-w-[1440px] p-6">
                             {children}
+                            <div className="h-4" />
                         </div>
                     </div>
                 </div>

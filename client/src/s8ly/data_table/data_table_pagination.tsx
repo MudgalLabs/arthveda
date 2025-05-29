@@ -123,7 +123,7 @@ export function DataTablePagination<TData>({
                 </div>
 
                 <div className="flex items-center space-x-6 lg:space-x-8">
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-2">
                         {pageSizes.map((pageSize) => (
                             <Button
                                 key={pageSize}

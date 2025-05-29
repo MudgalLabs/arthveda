@@ -106,7 +106,7 @@ function DataTableSmart<TData, TValue>({
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-end">
+            <div className="flex justify-start">
                 <DataTableVisibility table={table} />
             </div>
 

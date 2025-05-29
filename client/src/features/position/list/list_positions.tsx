@@ -33,6 +33,7 @@ export const ListPositions = () => {
                 heading="Positions"
                 loading={queryResult?.isFetching}
             />
+
             <PositionsFilters />
 
             {queryResult.data && (
@@ -48,8 +49,6 @@ export const ListPositions = () => {
                         isError={queryResult.isError}
                         isFetching={queryResult.isFetching}
                     />
-
-                    <div className="h-10" />
                 </>
             )}
         </>

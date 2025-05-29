@@ -21,7 +21,7 @@ export function DataTableVisibility<TData>({
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="outline"
-                    className="data-[state=open]:bg-accent data-[state=open]:text-foreground h-8 font-normal"
+                    className="data-[state=open]:bg-accent-muted data-[state=open]:text-foreground h-8 font-normal"
                 >
                     <IconColumns size={20} />
                     Columns
