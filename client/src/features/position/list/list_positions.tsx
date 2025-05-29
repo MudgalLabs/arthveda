@@ -71,7 +71,8 @@ const PositionsFilters = memo(({}: {}) => {
     return (
         <>
             <form>
-                <div className="flex flex-wrap gap-x-16 gap-y-8">
+                {/* <div className="flex flex-wrap gap-x-16 gap-y-8"> */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                     <WithLabel Label={<Label>Opened</Label>}>
                         <DatePicker
                             mode="range"
@@ -180,6 +181,7 @@ const PositionsFilters = memo(({}: {}) => {
                                     }
                                 >
                                     <Input
+                                        className="w-24!"
                                         type="number"
                                         step="0.01"
                                         value={value}
@@ -300,6 +302,7 @@ const PositionsFilters = memo(({}: {}) => {
                                     }
                                 >
                                     <Input
+                                        className="w-24!"
                                         type="number"
                                         step="0.01"
                                         value={value}
@@ -346,6 +349,7 @@ const PositionsFilters = memo(({}: {}) => {
                                     }
                                 >
                                     <Input
+                                        className="w-24!"
                                         type="number"
                                         step="0.01"
                                         value={value}
