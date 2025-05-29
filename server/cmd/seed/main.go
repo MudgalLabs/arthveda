@@ -2,8 +2,8 @@ package main
 
 import (
 	"arthveda/internal/dbx"
-	"arthveda/internal/domain/broker"
 	"arthveda/internal/env"
+	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/user_identity"
 	"arthveda/internal/feature/user_profile"
 	"arthveda/internal/logger"
