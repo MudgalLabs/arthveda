@@ -59,14 +59,9 @@ type BrokerImporter interface {
 	parseRow(row []string, metadata *importFileMetadata) (*parseRowResult, error)
 }
 
-type ZerodhaImporter struct {
-}
+type ZerodhaImporter struct{}
 
 func (i ZerodhaImporter) getMetadata(rows [][]string) (*importFileMetadata, error) {
-	if len(rows) == 0 {
-		return nil, fmt.Errorf("Excel file is empty")
-	}
-
 	var dateRangeStr string
 	var headerRowIdx int
 	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIdColumnIdx, timeColumnIdx int
@@ -115,7 +110,7 @@ func (i ZerodhaImporter) getMetadata(rows [][]string) (*importFileMetadata, erro
 	}
 
 	if dateRangeStr == "" {
-		return nil, fmt.Errorf("Unable to find date range data in the file")
+		return nil, fmt.Errorf("Unable to find date range cell in the file")
 	}
 
 	// Define regex to extract two dates in YYYY-MM-DD format from the `dateRangeStr`.
@@ -124,7 +119,7 @@ func (i ZerodhaImporter) getMetadata(rows [][]string) (*importFileMetadata, erro
 	matches := re.FindStringSubmatch(dateRangeStr)
 
 	if len(matches) != 3 {
-		return nil, fmt.Errorf("Unable to extract date range from tradebook string")
+		return nil, fmt.Errorf("Unable to extract date range from date range cell")
 	}
 
 	fromStr := matches[1]
@@ -217,15 +212,152 @@ func (i ZerodhaImporter) parseRow(row []string, metadata *importFileMetadata) (*
 	}, nil
 }
 
-type GrowwImporter struct {
-}
+type GrowwImporter struct{}
 
 func (i *GrowwImporter) getMetadata(rows [][]string) (*importFileMetadata, error) {
-	return &importFileMetadata{}, nil
+	var dateRangeStr string
+	var headerRowIdx int
+	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIdColumnIdx, timeColumnIdx int
+
+	for rowIdx, row := range rows {
+		for columnIdx, colCell := range row {
+			if strings.Contains(colCell, "Order history") {
+				dateRangeStr = colCell
+			}
+
+			if strings.Contains(colCell, "Symbol") {
+				symbolColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Type") {
+				tradeTypeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Quantity") {
+				quantityColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Price") {
+				priceColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Exchange Order Id") {
+				orderIdColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Execution date and time") {
+				headerRowIdx = rowIdx
+				timeColumnIdx = columnIdx
+			}
+
+			// If we have found the header row, and we are past it, we can stop.
+			if headerRowIdx > 0 && rowIdx > headerRowIdx {
+				break
+			}
+		}
+	}
+
+	if dateRangeStr == "" {
+		return nil, fmt.Errorf("Unable to find date range cell in the file")
+	}
+
+	// Regex to extract dates in the format dd-mm-yyyy
+	re := regexp.MustCompile(`from (\d{2}-\d{2}-\d{4}) to (\d{2}-\d{2}-\d{4})`)
+	matches := re.FindStringSubmatch(dateRangeStr)
+
+	if len(matches) != 3 {
+		return nil, fmt.Errorf("Unable to extract date range from date range cell")
+	}
+
+	fromStr := matches[1]
+	toStr := matches[2]
+
+	layout := "02-01-2006"
+
+	fromDate, err := time.Parse(layout, fromStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid from date format")
+	}
+
+	toDate, err := time.Parse(layout, toStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid to date format")
+	}
+
+	return &importFileMetadata{
+		from:               fromDate,
+		to:                 toDate,
+		headerRowIdx:       headerRowIdx,
+		symbolColumnIdx:    symbolColumnIdx,
+		segmentColumnIdx:   segmentColumnIdx,
+		tradeTypeColumnIdx: tradeTypeColumnIdx,
+		quantityColumnIdx:  quantityColumnIdx,
+		priceColumnIdx:     priceColumnIdx,
+		orderIdColumnIdx:   orderIdColumnIdx,
+		timeColumnIdx:      timeColumnIdx,
+	}, nil
 }
 
 func (i *GrowwImporter) parseRow(row []string, metadata *importFileMetadata) (*parseRowResult, error) {
-	return &parseRowResult{}, nil
+	symbolColumnIdx := metadata.symbolColumnIdx
+	segmentColumnIdx := metadata.segmentColumnIdx
+	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
+	quantityColumnIdx := metadata.quantityColumnIdx
+	priceColumnIdx := metadata.priceColumnIdx
+	orderIdColumnIdx := metadata.orderIdColumnIdx
+	timeColumnIdx := metadata.timeColumnIdx
+
+	symbol := row[symbolColumnIdx]
+	if symbol == "" {
+		return nil, fmt.Errorf("Symbol is empty in row")
+	}
+
+	segment := row[segmentColumnIdx]
+	if segment == "" {
+		return nil, fmt.Errorf("Segment is empty in row")
+	}
+
+	orderID := row[orderIdColumnIdx]
+	if orderID == "" {
+		return nil, fmt.Errorf("Order ID is empty in row")
+	}
+
+	// Parse trade details from the row
+	tradeTypeStr := row[tradeTypeColumnIdx]
+	quantityStr := row[quantityColumnIdx]
+	priceStr := row[priceColumnIdx]
+	timeStr := row[timeColumnIdx]
+
+	tradeKind := trade.Kind(strings.ToLower(tradeTypeStr))
+	quantity, err := strconv.ParseFloat(quantityStr, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid quantity at row : %s", quantityStr)
+	}
+
+	price, err := decimal.NewFromString(priceStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid price at row : %s", priceStr)
+	}
+	// Groww provides the price as total price for the trade,
+	// meaning for the given quantity, the price is the total amount paid.
+	price = price.Div(decimal.NewFromFloat(quantity))
+
+	tradeTime, err := time.Parse("02-01-2006 03:04 PM", timeStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid time at row : %s", timeStr)
+	}
+
+	instrument := InstrumentEquity
+
+	return &parseRowResult{
+		symbol:     symbol,
+		instrument: instrument,
+		tradeKind:  tradeKind,
+		quantity:   decimal.NewFromFloat(quantity),
+		price:      price,
+		orderId:    orderID,
+		time:       tradeTime,
+	}, nil
 }
 
 // getImporter returns an importer for the given broker.
