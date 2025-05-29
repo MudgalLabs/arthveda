@@ -50,9 +50,6 @@ func initRouter(a *app) http.Handler {
 			r.Use(authMiddleware)
 
 			r.Get("/", getBrokersHandler(a.service.BrokerService))
-
-			// TODO: This API should be restricted to admin users only.
-			r.Post("/", createBrokerHandler(a.service.BrokerService))
 		})
 
 		r.Route("/currencies", func(r chi.Router) {

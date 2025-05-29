@@ -296,7 +296,6 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		if openPosition, exists := openPositions[symbol]; exists {
 			newTrade.PositionID = openPosition.ID
 			newTrade.BrokerTradeID = &orderID
-			// Append the trade to the open position
 			openPosition.Trades = append(openPosition.Trades, newTrade)
 
 			// Use the compute function to update the position state
