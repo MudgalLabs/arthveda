@@ -12,7 +12,7 @@ import (
 
 type Reader interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Broker, error)
-	GetByName(ctx context.Context, name string) (*Broker, error)
+	GetByName(ctx context.Context, name Name) (*Broker, error)
 	List(ctx context.Context) ([]*Broker, error)
 }
 
@@ -35,7 +35,7 @@ func NewRepository(db *pgxpool.Pool) *brokerRepository {
 
 type filters struct {
 	ID   *uuid.UUID
-	Name *string
+	Name *Name
 }
 
 func (r *brokerRepository) Create(ctx context.Context, broker *Broker) error {
@@ -67,7 +67,7 @@ func (r *brokerRepository) GetByID(ctx context.Context, id uuid.UUID) (*Broker, 
 	return brokers[0], nil
 }
 
-func (r *brokerRepository) GetByName(ctx context.Context, name string) (*Broker, error) {
+func (r *brokerRepository) GetByName(ctx context.Context, name Name) (*Broker, error) {
 	filter := filters{Name: &name}
 	brokers, err := r.findBrokers(ctx, filter)
 

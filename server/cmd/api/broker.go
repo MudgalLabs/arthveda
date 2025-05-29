@@ -1,7 +1,7 @@
 package main
 
 import (
-	"arthveda/internal/domain/broker"
+	"arthveda/internal/feature/broker"
 	"net/http"
 )
 

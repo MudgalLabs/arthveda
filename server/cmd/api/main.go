@@ -2,9 +2,9 @@ package main
 
 import (
 	"arthveda/internal/dbx"
-	"arthveda/internal/domain/broker"
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/env"
+	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/dashboard"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"

@@ -2,13 +2,14 @@ package position
 
 import (
 	"arthveda/internal/common"
-	"arthveda/internal/domain/broker"
 	"arthveda/internal/domain/currency"
+	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -123,6 +124,8 @@ type ImportPayload struct {
 	Confirm  bool
 }
 
+var errImportFileInvalid = errors.New("import file is invalid or not supported")
+
 func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPayload) (map[string]any, service.Error, error) {
 	l := logger.FromCtx(ctx)
 	now := time.Now().UTC()
@@ -153,6 +156,11 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		}
 	}
 
+	importer, err := getBrokerImporter(broker)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get broker importer: %w", err)
+	}
+
 	// TODO: Add support for more brokers in the future.
 	// Currently, we only support Zerodha.
 	if broker.Name == "Zerodha" {
@@ -167,79 +175,6 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 		if len(rows) == 0 {
 			return nil, service.ErrBadRequest, fmt.Errorf("Excel file is empty")
-		}
-
-		var tradebookStr string
-		var headerRowIdx int
-		var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIdColumnIdx, timeColumnIdx int
-
-		for rowIdx, row := range rows {
-			for columnIdx, colCell := range row {
-				if strings.Contains(colCell, "Tradebook") {
-					tradebookStr = colCell
-				}
-
-				if strings.Contains(colCell, "Symbol") {
-					symbolColumnIdx = columnIdx
-				}
-
-				if strings.Contains(colCell, "Segment") {
-					segmentColumnIdx = columnIdx
-				}
-
-				if strings.Contains(colCell, "Trade Type") {
-					tradeTypeColumnIdx = columnIdx
-				}
-
-				if strings.Contains(colCell, "Quantity") {
-					quantityColumnIdx = columnIdx
-				}
-
-				if strings.Contains(colCell, "Price") {
-					priceColumnIdx = columnIdx
-				}
-
-				if strings.Contains(colCell, "Order ID") {
-					orderIdColumnIdx = columnIdx
-				}
-
-				if strings.Contains(colCell, "Order Execution Time") {
-					headerRowIdx = rowIdx
-					timeColumnIdx = columnIdx
-				}
-
-				// Check if we have found all the required columns.
-				if headerRowIdx > 0 {
-					break
-				}
-			}
-		}
-
-		if tradebookStr == "" {
-			return nil, service.ErrBadRequest, fmt.Errorf("Unable to find Tradebook data in the file")
-		}
-
-		// Define regex to extract two dates in YYYY-MM-DD format
-		re := regexp.MustCompile(`from (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})`)
-		matches := re.FindStringSubmatch(tradebookStr)
-
-		if len(matches) != 3 {
-			return nil, service.ErrBadRequest, fmt.Errorf("Unable to extract date range from tradebook string")
-		}
-
-		fromStr := matches[1]
-		toStr := matches[2]
-
-		// Parse the strings into time.Time
-		layout := "2006-01-02"
-		fromDate, err := time.Parse(layout, fromStr)
-		if err != nil {
-			return nil, service.ErrBadRequest, fmt.Errorf("Invalid from date format")
-		}
-
-		toDate, err := time.Parse(layout, toStr)
-		if err != nil {
-			return nil, service.ErrBadRequest, fmt.Errorf("Invalid to date format")
 		}
 
 		// Map to store the symbol for each Order ID.
@@ -271,75 +206,45 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			Time       time.Time
 		})
 
+		metadata, err := importer.getMetadata(rows)
+		if err != nil {
+			l.Infow("Failed to get metadata from importer", "error", err, "broker", broker)
+			return nil, service.ErrBadRequest, errImportFileInvalid
+		}
+
+		headerRowIdx := metadata.headerRowIdx
+
 		// Replace the map with a slice and populate it
 		for rowIdx, row := range rows[headerRowIdx+1:] {
 			l.Debugf("Processing row %d: %v\n", rowIdx+headerRowIdx+1, row)
 
-			symbol := row[symbolColumnIdx]
-			if symbol == "" {
-				return nil, service.ErrBadRequest, fmt.Errorf("Symbol is empty in row %d", rowIdx+headerRowIdx+1)
-			}
-
-			segment := row[segmentColumnIdx]
-			if segment == "" {
-				return nil, service.ErrBadRequest, fmt.Errorf("Segment is empty in row %d", rowIdx+headerRowIdx+1)
-			}
-
-			orderID := row[orderIdColumnIdx]
-			if orderID == "" {
-				return nil, service.ErrBadRequest, fmt.Errorf("Order ID is empty in row %d", rowIdx+headerRowIdx+1)
-			}
-
-			// Parse trade details from the row
-			tradeTypeStr := row[tradeTypeColumnIdx]
-			quantityStr := row[quantityColumnIdx]
-			priceStr := row[priceColumnIdx]
-			timeStr := row[timeColumnIdx]
-
-			tradeKind := trade.Kind(tradeTypeStr)
-			quantity, err := strconv.ParseFloat(quantityStr, 64)
+			parseRowResult, err := importer.parseRow(row, metadata)
 			if err != nil {
-				return nil, service.ErrBadRequest, fmt.Errorf("Invalid quantity at row %d: %v", rowIdx+headerRowIdx+1, err)
-			}
-
-			price, err := decimal.NewFromString(priceStr)
-			if err != nil {
-				return nil, service.ErrBadRequest, fmt.Errorf("Invalid price at row %d: %v", rowIdx+headerRowIdx+1, err)
-			}
-
-			tradeTime, err := time.Parse("2006-01-02T15:04:05", timeStr)
-			if err != nil {
-				return nil, service.ErrBadRequest, fmt.Errorf("Invalid time at row %d: %v", rowIdx+headerRowIdx+1, err)
+				return nil, service.ErrBadRequest, fmt.Errorf("failed to parse row %d: %w", rowIdx+headerRowIdx+1, err)
 			}
 
 			// Aggregate trades by orderID
-			if existing, found := aggregatedTrades[orderID]; found {
-				existing.Quantity = existing.Quantity.Add(decimal.NewFromFloat(quantity))
-				existing.TotalPrice = existing.TotalPrice.Add(price.Mul(decimal.NewFromFloat(quantity)))
-				existing.Time = tradeTime // Update time to the latest trade time
-				aggregatedTrades[orderID] = existing
+			if existing, found := aggregatedTrades[parseRowResult.orderId]; found {
+				existing.Quantity = existing.Quantity.Add(parseRowResult.quantity)
+				existing.TotalPrice = existing.TotalPrice.Add(parseRowResult.price.Mul(parseRowResult.quantity))
+				existing.Time = parseRowResult.time
+				aggregatedTrades[parseRowResult.orderId] = existing
 			} else {
-				aggregatedTrades[orderID] = struct {
+				aggregatedTrades[parseRowResult.orderId] = struct {
 					Quantity   decimal.Decimal
 					TotalPrice decimal.Decimal
 					TradeKind  trade.Kind
 					Time       time.Time
 				}{
-					Quantity:   decimal.NewFromFloat(quantity),
-					TotalPrice: price.Mul(decimal.NewFromFloat(quantity)),
-					TradeKind:  tradeKind,
-					Time:       tradeTime,
+					Quantity:   parseRowResult.quantity,
+					TotalPrice: parseRowResult.price.Mul(parseRowResult.quantity),
+					TradeKind:  parseRowResult.tradeKind,
+					Time:       parseRowResult.time,
 				}
 			}
 
-			orderIDToSymbolMap[orderID] = symbol
-
-			var instrument Instrument
-			if segment == "EQ" {
-				instrument = InstrumentEquity
-			}
-
-			orderIDToInstrumentMap[orderID] = instrument
+			orderIDToSymbolMap[parseRowResult.orderId] = parseRowResult.symbol
+			orderIDToInstrumentMap[parseRowResult.orderId] = parseRowResult.instrument
 		}
 
 		// Convert aggregated trades to tradesWithOrderIDs
@@ -536,8 +441,8 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			"positions_count":           len(finalizedPositions), // Client can check length of positions?
 			"duplicate_positions_count": duplicatePositionsCount,
 			"positions_imported_count":  positionsImported,
-			"from_date":                 fromDate,
-			"to_date":                   toDate,
+			"from_date":                 metadata.from,
+			"to_date":                   metadata.to,
 		}
 
 		return result, service.ErrNone, nil

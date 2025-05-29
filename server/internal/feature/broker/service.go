@@ -24,7 +24,7 @@ type supportedBroker struct {
 }
 
 type CreatePayload struct {
-	Name string `json:"name"`
+	Name Name `json:"name"`
 }
 
 func (s *Service) Create(ctx context.Context, payload CreatePayload) (*Broker, service.Error, error) {
