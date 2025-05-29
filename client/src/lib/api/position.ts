@@ -90,6 +90,8 @@ export function search(body: PositionSearchRequest) {
 export interface ImportPositionsRequest {
     file: File;
     broker_id: string;
+    currency?: CurrencyCode;
+    risk_amount?: DecimalString;
     confirm?: boolean;
 }
 export interface ImportPositionsResponse {
@@ -105,6 +107,8 @@ export function importPositions(body: ImportPositionsRequest) {
     const formData = new FormData();
     formData.append("file", body.file);
     formData.append("broker_id", body.broker_id);
+    formData.append("currency", body.currency || "");
+    formData.append("risk_amount", body.risk_amount || "");
     formData.append("confirm", body.confirm === true ? "true" : "false");
 
     return client.post<ImportPositionsRequest, ApiRes<ImportPositionsResponse>>(

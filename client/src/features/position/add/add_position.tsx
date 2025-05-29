@@ -27,7 +27,6 @@ import { WithLabel } from "@/components/with_label";
 import { useAddPosition } from "@/features/position/add/add_position_context";
 import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
 import {
-    IconAlert,
     IconCalendarRange,
     IconPlus,
     IconTrash,
@@ -437,7 +436,7 @@ const columns: ColumnDef<NewTrade>[] = [
             const disableButton = table.getRowModel().rows.length === 1;
             return (
                 <Tooltip
-                    content="There must be a trade"
+                    content="There must at least be one trade"
                     contentProps={{ side: "bottom" }}
                     disabled={!disableButton}
                 >
@@ -494,8 +493,7 @@ const AddTradeButton = memo(
             <Tooltip
                 content={
                     <div className="flex-center gap-x-2">
-                        <IconAlert size={18} />
-                        <p>Fill in missing information to proceed</p>
+                        <p>Fill in the missing information</p>
                     </div>
                 }
                 contentProps={{ side: "bottom" }}

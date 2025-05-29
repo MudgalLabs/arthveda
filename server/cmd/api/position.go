@@ -2,6 +2,7 @@ package main
 
 import (
 	"arthveda/internal/apires"
+	"arthveda/internal/domain/currency"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/service"
 	"errors"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 func computePositionHandler(s *position.Service) http.HandlerFunc {
@@ -99,7 +101,7 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 			return
 		}
 
-		var confirm bool
+		confirm := false
 		confirmStr := r.FormValue("confirm")
 
 		if confirmStr != "" {
@@ -112,10 +114,44 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 			}
 		}
 
+		currencyCode := currency.CurrencyINR
+		currencyStr := r.FormValue("currency")
+
+		if currencyStr != "" {
+			currencyCode, err = currency.ParseCurrencyCode(currencyStr)
+			if err != nil {
+				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
+					apires.NewApiError("Invalid currency", "", "currency", currencyStr),
+				))
+				return
+			}
+		}
+
+		riskAmount := decimal.Zero
+		riskAmountStr := r.FormValue("risk_amount")
+		if riskAmountStr != "" {
+			riskAmount, err = decimal.NewFromString(riskAmountStr)
+			if err != nil {
+				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
+					apires.NewApiError("Invalid risk amount", "", "risk_amount", riskAmountStr),
+				))
+				return
+			}
+
+			if riskAmount.LessThanOrEqual(decimal.Zero) {
+				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
+					apires.NewApiError("Risk amount must be greater than zero", "", "risk_amount", riskAmountStr),
+				))
+				return
+			}
+		}
+
 		payload := position.ImportPayload{
-			File:     file,
-			BrokerID: brokerID,
-			Confirm:  confirm,
+			File:       file,
+			BrokerID:   brokerID,
+			Currency:   currencyCode,
+			RiskAmount: riskAmount,
+			Confirm:    confirm,
 		}
 
 		result, errKind, err := s.Import(ctx, userID, payload)

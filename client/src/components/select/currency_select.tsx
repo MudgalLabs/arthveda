@@ -3,8 +3,14 @@ import { Select, SelectOptionItem, SelectProps } from "@/s8ly";
 import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
 import { useEffectOnce } from "@/hooks/use_effect_once";
+import { CurrencyCode } from "@/lib/api/currency";
 
-function CurrencySelect(props: Omit<SelectProps, "options">) {
+interface CurrencySelectProps extends Omit<SelectProps, "options"> {
+    value?: CurrencyCode;
+    onValueChange?: (value: CurrencyCode) => void;
+}
+
+function CurrencySelect(props: CurrencySelectProps) {
     const { data, isLoading, error, isError } = apiHooks.currency.useList();
 
     useEffectOnce(
@@ -20,13 +26,13 @@ function CurrencySelect(props: Omit<SelectProps, "options">) {
     );
 
     const items = data?.data || [];
-    const options: SelectOptionItem[] = items.map((i) => ({
+    const options: SelectOptionItem<CurrencyCode>[] = items.map((i) => ({
         label: `${i.name} (${i.code.toUpperCase()}) ${i.symbol}`,
         value: i.code,
     }));
 
     options.push({
-        value: "-1",
+        value: "-1" as CurrencyCode,
         label: (
             <>
                 <p>

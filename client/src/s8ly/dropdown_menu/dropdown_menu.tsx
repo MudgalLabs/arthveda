@@ -43,7 +43,7 @@ const DropdownMenuContent: FC<DropdownMenuContentProps> = ({
                 ref={ref}
             >
                 {children}
-                <DropdownMenuPrimitive.Arrow fill="var(--color-border-muted)" />
+                <DropdownMenuPrimitive.Arrow fill="var(--color-accent)" />
             </DropdownMenuPrimitive.Content>
         </DropdownMenuPrimitive.Portal>
     );

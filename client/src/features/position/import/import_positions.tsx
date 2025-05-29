@@ -19,15 +19,24 @@ import {
     DialogTitle,
     DialogTrigger,
     DialogClose,
+    Tooltip,
 } from "@/s8ly";
 import { useMemo, useState } from "react";
 import { PositionsTable } from "@/features/position/components/list_table";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { ROUTES } from "@/routes";
+import { CurrencyCode } from "@/lib/api/currency";
+import { DecimalString } from "@/lib/types";
+import { CurrencySelect } from "@/components/select/currency_select";
+import { DecimalInput } from "@/components/input/decimal_input";
+import { IconInfo } from "@/components/icons";
 
 export const ImportPositions = () => {
-    const [file, setFile] = useState<File>();
     const [brokerID, setBrokerID] = useState<string>("");
+    const [file, setFile] = useState<File>();
+    const [currency, setCurrency] = useState<CurrencyCode>("inr");
+    const [riskAmount, setRiskAmount] = useState<DecimalString>("");
+
     const [data, setData] = useState<ImportPositionsResponse>();
     // Show the confirm screen if we have positions after importing.
     const [showConfirm, setShowConfirm] = useState(false);
@@ -50,14 +59,14 @@ export const ImportPositions = () => {
             mutateAsync({
                 file,
                 broker_id: brokerID,
+                currency: currency,
+                risk_amount: riskAmount,
             }),
             {
                 loading: "Parsing file",
                 success: (res: any) => {
-                    console.log("Import response:", res);
                     const data = res.data.data as ImportPositionsResponse;
 
-                    console.log("Parsed data:", data);
                     if (data.positions.length > 0) {
                         let message = `Found ${data.positions_count} positions`;
 
@@ -83,6 +92,8 @@ export const ImportPositions = () => {
             mutateAsync({
                 file,
                 broker_id: brokerID,
+                currency: currency,
+                risk_amount: riskAmount,
                 confirm: true,
             }),
             {
@@ -180,15 +191,40 @@ export const ImportPositions = () => {
             return (
                 <form onSubmit={handleStartImport}>
                     <div className="flex flex-col gap-x-16 gap-y-4 sm:flex-row">
-                        <WithLabel Label={<Label>Broker</Label>}>
+                        <WithLabel Label={<Label>Broker *</Label>}>
                             <BrokerSelect
                                 value={brokerID}
                                 onValueChange={(v) => setBrokerID(v)}
                             />
                         </WithLabel>
 
-                        <WithLabel Label={<Label>File</Label>}>
+                        <WithLabel Label={<Label>File *</Label>}>
                             <Input type="file" onChange={handleFileChange} />
+                        </WithLabel>
+
+                        <WithLabel Label={<Label>Currency</Label>}>
+                            <CurrencySelect
+                                value={currency}
+                                onValueChange={(v) => setCurrency(v)}
+                            />
+                        </WithLabel>
+
+                        <WithLabel
+                            Label={
+                                <div className="flex items-center gap-x-2">
+                                    <Label>Risk Amount</Label>
+                                    <Tooltip content="Amount you risked on each position">
+                                        <IconInfo size={14} />
+                                    </Tooltip>
+                                </div>
+                            }
+                        >
+                            <DecimalInput
+                                kind="amount"
+                                currency={currency}
+                                value={riskAmount}
+                                onChange={(e) => setRiskAmount(e.target.value)}
+                            />
                         </WithLabel>
                     </div>
 

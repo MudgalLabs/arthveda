@@ -65,9 +65,9 @@ type CreatePayload struct {
 	ComputePayload
 	CreatedBy uuid.UUID
 
-	Symbol     string            `json:"symbol"`
-	Instrument Instrument        `json:"instrument"`
-	Currency   currency.Currency `json:"currency"`
+	Symbol     string                `json:"symbol"`
+	Instrument Instrument            `json:"instrument"`
+	Currency   currency.CurrencyCode `json:"currency"`
 }
 
 func (s *Service) Create(ctx context.Context, payload CreatePayload) (*Position, service.Error, error) {
@@ -116,9 +116,17 @@ func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchRes
 }
 
 type ImportPayload struct {
-	File     multipart.File
+	// The excel file from which we will import positions.
+	// These files are expected to be in .xlsx format and are provided by a broker.
+	File multipart.File `form:"file"`
+	// Broker ID is the ID of the broker from which the positions are being imported.
 	BrokerID uuid.UUID `form:"broker_id"`
-	Confirm  bool
+	// Currency is the currency in which the positions are denominated.
+	Currency currency.CurrencyCode `form:"currency"`
+	// RiskAmount is the risk amount that will be used to compute R-Factor.
+	RiskAmount decimal.Decimal `form:"risk_amount"`
+	// Confirm is a boolean flag to indicate whether the positions should be created in the database.
+	Confirm bool
 }
 
 type ImportResult struct {
@@ -300,7 +308,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 			// Use the compute function to update the position state
 			computePayload := ComputePayload{
-				RiskAmount:    decimal.Zero,
+				RiskAmount:    payload.RiskAmount,
 				ChargesAmount: decimal.Zero,
 				Trades:        convertTradesToCreatePayload(openPosition.Trades),
 			}
@@ -333,7 +341,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 			// Initialize the position with the first trade
 			computePayload := ComputePayload{
-				RiskAmount:    decimal.Zero,
+				RiskAmount:    payload.RiskAmount,
 				ChargesAmount: decimal.Zero,
 				Trades:        []trade.CreatePayload{tradePayload},
 			}
@@ -357,7 +365,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				CreatedAt:                   now,
 				Symbol:                      symbol,
 				Instrument:                  instrument,
-				Currency:                    currency.CurrencyINR,
+				Currency:                    payload.Currency,
 				Trades:                      trades,
 				Direction:                   computeResult.Direction,
 				Status:                      computeResult.Status,

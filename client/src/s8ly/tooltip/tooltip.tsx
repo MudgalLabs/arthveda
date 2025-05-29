@@ -43,7 +43,7 @@ export const Tooltip: FC<TooltipProps> = ({
             <div className="opacity-0 transition-opacity duration-150 ease-in-out peer-hover:opacity-100">
                 <TooltipPrimitive.Content
                     className={cn(
-                        "bg-muted border-border-muted text-foreground 0 z-50 m-2 rounded-md border-1 px-3 py-2 text-sm font-medium",
+                        "bg-muted border-border text-foreground 0 z-50 m-2 rounded-md border-1 px-3 py-2 text-sm font-medium",
                         contentPropsClassName
                     )}
                     {...contentPropsRest}
@@ -52,7 +52,7 @@ export const Tooltip: FC<TooltipProps> = ({
                     <TooltipPrimitive.Arrow
                         width={11}
                         height={5}
-                        fill="var(--color-border-muted)"
+                        fill="var(--color-accent)"
                     />
                 </TooltipPrimitive.Content>
             </div>

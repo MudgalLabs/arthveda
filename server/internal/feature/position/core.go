@@ -19,11 +19,11 @@ type Position struct {
 	// Data provided by the user
 	//
 
-	Symbol        string            `json:"symbol" db:"symbol"`
-	Instrument    Instrument        `json:"instrument" db:"instrument"`
-	Currency      currency.Currency `json:"currency" db:"currency"`
-	RiskAmount    decimal.Decimal   `json:"risk_amount" db:"risk_amount"`
-	ChargesAmount decimal.Decimal   `json:"charges_amount" db:"charges_amount"`
+	Symbol        string                `json:"symbol" db:"symbol"`
+	Instrument    Instrument            `json:"instrument" db:"instrument"`
+	Currency      currency.CurrencyCode `json:"currency" db:"currency"`
+	RiskAmount    decimal.Decimal       `json:"risk_amount" db:"risk_amount"`
+	ChargesAmount decimal.Decimal       `json:"charges_amount" db:"charges_amount"`
 
 	//
 	// Data computed by Arthveda based on data provided by user mentioned above & related trade(s).
