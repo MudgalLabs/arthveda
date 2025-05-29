@@ -104,6 +104,25 @@ select:-webkit-autofill:focus {
     transition: background-color 1000s ease-in-out 0s;
 }
 
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-accent-muted);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-accent-muted);
+}
+
+::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
 /* Typography */
 
 @utility big-heading {

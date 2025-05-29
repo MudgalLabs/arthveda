@@ -38,3 +38,5 @@ export { LuTrendingUp as IconTrendingUp } from "react-icons/lu";
 export { LuTrendingDown as IconTrendingDown } from "react-icons/lu";
 export { LuTriangleAlert as IconAlert } from "react-icons/lu";
 export { LuInfo as IconInfo } from "react-icons/lu";
+export { LuColumns3 as IconColumns } from "react-icons/lu";
+export { LuListFilter as IconListFilter } from "react-icons/lu";

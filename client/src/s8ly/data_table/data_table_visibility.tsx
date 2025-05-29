@@ -7,7 +7,7 @@ import {
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
 } from "@/s8ly";
-import { IconSettings2 } from "@/components/icons";
+import { IconColumns } from "@/components/icons";
 
 interface DataTableVisibilityProps<TData> {
     table: Table<TData>;
@@ -21,10 +21,9 @@ export function DataTableVisibility<TData>({
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="outline"
-                    size="small"
-                    className="data-[state=open]:bg-accent data-[state=open]:text-foreground h-8"
+                    className="data-[state=open]:bg-accent data-[state=open]:text-foreground h-8 font-normal"
                 >
-                    <IconSettings2 />
+                    <IconColumns size={20} />
                     Columns
                 </Button>
             </DropdownMenuTrigger>
@@ -45,6 +44,7 @@ export function DataTableVisibility<TData>({
                                 onCheckedChange={(value) =>
                                     column.toggleVisibility(!!value)
                                 }
+                                onSelect={(e) => e.preventDefault()}
                             >
                                 {column.columnDef.meta
                                     ?.columnVisibilityHeader || column.id}

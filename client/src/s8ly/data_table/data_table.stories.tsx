@@ -27,7 +27,6 @@ import {
     TableHead,
     TableRow,
     TableCell,
-    Checkbox,
     Button,
     DropdownMenu,
     DropdownMenuTrigger,
@@ -49,6 +48,7 @@ import {
 
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
+import { getDataTableSelectColumnDef } from "./data_table_select_column";
 
 const meta = {
     title: "s8ly/DataTable",
@@ -100,30 +100,7 @@ type Payment = {
 };
 
 const columns: ColumnDef<Payment>[] = [
-    {
-        id: "select",
-        header: ({ table }) => (
-            <Checkbox
-                checked={
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && "indeterminate")
-                }
-                onCheckedChange={(value) =>
-                    table.toggleAllPageRowsSelected(!!value)
-                }
-                aria-label="Select all"
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
-            />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-    },
+    getDataTableSelectColumnDef(),
     {
         accessorKey: "status",
         header: "Status",
@@ -1126,32 +1103,7 @@ const data = [
 
 export function Complex() {
     const columns: ColumnDef<Task>[] = [
-        {
-            id: "select",
-            header: ({ table }) => (
-                <Checkbox
-                    checked={
-                        table.getIsAllPageRowsSelected() ||
-                        (table.getIsSomePageRowsSelected() && "indeterminate")
-                    }
-                    onCheckedChange={(value) =>
-                        table.toggleAllPageRowsSelected(!!value)
-                    }
-                    aria-label="Select all"
-                    className="translate-y-[2px]"
-                />
-            ),
-            cell: ({ row }) => (
-                <Checkbox
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(value) => row.toggleSelected(!!value)}
-                    aria-label="Select row"
-                    className="translate-y-[2px]"
-                />
-            ),
-            enableSorting: false,
-            enableHiding: false,
-        },
+        getDataTableSelectColumnDef(),
         {
             accessorKey: "id",
             header: ({ column }) => (

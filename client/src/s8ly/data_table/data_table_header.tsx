@@ -30,15 +30,15 @@ export function DataTableColumnHeader<TData, TValue>({
             <Button
                 variant="ghost"
                 size="small"
-                className="mx-1 h-8 w-full justify-start"
+                className={"mx-1 h-8 w-full justify-start"}
                 onClick={() => column.toggleSorting()}
                 disabled={disabled}
             >
                 <span>{title}</span>
                 {column.getIsSorted() === "desc" ? (
-                    <IconArrowDown />
+                    <IconArrowDown className="text-foreground" />
                 ) : column.getIsSorted() === "asc" ? (
-                    <IconArrowUp />
+                    <IconArrowUp className="text-foreground" />
                 ) : (
                     <IconChevronsUpDown />
                 )}
