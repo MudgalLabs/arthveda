@@ -127,7 +127,7 @@ function AddPosition() {
         <>
             <PageHeading heading="Add Position" loading={isComputing} />
 
-            <div className="flex items-stretch gap-x-6">
+            <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row">
                 <PnLCard
                     charges_amount={state.charges_amount}
                     charges_as_percentage_of_net_pnl={
@@ -170,7 +170,7 @@ function AddPosition() {
 
             <div className="h-15" />
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-y-4 sm:flex-row sm:justify-between">
                 <WithDebounce
                     state={state.symbol}
                     onDebounce={(v) => {

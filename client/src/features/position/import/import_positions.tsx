@@ -179,7 +179,7 @@ export const ImportPositions = () => {
         } else {
             return (
                 <form onSubmit={handleStartImport}>
-                    <div className="flex flex-col gap-x-16 gap-y-8 sm:flex-row">
+                    <div className="flex flex-col gap-x-16 gap-y-4 sm:flex-row">
                         <WithLabel Label={<Label>Broker</Label>}>
                             <BrokerSelect
                                 value={brokerID}
