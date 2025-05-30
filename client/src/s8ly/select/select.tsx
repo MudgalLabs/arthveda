@@ -102,7 +102,7 @@ const Select: FC<SelectProps> = ({
                 <SelectPrimitive.Content
                     position="popper"
                     className={cn(
-                        "border-border bg-background mt-1 w-[240px] rounded-md border-1 text-sm",
+                        "border-border bg-background z-100 mt-1 w-[240px] rounded-md border-1 text-sm",
                         classNames?.content
                     )}
                 >

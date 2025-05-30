@@ -13,6 +13,7 @@ const tagVariants = cva("w-fit text-center font-medium rounded-sm border-1", {
                 "bg-success-bg border-success-border text-success-foreground",
             destructive:
                 "bg-error-bg border-error-border text-error-foreground",
+            filter: "bg-muted border-border text-foreground flex items-center gap-x-2 px-2 py-1 text-sm",
         },
         size: {
             default: "text-sm px-3 py-1",

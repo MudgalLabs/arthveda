@@ -18,6 +18,13 @@ import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
 import { PositionListFilters } from "@/features/position/components/position_list_filters";
+import { Tag, Button } from "@/s8ly";
+import {
+    defaultPositionSearchFilters,
+    useListPositions,
+    positionSearchFiltersLabel,
+    positionSearchFiltersValueFormatter,
+} from "@/features/position/list/list_positions_context";
 
 export interface PositionListTable {
     positions: Position[];
@@ -39,6 +46,17 @@ export const PositionListTable: FC<PositionListTable> = memo(
         isFetching,
         isLoading,
     }) => {
+        const { appliedFilters, filters, resetFilter, resetFilters } =
+            useListPositions();
+
+        const activeFilters = Object.entries(appliedFilters).filter(
+            ([key, value]) =>
+                value !==
+                    defaultPositionSearchFilters[
+                        key as keyof typeof defaultPositionSearchFilters
+                    ] && !key.includes("operator") // Don't show operator as a filter
+        );
+
         if (isError) {
             return (
                 <p className="text-foreground-red">Failed to fetch positions</p>
@@ -52,6 +70,42 @@ export const PositionListTable: FC<PositionListTable> = memo(
         if (positions) {
             return (
                 <>
+                    {activeFilters.length > 0 && (
+                        <div className="mb-4 flex flex-wrap items-center gap-2">
+                            {activeFilters.map(([key, value]) => (
+                                <Tag
+                                    key={key}
+                                    variant="filter"
+                                    className="cursor-pointer"
+                                >
+                                    {
+                                        positionSearchFiltersLabel[
+                                            key as keyof typeof filters
+                                        ]
+                                    }
+                                    :{" "}
+                                    {positionSearchFiltersValueFormatter[
+                                        key as keyof typeof positionSearchFiltersValueFormatter
+                                    ]?.(value, appliedFilters) ?? String(value)}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                            resetFilter(
+                                                key as keyof typeof filters
+                                            )
+                                        }
+                                    >
+                                        ✕
+                                    </Button>
+                                </Tag>
+                            ))}
+                            <Button variant="link" onClick={resetFilters}>
+                                Reset Filters
+                            </Button>
+                        </div>
+                    )}
+
                     <DataTableSmart
                         columns={columns}
                         data={positions}

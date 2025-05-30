@@ -1,5 +1,6 @@
 import { CurrencyCode } from "@/lib/api/currency";
 import { Trade } from "@/features/trade/trade";
+import { DecimalString } from "@/lib/types";
 
 type PositionInstrument = "equity" | "future" | "option";
 
@@ -27,38 +28,44 @@ function positionDirectionToString(position: PositionDirection): string {
 
 type PositionStatus = "open" | "breakeven" | "win" | "loss";
 
-function positionStatusToString(position: PositionDirection): string {
-    switch (position) {
-        case "long":
-            return "Long";
-        case "short":
-            return "Short";
+function positionStatusToString(status: PositionStatus): string {
+    switch (status) {
+        case "open":
+            return "Open";
+        case "breakeven":
+            return "Breakeven";
+        case "win":
+            return "Win";
+        case "loss":
+            return "Loss";
+        default:
+            return status;
     }
 }
 
 interface Position {
-    id: number;
-    user_id: number;
+    id: string;
+    created_by: string;
     created_at: Date;
     updated_at: Date | null;
 
     symbol: string;
     instrument: PositionInstrument;
     currency: CurrencyCode;
-    risk_amount: string;
-    charges_amount: string;
+    risk_amount: DecimalString;
+    charges_amount: DecimalString;
 
     direction: PositionDirection;
     status: PositionStatus;
     opened_at: Date;
     closed_at: Date | null;
-    gross_pnl_amount: string;
-    net_pnl_amount: string;
-    r_factor: number;
-    net_return_percentage: number;
-    charges_as_percentage_of_net_pnl: number;
-    open_quantity: string;
-    open_average_price_amount: string;
+    gross_pnl_amount: DecimalString;
+    net_pnl_amount: DecimalString;
+    r_factor: DecimalString;
+    net_return_percentage: DecimalString;
+    charges_as_percentage_of_net_pnl: DecimalString;
+    open_quantity: DecimalString;
+    open_average_price_amount: DecimalString;
 
     trades: Trade[];
 }

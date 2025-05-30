@@ -36,6 +36,7 @@ import {
     DropdownMenuSeparator,
     Input,
     DropdownMenuCheckboxItem,
+    DataTable,
 } from "@/s8ly";
 import {
     IconArrowDown,
@@ -49,6 +50,9 @@ import {
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { getDataTableSelectColumnDef } from "./data_table_select_column";
+import { PositionListFilters } from "@/features/position/components/position_list_filters";
+import { DataTableVisibility } from "./data_table_visibility";
+import { DataTablePagination } from "./data_table_pagination";
 
 const meta = {
     title: "s8ly/DataTable",
@@ -1199,5 +1203,25 @@ export function Complex() {
         },
     ];
 
-    return <DataTableSmart columns={columns} data={data} />;
+    return (
+        <DataTableSmart columns={columns} data={data}>
+            {(table) => (
+                <>
+                    <div className="space-y-4">
+                        <div className="flex justify-end gap-x-2">
+                            <PositionListFilters />
+                            <DataTableVisibility table={table} />
+                        </div>
+
+                        <DataTable table={table} />
+
+                        <DataTablePagination
+                            table={table}
+                            total={data.length}
+                        />
+                    </div>
+                </>
+            )}
+        </DataTableSmart>
+    );
 }

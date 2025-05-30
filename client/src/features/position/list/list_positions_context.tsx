@@ -21,9 +21,21 @@ import { DataTableState } from "@/s8ly/data_table/data_table_smart";
 import { apiErrorHandler } from "@/lib/api";
 import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
-import { CompareOperator } from "@/components/select/compare_select";
+import {
+    CompareOperator,
+    compareOperatorToString,
+} from "@/components/select/compare_select";
+import { formatDate } from "@/lib/utils";
+import {
+    positionDirectionToString,
+    positionInstrumentToString,
+    positionStatusToString,
+} from "@/features/position/position";
 
-const defaultPositionSearchFilters: PositionSearchFilters = {
+// TODO: Refactor the filters and everything regarding them to use
+// a more generic approach so that we can reuse it in other places.
+
+export const defaultPositionSearchFilters: PositionSearchFilters = {
     opened: {},
     symbol: "",
     instrument: "",
@@ -41,10 +53,68 @@ const defaultPositionSearchFilters: PositionSearchFilters = {
     charges_percentage_operator: CompareOperator.GTE,
 };
 
+export const positionSearchFiltersLabel: Partial<
+    Record<keyof PositionSearchFilters, string>
+> = {
+    opened: "Opened",
+    symbol: "Symbol",
+    instrument: "Instrument",
+    direction: "Direction",
+    status: "Status",
+    r_factor: "R Factor",
+    gross_pnl: "Gross PnL",
+    net_pnl: "Net PnL",
+    net_return_percentage: "Net Return %",
+    charges_percentage: "Charges %",
+};
+
+export const positionSearchFiltersValueFormatter: Partial<
+    Record<
+        keyof PositionSearchFilters,
+        (value: any, filters: PositionSearchFilters) => string
+    >
+> = {
+    opened: (v) => {
+        if (!v?.from && !v?.to) return "Any";
+        const from = v.from ? formatDate(new Date(v.from)) : "Any";
+        const to = v.to ? formatDate(new Date(v.to)) : "Any";
+        return `${from} - ${to}`;
+    },
+    symbol: (v) => String(v).toUpperCase(),
+    instrument: (v) => positionInstrumentToString(v),
+    direction: (v) => positionDirectionToString(v),
+    status: (v) => positionStatusToString(v),
+    r_factor: (v, filters) => {
+        if (v === "") return "Any";
+        return `${filters.r_factor_operator} ${v}`;
+    },
+    gross_pnl: (v, filters) => {
+        if (v === "" || !filters.gross_pnl_operator) return "Any";
+        return `${compareOperatorToString(filters.gross_pnl_operator)} ${v}`;
+    },
+    net_pnl: (v, filters) => {
+        if (v === "" || !filters.net_pnl_operator) return "Any";
+        return `${compareOperatorToString(filters.net_pnl_operator)} ${v}`;
+    },
+    net_return_percentage: (v, filters) => {
+        if (v === "" || !filters.net_return_percentage_operator) return "Any";
+        return `${compareOperatorToString(filters.net_return_percentage_operator)} ${v}%`;
+    },
+    charges_percentage: (v, filters) => {
+        if (v === "" || !filters.charges_percentage_operator) return "Any";
+        return `${compareOperatorToString(filters.charges_percentage_operator)} ${v}%`;
+    },
+};
+
 function prepareFilters(filters: PositionSearchFilters): PositionSearchFilters {
+    if (filters.gross_pnl === "") {
+        filters.gross_pnl = String(filters.gross_pnl);
+    }
+
+    //
     // Remove filter if it's empty because the client expects a number.
     // Empty means don't apply this filter.
-
+    //
     if (filters.r_factor === "") {
         delete filters.r_factor;
     }
@@ -59,11 +129,36 @@ function prepareFilters(filters: PositionSearchFilters): PositionSearchFilters {
     return filters;
 }
 
+const URL_KEY_FILTERS = "filters";
+
+function getFiltersParser(): Record<string, (value: any) => string> {
+    const parser: Partial<
+        Record<keyof PositionSearchFilters, (value: any) => any>
+    > = {
+        gross_pnl: String,
+        net_pnl: String,
+        r_factor: String,
+    };
+
+    const finalParser: Record<string, (value: any) => any> = {};
+
+    // I know this looks scary because of typing but all that I am doing here
+    // is appending "filter.<filter>" to match qs dot method.
+    Object.keys(parser).forEach((key) => {
+        finalParser[`${URL_KEY_FILTERS}.${key}`] =
+            parser[key as keyof PositionSearchFilters] ||
+            ((value: any) => value);
+    });
+
+    return finalParser;
+}
+
 interface ListPositionsContextType {
     queryResult: UseQueryResult<ApiRes<PositionSearchResponse>, Error>;
     tableState: DataTableState;
     setTableState: React.Dispatch<React.SetStateAction<DataTableState>>;
     filters: PositionSearchFilters;
+    appliedFilters: PositionSearchFilters;
     updateFilter: <K extends keyof PositionSearchFilters>(
         key: K,
         value: PositionSearchFilters[K]
@@ -81,17 +176,18 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
     children,
 }) => {
     const [tableState, setTableState] = useDataTableState(ROUTES.positionList);
-    const [reactiveFilters, setReactiveFilters] =
+    const [appliedFilters, setAppliedFilters] =
         useURLState<PositionSearchFilters>(
-            "filters",
-            defaultPositionSearchFilters
+            URL_KEY_FILTERS,
+            defaultPositionSearchFilters,
+            getFiltersParser()
         );
     // We keep local state of filters and only update the `searchFilters`
     // when user clicks on the `Search` button.
-    const [filters, setFilters] = useState(reactiveFilters);
+    const [filters, setFilters] = useState(appliedFilters);
 
     const queryResult = apiHooks.position.useSearch({
-        filters: prepareFilters(reactiveFilters),
+        filters: prepareFilters(appliedFilters),
         pagination: {
             page: tableState.pagination.pageIndex + 1,
             limit: tableState.pagination.pageSize,
@@ -124,18 +220,22 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
                 ...prev,
                 [key]: defaultPositionSearchFilters[key],
             }));
+            setAppliedFilters((prev) => ({
+                ...prev,
+                [key]: defaultPositionSearchFilters[key],
+            }));
         },
-        [setFilters]
+        []
     );
 
     const resetFilters = useCallback(() => {
         setFilters(defaultPositionSearchFilters);
-        setReactiveFilters(defaultPositionSearchFilters);
+        setAppliedFilters(defaultPositionSearchFilters);
     }, []);
 
     const applyFilters = useCallback(() => {
-        setReactiveFilters(filters);
-    }, [filters, setReactiveFilters]);
+        setAppliedFilters(filters);
+    }, [filters]);
 
     useEffectOnce(
         (deps) => {
@@ -153,7 +253,7 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
             tableState,
             setTableState,
             filters,
-            setFilters,
+            appliedFilters,
             updateFilter,
             resetFilter,
             resetFilters,
@@ -164,7 +264,7 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
             tableState,
             setTableState,
             filters,
-            setFilters,
+            appliedFilters,
             updateFilter,
             resetFilter,
             resetFilters,

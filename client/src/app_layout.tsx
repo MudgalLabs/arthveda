@@ -7,7 +7,7 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
     return (
         <div className="fixed inset-0 flex flex-col overflow-hidden">
             {/* Topbar */}
-            <div className="z-50 h-[56px] shrink-0">
+            <div className="z-10 h-[56px] shrink-0">
                 <Topbar />
             </div>
 

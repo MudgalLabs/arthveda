@@ -12,7 +12,10 @@ import { WithCompare } from "@/components/with_compare";
 import { CompareSelect } from "@/components/select/compare_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { WithDebounce } from "@/components/with_debounce";
-import { useListPositions } from "@/features/position/list/list_positions_context";
+import {
+    useListPositions,
+    positionSearchFiltersLabel,
+} from "@/features/position/list/list_positions_context";
 
 export const PositionListFilters = memo(({}: {}) => {
     const { queryResult, filters, updateFilter, applyFilters, resetFilters } =
@@ -63,7 +66,15 @@ export const PositionListFilters = memo(({}: {}) => {
 
                             <form className="mt-8">
                                 <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                    <WithLabel Label={<Label>Opened</Label>}>
+                                    <WithLabel
+                                        Label={
+                                            <Label>
+                                                {
+                                                    positionSearchFiltersLabel.opened
+                                                }
+                                            </Label>
+                                        }
+                                    >
                                         <DatePicker
                                             mode="range"
                                             config={{ dates: { toggle: true } }}
@@ -87,7 +98,13 @@ export const PositionListFilters = memo(({}: {}) => {
                                     >
                                         {(value, setValue) => (
                                             <WithLabel
-                                                Label={<Label>Symbol</Label>}
+                                                Label={
+                                                    <Label>
+                                                        {
+                                                            positionSearchFiltersLabel.symbol
+                                                        }
+                                                    </Label>
+                                                }
                                             >
                                                 <Input
                                                     value={value}
@@ -108,7 +125,11 @@ export const PositionListFilters = memo(({}: {}) => {
                                         {(value, setValue) => (
                                             <WithLabel
                                                 Label={
-                                                    <Label>Instrument</Label>
+                                                    <Label>
+                                                        {
+                                                            positionSearchFiltersLabel.instrument
+                                                        }
+                                                    </Label>
                                                 }
                                             >
                                                 <InstrumentToggle
@@ -121,7 +142,15 @@ export const PositionListFilters = memo(({}: {}) => {
                                         )}
                                     </WithDebounce>
 
-                                    <WithLabel Label={<Label>Direction</Label>}>
+                                    <WithLabel
+                                        Label={
+                                            <Label>
+                                                {
+                                                    positionSearchFiltersLabel.direction
+                                                }
+                                            </Label>
+                                        }
+                                    >
                                         <DirectionToggle
                                             value={filters.direction}
                                             onChange={(v) =>
@@ -130,7 +159,15 @@ export const PositionListFilters = memo(({}: {}) => {
                                         />
                                     </WithLabel>
 
-                                    <WithLabel Label={<Label>Status</Label>}>
+                                    <WithLabel
+                                        Label={
+                                            <Label>
+                                                {
+                                                    positionSearchFiltersLabel.status
+                                                }
+                                            </Label>
+                                        }
+                                    >
                                         <PositionStatusSelect
                                             value={filters.status}
                                             onValueChange={(v) =>
@@ -147,7 +184,13 @@ export const PositionListFilters = memo(({}: {}) => {
                                     >
                                         {(value, setValue) => (
                                             <WithLabel
-                                                Label={<Label>R Factor</Label>}
+                                                Label={
+                                                    <Label>
+                                                        {
+                                                            positionSearchFiltersLabel.r_factor
+                                                        }
+                                                    </Label>
+                                                }
                                             >
                                                 <WithCompare
                                                     Compare={
@@ -196,7 +239,13 @@ export const PositionListFilters = memo(({}: {}) => {
                                     >
                                         {(value, setValue) => (
                                             <WithLabel
-                                                Label={<Label>Gross PnL</Label>}
+                                                Label={
+                                                    <Label>
+                                                        {
+                                                            positionSearchFiltersLabel.gross_pnl
+                                                        }
+                                                    </Label>
+                                                }
                                             >
                                                 <WithCompare
                                                     Compare={
@@ -237,7 +286,13 @@ export const PositionListFilters = memo(({}: {}) => {
                                     >
                                         {(value, setValue) => (
                                             <WithLabel
-                                                Label={<Label>Net PnL</Label>}
+                                                Label={
+                                                    <Label>
+                                                        {
+                                                            positionSearchFiltersLabel.net_pnl
+                                                        }
+                                                    </Label>
+                                                }
                                             >
                                                 <WithCompare
                                                     Compare={
@@ -282,7 +337,11 @@ export const PositionListFilters = memo(({}: {}) => {
                                         {(value, setValue) => (
                                             <WithLabel
                                                 Label={
-                                                    <Label>Net Return %</Label>
+                                                    <Label>
+                                                        {
+                                                            positionSearchFiltersLabel.net_return_percentage
+                                                        }
+                                                    </Label>
                                                 }
                                             >
                                                 <WithCompare
@@ -337,7 +396,9 @@ export const PositionListFilters = memo(({}: {}) => {
                                             <WithLabel
                                                 Label={
                                                     <Label>
-                                                        Charges % of Net PnL
+                                                        {
+                                                            positionSearchFiltersLabel.charges_percentage
+                                                        }
                                                     </Label>
                                                 }
                                             >

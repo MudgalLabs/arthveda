@@ -189,7 +189,7 @@ const DropdownMenuSubContent = ({
     return (
         <DropdownMenuPrimitive.SubContent
             className={cn(
-                "bg-muted text-muted-foreground border-border z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border-1 p-1 shadow-lg",
+                "bg-muted text-muted-foreground border-border z-20 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border-1 p-1 shadow-lg",
                 className
             )}
             {...props}
