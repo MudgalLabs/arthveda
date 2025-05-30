@@ -107,12 +107,15 @@ export function DecimalInput(props: DecimalInputProps) {
     const variant = useMemo(() => {
         // If the variantProp is passed as error, we use that.
         if (variantProp === "error") return "error";
+
         // If it's passed as default, we check if there is an error.
         if (variantProp === "default") {
             if (error) return "error";
         }
+
         // If the variantProp is not passed, we check if there is an error.
         if (error) return "error";
+
         // Otherwise, we return the default variant.
         return "default";
     }, [variantProp, error]);

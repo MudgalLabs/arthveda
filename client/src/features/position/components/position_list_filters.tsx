@@ -2,7 +2,7 @@ import { memo, useState } from "react";
 import { Drawer } from "vaul";
 
 import { Button, DatePicker, Input, Label } from "@/s8ly";
-import { IconListFilter } from "@/components/icons";
+import { IconCross, IconListFilter } from "@/components/icons";
 import { dateRangeFilterToDatesArray } from "@/lib/utils";
 import { WithLabel } from "@/components/with_label";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
@@ -15,384 +15,403 @@ import { WithDebounce } from "@/components/with_debounce";
 import { useListPositions } from "@/features/position/list/list_positions_context";
 
 export const PositionListFilters = memo(({}: {}) => {
-    const { queryResult, searchFilters, setSearchFilters } = useListPositions();
-    // We keep local state of filters and only update the `searchFilters`
-    // when user clicks on the `Search` button.
-    const [localFilters, setLocalFilters] = useState(searchFilters);
+    const { queryResult, filters, updateFilter, applyFilters, resetFilters } =
+        useListPositions();
+
+    const [open, setOpen] = useState(false);
 
     return (
-        <Drawer.Root>
-            <Drawer.Trigger asChild>
-                <Button variant="outline">
-                    <IconListFilter className="text-foreground" /> Filters
-                </Button>
-            </Drawer.Trigger>
+        <>
+            {open && (
+                <div
+                    id="drawer-overlay"
+                    className="fixed inset-0 z-40 bg-black/40"
+                    onPointerDown={() => setOpen(false)}
+                />
+            )}
 
-            <Drawer.Portal>
-                <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-                <Drawer.Content className="fixed right-0 bottom-0 left-0 mt-24 flex h-[80%] flex-col rounded-t-[10px] bg-gray-100 outline-none lg:h-[480px]">
-                    <div className="bg-background flex-1 overflow-y-auto rounded-t-[10px] p-4">
-                        <Drawer.Handle />
-                        <Drawer.Title className="text-foreground heading mt-2">
-                            Filters
-                        </Drawer.Title>
-                        <Drawer.Description className="text-foreground-muted text-sm">
-                            Use the filters below to narrow down your positions.
-                            Click on "Search" to apply the filters.
-                        </Drawer.Description>
+            <Drawer.Root modal={false} open={open} onOpenChange={setOpen}>
+                <Drawer.Trigger asChild>
+                    <Button variant="outline">
+                        <IconListFilter className="text-foreground" /> Filters
+                    </Button>
+                </Drawer.Trigger>
 
-                        <form className="mt-8">
-                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-                                <WithLabel Label={<Label>Opened</Label>}>
-                                    <DatePicker
-                                        mode="range"
-                                        config={{ dates: { toggle: true } }}
-                                        dates={dateRangeFilterToDatesArray(
-                                            localFilters.opened
-                                        )}
-                                        onDatesChange={(v) =>
-                                            setLocalFilters((prev) => ({
-                                                ...prev,
-                                                opened: {
-                                                    from: v[0],
-                                                    to: v[1],
-                                                },
-                                            }))
-                                        }
-                                    />
-                                </WithLabel>
+                <Drawer.Portal>
+                    <Drawer.Content className="bg-background border-border-muted fixed right-0 bottom-0 left-0 z-50 mt-24 flex h-[80%] flex-col rounded-t-[10px] border-1 outline-none lg:h-fit">
+                        <div className="mx-auto max-w-[1440px] flex-1 overflow-y-auto rounded-t-[10px] p-4">
+                            <Drawer.Handle />
 
-                                <WithDebounce
-                                    state={localFilters.symbol}
-                                    onDebounce={(v) => {
-                                        setLocalFilters((prev) => ({
-                                            ...prev,
-                                            symbol: v,
-                                        }));
-                                    }}
-                                >
-                                    {(value, setValue) => (
-                                        <WithLabel
-                                            Label={<Label>Symbol</Label>}
-                                        >
-                                            <Input
-                                                value={value}
-                                                onChange={(e) =>
-                                                    setValue(e.target.value)
-                                                }
-                                            />
-                                        </WithLabel>
-                                    )}
-                                </WithDebounce>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Drawer.Title className="text-foreground heading mt-2">
+                                        Filters
+                                    </Drawer.Title>
+                                    <Drawer.Description className="text-foreground-muted text-sm">
+                                        Use the filters below to narrow down
+                                        your positions. Click on "Search" to
+                                        apply the filters.
+                                    </Drawer.Description>
+                                </div>
 
-                                <WithDebounce
-                                    state={localFilters.instrument}
-                                    onDebounce={(v) => {
-                                        setLocalFilters((prev) => ({
-                                            ...prev,
-                                            instrument: v,
-                                        }));
-                                    }}
-                                >
-                                    {(value, setValue) => (
-                                        <WithLabel
-                                            Label={<Label>Instrument</Label>}
-                                        >
-                                            <InstrumentToggle
-                                                value={value}
-                                                onChange={(v) => setValue(v)}
-                                            />
-                                        </WithLabel>
-                                    )}
-                                </WithDebounce>
-
-                                <WithLabel Label={<Label>Direction</Label>}>
-                                    <DirectionToggle
-                                        value={localFilters.direction}
-                                        onChange={(v) =>
-                                            setLocalFilters((prev) => ({
-                                                ...prev,
-                                                direction: v,
-                                            }))
-                                        }
-                                    />
-                                </WithLabel>
-
-                                <WithLabel Label={<Label>Status</Label>}>
-                                    <PositionStatusSelect
-                                        value={localFilters.status}
-                                        onValueChange={(v) =>
-                                            setLocalFilters((prev) => ({
-                                                ...prev,
-                                                status: v,
-                                            }))
-                                        }
-                                    />
-                                </WithLabel>
-
-                                <WithDebounce
-                                    state={localFilters.r_factor}
-                                    onDebounce={(v) => {
-                                        setLocalFilters((prev) => ({
-                                            ...prev,
-                                            r_factor: v,
-                                        }));
-                                    }}
-                                >
-                                    {(value, setValue) => (
-                                        <WithLabel
-                                            Label={<Label>R Factor</Label>}
-                                        >
-                                            <WithCompare
-                                                Compare={
-                                                    <CompareSelect
-                                                        value={
-                                                            localFilters.r_factor_operator
-                                                        }
-                                                        onValueChange={(v) =>
-                                                            setLocalFilters(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    r_factor_operator:
-                                                                        v,
-                                                                })
-                                                            )
-                                                        }
-                                                    />
-                                                }
-                                            >
-                                                <Input
-                                                    className="w-24!"
-                                                    type="number"
-                                                    step="0.01"
-                                                    value={value}
-                                                    onChange={(e) =>
-                                                        setValue(
-                                                            e.target.value
-                                                                ? Number(
-                                                                      e.target
-                                                                          .value
-                                                                  )
-                                                                : ""
-                                                        )
-                                                    }
-                                                />
-                                            </WithCompare>
-                                        </WithLabel>
-                                    )}
-                                </WithDebounce>
-
-                                <WithDebounce
-                                    state={localFilters.gross_pnl}
-                                    onDebounce={(v) =>
-                                        setLocalFilters((prev) => ({
-                                            ...prev,
-                                            gross_pnl: v,
-                                        }))
-                                    }
-                                >
-                                    {(value, setValue) => (
-                                        <WithLabel
-                                            Label={<Label>Gross PnL</Label>}
-                                        >
-                                            <WithCompare
-                                                Compare={
-                                                    <CompareSelect
-                                                        value={
-                                                            localFilters.gross_pnl_operator
-                                                        }
-                                                        onValueChange={(v) =>
-                                                            setLocalFilters(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    gross_pnl_operator:
-                                                                        v,
-                                                                })
-                                                            )
-                                                        }
-                                                    />
-                                                }
-                                            >
-                                                <DecimalInput
-                                                    kind="amount"
-                                                    value={value}
-                                                    onChange={(e) =>
-                                                        setValue(e.target.value)
-                                                    }
-                                                />
-                                            </WithCompare>
-                                        </WithLabel>
-                                    )}
-                                </WithDebounce>
-
-                                <WithDebounce
-                                    state={localFilters.net_pnl}
-                                    onDebounce={(v) =>
-                                        setLocalFilters((prev) => ({
-                                            ...prev,
-                                            net_pnl: v,
-                                        }))
-                                    }
-                                >
-                                    {(value, setValue) => (
-                                        <WithLabel
-                                            Label={<Label>Net PnL</Label>}
-                                        >
-                                            <WithCompare
-                                                Compare={
-                                                    <CompareSelect
-                                                        value={
-                                                            localFilters.net_pnl_operator
-                                                        }
-                                                        onValueChange={(v) =>
-                                                            setLocalFilters(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    net_pnl_operator:
-                                                                        v,
-                                                                })
-                                                            )
-                                                        }
-                                                    />
-                                                }
-                                            >
-                                                <DecimalInput
-                                                    kind="amount"
-                                                    value={value}
-                                                    onChange={(e) =>
-                                                        setValue(e.target.value)
-                                                    }
-                                                />
-                                            </WithCompare>
-                                        </WithLabel>
-                                    )}
-                                </WithDebounce>
-
-                                <WithDebounce
-                                    state={localFilters.net_return_percentage}
-                                    onDebounce={(v) => {
-                                        setLocalFilters((prev) => ({
-                                            ...prev,
-                                            net_return_percentage: v,
-                                        }));
-                                    }}
-                                >
-                                    {(value, setValue) => (
-                                        <WithLabel
-                                            Label={<Label>Net Return %</Label>}
-                                        >
-                                            <WithCompare
-                                                Compare={
-                                                    <CompareSelect
-                                                        value={
-                                                            localFilters.net_return_percentage_operator
-                                                        }
-                                                        onValueChange={(v) =>
-                                                            setLocalFilters(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    net_return_percentage_operator:
-                                                                        v,
-                                                                })
-                                                            )
-                                                        }
-                                                    />
-                                                }
-                                            >
-                                                <Input
-                                                    className="w-24!"
-                                                    type="number"
-                                                    step="0.01"
-                                                    value={value}
-                                                    onChange={(e) =>
-                                                        setValue(
-                                                            e.target.value
-                                                                ? Number(
-                                                                      e.target
-                                                                          .value
-                                                                  )
-                                                                : ""
-                                                        )
-                                                    }
-                                                />
-                                            </WithCompare>
-                                        </WithLabel>
-                                    )}
-                                </WithDebounce>
-
-                                <WithDebounce
-                                    state={localFilters.charges_percentage}
-                                    onDebounce={(v) =>
-                                        setLocalFilters((prev) => ({
-                                            ...prev,
-                                            charges_percentage: v,
-                                        }))
-                                    }
-                                >
-                                    {(value, setValue) => (
-                                        <WithLabel
-                                            Label={
-                                                <Label>
-                                                    Charges % of Net PnL
-                                                </Label>
-                                            }
-                                        >
-                                            <WithCompare
-                                                Compare={
-                                                    <CompareSelect
-                                                        value={
-                                                            localFilters.charges_percentage_operator
-                                                        }
-                                                        onValueChange={(v) =>
-                                                            setLocalFilters(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    charges_percentage_operator:
-                                                                        v,
-                                                                })
-                                                            )
-                                                        }
-                                                    />
-                                                }
-                                            >
-                                                <Input
-                                                    className="w-24!"
-                                                    type="number"
-                                                    step="0.01"
-                                                    value={value}
-                                                    onChange={(e) =>
-                                                        setValue(
-                                                            e.target.value
-                                                                ? Number(
-                                                                      e.target
-                                                                          .value
-                                                                  )
-                                                                : ""
-                                                        )
-                                                    }
-                                                />
-                                            </WithCompare>
-                                        </WithLabel>
-                                    )}
-                                </WithDebounce>
+                                <Drawer.Close asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <IconCross size={20} />
+                                    </Button>
+                                </Drawer.Close>
                             </div>
 
-                            <div className="h-8" />
+                            <form className="mt-8">
+                                <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                    <WithLabel Label={<Label>Opened</Label>}>
+                                        <DatePicker
+                                            mode="range"
+                                            config={{ dates: { toggle: true } }}
+                                            dates={dateRangeFilterToDatesArray(
+                                                filters.opened
+                                            )}
+                                            onDatesChange={(v) =>
+                                                updateFilter("opened", {
+                                                    from: v[0],
+                                                    to: v[1],
+                                                })
+                                            }
+                                        />
+                                    </WithLabel>
 
-                            <Button
-                                type="submit"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    setSearchFilters(localFilters);
-                                }}
-                                loading={queryResult.isFetching}
-                            >
-                                Search
-                            </Button>
-                        </form>
-                    </div>
-                </Drawer.Content>
-            </Drawer.Portal>
-        </Drawer.Root>
+                                    <WithDebounce
+                                        state={filters.symbol}
+                                        onDebounce={(v) => {
+                                            updateFilter("symbol", v);
+                                        }}
+                                    >
+                                        {(value, setValue) => (
+                                            <WithLabel
+                                                Label={<Label>Symbol</Label>}
+                                            >
+                                                <Input
+                                                    value={value}
+                                                    onChange={(e) =>
+                                                        setValue(e.target.value)
+                                                    }
+                                                />
+                                            </WithLabel>
+                                        )}
+                                    </WithDebounce>
+
+                                    <WithDebounce
+                                        state={filters.instrument}
+                                        onDebounce={(v) => {
+                                            updateFilter("instrument", v);
+                                        }}
+                                    >
+                                        {(value, setValue) => (
+                                            <WithLabel
+                                                Label={
+                                                    <Label>Instrument</Label>
+                                                }
+                                            >
+                                                <InstrumentToggle
+                                                    value={value}
+                                                    onChange={(v) =>
+                                                        setValue(v)
+                                                    }
+                                                />
+                                            </WithLabel>
+                                        )}
+                                    </WithDebounce>
+
+                                    <WithLabel Label={<Label>Direction</Label>}>
+                                        <DirectionToggle
+                                            value={filters.direction}
+                                            onChange={(v) =>
+                                                updateFilter("direction", v)
+                                            }
+                                        />
+                                    </WithLabel>
+
+                                    <WithLabel Label={<Label>Status</Label>}>
+                                        <PositionStatusSelect
+                                            value={filters.status}
+                                            onValueChange={(v) =>
+                                                updateFilter("status", v)
+                                            }
+                                        />
+                                    </WithLabel>
+
+                                    <WithDebounce
+                                        state={filters.r_factor}
+                                        onDebounce={(v) => {
+                                            updateFilter("r_factor", v);
+                                        }}
+                                    >
+                                        {(value, setValue) => (
+                                            <WithLabel
+                                                Label={<Label>R Factor</Label>}
+                                            >
+                                                <WithCompare
+                                                    Compare={
+                                                        <CompareSelect
+                                                            value={
+                                                                filters.r_factor_operator
+                                                            }
+                                                            onValueChange={(
+                                                                v
+                                                            ) =>
+                                                                updateFilter(
+                                                                    "r_factor_operator",
+                                                                    v
+                                                                )
+                                                            }
+                                                        />
+                                                    }
+                                                >
+                                                    <Input
+                                                        className="w-20!"
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            setValue(
+                                                                e.target.value
+                                                                    ? Number(
+                                                                          e
+                                                                              .target
+                                                                              .value
+                                                                      )
+                                                                    : ""
+                                                            )
+                                                        }
+                                                    />
+                                                </WithCompare>
+                                            </WithLabel>
+                                        )}
+                                    </WithDebounce>
+
+                                    <WithDebounce
+                                        state={filters.gross_pnl}
+                                        onDebounce={(v) =>
+                                            updateFilter("gross_pnl", v)
+                                        }
+                                    >
+                                        {(value, setValue) => (
+                                            <WithLabel
+                                                Label={<Label>Gross PnL</Label>}
+                                            >
+                                                <WithCompare
+                                                    Compare={
+                                                        <CompareSelect
+                                                            value={
+                                                                filters.gross_pnl_operator
+                                                            }
+                                                            onValueChange={(
+                                                                v
+                                                            ) =>
+                                                                updateFilter(
+                                                                    "gross_pnl_operator",
+                                                                    v
+                                                                )
+                                                            }
+                                                        />
+                                                    }
+                                                >
+                                                    <DecimalInput
+                                                        kind="amount"
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            setValue(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </WithCompare>
+                                            </WithLabel>
+                                        )}
+                                    </WithDebounce>
+
+                                    <WithDebounce
+                                        state={filters.net_pnl}
+                                        onDebounce={(v) =>
+                                            updateFilter("net_pnl", v)
+                                        }
+                                    >
+                                        {(value, setValue) => (
+                                            <WithLabel
+                                                Label={<Label>Net PnL</Label>}
+                                            >
+                                                <WithCompare
+                                                    Compare={
+                                                        <CompareSelect
+                                                            value={
+                                                                filters.net_pnl_operator
+                                                            }
+                                                            onValueChange={(
+                                                                v
+                                                            ) =>
+                                                                updateFilter(
+                                                                    "net_pnl_operator",
+                                                                    v
+                                                                )
+                                                            }
+                                                        />
+                                                    }
+                                                >
+                                                    <DecimalInput
+                                                        kind="amount"
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            setValue(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </WithCompare>
+                                            </WithLabel>
+                                        )}
+                                    </WithDebounce>
+
+                                    <WithDebounce
+                                        state={filters.net_return_percentage}
+                                        onDebounce={(v) => {
+                                            updateFilter(
+                                                "net_return_percentage",
+                                                v
+                                            );
+                                        }}
+                                    >
+                                        {(value, setValue) => (
+                                            <WithLabel
+                                                Label={
+                                                    <Label>Net Return %</Label>
+                                                }
+                                            >
+                                                <WithCompare
+                                                    Compare={
+                                                        <CompareSelect
+                                                            value={
+                                                                filters.net_return_percentage_operator
+                                                            }
+                                                            onValueChange={(
+                                                                v
+                                                            ) =>
+                                                                updateFilter(
+                                                                    "net_return_percentage_operator",
+                                                                    v
+                                                                )
+                                                            }
+                                                        />
+                                                    }
+                                                >
+                                                    <Input
+                                                        className="w-20!"
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            setValue(
+                                                                e.target.value
+                                                                    ? Number(
+                                                                          e
+                                                                              .target
+                                                                              .value
+                                                                      )
+                                                                    : ""
+                                                            )
+                                                        }
+                                                    />
+                                                </WithCompare>
+                                            </WithLabel>
+                                        )}
+                                    </WithDebounce>
+
+                                    <WithDebounce
+                                        state={filters.charges_percentage}
+                                        onDebounce={(v) =>
+                                            updateFilter(
+                                                "charges_percentage",
+                                                v
+                                            )
+                                        }
+                                    >
+                                        {(value, setValue) => (
+                                            <WithLabel
+                                                Label={
+                                                    <Label>
+                                                        Charges % of Net PnL
+                                                    </Label>
+                                                }
+                                            >
+                                                <WithCompare
+                                                    Compare={
+                                                        <CompareSelect
+                                                            value={
+                                                                filters.charges_percentage_operator
+                                                            }
+                                                            onValueChange={(
+                                                                v
+                                                            ) =>
+                                                                updateFilter(
+                                                                    "charges_percentage_operator",
+                                                                    v
+                                                                )
+                                                            }
+                                                        />
+                                                    }
+                                                >
+                                                    <Input
+                                                        className="w-24!"
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            setValue(
+                                                                e.target.value
+                                                                    ? Number(
+                                                                          e
+                                                                              .target
+                                                                              .value
+                                                                      )
+                                                                    : ""
+                                                            )
+                                                        }
+                                                    />
+                                                </WithCompare>
+                                            </WithLabel>
+                                        )}
+                                    </WithDebounce>
+                                </div>
+
+                                <div className="h-8" />
+
+                                <div className="flex flex-col justify-end gap-x-2 gap-y-2 sm:flex-row">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() => {
+                                            resetFilters();
+                                            setOpen(false);
+                                        }}
+                                        loading={queryResult.isFetching}
+                                    >
+                                        Reset
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            applyFilters();
+                                            setOpen(false);
+                                        }}
+                                        loading={queryResult.isFetching}
+                                    >
+                                        Apply
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </Drawer.Content>
+                </Drawer.Portal>
+            </Drawer.Root>
+        </>
     );
 });

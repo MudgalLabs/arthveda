@@ -54,7 +54,7 @@ function DatePicker({
         .join(" - ");
 
     let width = "w-[150px]";
-    if (isRange) width = "w-[250px]";
+    if (isRange) width = "w-[260px]";
     if (time && !isRange) width = "w-[190px]";
     if (time && isRange) width = "w-[330px]";
 

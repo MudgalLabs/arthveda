@@ -1,4 +1,12 @@
-import { createContext, FC, ReactNode, useContext, useMemo } from "react";
+import {
+    createContext,
+    FC,
+    ReactNode,
+    useContext,
+    useMemo,
+    useCallback,
+    useState,
+} from "react";
 import { UseQueryResult } from "@tanstack/react-query";
 
 import { apiHooks } from "@/hooks/api_hooks";
@@ -55,10 +63,14 @@ interface ListPositionsContextType {
     queryResult: UseQueryResult<ApiRes<PositionSearchResponse>, Error>;
     tableState: DataTableState;
     setTableState: React.Dispatch<React.SetStateAction<DataTableState>>;
-    searchFilters: PositionSearchFilters;
-    setSearchFilters: React.Dispatch<
-        React.SetStateAction<PositionSearchFilters>
-    >;
+    filters: PositionSearchFilters;
+    updateFilter: <K extends keyof PositionSearchFilters>(
+        key: K,
+        value: PositionSearchFilters[K]
+    ) => void;
+    resetFilter: <K extends keyof PositionSearchFilters>(key: K) => void;
+    resetFilters: () => void;
+    applyFilters: () => void;
 }
 
 const ListPositionsContext = createContext<ListPositionsContextType>(
@@ -69,14 +81,17 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
     children,
 }) => {
     const [tableState, setTableState] = useDataTableState(ROUTES.positionList);
-    const [searchFilters, setSearchFilters] =
+    const [reactiveFilters, setReactiveFilters] =
         useURLState<PositionSearchFilters>(
             "filters",
             defaultPositionSearchFilters
         );
+    // We keep local state of filters and only update the `searchFilters`
+    // when user clicks on the `Search` button.
+    const [filters, setFilters] = useState(reactiveFilters);
 
     const queryResult = apiHooks.position.useSearch({
-        filters: prepareFilters(searchFilters),
+        filters: prepareFilters(reactiveFilters),
         pagination: {
             page: tableState.pagination.pageIndex + 1,
             limit: tableState.pagination.pageSize,
@@ -89,6 +104,38 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
                   }
                 : undefined,
     });
+
+    const updateFilter = useCallback(
+        <K extends keyof PositionSearchFilters>(
+            key: K,
+            value: PositionSearchFilters[K]
+        ) => {
+            setFilters((prev) => ({
+                ...prev,
+                [key]: value,
+            }));
+        },
+        [setFilters]
+    );
+
+    const resetFilter = useCallback(
+        <K extends keyof PositionSearchFilters>(key: K) => {
+            setFilters((prev) => ({
+                ...prev,
+                [key]: defaultPositionSearchFilters[key],
+            }));
+        },
+        [setFilters]
+    );
+
+    const resetFilters = useCallback(() => {
+        setFilters(defaultPositionSearchFilters);
+        setReactiveFilters(defaultPositionSearchFilters);
+    }, []);
+
+    const applyFilters = useCallback(() => {
+        setReactiveFilters(filters);
+    }, [filters, setReactiveFilters]);
 
     useEffectOnce(
         (deps) => {
@@ -105,15 +152,23 @@ export const ListPositionContextProvider: FC<{ children: ReactNode }> = ({
             queryResult,
             tableState,
             setTableState,
-            searchFilters,
-            setSearchFilters,
+            filters,
+            setFilters,
+            updateFilter,
+            resetFilter,
+            resetFilters,
+            applyFilters,
         }),
         [
             queryResult,
             tableState,
             setTableState,
-            searchFilters,
-            setSearchFilters,
+            filters,
+            setFilters,
+            updateFilter,
+            resetFilter,
+            resetFilters,
+            applyFilters,
         ]
     );
 
