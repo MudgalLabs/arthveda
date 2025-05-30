@@ -469,6 +469,8 @@ export const PositionListFilters = memo(({}: {}) => {
                                         Apply
                                     </Button>
                                 </div>
+
+                                <div className="h-2" />
                             </form>
                         </div>
                     </Drawer.Content>
