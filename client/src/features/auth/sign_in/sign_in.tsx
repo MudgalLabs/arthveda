@@ -45,7 +45,7 @@ export default function SignIn() {
                 New to Arthveda?{" "}
                 <Link to={ROUTES.signUp}>Sign up for free</Link>
             </p>
-            <form className="flex flex-col" onSubmit={handleSubmit}>
+            <form className="flex w-[300px] flex-col" onSubmit={handleSubmit}>
                 <WithLabel Label={<Label>Email</Label>}>
                     <Input
                         className="mb-4"

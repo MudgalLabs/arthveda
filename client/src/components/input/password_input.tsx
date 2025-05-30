@@ -13,7 +13,7 @@ export const PasswordInput: FC<PasswordProps> = (props) => {
     const [showingPassword, setShowingPassword] = useState(false);
 
     return (
-        <div className={cn("relative flex w-fit items-center", className)}>
+        <div className={cn("relative flex w-full items-center", className)}>
             <Input
                 placeholder="Password"
                 hidePlaceholderOnFocus

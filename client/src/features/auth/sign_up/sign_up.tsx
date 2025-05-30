@@ -107,7 +107,7 @@ export default function SignUp() {
                 Already have an account? <Link to={ROUTES.signIn}>Sign in</Link>
             </p>
 
-            <form className="flex flex-col" onSubmit={handleSubmit}>
+            <form className="w-[300px]flex flex-col" onSubmit={handleSubmit}>
                 <WithLabel Label={<Label>Name</Label>}>
                     <Input
                         id="name"
