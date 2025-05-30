@@ -22,7 +22,7 @@ import {
     Tooltip,
 } from "@/s8ly";
 import { useMemo, useState } from "react";
-import { PositionsTable } from "@/features/position/components/list_table";
+import { PositionListTable } from "@/features/position/components/position_list_table";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { ROUTES } from "@/routes";
 import { CurrencyCode } from "@/lib/api/currency";
@@ -30,6 +30,7 @@ import { DecimalString } from "@/lib/types";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { IconInfo } from "@/components/icons";
+import { ListPositionContextProvider } from "../list/list_positions_context";
 
 export const ImportPositions = () => {
     const [brokerID, setBrokerID] = useState<string>("");
@@ -144,7 +145,7 @@ export const ImportPositions = () => {
         if (showConfirm) {
             return (
                 <>
-                    <PositionsTable positions={data?.positions || []} />
+                    <PositionListTable positions={data?.positions || []} />
 
                     <div className="h-8" />
 
@@ -256,4 +257,8 @@ export const ImportPositions = () => {
     );
 };
 
-export default ImportPositions;
+export default () => (
+    <ListPositionContextProvider>
+        <ImportPositions />
+    </ListPositionContextProvider>
+);

@@ -87,7 +87,7 @@ const Select: FC<SelectProps> = ({
                         />
                         <SelectPrimitive.Icon
                             className={cn("text-primary-500", {
-                                "rotate-180 transition-transform": open,
+                                "-rotate-180 transition-transform": open,
                                 "rotate-0 transition-transform": !open,
                                 "text-primary-300": value,
                             })}

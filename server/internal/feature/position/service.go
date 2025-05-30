@@ -49,9 +49,9 @@ type computeResult struct {
 	ClosedAt                    *time.Time      `json:"closed_at"` // `nil` if the Status is StatusOpen meaning the position is open.
 	GrossPnLAmount              decimal.Decimal `json:"gross_pnl_amount"`
 	NetPnLAmount                decimal.Decimal `json:"net_pnl_amount"`
-	RFactor                     float64         `json:"r_factor"`
-	NetReturnPercentage         float64         `json:"net_return_percentage"`
-	ChargesAsPercentageOfNetPnL float64         `json:"charges_as_percentage_of_net_pnl"`
+	RFactor                     decimal.Decimal `json:"r_factor"`
+	NetReturnPercentage         decimal.Decimal `json:"net_return_percentage"`
+	ChargesAsPercentageOfNetPnL decimal.Decimal `json:"charges_as_percentage_of_net_pnl"`
 	OpenQuantity                decimal.Decimal `json:"open_quantity"`
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount"`
 }

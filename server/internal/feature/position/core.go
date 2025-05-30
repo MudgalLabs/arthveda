@@ -36,9 +36,9 @@ type Position struct {
 	ClosedAt                    *time.Time      `json:"closed_at" db:"closed_at"`
 	GrossPnLAmount              decimal.Decimal `json:"gross_pnl_amount" db:"gross_pnl_amount"`
 	NetPnLAmount                decimal.Decimal `json:"net_pnl_amount" db:"net_pnl_amount"`
-	RFactor                     float64         `json:"r_factor" db:"r_factor"`
-	NetReturnPercentage         float64         `json:"net_return_percentage" db:"net_return_percentage"`
-	ChargesAsPercentageOfNetPnL float64         `json:"charges_as_percentage_of_net_pnl" db:"charges_as_percentage_of_net_pnl"`
+	RFactor                     decimal.Decimal `json:"r_factor" db:"r_factor"`
+	NetReturnPercentage         decimal.Decimal `json:"net_return_percentage" db:"net_return_percentage"`
+	ChargesAsPercentageOfNetPnL decimal.Decimal `json:"charges_as_percentage_of_net_pnl" db:"charges_as_percentage_of_net_pnl"`
 	OpenQuantity                decimal.Decimal `json:"open_quantity" db:"open_quantity"`
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount" db:"open_average_price_amount"`
 
@@ -195,9 +195,9 @@ func compute(payload ComputePayload) computeResult {
 	result.ClosedAt = closedAt
 	result.GrossPnLAmount = grossPnL
 	result.NetPnLAmount = netPnL
-	result.RFactor, _ = rFactor.Round(2).Float64()
-	result.NetReturnPercentage, _ = netReturnPercentage.Round(2).Float64()
-	result.ChargesAsPercentageOfNetPnL, _ = chargesAsPercentageOfNetPnL.Round(2).Float64()
+	result.RFactor = rFactor.Round(2)
+	result.NetReturnPercentage = netReturnPercentage.Round(2)
+	result.ChargesAsPercentageOfNetPnL = chargesAsPercentageOfNetPnL.Round(2)
 
 	if netQty.IsPositive() {
 		result.OpenQuantity = netQty

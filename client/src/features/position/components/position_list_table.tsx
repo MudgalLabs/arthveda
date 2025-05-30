@@ -1,6 +1,7 @@
 import { FC, memo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { Loading } from "@/components/loading";
 import {
     Position,
@@ -13,9 +14,12 @@ import {
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
+import { DataTable } from "@/s8ly/data_table/data_table";
+import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
+import { PositionListFilters } from "@/features/position/components/position_list_filters";
 
-export interface PositionsTableProps {
+export interface PositionListTable {
     positions: Position[];
     totalItems?: number;
     state?: DataTableState;
@@ -25,7 +29,7 @@ export interface PositionsTableProps {
     isFetching?: boolean;
 }
 
-export const PositionsTable: FC<PositionsTableProps> = memo(
+export const PositionListTable: FC<PositionListTable> = memo(
     ({
         positions,
         totalItems,
@@ -55,7 +59,23 @@ export const PositionsTable: FC<PositionsTableProps> = memo(
                         state={state}
                         onStateChange={onStateChange}
                         isFetching={isFetching}
-                    />
+                    >
+                        {(table) => (
+                            <div className="space-y-4">
+                                <div className="flex justify-end gap-x-2">
+                                    <PositionListFilters />
+                                    <DataTableVisibility table={table} />
+                                </div>
+
+                                <DataTable table={table} />
+
+                                <DataTablePagination
+                                    table={table}
+                                    total={totalItems}
+                                />
+                            </div>
+                        )}
+                    </DataTableSmart>
                 </>
             );
         }

@@ -2,11 +2,7 @@ import { Column } from "@tanstack/react-table";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/s8ly";
-import {
-    IconArrowDown,
-    IconArrowUp,
-    IconChevronsUpDown,
-} from "@/components/icons";
+import { IconArrowDown } from "@/components/icons";
 
 interface DataTableColumnHeaderProps<TData, TValue> {
     column: Column<TData, TValue>;
@@ -30,18 +26,26 @@ export function DataTableColumnHeader<TData, TValue>({
             <Button
                 variant="ghost"
                 size="small"
-                className={"mx-1 h-8 w-full justify-start"}
+                className={cn("mx-1 h-8 w-full justify-start", {
+                    "text-foreground bg-muted font-medium":
+                        column.getIsSorted(),
+                })}
                 onClick={() => column.toggleSorting()}
                 disabled={disabled}
             >
                 <span>{title}</span>
-                {column.getIsSorted() === "desc" ? (
-                    <IconArrowDown className="text-foreground" />
-                ) : column.getIsSorted() === "asc" ? (
-                    <IconArrowUp className="text-foreground" />
-                ) : (
-                    <IconChevronsUpDown />
-                )}
+                {
+                    <div
+                        className={cn({
+                            "-rotate-180 transition-transform":
+                                column.getIsSorted() === "asc",
+                            "rotate-0 transition-transform":
+                                column.getIsSorted() === "desc",
+                        })}
+                    >
+                        <IconArrowDown />
+                    </div>
+                }
             </Button>
         </div>
     );

@@ -4,6 +4,7 @@ import {
     ColumnDef,
     PaginationState,
     SortingState,
+    Table,
     VisibilityState,
     getCoreRowModel,
     getFacetedRowModel,
@@ -12,10 +13,6 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-
-import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
-import { DataTable } from "@/s8ly/data_table/data_table";
-import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
 
 interface DataTableState {
     columnVisibility: VisibilityState;
@@ -26,6 +23,7 @@ interface DataTableState {
 interface DataTableSmartProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
+    children: (table: Table<TData>) => React.ReactNode;
     total?: number;
     state?: Partial<DataTableState>;
     onStateChange?: (newState: DataTableState) => void;
@@ -35,6 +33,7 @@ interface DataTableSmartProps<TData, TValue> {
 function DataTableSmart<TData, TValue>({
     columns,
     data,
+    children,
     total,
     state: stateProp,
     onStateChange,
@@ -104,17 +103,7 @@ function DataTableSmart<TData, TValue>({
         onStateChange,
     ]);
 
-    return (
-        <div className="space-y-4">
-            <div className="flex justify-start">
-                <DataTableVisibility table={table} />
-            </div>
-
-            <DataTable table={table} />
-
-            <DataTablePagination table={table} total={total} />
-        </div>
-    );
+    return <>{children(table)}</>;
 }
 
 export { DataTableSmart };
