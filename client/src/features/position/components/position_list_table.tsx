@@ -25,6 +25,7 @@ import {
     positionSearchFiltersLabel,
     positionSearchFiltersValueFormatter,
 } from "@/features/position/list/list_positions_context";
+import { IconCross } from "@/components/icons";
 
 export interface PositionListTable {
     positions: Position[];
@@ -71,13 +72,9 @@ export const PositionListTable: FC<PositionListTable> = memo(
             return (
                 <>
                     {activeFilters.length > 0 && (
-                        <div className="mb-4 flex flex-wrap items-center gap-2">
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
                             {activeFilters.map(([key, value]) => (
-                                <Tag
-                                    key={key}
-                                    variant="filter"
-                                    className="cursor-pointer"
-                                >
+                                <Tag key={key} variant="filter">
                                     {
                                         positionSearchFiltersLabel[
                                             key as keyof typeof filters
@@ -88,19 +85,24 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                         key as keyof typeof positionSearchFiltersValueFormatter
                                     ]?.(value, appliedFilters) ?? String(value)}
                                     <Button
-                                        variant="ghost"
-                                        size="icon"
+                                        variant="link"
+                                        size="small"
+                                        className="text-foreground-muted hover:text-foreground p-0 hover:cursor-pointer"
                                         onClick={() =>
                                             resetFilter(
                                                 key as keyof typeof filters
                                             )
                                         }
                                     >
-                                        ✕
+                                        <IconCross size={20} />
                                     </Button>
                                 </Tag>
                             ))}
-                            <Button variant="link" onClick={resetFilters}>
+                            <Button
+                                size="small"
+                                variant="link"
+                                onClick={resetFilters}
+                            >
                                 Reset Filters
                             </Button>
                         </div>

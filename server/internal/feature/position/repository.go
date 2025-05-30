@@ -55,15 +55,15 @@ type searchFilter struct {
 	Instrument                  *Instrument             `json:"instrument"`
 	Direction                   *Direction              `json:"direction"`
 	Status                      *Status                 `json:"status"`
-	RFactor                     *float64                `json:"r_factor"`
+	RFactor                     *string                 `json:"r_factor"`
 	RFactorOperator             *dbx.Operator           `json:"r_factor_operator"`
 	GrossPnL                    *string                 `json:"gross_pnl"`
 	GrossPnLOperator            *dbx.Operator           `json:"gross_pnl_operator"`
 	NetPnL                      *string                 `json:"net_pnl"`
 	NetPnLOperator              *dbx.Operator           `json:"net_pnl_operator"`
-	NetReturnPercentage         *float64                `json:"net_return_percentage"`
+	NetReturnPercentage         *string                 `json:"net_return_percentage"`
 	NetReturnPercentageOperator *dbx.Operator           `json:"net_return_percentage_operator"`
-	ChargesPercentage           *float64                `json:"charges_percentage"`
+	ChargesPercentage           *string                 `json:"charges_percentage"`
 	ChargesPercentageOperator   *dbx.Operator           `json:"charges_percentage_operator"`
 }
 

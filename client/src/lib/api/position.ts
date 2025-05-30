@@ -67,15 +67,15 @@ export interface PositionSearchFilters {
     instrument?: PositionInstrument | "";
     direction?: PositionDirection | "";
     status?: PositionStatusFilterValue;
-    r_factor?: number | "";
+    r_factor?: DecimalString | "";
     r_factor_operator?: CompareOperator;
     gross_pnl?: DecimalString | "";
     gross_pnl_operator?: CompareOperator;
     net_pnl?: DecimalString | "";
     net_pnl_operator?: CompareOperator;
-    net_return_percentage?: number | "";
+    net_return_percentage?: DecimalString | "";
     net_return_percentage_operator?: CompareOperator;
-    charges_percentage?: number | "";
+    charges_percentage?: DecimalString | "";
     charges_percentage_operator?: CompareOperator;
 }
 

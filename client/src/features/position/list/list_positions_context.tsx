@@ -85,8 +85,8 @@ export const positionSearchFiltersValueFormatter: Partial<
     direction: (v) => positionDirectionToString(v),
     status: (v) => positionStatusToString(v),
     r_factor: (v, filters) => {
-        if (v === "") return "Any";
-        return `${filters.r_factor_operator} ${v}`;
+        if (v === "" || !filters.r_factor_operator) return "Any";
+        return `${compareOperatorToString(filters.r_factor_operator)} ${v}`;
     },
     gross_pnl: (v, filters) => {
         if (v === "" || !filters.gross_pnl_operator) return "Any";
@@ -107,8 +107,24 @@ export const positionSearchFiltersValueFormatter: Partial<
 };
 
 function prepareFilters(filters: PositionSearchFilters): PositionSearchFilters {
-    if (filters.gross_pnl === "") {
+    if (filters.gross_pnl) {
         filters.gross_pnl = String(filters.gross_pnl);
+    }
+
+    if (filters.net_pnl) {
+        filters.net_pnl = String(filters.net_pnl);
+    }
+
+    if (filters.r_factor) {
+        filters.r_factor = String(filters.r_factor);
+    }
+
+    if (filters.charges_percentage) {
+        filters.charges_percentage = String(filters.charges_percentage);
+    }
+
+    if (filters.net_return_percentage) {
+        filters.net_return_percentage = String(filters.net_return_percentage);
     }
 
     //
