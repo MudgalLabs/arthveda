@@ -44,7 +44,7 @@ const Input: FC<InputProps> = (props) => {
     return (
         <input
             className={cn(
-                "bg-muted text-foreground border-border h-10 w-full rounded-md border-1 p-3 text-sm sm:w-[300px]",
+                "bg-muted text-foreground border-border h-10 w-full min-w-[300px] rounded-md border-1 p-3 text-sm sm:w-[300px]",
                 "focus:border-accent focus:bg-background focus:border-1",
                 "disabled:opacity-69",
                 "transition-all outline-none disabled:cursor-not-allowed",

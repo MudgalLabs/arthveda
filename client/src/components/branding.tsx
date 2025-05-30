@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 import { cn } from "@/lib/utils";
-import Logo from "@/assets/logo.svg";
+import { Logo } from "@/components/logo";
 
 interface BrandingProps {
     size?: "small" | "default" | "large";
@@ -13,15 +13,15 @@ export const Branding: FC<BrandingProps> = (props) => {
 
     const classes = {
         small: {
-            logo: "h-[24px]",
+            logo: 24,
             text: "text-[26px]",
         },
         default: {
-            logo: "h-[36px]",
+            logo: 36,
             text: "text-[40px]",
         },
         large: {
-            logo: "h-48px",
+            logo: 48,
             text: "text-[52px]",
         },
     };
@@ -29,12 +29,12 @@ export const Branding: FC<BrandingProps> = (props) => {
     return (
         <div
             className={cn(
-                "font-logo text-logo inline-flex items-baseline gap-x-2 font-semibold select-none",
+                "font-logo text-primary inline-flex items-baseline gap-x-2 font-semibold select-none",
                 className
             )}
         >
-            <img src={Logo} className={classes[size].logo} />
-            <h1 className={"p-0 " + classes[size].text}>arthveda</h1>
+            <Logo size={classes[size].logo} />
+            <h1 className={" " + classes[size].text}>arthveda</h1>
         </div>
     );
 };

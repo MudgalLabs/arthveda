@@ -1,11 +1,11 @@
+import { useMemo } from "react";
 import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes";
 import { Card, CardTitle } from "@/components/card";
-import { useAuthentication } from "../auth/auth_context";
-import { useMemo } from "react";
+import { useAuthentication } from "@/features/auth/auth_context";
 
 export const Dashboard = () => {
     const { data: authData } = useAuthentication();

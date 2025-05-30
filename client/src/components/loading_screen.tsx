@@ -1,6 +1,6 @@
 import React from "react";
 import { Loading } from "@/components/loading";
-import Logo from "@/assets/logo.svg";
+import { Logo } from "@/components/logo";
 
 interface LoadingScreenProps {
     withLogo?: boolean;
@@ -10,8 +10,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     withLogo = false,
 }) => {
     return (
-        <div className="mt-[15%] flex h-full w-full flex-col items-center gap-y-15">
-            {withLogo && <img src={Logo} className="h-[36px]" />}
+        <div className="mt-[15%] flex h-full w-full flex-col items-center gap-y-10">
+            {withLogo && <Logo />}
 
             <Loading />
         </div>
