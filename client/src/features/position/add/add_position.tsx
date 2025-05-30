@@ -651,7 +651,10 @@ const PnLCard = memo(
                             >
                                 <Progress
                                     value={
-                                        100 - charges_as_percentage_of_net_pnl
+                                        100 -
+                                        new Decimal(
+                                            charges_as_percentage_of_net_pnl
+                                        ).toNumber()
                                     }
                                 />
                             </Tooltip>
@@ -663,10 +666,14 @@ const PnLCard = memo(
     }
 );
 
-const RFactorCard = memo(({ r_factor }: { r_factor: number }) => {
+const RFactorCard = memo(({ r_factor }: { r_factor: DecimalString }) => {
+    const rFactor = new Decimal(r_factor);
     let textColor = "";
-    if (r_factor > 0) textColor = "text-foreground-green";
-    if (r_factor < 0) textColor = "text-foreground-red";
+
+    if (rFactor.isPositive() && !rFactor.isZero())
+        textColor = "text-foreground-green";
+    if (rFactor.isNegative() && !rFactor.isZero())
+        textColor = "text-foreground-red";
 
     return (
         <Card className="relative min-w-30">

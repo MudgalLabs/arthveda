@@ -30,9 +30,9 @@ export interface ComputePositionResponse {
     closed_at: Date | null;
     gross_pnl_amount: DecimalString;
     net_pnl_amount: DecimalString;
-    r_factor: number;
-    net_return_percentage: number;
-    charges_as_percentage_of_net_pnl: number;
+    r_factor: DecimalString;
+    net_return_percentage: DecimalString;
+    charges_as_percentage_of_net_pnl: DecimalString;
     open_quantity: DecimalString;
     open_average_price_amount: DecimalString;
 }
