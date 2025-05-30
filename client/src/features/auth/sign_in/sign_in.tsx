@@ -74,7 +74,7 @@ export default function SignIn() {
                 </Link>
 
                 <Button
-                    className="mb-3"
+                    className="mb-3 w-full!"
                     variant="primary"
                     loading={isPending}
                     disabled={!email || !password}

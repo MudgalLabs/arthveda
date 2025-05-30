@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Loading } from "@/components/loading";
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center rounded-md font-heading font-content font-medium transition-all disabled:opacity-69 disabled:cursor-not-allowed enabled:active:scale-[0.98] cursor-pointer",
+    "inline-flex items-center justify-center rounded-md font-heading font-content font-medium transition-all disabled:opacity-69 disabled:cursor-not-allowed enabled:active:scale-[0.98] cursor-pointer w-full sm:w-fit",
 
     {
         variants: {

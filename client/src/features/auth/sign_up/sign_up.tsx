@@ -107,7 +107,7 @@ export default function SignUp() {
                 Already have an account? <Link to={ROUTES.signIn}>Sign in</Link>
             </p>
 
-            <form className="w-[300px]flex flex-col" onSubmit={handleSubmit}>
+            <form className="flex w-[300px] flex-col" onSubmit={handleSubmit}>
                 <WithLabel Label={<Label>Name</Label>}>
                     <Input
                         id="name"
@@ -205,7 +205,7 @@ export default function SignUp() {
                 <div className="mb-8"></div>
 
                 <Button
-                    className="mb-3"
+                    className="mb-3 w-full!"
                     loading={isPending}
                     disabled={!email || !password || !confirmPassword}
                 >
