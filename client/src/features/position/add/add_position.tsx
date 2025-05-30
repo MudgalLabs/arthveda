@@ -12,7 +12,6 @@ import {
     Dialog,
     DialogFooter,
     DialogHeader,
-    Input,
     Label,
     Progress,
     Tooltip,
@@ -61,6 +60,7 @@ import { DecimalString } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { WithDebounce } from "@/components/with_debounce";
+import { SymbolInput } from "@/features/position/components/symbol_input";
 
 function AddPosition() {
     const {
@@ -181,12 +181,11 @@ function AddPosition() {
                 >
                     {(value, setValue) => (
                         <WithLabel Label={<Label>Symbol</Label>}>
-                            <Input
-                                type="text"
+                            <SymbolInput
                                 autoFocus
                                 variant={value ? "default" : "error"}
                                 value={value}
-                                onChange={(e) => setValue(e.target.value)}
+                                onChange={(_, v) => setValue(v)}
                                 aria-invalid={!value}
                                 aria-describedby="first-name-error"
                             />

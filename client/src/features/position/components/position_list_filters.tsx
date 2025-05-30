@@ -16,6 +16,7 @@ import {
     useListPositions,
     positionSearchFiltersLabel,
 } from "@/features/position/list/list_positions_context";
+import { SymbolInput } from "./symbol_input";
 
 export const PositionListFilters = memo(({}: {}) => {
     const { queryResult, filters, updateFilter, applyFilters, resetFilters } =
@@ -106,10 +107,10 @@ export const PositionListFilters = memo(({}: {}) => {
                                                     </Label>
                                                 }
                                             >
-                                                <Input
+                                                <SymbolInput
                                                     value={value}
-                                                    onChange={(e) =>
-                                                        setValue(e.target.value)
+                                                    onChange={(_, v) =>
+                                                        setValue(v)
                                                     }
                                                 />
                                             </WithLabel>
