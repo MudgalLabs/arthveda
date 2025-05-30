@@ -520,9 +520,9 @@ const PnLCard = memo(
         net_return_percentage,
     }: {
         net_pnl_amount: DecimalString;
-        net_return_percentage: number;
+        net_return_percentage: DecimalString;
         gross_pnl_amount: DecimalString;
-        charges_as_percentage_of_net_pnl: number;
+        charges_as_percentage_of_net_pnl: DecimalString;
         currency: CurrencyCode;
         charges_amount: DecimalString;
     }) => {
@@ -599,7 +599,12 @@ const PnLCard = memo(
                             }}
                         >
                             <Progress
-                                value={100 - charges_as_percentage_of_net_pnl}
+                                value={
+                                    100 -
+                                    new Decimal(
+                                        charges_as_percentage_of_net_pnl
+                                    ).toNumber()
+                                }
                             />
                         </Tooltip>
                     </div>
@@ -607,7 +612,9 @@ const PnLCard = memo(
             </>
         );
 
-        if (net_return_percentage === 0 && grossPnL.isZero()) {
+        console.log("net_return_percentage", { net_return_percentage });
+        console.log("grossPnL", grossPnL.toString());
+        if (new Decimal(net_return_percentage).isZero() && grossPnL.isZero()) {
             return (
                 <Card className="relative min-w-60 flex-col gap-y-2">
                     <CardTitle>PnL</CardTitle>

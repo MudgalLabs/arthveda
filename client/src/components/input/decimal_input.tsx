@@ -132,7 +132,7 @@ export function DecimalInput(props: DecimalInputProps) {
 
                     <Input
                         className={cn(
-                            "w-44!",
+                            "w-full min-w-44! sm:w-44!",
                             {
                                 "pl-6": isCurrency,
                             },
