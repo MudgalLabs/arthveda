@@ -218,12 +218,6 @@ export const PositionListFilters = memo(({}: {}) => {
                                                         onChange={(e) =>
                                                             setValue(
                                                                 e.target.value
-                                                                    ? Number(
-                                                                          e
-                                                                              .target
-                                                                              .value
-                                                                      )
-                                                                    : ""
                                                             )
                                                         }
                                                     />
@@ -370,12 +364,6 @@ export const PositionListFilters = memo(({}: {}) => {
                                                         onChange={(e) =>
                                                             setValue(
                                                                 e.target.value
-                                                                    ? Number(
-                                                                          e
-                                                                              .target
-                                                                              .value
-                                                                      )
-                                                                    : ""
                                                             )
                                                         }
                                                     />
@@ -428,12 +416,6 @@ export const PositionListFilters = memo(({}: {}) => {
                                                         onChange={(e) =>
                                                             setValue(
                                                                 e.target.value
-                                                                    ? Number(
-                                                                          e
-                                                                              .target
-                                                                              .value
-                                                                      )
-                                                                    : ""
                                                             )
                                                         }
                                                     />
