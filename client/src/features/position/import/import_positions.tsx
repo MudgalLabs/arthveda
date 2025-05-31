@@ -197,7 +197,7 @@ export const ImportPositions = () => {
         } else {
             return (
                 <form onSubmit={handleStartImport}>
-                    <div className="flex flex-col gap-x-16 gap-y-4 sm:flex-row">
+                    <div className="flex w-full flex-col justify-between gap-x-16 gap-y-4 sm:flex-row">
                         <WithLabel Label={<Label>Broker *</Label>}>
                             <BrokerSelect
                                 value={brokerID}
@@ -235,15 +235,17 @@ export const ImportPositions = () => {
                         </WithLabel>
                     </div>
 
-                    <div className="h-8" />
+                    <div className="h-16" />
 
-                    <Button
-                        className="w-full sm:w-fit"
-                        disabled={!file || !brokerID}
-                        loading={isPending}
-                    >
-                        Start Import
-                    </Button>
+                    <div className="flex justify-end">
+                        <Button
+                            className="w-full sm:w-fit"
+                            disabled={!file || !brokerID}
+                            loading={isPending}
+                        >
+                            Start Import
+                        </Button>
+                    </div>
                 </form>
             );
         }
