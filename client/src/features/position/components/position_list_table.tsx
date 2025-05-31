@@ -29,6 +29,7 @@ import { IconCross } from "@/components/icons";
 
 export interface PositionListTable {
     positions: Position[];
+    hideFilters?: boolean;
     totalItems?: number;
     state?: DataTableState;
     onStateChange?: (newState: DataTableState) => void;
@@ -40,6 +41,7 @@ export interface PositionListTable {
 export const PositionListTable: FC<PositionListTable> = memo(
     ({
         positions,
+        hideFilters = false,
         totalItems,
         state,
         onStateChange,
@@ -119,7 +121,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                         {(table) => (
                             <div className="space-y-4">
                                 <div className="flex justify-end gap-x-2">
-                                    <PositionListFilters />
+                                    {!hideFilters && <PositionListFilters />}
                                     <DataTableVisibility table={table} />
                                 </div>
 

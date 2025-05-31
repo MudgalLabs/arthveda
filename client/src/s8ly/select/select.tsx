@@ -13,8 +13,9 @@ interface SelectOptionItem<T = string> {
 }
 
 interface SelectProps extends SelectPrimitive.SelectProps {
-    options: SelectOptionItem[];
     ref?: Ref<HTMLButtonElement>;
+    container?: HTMLElement | null;
+    options: SelectOptionItem[];
     placeholder?: ReactNode;
     classNames?: {
         content?: string;
@@ -25,8 +26,9 @@ interface SelectProps extends SelectPrimitive.SelectProps {
 }
 
 const Select: FC<SelectProps> = ({
-    children,
     ref,
+    container,
+    children,
     options,
     classNames,
     disabled,
@@ -98,7 +100,7 @@ const Select: FC<SelectProps> = ({
                 )}
             </SelectPrimitive.Trigger>
 
-            <SelectPrimitive.Portal>
+            <SelectPrimitive.Portal container={container}>
                 <SelectPrimitive.Content
                     position="popper"
                     className={cn(

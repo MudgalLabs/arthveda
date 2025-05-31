@@ -7,17 +7,19 @@ const PopoverTrigger = PopoverPrimitive.Trigger;
 
 interface PopoverContentProps extends PopoverPrimitive.PopoverContentProps {
     ref?: Ref<HTMLDivElement>;
+    container?: HTMLElement | null;
 }
 
 const PopoverContent: FC<PopoverContentProps> = ({
     ref,
+    container,
     children,
     className,
     align = "center",
     sideOffset = 4,
     ...props
 }) => (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={container}>
         <PopoverPrimitive.Content
             className={cn(
                 "bg-muted text-foreground border-border-muted z-60 rounded-md border-1 px-3 py-2 shadow-md outline-hidden",

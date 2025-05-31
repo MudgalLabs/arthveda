@@ -145,7 +145,10 @@ export const ImportPositions = () => {
         if (showConfirm) {
             return (
                 <>
-                    <PositionListTable positions={data?.positions || []} />
+                    <PositionListTable
+                        positions={data?.positions || []}
+                        hideFilters
+                    />
 
                     <div className="h-8" />
 

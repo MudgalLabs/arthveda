@@ -13,6 +13,7 @@ import {
 
 interface DatePickerProps
     extends Omit<CalendarProps, "dates" | "onDatesChange"> {
+    container?: HTMLElement | null;
     className?: string;
     dates?: Date[];
     onDatesChange?(d: Date[]): void;
@@ -21,6 +22,7 @@ interface DatePickerProps
 }
 
 function DatePicker({
+    container,
     className,
     dates: datesProp,
     onDatesChange: onDatesChangeProp,
@@ -81,7 +83,11 @@ function DatePicker({
                     {isDateSet ? selectedText : unselectedText}
                 </DatePickerButton>
             </PopoverTrigger>
-            <PopoverContent className="w-auto border-none p-0" align="start">
+            <PopoverContent
+                className="w-auto border-none p-0"
+                align="start"
+                container={container}
+            >
                 <Calendar
                     dates={dates}
                     onDatesChange={onDatesChangeProp ?? setDates}
