@@ -1,6 +1,6 @@
 export type { IconType } from "react-icons";
 
-export { FiPlus as IconPlus } from "react-icons/fi";
+export { LuCirclePlus as IconPlus } from "react-icons/lu";
 export { FaGithub as IconGithub } from "react-icons/fa";
 export { MdGridView as IconDashboard } from "react-icons/md";
 export { LuChartNoAxesCombined as IconTrades } from "react-icons/lu";

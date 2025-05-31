@@ -237,7 +237,11 @@ export const ImportPositions = () => {
 
                     <div className="h-8" />
 
-                    <Button disabled={!file || !brokerID} loading={isPending}>
+                    <Button
+                        className="w-full sm:w-fit"
+                        disabled={!file || !brokerID}
+                        loading={isPending}
+                    >
                         Start Import
                     </Button>
                 </form>

@@ -270,7 +270,7 @@ function AddPosition() {
 
             <div className="h-10" />
 
-            <div className="flex justify-start space-x-4">
+            <div className="flex flex-col justify-end gap-x-4 gap-y-2 sm:flex-row">
                 <DiscardButton canDiscard={canDiscard} discard={discard} />
 
                 <Button
@@ -503,7 +503,8 @@ const AddTradeButton = memo(
                     disabled={!tradesAreValid}
                     onClick={() => insertNewTrade()}
                 >
-                    <IconPlus /> Add Trade
+                    <IconPlus />
+                    Trade
                 </Button>
             </Tooltip>
         );
@@ -612,8 +613,6 @@ const PnLCard = memo(
             </>
         );
 
-        console.log("net_return_percentage", { net_return_percentage });
-        console.log("grossPnL", grossPnL.toString());
         if (new Decimal(net_return_percentage).isZero() && grossPnL.isZero()) {
             return (
                 <Card className="relative min-w-60 flex-col gap-y-2">
