@@ -121,3 +121,7 @@ export function importPositions(body: ImportPositionsRequest) {
         }
     );
 }
+
+export function getPosition(id: string) {
+    return client.get<ApiRes<Position>>(API_ROUTES.position.get(id));
+}

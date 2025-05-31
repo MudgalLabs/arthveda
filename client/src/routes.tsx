@@ -11,6 +11,7 @@ import AddPositionLazy from "@/features/position/add/add_position_lazy";
 import ListPositionsLazy from "@/features/position/list/list_positions_lazy";
 import ImportPositions from "@/features/position/import/import_positions";
 import Settings from "@/features/settings/settings";
+import ViewPositionLazy from "@/features/position/view/view_position_lazy";
 
 export const ROUTES = {
     //
@@ -32,6 +33,9 @@ export const ROUTES = {
     positionList: "/position/list",
     addPosition: "/position/add",
     importPositions: "/position/import",
+    // Using a function so that we can pass the `":id"` only in rendering route.
+    // But for ROUTES_PROTECTED and RouteHandler, we don't pass `id`.
+    viewPosition: (id = "") => `/position/${id}`,
 };
 
 export const ROUTES_PUBLIC = [
@@ -47,6 +51,7 @@ export const ROUTES_PROTECTED = [
     ROUTES.importPositions,
     ROUTES.settings,
     ROUTES.positionList,
+    ROUTES.viewPosition(),
 ];
 
 export const routes: Array<RouteObject> = [
@@ -91,6 +96,10 @@ export const routes: Array<RouteObject> = [
     {
         path: ROUTES.positionList,
         element: <ListPositionsLazy />,
+    },
+    {
+        path: ROUTES.viewPosition(":id"),
+        element: <ViewPositionLazy />,
     },
 ];
 

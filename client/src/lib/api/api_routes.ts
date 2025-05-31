@@ -15,6 +15,7 @@ export const API_ROUTES = {
     },
     position: {
         create: "/v1/positions",
+        get: (id: string) => `/v1/positions/${id}`,
         compute: "/v1/positions/compute",
         import: "/v1/positions/import",
         search: "/v1/positions/search",

@@ -67,7 +67,7 @@ interface Position {
     open_quantity: DecimalString;
     open_average_price_amount: DecimalString;
 
-    trades: Trade[];
+    trades: Trade[] | null;
 }
 
 export {

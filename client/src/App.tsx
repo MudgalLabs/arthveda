@@ -50,7 +50,10 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
         }
 
         // User is about to visit an app route.
-        if (ROUTES_PROTECTED.includes(pathname)) {
+        if (
+            ROUTES_PROTECTED.includes(pathname) ||
+            pathname.startsWith(pathname)
+        ) {
             return <AppLayout>{children}</AppLayout>;
         }
     }
