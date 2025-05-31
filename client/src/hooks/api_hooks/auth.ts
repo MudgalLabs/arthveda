@@ -3,7 +3,6 @@ import { useMutation, AnyUseMutationOptions } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
 import { SigninRequest, SigninResponse, SignupRequest } from "@/lib/api/auth";
-import { User } from "@/lib/api/user";
 
 export function useSignup(options: AnyUseMutationOptions = {}) {
     return useMutation<ApiRes, unknown, SignupRequest, unknown>({
