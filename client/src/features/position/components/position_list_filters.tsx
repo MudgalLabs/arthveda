@@ -35,7 +35,7 @@ export const PositionListFilters = memo(({}: {}) => {
             <Drawer.Trigger asChild>
                 <Button
                     variant="outline"
-                    className={cn({
+                    className={cn("w-full sm:w-fit", {
                         "bg-accent-muted": open,
                     })}
                 >
@@ -52,7 +52,7 @@ export const PositionListFilters = memo(({}: {}) => {
                     <div className="mx-auto max-w-[1440px] flex-1 overflow-y-auto rounded-t-[10px] p-4">
                         <Drawer.Handle />
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-x-8">
                             <div>
                                 <Drawer.Title className="text-foreground heading mt-2">
                                     Filters
