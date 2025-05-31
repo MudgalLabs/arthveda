@@ -2,7 +2,7 @@ import { Column } from "@tanstack/react-table";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/s8ly";
-import { IconArrowDown } from "@/components/icons";
+import { IconArrowDown, IconChevronsUpDown } from "@/components/icons";
 
 interface DataTableColumnHeaderProps<TData, TValue> {
     column: Column<TData, TValue>;
@@ -37,6 +37,8 @@ export function DataTableColumnHeader<TData, TValue>({
                 {
                     <div
                         className={cn({
+                            "opacity-0": !column.getIsSorted(),
+                            "opacity-100": column.getIsSorted(),
                             "-rotate-180 transition-transform":
                                 column.getIsSorted() === "asc",
                             "rotate-0 transition-transform":
