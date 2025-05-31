@@ -39,7 +39,7 @@ export const PositionListFilters = memo(({}: {}) => {
             </Drawer.Trigger>
 
             <Drawer.Portal>
-                <Drawer.Overlay className="fixed inset-0 bg-black/50" />
+                <Drawer.Overlay className="fixed inset-0 bg-black/30" />
                 <Drawer.Content
                     ref={handleRef}
                     className="bg-background border-border-muted fixed right-0 bottom-0 left-0 z-50 mt-24 flex h-[80%] flex-col rounded-t-[10px] border-1 outline-none lg:h-fit"

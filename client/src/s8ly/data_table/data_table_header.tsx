@@ -2,7 +2,7 @@ import { Column } from "@tanstack/react-table";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/s8ly";
-import { IconArrowDown, IconChevronsUpDown } from "@/components/icons";
+import { IconArrowDown } from "@/components/icons";
 
 interface DataTableColumnHeaderProps<TData, TValue> {
     column: Column<TData, TValue>;
