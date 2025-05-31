@@ -133,6 +133,7 @@ export const ImportPositions = () => {
         setFile(undefined);
         setBrokerID("");
         setData(undefined);
+        setRiskAmount("");
         setShowConfirm(false);
     };
 
@@ -150,9 +151,9 @@ export const ImportPositions = () => {
                         hideFilters
                     />
 
-                    <div className="h-8" />
+                    <div className="h-4" />
 
-                    <div className="space-x-2">
+                    <div className="flex flex-col justify-end gap-x-2 gap-y-2 sm:flex-row">
                         <Dialog>
                             <DialogTrigger asChild>
                                 <Button variant="secondary">Discard</Button>
@@ -188,6 +189,8 @@ export const ImportPositions = () => {
                         >
                             Finish Import
                         </Button>
+
+                        <div className="h-4" />
                     </div>
                 </>
             );
