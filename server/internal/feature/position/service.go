@@ -166,7 +166,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	broker, err := s.brokerRepository.GetByID(ctx, payload.BrokerID)
 	if err != nil {
 		if err == repository.ErrNotFound {
-			return nil, service.ErrNotFound, fmt.Errorf("broker not found with ID: %s", payload.BrokerID)
+			return nil, service.ErrNotFound, fmt.Errorf("Broker not found with ID: %s", payload.BrokerID)
 		}
 	}
 
@@ -456,4 +456,28 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	}
 
 	return result, service.ErrNone, nil
+}
+
+func (s *Service) Get(ctx context.Context, userID, positionID uuid.UUID) (*Position, service.Error, error) {
+	l := logger.FromCtx(ctx)
+
+	position, err := s.positionRepository.GetByID(ctx, userID, positionID)
+	if err != nil || position == nil {
+		if err == repository.ErrNotFound {
+			return nil, service.ErrNotFound, fmt.Errorf("Position not found with ID: %s", positionID)
+		}
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get position by ID: %w", err)
+	}
+
+	trades, err := s.tradeRepository.FindByPositionID(ctx, position.ID)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get trades for position ID %s: %w", position.ID, err)
+	}
+
+	if len(trades) == 0 {
+		l.Errorw("No trades found for position. This shouldn't ever happen. There needs to be at least 1 trade for every position. This is not a valid position.", "position_id", position.ID)
+	}
+	position.Trades = trades
+
+	return position, service.ErrNone, nil
 }

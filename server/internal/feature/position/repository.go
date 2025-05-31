@@ -3,6 +3,7 @@ package position
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/dbx"
+	"arthveda/internal/repository"
 	"context"
 	"fmt"
 	"strings"
@@ -14,6 +15,7 @@ import (
 
 type Reader interface {
 	Search(ctx context.Context, payload SearchPayload) ([]*Position, int, error)
+	GetByID(ctx context.Context, createdBy, positionID uuid.UUID) (*Position, error)
 }
 
 type Writer interface {
@@ -31,6 +33,7 @@ type ReadWriter interface {
 //
 
 const (
+	searchFieldID                  common.SearchField = "id"
 	searchFieldCreatedBy           common.SearchField = "created_by"
 	searchFieldOpened              common.SearchField = "opened"
 	searchFieldSymbol              common.SearchField = "symbol"
@@ -46,6 +49,10 @@ const (
 )
 
 type searchFilter struct {
+	// If a user is serching for a specific position, we will make sure
+	// that the Position.CreatedBy matches the current user ID otherwise we will
+	// return a repository.ErrNotFound error.
+	ID *uuid.UUID `json:"id"`
 	// Only ADMIN clients should have access to `CreatedBy`
 	// For people using arthveda.io client, this filter will be set to their user ID.
 	CreatedBy *uuid.UUID `json:"created_by"`
@@ -81,6 +88,7 @@ var allowedSortFields = []common.SearchField{
 }
 
 var searchFieldsSQLColumn = map[common.SearchField]string{
+	searchFieldID:                  "p.id",
 	searchFieldCreatedBy:           "p.created_by",
 	searchFieldOpened:              "p.opened_at",
 	searchFieldSymbol:              "UPPER(p.symbol)", // Make sure to do `strings.ToUpper` when passing the symbol filter value.
@@ -169,6 +177,31 @@ func (r *positionRepository) Delete(ctx context.Context, ID uuid.UUID) error {
 // TODO: Add a flag argument like `attach_trades` and if true, we should loop through
 // the position(s) and fetch theit trade(s) and append it so `Postiion.Trades`.
 func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Position, int, error) {
+	return r.findPositions(ctx, p)
+}
+
+func (r *positionRepository) GetByID(ctx context.Context, createdBy, positionID uuid.UUID) (*Position, error) {
+	payload := SearchPayload{
+		Filters: searchFilter{
+			CreatedBy: &createdBy,
+			ID:        &positionID,
+		},
+		Pagination: common.Pagination{Limit: 1},
+	}
+
+	positions, _, err := r.findPositions(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(positions) == 0 {
+		return nil, repository.ErrNotFound
+	}
+
+	return positions[0], nil
+}
+
+func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload) ([]*Position, int, error) {
 	baseSQL := `
 		SELECT
             p.id, p.created_by, p.created_at, p.updated_at,
@@ -181,6 +214,10 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 			position p`
 
 	b := dbx.NewSQLBuilder(baseSQL)
+
+	if p.Filters.ID != nil {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldID], "=", p.Filters.ID)
+	}
 
 	if p.Filters.CreatedBy != nil {
 		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldCreatedBy], "=", p.Filters.CreatedBy)

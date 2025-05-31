@@ -4,11 +4,13 @@ import (
 	"arthveda/internal/apires"
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/feature/position"
+	"arthveda/internal/logger"
 	"arthveda/internal/service"
 	"errors"
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
@@ -54,6 +56,30 @@ func createPositionHandler(s *position.Service) http.HandlerFunc {
 		}
 
 		successResponse(w, r, http.StatusCreated, "Position created successfully", position)
+	}
+}
+
+func getPositionHandler(s *position.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		l := logger.FromCtx(ctx)
+		userID := getUserIDFromContext(ctx)
+		id := chi.URLParam(r, "id")
+
+		positionID, err := uuid.Parse(id)
+		if err != nil {
+			l.Warnw("Invalid position ID", "id", id, "error", err.Error())
+			badRequestResponse(w, r, errors.New("Invalid position ID"))
+			return
+		}
+
+		position, errKind, err := s.Get(ctx, userID, positionID)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusCreated, "", map[string]any{"position": position})
 	}
 }
 
