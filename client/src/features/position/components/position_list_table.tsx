@@ -25,7 +25,8 @@ import {
     positionSearchFiltersLabel,
     positionSearchFiltersValueFormatter,
 } from "@/features/position/list/list_positions_context";
-import { IconCross } from "@/components/icons";
+import { IconArrowUpRight, IconCross } from "@/components/icons";
+import { Link } from "react-router-dom";
 
 export interface PositionListTable {
     positions: Position[];
@@ -150,6 +151,19 @@ export const PositionListTable: FC<PositionListTable> = memo(
 );
 
 const columns: ColumnDef<Position>[] = [
+    {
+        id: "view_position",
+        header: "",
+        cell: ({ row }) => (
+            <Link to={`/position/${row.original.id}`}>
+                <Button variant="ghost" size="icon">
+                    <IconArrowUpRight size={20} />
+                </Button>
+            </Link>
+        ),
+        enableHiding: false,
+        enableSorting: false,
+    },
     {
         id: "opened",
         meta: {

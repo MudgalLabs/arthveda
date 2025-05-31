@@ -40,3 +40,4 @@ export { LuTriangleAlert as IconAlert } from "react-icons/lu";
 export { LuInfo as IconInfo } from "react-icons/lu";
 export { LuColumns3 as IconColumns } from "react-icons/lu";
 export { LuListFilter as IconListFilter } from "react-icons/lu";
+export { LuArrowUpRight as IconArrowUpRight } from "react-icons/lu";
