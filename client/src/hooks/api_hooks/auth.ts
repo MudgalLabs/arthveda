@@ -2,7 +2,7 @@ import { useMutation, AnyUseMutationOptions } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
-import { SigninRequest, SignupRequest } from "@/lib/api/auth";
+import { SigninRequest, SigninResponse, SignupRequest } from "@/lib/api/auth";
 import { User } from "@/lib/api/user";
 
 export function useSignup(options: AnyUseMutationOptions = {}) {
@@ -15,7 +15,7 @@ export function useSignup(options: AnyUseMutationOptions = {}) {
 }
 
 export function useSignin(options: AnyUseMutationOptions = {}) {
-    return useMutation<ApiRes<{ user: User }>, unknown, SigninRequest, unknown>(
+    return useMutation<ApiRes<SigninResponse>, unknown, SigninRequest, unknown>(
         {
             mutationFn: (body: SigninRequest) => {
                 return api.auth.signin(body);

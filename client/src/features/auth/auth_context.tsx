@@ -3,14 +3,13 @@ import {
     FC,
     PropsWithChildren,
     useContext,
-    useEffect,
     useMemo,
 } from "react";
 
 import { apiHooks } from "@/hooks/api_hooks";
 import { User } from "@/lib/api/user";
 import { apiErrorHandler } from "@/lib/api";
-import { toast } from "@/components/toast";
+import { useEffectOnce } from "@/hooks/use_effect_once";
 
 interface AuthenticationContextType {
     isLoading: boolean;
@@ -28,17 +27,17 @@ export const AuthenticationProvider: FC<PropsWithChildren> = ({ children }) => {
     const { data, isSuccess, isLoading, isError, error } =
         apiHooks.user.useMe();
 
-    useEffect(() => {
-        if (isSuccess) {
-            toast.info(`Good to see you ${data?.data.display_name}!`, {
-                icon: <p>🚀</p>,
-            });
+    useEffectOnce(
+        (deps) => {
+            if (deps.isError && deps.error) {
+                apiErrorHandler(error);
+            }
+        },
+        { isError, error },
+        (deps) => {
+            return deps.isError;
         }
-
-        if (isError) {
-            apiErrorHandler(error);
-        }
-    }, [isSuccess, data, isError, error]);
+    );
 
     const value = useMemo(
         () => ({

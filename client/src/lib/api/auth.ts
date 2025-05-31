@@ -17,13 +17,10 @@ export interface SigninRequest {
     password: string;
 }
 
-export interface SigninResponse {
-    email: string;
-    password: string;
-}
+export interface SigninResponse extends User {}
 
 export function signin(body: SigninRequest) {
-    return client.post<SigninRequest, ApiRes<{ user: User }>>(
+    return client.post<SigninRequest, ApiRes<SigninResponse>>(
         API_ROUTES.auth.signin,
         body
     );

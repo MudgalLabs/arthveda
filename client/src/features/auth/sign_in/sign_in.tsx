@@ -10,16 +10,22 @@ import { Link } from "@/components/link";
 import { PasswordInput } from "@/components/input/password_input";
 import { WithLabel } from "@/components/with_label";
 import { apiErrorHandler } from "@/lib/api";
+import { toast } from "@/components/toast";
+import { SigninResponse } from "@/lib/api/auth";
 
 export default function SignIn() {
     const client = useQueryClient();
     const navigate = useNavigate();
 
     const { mutate: signin, isPending } = apiHooks.auth.useSignin({
-        onSuccess: async () => {
+        onSuccess: async (res) => {
             // NOTE: await otherwise there will be a time when the toast is
             // shown as if we are signed in but we are still on sign in screen.
             await client.invalidateQueries();
+            const data = res.data.data as SigninResponse;
+            toast.info(`Good to see you ${data.display_name}!`, {
+                icon: <p>🚀</p>,
+            });
             navigate(ROUTES.dashboard);
         },
         onError: apiErrorHandler,
