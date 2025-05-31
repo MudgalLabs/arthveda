@@ -3,7 +3,7 @@ import { Drawer } from "vaul";
 
 import { Button, DatePicker, Input, Label } from "@/s8ly";
 import { IconCross, IconListFilter } from "@/components/icons";
-import { dateRangeFilterToDatesArray } from "@/lib/utils";
+import { cn, dateRangeFilterToDatesArray } from "@/lib/utils";
 import { WithLabel } from "@/components/with_label";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { DirectionToggle } from "@/components/toggle/direction_toggle";
@@ -33,13 +33,18 @@ export const PositionListFilters = memo(({}: {}) => {
     return (
         <Drawer.Root open={open} onOpenChange={setOpen}>
             <Drawer.Trigger asChild>
-                <Button variant="outline">
+                <Button
+                    variant="outline"
+                    className={cn({
+                        "bg-accent-muted": open,
+                    })}
+                >
                     <IconListFilter className="text-foreground" /> Filters
                 </Button>
             </Drawer.Trigger>
 
             <Drawer.Portal>
-                <Drawer.Overlay className="fixed inset-0 bg-black/30" />
+                <Drawer.Overlay className="fixed inset-0 bg-black/50" />
                 <Drawer.Content
                     ref={handleRef}
                     className="bg-background border-border-muted fixed right-0 bottom-0 left-0 z-50 mt-24 flex h-[80%] flex-col rounded-t-[10px] border-1 outline-none lg:h-fit"

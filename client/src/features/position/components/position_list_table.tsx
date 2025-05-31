@@ -70,46 +70,51 @@ export const PositionListTable: FC<PositionListTable> = memo(
             return <Loading />;
         }
 
+        const activeFiltersRow = (
+            <div>
+                {activeFilters.length > 0 ? (
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                        {activeFilters.map(([key, value]) => (
+                            <Tag key={key} variant="filter">
+                                {
+                                    positionSearchFiltersLabel[
+                                        key as keyof typeof filters
+                                    ]
+                                }{" "}
+                                {positionSearchFiltersValueFormatter[
+                                    key as keyof typeof positionSearchFiltersValueFormatter
+                                ]?.(value, appliedFilters) ?? String(value)}
+                                <Button
+                                    variant="link"
+                                    size="small"
+                                    className="text-foreground-muted hover:text-foreground p-0 hover:cursor-pointer"
+                                    onClick={() =>
+                                        resetFilter(key as keyof typeof filters)
+                                    }
+                                >
+                                    <IconCross size={20} />
+                                </Button>
+                            </Tag>
+                        ))}
+                        <Button
+                            size="small"
+                            variant="link"
+                            onClick={resetFilters}
+                        >
+                            Reset Filters
+                        </Button>
+                    </div>
+                ) : (
+                    <p className="text-foreground-muted text-base">
+                        No filters applied
+                    </p>
+                )}
+            </div>
+        );
+
         if (positions) {
             return (
                 <>
-                    {activeFilters.length > 0 && (
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
-                            {activeFilters.map(([key, value]) => (
-                                <Tag key={key} variant="filter">
-                                    {
-                                        positionSearchFiltersLabel[
-                                            key as keyof typeof filters
-                                        ]
-                                    }
-                                    :{" "}
-                                    {positionSearchFiltersValueFormatter[
-                                        key as keyof typeof positionSearchFiltersValueFormatter
-                                    ]?.(value, appliedFilters) ?? String(value)}
-                                    <Button
-                                        variant="link"
-                                        size="small"
-                                        className="text-foreground-muted hover:text-foreground p-0 hover:cursor-pointer"
-                                        onClick={() =>
-                                            resetFilter(
-                                                key as keyof typeof filters
-                                            )
-                                        }
-                                    >
-                                        <IconCross size={20} />
-                                    </Button>
-                                </Tag>
-                            ))}
-                            <Button
-                                size="small"
-                                variant="link"
-                                onClick={resetFilters}
-                            >
-                                Reset Filters
-                            </Button>
-                        </div>
-                    )}
-
                     <DataTableSmart
                         columns={columns}
                         data={positions}
@@ -124,6 +129,8 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                     {!hideFilters && <PositionListFilters />}
                                     <DataTableVisibility table={table} />
                                 </div>
+
+                                {activeFiltersRow}
 
                                 <DataTable table={table} />
 
