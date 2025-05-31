@@ -138,7 +138,7 @@ type ImportResult struct {
 	ToDate                  time.Time   `json:"to_date"`
 }
 
-var errImportFileInvalid = errors.New("import file is invalid or not supported")
+var errImportFileInvalid = errors.New("File seems broken or unsupported")
 
 func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPayload) (*ImportResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
