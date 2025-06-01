@@ -17,7 +17,6 @@ import {
 } from "@/features/position/utils";
 import { PositionSearchFilters } from "@/lib/api/position";
 
-// Flattened interface
 interface ListPositionsStore extends PositionSearchFilters {
     tableState: DataTableState;
     appliedFilters: PositionSearchFilters;
@@ -35,7 +34,6 @@ interface ListPositionsStore extends PositionSearchFilters {
 const initial = loadFromURL(URL_KEY_FILTERS, defaultPositionSearchFilters);
 
 export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
-    // Spread each filter key to root
     ...initial,
 
     tableState:
@@ -53,14 +51,17 @@ export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
 
     updateFilter: (key, value) => set({ [key]: value }),
 
-    resetFilter: (key) =>
+    resetFilter: (key) => {
         set({
             [key]: defaultPositionSearchFilters[key],
             appliedFilters: {
                 ...get().appliedFilters,
                 [key]: defaultPositionSearchFilters[key],
             },
-        }),
+        });
+
+        get().applyFilters();
+    },
 
     resetFilters: () => {
         const resets = { ...defaultPositionSearchFilters };
@@ -72,6 +73,7 @@ export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
             ...flatResets,
             appliedFilters: resets,
         });
+        get().applyFilters();
     },
 
     applyFilters: () => {

@@ -7,13 +7,21 @@ import { cn, dateRangeFilterToDatesArray } from "@/lib/utils";
 import { WithLabel } from "@/components/with_label";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { DirectionToggle } from "@/components/toggle/direction_toggle";
-import { PositionStatusSelect } from "@/components/select/position_status_select";
+import {
+    PositionStatusFilterValue,
+    PositionStatusSelect,
+} from "@/components/select/position_status_select";
 import { WithCompare } from "@/components/with_compare";
-import { CompareSelect } from "@/components/select/compare_select";
+import {
+    CompareOperator,
+    CompareSelect,
+} from "@/components/select/compare_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { SymbolInput } from "@/features/position/components/symbol_input";
 import { positionSearchFiltersLabel } from "@/features/position/utils";
 import { useListPositionsStore } from "@/features/position/list/list_positions_store";
+import { PositionDirection, PositionInstrument } from "../position";
+import { DateRangeFilter } from "@/lib/types";
 
 export const PositionListFilters = memo(
     ({ isFetching = false }: { isFetching?: boolean }) => {
@@ -52,6 +60,91 @@ export const PositionListFilters = memo(
         const resetFilters = useListPositionsStore((s) => s.resetFilters);
 
         const [open, setOpen] = useState(false);
+
+        const handleSymbolChange = useCallback(
+            (_: React.ChangeEvent<HTMLInputElement>, v: string) =>
+                updateFilter("symbol", v),
+            [updateFilter]
+        );
+
+        const handleInstrumentChange = useCallback(
+            (v: PositionInstrument | "") => updateFilter("instrument", v),
+            [updateFilter]
+        );
+
+        const handleDirectionChange = useCallback(
+            (v: PositionDirection | "") => updateFilter("direction", v),
+            [updateFilter]
+        );
+
+        const handleStatusChange = useCallback(
+            (v: PositionStatusFilterValue) => updateFilter("status", v),
+            [updateFilter]
+        );
+
+        const handleRFactorChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("r_factor", e.target.value),
+            [updateFilter]
+        );
+
+        const handleRFactorOperatorChange = useCallback(
+            (v: CompareOperator) => updateFilter("r_factor_operator", v),
+            [updateFilter]
+        );
+
+        const handleGrossPnlChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("gross_pnl", e.target.value),
+            [updateFilter]
+        );
+
+        const handleGrossPnlOperatorChange = useCallback(
+            (v: CompareOperator) => updateFilter("gross_pnl_operator", v),
+            [updateFilter]
+        );
+
+        const handleNetPnlChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("net_pnl", e.target.value),
+            [updateFilter]
+        );
+
+        const handleNetPnlOperatorChange = useCallback(
+            (v: CompareOperator) => updateFilter("net_pnl_operator", v),
+            [updateFilter]
+        );
+
+        const handleNetReturnPercentageChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("net_return_percentage", e.target.value),
+            [updateFilter]
+        );
+
+        const handleNetReturnPercentageOperatorChange = useCallback(
+            (v: CompareOperator) =>
+                updateFilter("net_return_percentage_operator", v),
+            [updateFilter]
+        );
+
+        const handleChargesPercentageChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("charges_percentage", e.target.value),
+            [updateFilter]
+        );
+
+        const handleChargesPercentageOperatorChange = useCallback(
+            (v: CompareOperator) =>
+                updateFilter("charges_percentage_operator", v),
+            [updateFilter]
+        );
+
+        const handleOpenedChange = useCallback((v: Date[]) => {
+            updateFilter("opened", {
+                from: v[0],
+                to: v[1],
+            });
+        }, []);
 
         // Using `useRef` didn't work as expected with the Drawer component.
         const [drawerEl, setContainerEl] = useState<HTMLElement | null>(null);
@@ -102,288 +195,78 @@ export const PositionListFilters = memo(
 
                             <form className="mt-8">
                                 <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.opened
-                                                }
-                                            </Label>
+                                    <OpenedFilter
+                                        value={opened}
+                                        onChange={handleOpenedChange}
+                                        container={drawerEl}
+                                    />
+                                    <SymbolInputField
+                                        value={symbol}
+                                        onChange={handleSymbolChange}
+                                    />
+                                    <InstrumentFilter
+                                        value={instrument}
+                                        onChange={handleInstrumentChange}
+                                    />
+                                    <DirectionFilter
+                                        value={direction}
+                                        onChange={handleDirectionChange}
+                                    />
+                                    <StatusFilter
+                                        value={status}
+                                        onChange={handleStatusChange}
+                                    />
+                                    <RFactorFilter
+                                        value={r_factor}
+                                        operator={r_factor_operator}
+                                        onValueChange={handleRFactorChange}
+                                        onOperatorChange={
+                                            handleRFactorOperatorChange
                                         }
-                                    >
-                                        <DatePicker
-                                            container={drawerEl}
-                                            mode="range"
-                                            config={{ dates: { toggle: true } }}
-                                            dates={dateRangeFilterToDatesArray(
-                                                opened
-                                            )}
-                                            onDatesChange={(v) =>
-                                                updateFilter("opened", {
-                                                    from: v[0],
-                                                    to: v[1],
-                                                })
-                                            }
-                                        />
-                                    </WithLabel>
-
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.symbol
-                                                }
-                                            </Label>
+                                        container={drawerEl}
+                                    />
+                                    <GrossPnlFilter
+                                        value={gross_pnl}
+                                        operator={gross_pnl_operator}
+                                        onValueChange={handleGrossPnlChange}
+                                        onOperatorChange={
+                                            handleGrossPnlOperatorChange
                                         }
-                                    >
-                                        <SymbolInput
-                                            value={symbol}
-                                            onChange={(_, v) =>
-                                                updateFilter("symbol", v)
-                                            }
-                                        />
-                                    </WithLabel>
-
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.instrument
-                                                }
-                                            </Label>
+                                        container={drawerEl}
+                                    />
+                                    <NetPnlFilter
+                                        value={net_pnl}
+                                        operator={net_pnl_operator}
+                                        onValueChange={handleNetPnlChange}
+                                        onOperatorChange={
+                                            handleNetPnlOperatorChange
                                         }
-                                    >
-                                        <InstrumentToggle
-                                            value={instrument}
-                                            onChange={(v) =>
-                                                updateFilter("instrument", v)
-                                            }
-                                        />
-                                    </WithLabel>
-
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.direction
-                                                }
-                                            </Label>
+                                        container={drawerEl}
+                                    />
+                                    <NetReturnPercentageFilter
+                                        value={net_return_percentage}
+                                        operator={
+                                            net_return_percentage_operator
                                         }
-                                    >
-                                        <DirectionToggle
-                                            value={direction}
-                                            onChange={(v) =>
-                                                updateFilter("direction", v)
-                                            }
-                                        />
-                                    </WithLabel>
-
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.status
-                                                }
-                                            </Label>
+                                        onValueChange={
+                                            handleNetReturnPercentageChange
                                         }
-                                    >
-                                        <PositionStatusSelect
-                                            value={status}
-                                            onValueChange={(v) =>
-                                                updateFilter("status", v)
-                                            }
-                                        />
-                                    </WithLabel>
-
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.r_factor
-                                                }
-                                            </Label>
+                                        onOperatorChange={
+                                            handleNetReturnPercentageOperatorChange
                                         }
-                                    >
-                                        <WithCompare
-                                            Compare={
-                                                <CompareSelect
-                                                    container={drawerEl}
-                                                    value={r_factor_operator}
-                                                    onValueChange={(v) =>
-                                                        updateFilter(
-                                                            "r_factor_operator",
-                                                            v
-                                                        )
-                                                    }
-                                                />
-                                            }
-                                        >
-                                            <Input
-                                                className="w-20!"
-                                                type="number"
-                                                step="0.01"
-                                                value={r_factor}
-                                                onChange={(e) =>
-                                                    updateFilter(
-                                                        "r_factor",
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
-                                        </WithCompare>
-                                    </WithLabel>
-
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.gross_pnl
-                                                }
-                                            </Label>
+                                        container={drawerEl}
+                                    />
+                                    <ChargesPercentageFilter
+                                        value={charges_percentage}
+                                        operator={charges_percentage_operator}
+                                        onValueChange={
+                                            handleChargesPercentageChange
                                         }
-                                    >
-                                        <WithCompare
-                                            Compare={
-                                                <CompareSelect
-                                                    container={drawerEl}
-                                                    value={gross_pnl_operator}
-                                                    onValueChange={(v) =>
-                                                        updateFilter(
-                                                            "gross_pnl_operator",
-                                                            v
-                                                        )
-                                                    }
-                                                />
-                                            }
-                                        >
-                                            <DecimalInput
-                                                kind="amount"
-                                                value={gross_pnl}
-                                                onChange={(e) =>
-                                                    updateFilter(
-                                                        "gross_pnl",
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
-                                        </WithCompare>
-                                    </WithLabel>
-
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.net_pnl
-                                                }
-                                            </Label>
+                                        onOperatorChange={
+                                            handleChargesPercentageOperatorChange
                                         }
-                                    >
-                                        <WithCompare
-                                            Compare={
-                                                <CompareSelect
-                                                    container={drawerEl}
-                                                    value={net_pnl_operator}
-                                                    onValueChange={(v) =>
-                                                        updateFilter(
-                                                            "net_pnl_operator",
-                                                            v
-                                                        )
-                                                    }
-                                                />
-                                            }
-                                        >
-                                            <DecimalInput
-                                                kind="amount"
-                                                value={net_pnl}
-                                                onChange={(e) =>
-                                                    updateFilter(
-                                                        "net_pnl",
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
-                                        </WithCompare>
-                                    </WithLabel>
-
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.net_return_percentage
-                                                }
-                                            </Label>
-                                        }
-                                    >
-                                        <WithCompare
-                                            Compare={
-                                                <CompareSelect
-                                                    container={drawerEl}
-                                                    value={
-                                                        net_return_percentage_operator
-                                                    }
-                                                    onValueChange={(v) =>
-                                                        updateFilter(
-                                                            "net_return_percentage_operator",
-                                                            v
-                                                        )
-                                                    }
-                                                />
-                                            }
-                                        >
-                                            <Input
-                                                className="w-20!"
-                                                type="number"
-                                                step="0.01"
-                                                value={net_return_percentage}
-                                                onChange={(e) =>
-                                                    updateFilter(
-                                                        "net_return_percentage",
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
-                                        </WithCompare>
-                                    </WithLabel>
-
-                                    <WithLabel
-                                        Label={
-                                            <Label>
-                                                {
-                                                    positionSearchFiltersLabel.charges_percentage
-                                                }
-                                            </Label>
-                                        }
-                                    >
-                                        <WithCompare
-                                            Compare={
-                                                <CompareSelect
-                                                    container={drawerEl}
-                                                    value={
-                                                        charges_percentage_operator
-                                                    }
-                                                    onValueChange={(v) =>
-                                                        updateFilter(
-                                                            "charges_percentage_operator",
-                                                            v
-                                                        )
-                                                    }
-                                                />
-                                            }
-                                        >
-                                            <Input
-                                                className="w-24!"
-                                                type="number"
-                                                step="0.01"
-                                                value={charges_percentage}
-                                                onChange={(e) =>
-                                                    updateFilter(
-                                                        "charges_percentage",
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
-                                        </WithCompare>
-                                    </WithLabel>
+                                        container={drawerEl}
+                                    />
                                 </div>
 
                                 <div className="h-8" />
@@ -419,6 +302,283 @@ export const PositionListFilters = memo(
                     </Drawer.Content>
                 </Drawer.Portal>
             </Drawer.Root>
+        );
+    }
+);
+
+const OpenedFilter = memo(
+    ({
+        value,
+        onChange,
+        container,
+    }: {
+        value?: DateRangeFilter;
+        onChange: (d: Date[]) => void;
+        container: HTMLElement | null;
+    }) => (
+        <WithLabel Label={<Label>{positionSearchFiltersLabel.opened}</Label>}>
+            <DatePicker
+                container={container}
+                mode="range"
+                config={{ dates: { toggle: true } }}
+                dates={dateRangeFilterToDatesArray(value)}
+                onDatesChange={onChange}
+            />
+        </WithLabel>
+    )
+);
+
+const InstrumentFilter = memo(
+    ({
+        value,
+        onChange,
+    }: {
+        value?: PositionInstrument | "";
+        onChange: (v: PositionInstrument | "") => void;
+    }) => (
+        <WithLabel
+            Label={<Label>{positionSearchFiltersLabel.instrument}</Label>}
+        >
+            <InstrumentToggle value={value} onChange={onChange} />
+        </WithLabel>
+    )
+);
+
+const DirectionFilter = memo(
+    ({
+        value,
+        onChange,
+    }: {
+        value?: PositionDirection | "";
+        onChange: (v: PositionDirection | "") => void;
+    }) => (
+        <WithLabel
+            Label={<Label>{positionSearchFiltersLabel.direction}</Label>}
+        >
+            <DirectionToggle value={value} onChange={onChange} />
+        </WithLabel>
+    )
+);
+
+const StatusFilter = memo(
+    ({
+        value,
+        onChange,
+    }: {
+        value?: PositionStatusFilterValue;
+        onChange: (v: PositionStatusFilterValue) => void;
+    }) => (
+        <WithLabel Label={<Label>{positionSearchFiltersLabel.status}</Label>}>
+            <PositionStatusSelect value={value} onValueChange={onChange} />
+        </WithLabel>
+    )
+);
+
+const RFactorFilter = memo(
+    ({
+        value,
+        operator,
+        onValueChange,
+        onOperatorChange,
+        container,
+    }: {
+        value?: string;
+        operator?: CompareOperator;
+        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+        onOperatorChange: (v: CompareOperator) => void;
+        container: HTMLElement | null;
+    }) => (
+        <WithLabel Label={<Label>{positionSearchFiltersLabel.r_factor}</Label>}>
+            <WithCompare
+                Compare={
+                    <CompareSelect
+                        container={container}
+                        value={operator}
+                        onValueChange={onOperatorChange}
+                    />
+                }
+            >
+                <Input
+                    className="w-20!"
+                    type="number"
+                    step="0.01"
+                    value={value}
+                    onChange={onValueChange}
+                />
+            </WithCompare>
+        </WithLabel>
+    )
+);
+
+const GrossPnlFilter = memo(
+    ({
+        value,
+        operator,
+        onValueChange,
+        onOperatorChange,
+        container,
+    }: {
+        value?: string;
+        operator?: CompareOperator;
+        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+        onOperatorChange: (v: CompareOperator) => void;
+        container: HTMLElement | null;
+    }) => (
+        <WithLabel
+            Label={<Label>{positionSearchFiltersLabel.gross_pnl}</Label>}
+        >
+            <WithCompare
+                Compare={
+                    <CompareSelect
+                        container={container}
+                        value={operator}
+                        onValueChange={onOperatorChange}
+                    />
+                }
+            >
+                <DecimalInput
+                    kind="amount"
+                    value={value}
+                    onChange={onValueChange}
+                />
+            </WithCompare>
+        </WithLabel>
+    )
+);
+
+const NetPnlFilter = memo(
+    ({
+        value,
+        operator,
+        onValueChange,
+        onOperatorChange,
+        container,
+    }: {
+        value?: string;
+        operator?: CompareOperator;
+        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+        onOperatorChange: (v: CompareOperator) => void;
+        container: HTMLElement | null;
+    }) => (
+        <WithLabel Label={<Label>{positionSearchFiltersLabel.net_pnl}</Label>}>
+            <WithCompare
+                Compare={
+                    <CompareSelect
+                        container={container}
+                        value={operator}
+                        onValueChange={onOperatorChange}
+                    />
+                }
+            >
+                <DecimalInput
+                    kind="amount"
+                    value={value}
+                    onChange={onValueChange}
+                />
+            </WithCompare>
+        </WithLabel>
+    )
+);
+
+const NetReturnPercentageFilter = memo(
+    ({
+        value,
+        operator,
+        onValueChange,
+        onOperatorChange,
+        container,
+    }: {
+        value?: string;
+        operator?: CompareOperator;
+        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+        onOperatorChange: (v: CompareOperator) => void;
+        container: HTMLElement | null;
+    }) => (
+        <WithLabel
+            Label={
+                <Label>
+                    {positionSearchFiltersLabel.net_return_percentage}
+                </Label>
+            }
+        >
+            <WithCompare
+                Compare={
+                    <CompareSelect
+                        container={container}
+                        value={operator}
+                        onValueChange={onOperatorChange}
+                    />
+                }
+            >
+                <Input
+                    className="w-20!"
+                    type="number"
+                    step="0.01"
+                    value={value}
+                    onChange={onValueChange}
+                />
+            </WithCompare>
+        </WithLabel>
+    )
+);
+
+const ChargesPercentageFilter = memo(
+    ({
+        value,
+        operator,
+        onValueChange,
+        onOperatorChange,
+        container,
+    }: {
+        value?: string;
+        operator?: CompareOperator;
+        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+        onOperatorChange: (v: CompareOperator) => void;
+        container: HTMLElement | null;
+    }) => (
+        <WithLabel
+            Label={
+                <Label>{positionSearchFiltersLabel.charges_percentage}</Label>
+            }
+        >
+            <WithCompare
+                Compare={
+                    <CompareSelect
+                        container={container}
+                        value={operator}
+                        onValueChange={onOperatorChange}
+                    />
+                }
+            >
+                <Input
+                    className="w-24!"
+                    type="number"
+                    step="0.01"
+                    value={value}
+                    onChange={onValueChange}
+                />
+            </WithCompare>
+        </WithLabel>
+    )
+);
+
+const SymbolInputField = memo(
+    ({
+        value,
+        onChange,
+    }: {
+        value?: string;
+        onChange: (
+            e: React.ChangeEvent<HTMLInputElement>,
+            value: string
+        ) => void;
+    }) => {
+        return (
+            <WithLabel
+                Label={<Label>{positionSearchFiltersLabel.symbol}</Label>}
+            >
+                <SymbolInput value={value} onChange={onChange} />
+            </WithLabel>
         );
     }
 );

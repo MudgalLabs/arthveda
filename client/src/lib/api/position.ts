@@ -63,7 +63,7 @@ export function create(body: CreatePositionRequest) {
 
 export interface PositionSearchFilters {
     opened?: DateRangeFilter;
-    symbol?: string;
+    symbol?: string | "";
     instrument?: PositionInstrument | "";
     direction?: PositionDirection | "";
     status?: PositionStatusFilterValue;

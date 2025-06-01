@@ -1,11 +1,11 @@
-import { FC, ReactNode } from "react";
+import { FC, memo, ReactNode } from "react";
 
 export interface WithLabelProps {
     Label: ReactNode;
     children: ReactNode;
 }
 
-export const WithLabel: FC<WithLabelProps> = (props) => {
+export const WithLabel: FC<WithLabelProps> = memo((props) => {
     const { Label, children } = props;
 
     return (
@@ -14,4 +14,4 @@ export const WithLabel: FC<WithLabelProps> = (props) => {
             {children}
         </div>
     );
-};
+});
