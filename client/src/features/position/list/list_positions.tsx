@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { PageHeading } from "@/components/page_heading";
 import { PositionListTable } from "@/features/position/components/position_list_table";
-import { useListPositionsStore } from "@/features/position/list/list_positions_store";
+import { useListPositionsStore } from "@/features/position/list_positions_store";
 import { prepareFilters } from "@/features/position/utils";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useEffectOnce } from "@/hooks/use_effect_once";

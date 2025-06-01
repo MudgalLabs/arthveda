@@ -24,7 +24,7 @@ import {
     positionSearchFiltersValueFormatter,
 } from "@/features/position/utils";
 import { DataTableState } from "@/s8ly/data_table/data_table_state";
-import { useListPositionsStore } from "@/features/position/list/list_positions_store";
+import { useListPositionsStore } from "@/features/position/list_positions_store";
 
 export interface PositionListTable {
     positions: Position[];
