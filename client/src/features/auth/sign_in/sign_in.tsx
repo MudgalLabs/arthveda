@@ -13,7 +13,7 @@ import { toast } from "@/components/toast";
 import { SigninResponse } from "@/lib/api/auth";
 import { ROUTES } from "@/routes_constants";
 
-export default function SignIn() {
+export function SignIn() {
     const client = useQueryClient();
     const navigate = useNavigate();
 
@@ -97,3 +97,5 @@ export default function SignIn() {
         </div>
     );
 }
+
+export default SignIn;
