@@ -11,7 +11,7 @@ declare module "@tanstack/react-table" {
     }
 }
 
-export type Setter<T> = (value: T[] | ((prev: T[]) => T[])) => void;
+export type Setter<T> = (value: T | ((prev: T) => T)) => void;
 
 export interface Sorting {
     field: string;

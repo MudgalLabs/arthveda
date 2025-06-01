@@ -10,8 +10,8 @@ interface NewTrade {
 }
 
 interface Trade extends NewTrade {
-    id: number;
-    position_id: number;
+    id: string;
+    position_id: string;
 }
 
 export type { NewTrade, Trade, TradeKind };

@@ -39,7 +39,7 @@ interface AddPositionContextType {
     tradesAreValid: boolean;
     canSave: boolean;
     insertNewTrade: () => void;
-    removeTrade: (tradeID: number) => void;
+    removeTrade: (index: number) => void;
     computeResult: ComputePositionResponse;
     isComputing: boolean;
     canDiscard: boolean;

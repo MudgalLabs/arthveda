@@ -12,9 +12,15 @@ interface DirectionTagProps {
 }
 
 const DirectionTag: FC<DirectionTagProps> = memo(({ direction, className }) => {
-    const isLong = direction === "long";
+    if (!direction) {
+        return null;
+    }
+
     return (
-        <Tag className={className} variant={isLong ? "success" : "destructive"}>
+        <Tag
+            className={className}
+            variant={direction === "long" ? "success" : "destructive"}
+        >
             {positionDirectionToString(direction)}
         </Tag>
     );

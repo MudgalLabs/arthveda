@@ -1,4 +1,4 @@
-import { memo, ReactNode, useEffect, useMemo, useState } from "react";
+import { memo, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Decimal from "decimal.js";
 import {
     ColumnDef,
@@ -36,7 +36,7 @@ import {
     getDataTableCellUpdateFn,
     useDataTableEditableCell,
 } from "@/hooks/use_data_table_editable_cell";
-import { CurrencyCode } from "@/features/position/position";
+import { CurrencyCode, Position } from "@/features/position/position";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import {
     cn,
@@ -47,7 +47,7 @@ import {
 } from "@/lib/utils";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
-import { NewTrade, TradeKind } from "@/features/trade/trade";
+import { NewTrade, Trade, TradeKind } from "@/features/trade/trade";
 import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
 import { DirectionTag } from "@/features/position/components/direction_tag";
@@ -56,26 +56,28 @@ import { PageHeading } from "@/components/page_heading";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes_constants";
 import { apiErrorHandler } from "@/lib/api";
-import { DecimalString } from "@/lib/types";
+import { DecimalString, Setter } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { WithDebounce } from "@/components/with_debounce";
 import { SymbolInput } from "@/features/position/components/symbol_input";
+import { useAddPositionStore } from "./add_position_context_new";
+import { ComputePositionResponse } from "@/lib/api/position";
 
 function AddPosition() {
-    const {
-        state,
-        setState,
-        isComputing,
-        canDiscard,
-        discard,
-        trades,
-        setTrades,
-        tradesAreValid,
-        insertNewTrade,
-        computeResult,
-        canSave,
-    } = useAddPosition();
+    // const {
+    //     state,
+    //     setState,
+    //     isComputing,
+    //     canDiscard,
+    //     discard,
+    //     trades,
+    //     setTrades,
+    //     tradesAreValid,
+    //     insertNewTrade,
+    //     computeResult,
+    //     canSave,
+    // } = useAddPosition();
 
     const queryClient = useQueryClient();
 
@@ -105,22 +107,108 @@ function AddPosition() {
             onError: apiErrorHandler,
         });
 
+    const canSave = useAddPositionStore((s) => s.canSave);
+
+    const position = useAddPositionStore((s) => s.position);
+    const setTrades = useAddPositionStore((s) => s.setTrades);
+    const insertNewTrade = useAddPositionStore((s) => s.insertNewTrade);
+    const discard = useAddPositionStore((s) => s.discard);
+    const tradesAreValid = useAddPositionStore((s) => s.tradesAreValid);
+    const hasSomethingToDiscard = useAddPositionStore(
+        (s) => s.hasSomethingToDiscard
+    );
+    const updatePosition = useAddPositionStore((s) => s.updatePosition);
+    const isInitialized = useAddPositionStore((s) => s.isInitialized);
+    console.log({ position, isInitialized });
+
     const handleClickSave = () => {
         if (!canSave) return;
 
         save({
-            risk_amount: state.risk_amount || "0",
-            charges_amount: state.charges_amount || "0",
-            symbol: state.symbol,
-            instrument: state.instrument,
-            currency: state.currency,
-            trades: trades.map((t) => {
+            risk_amount: position.risk_amount || "0",
+            charges_amount: position.charges_amount || "0",
+            symbol: position.symbol,
+            instrument: position.instrument,
+            currency: position.currency,
+            trades: (position.trades || []).map((t) => {
+                // Removing fields that are not required by the API.
+                // We are removing these fields because the API will throw an error if we send them.
+
                 // @ts-ignore
                 delete t.id;
+                // @ts-ignore
+                delete t.time;
+                // @ts-ignore
+                delete t.position_id;
                 return t;
             }),
         });
     };
+
+    const { mutateAsync: compute, isPending: isComputing } =
+        apiHooks.position.useCompute({
+            onSuccess: async (res) => {
+                const data = res.data.data as ComputePositionResponse;
+                updatePosition({
+                    ...data,
+                    opened_at: new Date(data.opened_at),
+                    closed_at: data.closed_at ? new Date(data.closed_at) : null,
+                });
+            },
+            onError: apiErrorHandler,
+        });
+
+    const prev = useRef<Position | null>(null);
+
+    const stateChangedForCompute = useMemo(() => {
+        let flag = false;
+
+        console.log(0);
+        if (prev.current === null) {
+            console.log(1);
+            return true;
+        }
+
+        if (prev.current.risk_amount !== position.risk_amount) {
+            console.log(2);
+            flag = true;
+        }
+
+        if (prev.current.charges_amount !== position.charges_amount) {
+            console.log(3);
+            flag = true;
+        }
+
+        if (prev.current.trades !== position.trades) {
+            console.log(4);
+            flag = true;
+        }
+
+        console.log(5, { flag });
+
+        return flag;
+    }, [position]);
+
+    useEffect(() => {
+        if (!stateChangedForCompute) return;
+        prev.current = position;
+        compute({
+            risk_amount: position.risk_amount || "0",
+            charges_amount: position.charges_amount || "0",
+            trades: (position.trades || []).map((s) => {
+                const copy = { ...s };
+                if (copy.quantity === "") copy.quantity = "0";
+                if (copy.price === "") copy.price = "0";
+
+                // Removing the some fields because the API will throw error if we send them.
+                // @ts-ignore
+                delete copy.id;
+                // @ts-ignore
+                delete copy.position_id;
+                return copy;
+            }),
+        });
+    }, [position, compute, tradesAreValid]);
 
     return (
         <>
@@ -128,33 +216,31 @@ function AddPosition() {
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row">
                 <PnLCard
-                    charges_amount={state.charges_amount}
+                    charges_amount={position.charges_amount}
                     charges_as_percentage_of_net_pnl={
-                        computeResult.charges_as_percentage_of_net_pnl
+                        position.charges_as_percentage_of_net_pnl
                     }
-                    currency={state.currency}
-                    gross_pnl_amount={computeResult.gross_pnl_amount}
-                    net_pnl_amount={computeResult.net_pnl_amount}
-                    net_return_percentage={computeResult.net_return_percentage}
+                    currency={position.currency}
+                    gross_pnl_amount={position.gross_pnl_amount}
+                    net_pnl_amount={position.net_pnl_amount}
+                    net_return_percentage={position.net_return_percentage}
                 />
 
-                <RFactorCard r_factor={computeResult.r_factor} />
+                <RFactorCard r_factor={position.r_factor} />
 
                 <DurationCard
-                    opened_at={computeResult.opened_at}
-                    closed_at={computeResult.closed_at}
+                    opened_at={position.opened_at}
+                    closed_at={position.closed_at}
                 />
 
                 <div className="flex items-end">
                     <div className="flex h-fit gap-x-2">
-                        <DirectionTag direction={computeResult.direction} />
+                        <DirectionTag direction={position.direction} />
                         <StatusTag
-                            currency={state.currency}
-                            status={computeResult.status}
-                            openAvgPrice={
-                                computeResult.open_average_price_amount
-                            }
-                            openQuantity={computeResult.open_quantity}
+                            currency={position.currency}
+                            status={position.status}
+                            openAvgPrice={position.open_average_price_amount}
+                            openQuantity={position.open_quantity}
                         />
                     </div>
                 </div>
@@ -162,7 +248,7 @@ function AddPosition() {
                 <div className="ml-auto">
                     <CurrencySelect
                         classNames={{ trigger: "w-fit" }}
-                        defaultValue={state.currency}
+                        defaultValue={position.currency}
                     />
                 </div>
             </div>
@@ -171,12 +257,11 @@ function AddPosition() {
 
             <div className="flex flex-col gap-y-4 sm:flex-row sm:justify-between">
                 <WithDebounce
-                    state={state.symbol}
+                    state={position.symbol}
                     onDebounce={(v) => {
-                        setState((prev) => ({
-                            ...prev,
+                        updatePosition({
                             symbol: v,
-                        }));
+                        });
                     }}
                 >
                     {(value, setValue) => (
@@ -195,31 +280,29 @@ function AddPosition() {
 
                 <WithLabel Label={<Label>Instrument</Label>}>
                     <InstrumentToggle
-                        value={state.instrument}
+                        value={position.instrument}
                         onChange={(value) =>
                             value &&
-                            setState((prev) => ({
-                                ...prev,
+                            updatePosition({
                                 instrument: value,
-                            }))
+                            })
                         }
                     />
                 </WithLabel>
 
                 <WithDebounce
-                    state={state.risk_amount}
+                    state={position.risk_amount}
                     onDebounce={(v) => {
-                        setState((prev) => ({
-                            ...prev,
+                        updatePosition({
                             risk_amount: v,
-                        }));
+                        });
                     }}
                 >
                     {(value, setValue) => (
                         <WithLabel Label={<Label>Risk</Label>}>
                             <DecimalInput
                                 kind="amount"
-                                currency={state.currency}
+                                currency={position.currency}
                                 value={value}
                                 onChange={(e) => {
                                     setValue(e.target.value);
@@ -230,19 +313,18 @@ function AddPosition() {
                 </WithDebounce>
 
                 <WithDebounce
-                    state={state.charges_amount}
+                    state={position.charges_amount}
                     onDebounce={(v) => {
-                        setState((prev) => ({
-                            ...prev,
+                        updatePosition({
                             charges_amount: v,
-                        }));
+                        });
                     }}
                 >
                     {(value, setValue) => (
                         <WithLabel Label={<Label>Charges</Label>}>
                             <DecimalInput
                                 kind="amount"
-                                currency={state.currency}
+                                currency={position.currency}
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
                             />
@@ -257,7 +339,7 @@ function AddPosition() {
 
             <div className="h-4" />
 
-            <TradesTable trades={trades} setTrades={setTrades} />
+            <TradesTable trades={position.trades || []} setTrades={setTrades} />
 
             <div className="h-8" />
 
@@ -271,7 +353,10 @@ function AddPosition() {
             <div className="h-10" />
 
             <div className="flex flex-col justify-end gap-x-4 gap-y-2 sm:flex-row">
-                <DiscardButton canDiscard={canDiscard} discard={discard} />
+                <DiscardButton
+                    hasSomethingToDiscard={hasSomethingToDiscard}
+                    discard={discard}
+                />
 
                 <Button
                     onClick={handleClickSave}
@@ -312,7 +397,8 @@ const columns: ColumnDef<NewTrade>[] = [
         cell: (ctx) => {
             const { value, setValue, sync } =
                 useDataTableEditableCell<Date>(ctx);
-            const { trades } = useAddPosition();
+            // const { trades } = useAddPosition();
+            const trades = useAddPositionStore((s) => s.position.trades || []);
 
             // We are subtracting `2` from length because `1` will be the last one.
             const secondLastTrade = trades[Math.min(trades.length - 2, 0)];
@@ -397,7 +483,8 @@ const columns: ColumnDef<NewTrade>[] = [
             <DataTableColumnHeader column={column} title="Price" />
         ),
         cell: (ctx) => {
-            const { state } = useAddPosition();
+            // const { state } = useAddPosition();
+            const state = useAddPositionStore((s) => s.position);
             const { syncWithValue } = useDataTableEditableCell<string>(ctx);
             const [error, setError] = useState(false);
 
@@ -430,7 +517,8 @@ const columns: ColumnDef<NewTrade>[] = [
         id: "delete",
         header: "",
         cell: ({ row, table }) => {
-            const { removeTrade } = useAddPosition();
+            // const { removeTrade } = useAddPosition();
+            const removeTrade = useAddPositionStore((s) => s.removeTrade);
             // We want to disable this button if we have only 1 trade (rows count = 1).
             const disableButton = table.getRowModel().rows.length === 1;
             return (
@@ -459,10 +547,10 @@ const TradesTable = memo(
         setTrades,
     }: {
         trades: NewTrade[];
-        setTrades: React.Dispatch<React.SetStateAction<NewTrade[]>>;
+        setTrades: Setter<Trade[]>;
     }) => {
         const updateFn = useMemo(
-            () => getDataTableCellUpdateFn<NewTrade>(setTrades),
+            () => getDataTableCellUpdateFn<Trade>(setTrades),
             []
         );
 
@@ -720,11 +808,20 @@ const DurationCard = memo(
 );
 
 const DiscardButton = memo(
-    ({ canDiscard, discard }: { canDiscard: boolean; discard: () => void }) => {
+    ({
+        hasSomethingToDiscard,
+        discard,
+    }: {
+        hasSomethingToDiscard: boolean;
+        discard: () => void;
+    }) => {
         return (
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button variant="secondary" disabled={!canDiscard}>
+                    <Button
+                        variant="secondary"
+                        disabled={!hasSomethingToDiscard}
+                    >
                         Discard
                     </Button>
                 </DialogTrigger>

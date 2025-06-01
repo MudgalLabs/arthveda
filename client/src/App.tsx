@@ -77,13 +77,13 @@ export default function App() {
 
             <AuthenticationProvider>
                 <SidebarProvider>
-                    <AddPositionContextProvider>
-                        <TooltipPrimitive.TooltipProvider>
-                            <RouteHandler>
-                                <Outlet />
-                            </RouteHandler>
-                        </TooltipPrimitive.TooltipProvider>
-                    </AddPositionContextProvider>
+                    {/* <AddPositionContextProvider> */}
+                    <TooltipPrimitive.TooltipProvider>
+                        <RouteHandler>
+                            <Outlet />
+                        </RouteHandler>
+                    </TooltipPrimitive.TooltipProvider>
+                    {/* </AddPositionContextProvider> */}
                 </SidebarProvider>
             </AuthenticationProvider>
             <ScrollRestoration />
