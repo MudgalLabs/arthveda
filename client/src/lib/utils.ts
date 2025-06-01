@@ -1,7 +1,9 @@
-import { CurrencyCode } from "@/features/position/position";
+import qs from "qs";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+
 import { DateRangeFilter } from "@/lib/types";
+import { CurrencyCode } from "@/features/position/position";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -257,4 +259,89 @@ export function dateRangeFilterToDatesArray(
         dates.push(to);
     }
     return dates;
+}
+
+export function loadFromURL<T>(
+    key: string,
+    defaultValue?: T,
+    customParsers?: LoadFromURLParser
+): T {
+    const raw = qs.parse(location.search, {
+        ignoreQueryPrefix: true,
+        allowDots: true,
+    })[key] as T;
+    const parsedQuery = deepParseObject<T>(raw, customParsers);
+    return { ...defaultValue, ...parsedQuery };
+}
+
+export function saveToURL<T>(key: string, value: T) {
+    const currentQuery = qs.parse(location.search, {
+        ignoreQueryPrefix: true,
+        allowDots: true,
+    });
+
+    const updatedQuery = {
+        ...currentQuery,
+        [key]: value,
+    };
+
+    const queryString = qs.stringify(updatedQuery, {
+        encodeValuesOnly: true,
+        skipNulls: true,
+        allowDots: true,
+    });
+
+    const newUrl = `${window.location.pathname}?${queryString}`;
+    window.history.replaceState(null, "", newUrl);
+}
+
+export type LoadFromURLParser = {
+    [key: string]: (value: any) => any;
+};
+
+function deepParseObject<T>(
+    input: T,
+    customParsers?: LoadFromURLParser,
+    path: string = ""
+): T {
+    if (Array.isArray(input)) {
+        return input.map((item, idx) =>
+            deepParseObject(item, customParsers, `${path}[${idx}]`)
+        ) as any;
+    }
+
+    if (input && typeof input === "object" && !(input instanceof Date)) {
+        const result: any = {};
+        for (const key in input) {
+            const fullPath = path ? `${path}.${key}` : key;
+            const value = (input as any)[key];
+            result[key] = deepParseObject(value, customParsers, fullPath);
+        }
+        return result;
+    }
+
+    // String leaf node — apply built-in parsing
+    if (typeof input === "string") {
+        // Custom parser takes precedence
+        if (customParsers?.[path]) {
+            return customParsers[path](input);
+        }
+
+        // Date ISO check
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(input)) {
+            const date = new Date(input) as any;
+            return isNaN(date.getTime()) ? input : date;
+        }
+
+        // Number check — skip empty strings
+        if (input.trim() !== "" && !isNaN(Number(input))) {
+            return Number(input) as any;
+        }
+
+        // Boolean check
+        if (input === "true") return true as any;
+        if (input === "false") return false as any;
+    }
+
+    return input;
 }
