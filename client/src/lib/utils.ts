@@ -21,10 +21,7 @@ export function saveToLocalStorage(key: LocalStorageKey, value: string) {
     localStorage.setItem(key, value);
 }
 
-export function loadFromLocalStorage<T>(
-    key: LocalStorageKey,
-    defaultValue?: T
-): T | null {
+export function loadFromLocalStorage<T>(key: LocalStorageKey): T | null {
     try {
         const valueStr = localStorage.getItem(key);
 
@@ -37,7 +34,7 @@ export function loadFromLocalStorage<T>(
         return value;
     } catch (err) {
         console.error("Failed to load from LocalStorage: ", err);
-        return defaultValue || null;
+        return null;
     }
 }
 

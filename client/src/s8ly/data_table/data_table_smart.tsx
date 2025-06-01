@@ -14,11 +14,7 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 
-interface DataTableState {
-    columnVisibility: VisibilityState;
-    sorting: SortingState;
-    pagination: PaginationState;
-}
+import { DataTableState } from "@/s8ly/data_table/data_table_state";
 
 interface DataTableSmartProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -107,4 +103,4 @@ function DataTableSmart<TData, TValue>({
 }
 
 export { DataTableSmart };
-export type { DataTableSmartProps, DataTableState };
+export type { DataTableSmartProps };

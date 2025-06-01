@@ -24,13 +24,13 @@ import {
 import { useMemo, useState } from "react";
 import { PositionListTable } from "@/features/position/components/position_list_table";
 import { ImportPositionsResponse } from "@/lib/api/position";
-import { ROUTES } from "@/routes";
 import { CurrencyCode } from "@/lib/api/currency";
 import { DecimalString } from "@/lib/types";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { IconInfo } from "@/components/icons";
 import { ListPositionContextProvider } from "../list/list_positions_context";
+import { ROUTES } from "@/routes_constants";
 
 export const ImportPositions = () => {
     const [brokerID, setBrokerID] = useState<string>("");

@@ -12,11 +12,9 @@ import { WithCompare } from "@/components/with_compare";
 import { CompareSelect } from "@/components/select/compare_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { WithDebounce } from "@/components/with_debounce";
-import {
-    useListPositions,
-    positionSearchFiltersLabel,
-} from "@/features/position/list/list_positions_context";
-import { SymbolInput } from "./symbol_input";
+import { useListPositions } from "@/features/position/list/list_positions_context";
+import { SymbolInput } from "@/features/position/components/symbol_input";
+import { positionSearchFiltersLabel } from "@/features/position/utils";
 
 export const PositionListFilters = memo(({}: {}) => {
     const { queryResult, filters, updateFilter, applyFilters, resetFilters } =

@@ -19,14 +19,14 @@ import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
 import { PositionListFilters } from "@/features/position/components/position_list_filters";
 import { Tag, Button } from "@/s8ly";
-import {
-    defaultPositionSearchFilters,
-    useListPositions,
-    positionSearchFiltersLabel,
-    positionSearchFiltersValueFormatter,
-} from "@/features/position/list/list_positions_context";
+import { useListPositions } from "@/features/position/list/list_positions_context";
 import { IconArrowUpRight, IconCross } from "@/components/icons";
 import { Link } from "react-router-dom";
+import {
+    defaultPositionSearchFilters,
+    positionSearchFiltersLabel,
+    positionSearchFiltersValueFormatter,
+} from "@/features/position/utils";
 
 export interface PositionListTable {
     positions: Position[];

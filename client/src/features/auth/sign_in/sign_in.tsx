@@ -5,13 +5,13 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { Button, Input, Label } from "@/s8ly";
 import { useQueryClient } from "@tanstack/react-query";
 import { ContinueWithGoogle } from "@/components/continue_with_google";
-import { ROUTES } from "@/routes";
 import { Link } from "@/components/link";
 import { PasswordInput } from "@/components/input/password_input";
 import { WithLabel } from "@/components/with_label";
 import { apiErrorHandler } from "@/lib/api";
 import { toast } from "@/components/toast";
 import { SigninResponse } from "@/lib/api/auth";
+import { ROUTES } from "@/routes_constants";
 
 export default function SignIn() {
     const client = useQueryClient();

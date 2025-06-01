@@ -6,9 +6,13 @@ import {
     useListPositions,
 } from "@/features/position/list/list_positions_context";
 import { PositionListTable } from "@/features/position/components/position_list_table";
+import { useListPositionsStore } from "./list_positions_store";
 
 export const ListPositions = () => {
-    const { queryResult, tableState, setTableState } = useListPositions();
+    const tableState = useListPositionsStore((s) => s.tableState);
+    const setTableState = useListPositionsStore((s) => s.setTableState);
+
+    const { queryResult } = useListPositions();
 
     const positions = useMemo(() => {
         if (queryResult.data?.data?.items) {

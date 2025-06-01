@@ -1,4 +1,5 @@
 import { type RouteObject } from "react-router-dom";
+import { ROUTES } from "@/routes_constants";
 
 // Public
 import NotFound from "@/features/not_found/not_found";
@@ -12,47 +13,6 @@ import ListPositionsLazy from "@/features/position/list/list_positions_lazy";
 import ImportPositions from "@/features/position/import/import_positions";
 import Settings from "@/features/settings/settings";
 import ViewPositionLazy from "@/features/position/view/view_position_lazy";
-
-export const ROUTES = {
-    //
-    // Routes that don't require user to be authenticated.
-    //
-    index: "/",
-    notFound: "*",
-
-    signIn: "/sign-in",
-    signUp: "/sign-up",
-    forgotPassword: "/forgot-password",
-
-    //
-    // App routes that will be accessible if a user is signed in.
-    //
-    dashboard: "/dashboard",
-    settings: "/settings",
-    // All routes related to Position.
-    positionList: "/position/list",
-    addPosition: "/position/add",
-    importPositions: "/position/import",
-    // Using a function so that we can pass the `":id"` only in rendering route.
-    // But for ROUTES_PROTECTED and RouteHandler, we don't pass `id`.
-    viewPosition: (id = "") => `/position/${id}`,
-};
-
-export const ROUTES_PUBLIC = [
-    ROUTES.index,
-    ROUTES.notFound,
-    ROUTES.signIn,
-    ROUTES.signUp,
-    ROUTES.forgotPassword,
-];
-export const ROUTES_PROTECTED = [
-    ROUTES.addPosition,
-    ROUTES.dashboard,
-    ROUTES.importPositions,
-    ROUTES.settings,
-    ROUTES.positionList,
-    ROUTES.viewPosition(),
-];
 
 export const routes: Array<RouteObject> = [
     /**

@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { Tooltip } from "@/s8ly/tooltip/tooltip";
 import { cn } from "@/lib/utils";
-import { ROUTES } from "@/routes";
 import { Link } from "@/components/link";
 import {
     IconDashboard,
@@ -27,6 +26,7 @@ import { toast } from "@/components/toast";
 import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { apiErrorHandler } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use_is_mobile";
+import { ROUTES } from "@/routes_constants";
 
 const sidebarRoutes = [ROUTES.dashboard, ROUTES.positionList];
 

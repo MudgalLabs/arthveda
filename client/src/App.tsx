@@ -11,13 +11,13 @@ import "@/index.css";
 
 import { AuthLayout } from "@/auth_layout";
 import { useAuthentication } from "@/features/auth/auth_context";
-import { ROUTES_PUBLIC, ROUTES_PROTECTED, ROUTES } from "@/routes";
 import { AppLayout } from "@/app_layout";
 import { ToastProvider } from "@/components/toast";
 import { AuthenticationProvider } from "@/features/auth/auth_context";
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { AddPositionContextProvider } from "@/features/position/add/add_position_context";
 import { LoadingScreen } from "@/components/loading_screen";
+import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/routes_constants";
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuthentication();

@@ -3,8 +3,8 @@ import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { IconImport, IconPlus, IconSidebarToggle } from "@/components/icons";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
-import { ROUTES } from "@/routes";
 import { Tooltip } from "@/s8ly";
+import { ROUTES } from "@/routes_constants";
 
 export const Topbar = () => {
     const { isOpen, toggleSidebar } = useSidebar();
