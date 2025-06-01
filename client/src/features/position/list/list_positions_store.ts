@@ -1,9 +1,8 @@
 import { create } from "zustand";
-
 import {
+    DEFAULT_DATA_TABLE_STATE,
     DataTableState,
     dataTableStateSaveFn,
-    DEFAULT_DATA_TABLE_STATE,
 } from "@/s8ly/data_table/data_table_state";
 import { ROUTES } from "@/routes_constants";
 import {
@@ -18,11 +17,12 @@ import {
 } from "@/features/position/utils";
 import { PositionSearchFilters } from "@/lib/api/position";
 
-interface ListPositionsStore {
+// Flattened interface
+interface ListPositionsStore extends PositionSearchFilters {
     tableState: DataTableState;
-    setTableState: (state: DataTableState) => void;
-    filters: PositionSearchFilters;
     appliedFilters: PositionSearchFilters;
+
+    setTableState: (state: DataTableState) => void;
     updateFilter: <K extends keyof PositionSearchFilters>(
         key: K,
         value: PositionSearchFilters[K]
@@ -32,9 +32,16 @@ interface ListPositionsStore {
     applyFilters: () => void;
 }
 
+const initial = loadFromURL(URL_KEY_FILTERS, defaultPositionSearchFilters);
+
 export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
+    // Spread each filter key to root
+    ...initial,
+
     tableState:
         loadFromLocalStorage(ROUTES.positionList) ?? DEFAULT_DATA_TABLE_STATE,
+
+    appliedFilters: { ...initial },
 
     setTableState: (state) => {
         saveToLocalStorage(
@@ -44,40 +51,38 @@ export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
         set({ tableState: state });
     },
 
-    filters: loadFromURL(URL_KEY_FILTERS, defaultPositionSearchFilters),
-
-    appliedFilters: loadFromURL(URL_KEY_FILTERS, defaultPositionSearchFilters),
-
-    updateFilter: (key, value) =>
-        set((state) => ({
-            filters: {
-                ...state.filters,
-                [key]: value,
-            },
-        })),
+    updateFilter: (key, value) => set({ [key]: value }),
 
     resetFilter: (key) =>
-        set((state) => ({
-            filters: {
-                ...state.filters,
-                [key]: defaultPositionSearchFilters[key],
-            },
-            appliedFilters: {
-                ...state.appliedFilters,
-                [key]: defaultPositionSearchFilters[key],
-            },
-        })),
-
-    resetFilters: () =>
         set({
-            filters: defaultPositionSearchFilters,
-            appliedFilters: defaultPositionSearchFilters,
+            [key]: defaultPositionSearchFilters[key],
+            appliedFilters: {
+                ...get().appliedFilters,
+                [key]: defaultPositionSearchFilters[key],
+            },
         }),
 
+    resetFilters: () => {
+        const resets = { ...defaultPositionSearchFilters };
+        const flatResets = Object.fromEntries(
+            Object.entries(resets)
+        ) as Partial<ListPositionsStore>;
+
+        set({
+            ...flatResets,
+            appliedFilters: resets,
+        });
+    },
+
     applyFilters: () => {
-        set((state) => ({
-            appliedFilters: { ...state.filters },
-        }));
-        saveToURL(URL_KEY_FILTERS, get().appliedFilters);
+        const applied: PositionSearchFilters = Object.fromEntries(
+            Object.keys(defaultPositionSearchFilters).map((key) => [
+                key,
+                get()[key as keyof PositionSearchFilters],
+            ])
+        ) as PositionSearchFilters;
+
+        set({ appliedFilters: applied });
+        saveToURL(URL_KEY_FILTERS, applied);
     },
 }));

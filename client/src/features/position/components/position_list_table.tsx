@@ -48,7 +48,6 @@ export const PositionListTable: FC<PositionListTable> = memo(
         isFetching,
         isLoading,
     }) => {
-        const filters = useListPositionsStore((s) => s.filters);
         const appliedFilters = useListPositionsStore((s) => s.appliedFilters);
         const resetFilters = useListPositionsStore((s) => s.resetFilters);
         const resetFilter = useListPositionsStore((s) => s.resetFilter);
@@ -79,7 +78,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                             <Tag key={key} variant="filter">
                                 {
                                     positionSearchFiltersLabel[
-                                        key as keyof typeof filters
+                                        key as keyof typeof appliedFilters
                                     ]
                                 }{" "}
                                 {positionSearchFiltersValueFormatter[
@@ -90,7 +89,9 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                     size="small"
                                     className="text-foreground-muted hover:text-foreground p-0 hover:cursor-pointer"
                                     onClick={() =>
-                                        resetFilter(key as keyof typeof filters)
+                                        resetFilter(
+                                            key as keyof typeof appliedFilters
+                                        )
                                     }
                                 >
                                     <IconCross size={20} />
