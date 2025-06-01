@@ -1,4 +1,5 @@
 import { FC, memo } from "react";
+import { Link } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -7,10 +8,7 @@ import {
     Position,
     positionInstrumentToString,
 } from "@/features/position/position";
-import {
-    DataTableSmart,
-    DataTableState,
-} from "@/s8ly/data_table/data_table_smart";
+import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
@@ -19,14 +17,14 @@ import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
 import { PositionListFilters } from "@/features/position/components/position_list_filters";
 import { Tag, Button } from "@/s8ly";
-import { useListPositions } from "@/features/position/list/list_positions_context";
 import { IconArrowUpRight, IconCross } from "@/components/icons";
-import { Link } from "react-router-dom";
 import {
     defaultPositionSearchFilters,
     positionSearchFiltersLabel,
     positionSearchFiltersValueFormatter,
 } from "@/features/position/utils";
+import { DataTableState } from "@/s8ly/data_table/data_table_state";
+import { useListPositionsStore } from "@/features/position/list/list_positions_store";
 
 export interface PositionListTable {
     positions: Position[];
@@ -50,8 +48,10 @@ export const PositionListTable: FC<PositionListTable> = memo(
         isFetching,
         isLoading,
     }) => {
-        const { appliedFilters, filters, resetFilter, resetFilters } =
-            useListPositions();
+        const filters = useListPositionsStore((s) => s.filters);
+        const appliedFilters = useListPositionsStore((s) => s.appliedFilters);
+        const resetFilters = useListPositionsStore((s) => s.resetFilters);
+        const resetFilter = useListPositionsStore((s) => s.resetFilter);
 
         const activeFilters = Object.entries(appliedFilters).filter(
             ([key, value]) =>

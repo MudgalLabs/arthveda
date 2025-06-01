@@ -3,7 +3,7 @@ import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Link } from "@/components/link";
-import { ROUTES } from "@/routes";
+import { ROUTES } from "@/routes_constants";
 import { Card, CardTitle } from "@/components/card";
 import { useAuthentication } from "@/features/auth/auth_context";
 

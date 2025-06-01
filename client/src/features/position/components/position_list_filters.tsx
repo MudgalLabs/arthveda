@@ -15,10 +15,15 @@ import { WithDebounce } from "@/components/with_debounce";
 import { useListPositions } from "@/features/position/list/list_positions_context";
 import { SymbolInput } from "@/features/position/components/symbol_input";
 import { positionSearchFiltersLabel } from "@/features/position/utils";
+import { useListPositionsStore } from "@/features/position/list/list_positions_store";
 
 export const PositionListFilters = memo(({}: {}) => {
-    const { queryResult, filters, updateFilter, applyFilters, resetFilters } =
-        useListPositions();
+    const filters = useListPositionsStore((s) => s.filters);
+    const updateFilter = useListPositionsStore((s) => s.updateFilter);
+    const applyFilters = useListPositionsStore((s) => s.applyFilters);
+    const resetFilters = useListPositionsStore((s) => s.resetFilters);
+
+    const { queryResult } = useListPositions();
 
     const [open, setOpen] = useState(false);
 

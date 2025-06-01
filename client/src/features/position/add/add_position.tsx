@@ -54,7 +54,7 @@ import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
 import { Link } from "@/components/link";
-import { ROUTES } from "@/routes";
+import { ROUTES } from "@/routes_constants";
 import { apiErrorHandler } from "@/lib/api";
 import { DecimalString } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
