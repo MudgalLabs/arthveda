@@ -135,7 +135,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                     <DataTableVisibility table={table} />
                                 </div>
 
-                                {activeFiltersRow}
+                                {!hideFilters && activeFiltersRow}
 
                                 <DataTable table={table} />
 

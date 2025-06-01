@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 import {
     DataTableState,
+    dataTableStateSaveFn,
     DEFAULT_DATA_TABLE_STATE,
 } from "@/s8ly/data_table/data_table_state";
 import { ROUTES } from "@/routes_constants";
@@ -36,7 +37,10 @@ export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
         loadFromLocalStorage(ROUTES.positionList) ?? DEFAULT_DATA_TABLE_STATE,
 
     setTableState: (state) => {
-        saveToLocalStorage(ROUTES.positionList, JSON.stringify(state));
+        saveToLocalStorage(
+            ROUTES.positionList,
+            JSON.stringify(dataTableStateSaveFn(state))
+        );
         set({ tableState: state });
     },
 
