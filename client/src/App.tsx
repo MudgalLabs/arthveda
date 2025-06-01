@@ -15,7 +15,6 @@ import { AppLayout } from "@/app_layout";
 import { ToastProvider } from "@/components/toast";
 import { AuthenticationProvider } from "@/features/auth/auth_context";
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
-import { AddPositionContextProvider } from "@/features/position/add/add_position_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/routes_constants";
 

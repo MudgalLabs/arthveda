@@ -23,7 +23,6 @@ import {
 } from "@/s8ly";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
-import { useAddPosition } from "@/features/position/add/add_position_context";
 import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
 import {
     IconCalendarRange,
@@ -61,24 +60,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { WithDebounce } from "@/components/with_debounce";
 import { SymbolInput } from "@/features/position/components/symbol_input";
-import { useAddPositionStore } from "./add_position_context_new";
+import { useAddPositionStore } from "./add_position_context";
 import { ComputePositionResponse } from "@/lib/api/position";
+import { LoadingScreen } from "@/components/loading_screen";
 
 function AddPosition() {
-    // const {
-    //     state,
-    //     setState,
-    //     isComputing,
-    //     canDiscard,
-    //     discard,
-    //     trades,
-    //     setTrades,
-    //     tradesAreValid,
-    //     insertNewTrade,
-    //     computeResult,
-    //     canSave,
-    // } = useAddPosition();
-
     const queryClient = useQueryClient();
 
     const { mutateAsync: save, isPending: isSaving } =
@@ -119,6 +105,7 @@ function AddPosition() {
     );
     const updatePosition = useAddPositionStore((s) => s.updatePosition);
     const isInitialized = useAddPositionStore((s) => s.isInitialized);
+    const setIsInitialized = useAddPositionStore((s) => s.setIsInitialized);
     console.log({ position, isInitialized });
 
     const handleClickSave = () => {
@@ -145,6 +132,8 @@ function AddPosition() {
         });
     };
 
+    const prev = useRef<Position | null>(null);
+
     const { mutateAsync: compute, isPending: isComputing } =
         apiHooks.position.useCompute({
             onSuccess: async (res) => {
@@ -154,11 +143,11 @@ function AddPosition() {
                     opened_at: new Date(data.opened_at),
                     closed_at: data.closed_at ? new Date(data.closed_at) : null,
                 });
+                prev.current = position;
+                setIsInitialized(true);
             },
             onError: apiErrorHandler,
         });
-
-    const prev = useRef<Position | null>(null);
 
     const stateChangedForCompute = useMemo(() => {
         let flag = false;
@@ -191,7 +180,6 @@ function AddPosition() {
 
     useEffect(() => {
         if (!stateChangedForCompute) return;
-        prev.current = position;
         compute({
             risk_amount: position.risk_amount || "0",
             charges_amount: position.charges_amount || "0",
@@ -209,6 +197,10 @@ function AddPosition() {
             }),
         });
     }, [position, compute, tradesAreValid]);
+
+    if (!isInitialized) {
+        return <LoadingScreen />;
+    }
 
     return (
         <>

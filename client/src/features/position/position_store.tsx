@@ -22,7 +22,7 @@ interface State {
 
 interface Action {
     updatePosition: (newPosition: Partial<Position>) => void;
-    // setTrades: (newTrades: Trade[]) => Trade[];
+    setIsInitialized: (isInitialized: boolean) => void;
     setTrades: Setter<Trade[]>;
     insertNewTrade: () => void;
     removeTrade: (index: number) => void;
@@ -30,6 +30,8 @@ interface Action {
 }
 
 export interface PositionStore extends State, Action {}
+
+export type InitPositionStoreProp = Partial<State>;
 
 const defaultState: State = {
     creatingOrUpdatingPostion: null,
@@ -91,7 +93,7 @@ function getEmptyTrade(orderKind: TradeKind): Trade {
     };
 }
 
-export const createPositionStore = (initProp?: Partial<State>) => {
+export const createPositionStore = (initProp?: InitPositionStoreProp) => {
     const initial = {
         ...defaultState,
         ...initProp,
@@ -112,6 +114,13 @@ export const createPositionStore = (initProp?: Partial<State>) => {
 
     return createStore<PositionStore>((set, get) => ({
         ...initial,
+
+        setIsInitialized: (isInitialized) => {
+            set((state) => ({
+                ...state,
+                isInitialized,
+            }));
+        },
 
         updatePosition: (newState) => {
             set((state) => {
