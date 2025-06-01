@@ -21,130 +21,13 @@ import { SymbolInput } from "@/features/position/components/symbol_input";
 import { positionSearchFiltersLabel } from "@/features/position/utils";
 import { useListPositionsStore } from "@/features/position/list/list_positions_store";
 import { PositionDirection, PositionInstrument } from "../position";
-import { DateRangeFilter } from "@/lib/types";
 
 export const PositionListFilters = memo(
     ({ isFetching = false }: { isFetching?: boolean }) => {
-        const opened = useListPositionsStore((s) => s.opened);
-        const symbol = useListPositionsStore((s) => s.symbol);
-        const instrument = useListPositionsStore((s) => s.instrument);
-        const direction = useListPositionsStore((s) => s.direction);
-        const status = useListPositionsStore((s) => s.status);
-        const r_factor = useListPositionsStore((s) => s.r_factor);
-        const r_factor_operator = useListPositionsStore(
-            (s) => s.r_factor_operator
-        );
-        const gross_pnl = useListPositionsStore((s) => s.gross_pnl);
-        const gross_pnl_operator = useListPositionsStore(
-            (s) => s.gross_pnl_operator
-        );
-        const net_pnl = useListPositionsStore((s) => s.net_pnl);
-        const net_pnl_operator = useListPositionsStore(
-            (s) => s.net_pnl_operator
-        );
-        const net_return_percentage = useListPositionsStore(
-            (s) => s.net_return_percentage
-        );
-        const net_return_percentage_operator = useListPositionsStore(
-            (s) => s.net_return_percentage_operator
-        );
-        const charges_percentage = useListPositionsStore(
-            (s) => s.charges_percentage
-        );
-        const charges_percentage_operator = useListPositionsStore(
-            (s) => s.charges_percentage_operator
-        );
-
-        const updateFilter = useListPositionsStore((s) => s.updateFilter);
         const applyFilters = useListPositionsStore((s) => s.applyFilters);
         const resetFilters = useListPositionsStore((s) => s.resetFilters);
 
         const [open, setOpen] = useState(false);
-
-        const handleSymbolChange = useCallback(
-            (_: React.ChangeEvent<HTMLInputElement>, v: string) =>
-                updateFilter("symbol", v),
-            [updateFilter]
-        );
-
-        const handleInstrumentChange = useCallback(
-            (v: PositionInstrument | "") => updateFilter("instrument", v),
-            [updateFilter]
-        );
-
-        const handleDirectionChange = useCallback(
-            (v: PositionDirection | "") => updateFilter("direction", v),
-            [updateFilter]
-        );
-
-        const handleStatusChange = useCallback(
-            (v: PositionStatusFilterValue) => updateFilter("status", v),
-            [updateFilter]
-        );
-
-        const handleRFactorChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("r_factor", e.target.value),
-            [updateFilter]
-        );
-
-        const handleRFactorOperatorChange = useCallback(
-            (v: CompareOperator) => updateFilter("r_factor_operator", v),
-            [updateFilter]
-        );
-
-        const handleGrossPnlChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("gross_pnl", e.target.value),
-            [updateFilter]
-        );
-
-        const handleGrossPnlOperatorChange = useCallback(
-            (v: CompareOperator) => updateFilter("gross_pnl_operator", v),
-            [updateFilter]
-        );
-
-        const handleNetPnlChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("net_pnl", e.target.value),
-            [updateFilter]
-        );
-
-        const handleNetPnlOperatorChange = useCallback(
-            (v: CompareOperator) => updateFilter("net_pnl_operator", v),
-            [updateFilter]
-        );
-
-        const handleNetReturnPercentageChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("net_return_percentage", e.target.value),
-            [updateFilter]
-        );
-
-        const handleNetReturnPercentageOperatorChange = useCallback(
-            (v: CompareOperator) =>
-                updateFilter("net_return_percentage_operator", v),
-            [updateFilter]
-        );
-
-        const handleChargesPercentageChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("charges_percentage", e.target.value),
-            [updateFilter]
-        );
-
-        const handleChargesPercentageOperatorChange = useCallback(
-            (v: CompareOperator) =>
-                updateFilter("charges_percentage_operator", v),
-            [updateFilter]
-        );
-
-        const handleOpenedChange = useCallback((v: Date[]) => {
-            updateFilter("opened", {
-                from: v[0],
-                to: v[1],
-            });
-        }, []);
 
         // Using `useRef` didn't work as expected with the Drawer component.
         const [drawerEl, setContainerEl] = useState<HTMLElement | null>(null);
@@ -195,76 +78,18 @@ export const PositionListFilters = memo(
 
                             <form className="mt-8">
                                 <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                    <OpenedFilter
-                                        value={opened}
-                                        onChange={handleOpenedChange}
-                                        container={drawerEl}
-                                    />
-                                    <SymbolInputField
-                                        value={symbol}
-                                        onChange={handleSymbolChange}
-                                    />
-                                    <InstrumentFilter
-                                        value={instrument}
-                                        onChange={handleInstrumentChange}
-                                    />
-                                    <DirectionFilter
-                                        value={direction}
-                                        onChange={handleDirectionChange}
-                                    />
-                                    <StatusFilter
-                                        value={status}
-                                        onChange={handleStatusChange}
-                                    />
-                                    <RFactorFilter
-                                        value={r_factor}
-                                        operator={r_factor_operator}
-                                        onValueChange={handleRFactorChange}
-                                        onOperatorChange={
-                                            handleRFactorOperatorChange
-                                        }
-                                        container={drawerEl}
-                                    />
-                                    <GrossPnlFilter
-                                        value={gross_pnl}
-                                        operator={gross_pnl_operator}
-                                        onValueChange={handleGrossPnlChange}
-                                        onOperatorChange={
-                                            handleGrossPnlOperatorChange
-                                        }
-                                        container={drawerEl}
-                                    />
-                                    <NetPnlFilter
-                                        value={net_pnl}
-                                        operator={net_pnl_operator}
-                                        onValueChange={handleNetPnlChange}
-                                        onOperatorChange={
-                                            handleNetPnlOperatorChange
-                                        }
-                                        container={drawerEl}
-                                    />
+                                    <OpenedFilter container={drawerEl} />
+                                    <SymbolInputField />
+                                    <InstrumentFilter />
+                                    <DirectionFilter />
+                                    <StatusFilter />
+                                    <RFactorFilter container={drawerEl} />
+                                    <GrossPnlFilter container={drawerEl} />
+                                    <NetPnlFilter container={drawerEl} />
                                     <NetReturnPercentageFilter
-                                        value={net_return_percentage}
-                                        operator={
-                                            net_return_percentage_operator
-                                        }
-                                        onValueChange={
-                                            handleNetReturnPercentageChange
-                                        }
-                                        onOperatorChange={
-                                            handleNetReturnPercentageOperatorChange
-                                        }
                                         container={drawerEl}
                                     />
                                     <ChargesPercentageFilter
-                                        value={charges_percentage}
-                                        operator={charges_percentage_operator}
-                                        onValueChange={
-                                            handleChargesPercentageChange
-                                        }
-                                        onOperatorChange={
-                                            handleChargesPercentageOperatorChange
-                                        }
                                         container={drawerEl}
                                     />
                                 </div>
@@ -307,277 +132,348 @@ export const PositionListFilters = memo(
 );
 
 const OpenedFilter = memo(
-    ({
-        value,
-        onChange,
-        container,
-    }: {
-        value?: DateRangeFilter;
-        onChange: (d: Date[]) => void;
-        container: HTMLElement | null;
-    }) => (
-        <WithLabel Label={<Label>{positionSearchFiltersLabel.opened}</Label>}>
-            <DatePicker
-                container={container}
-                mode="range"
-                config={{ dates: { toggle: true } }}
-                dates={dateRangeFilterToDatesArray(value)}
-                onDatesChange={onChange}
-            />
-        </WithLabel>
-    )
+    ({ container }: { container: HTMLElement | null }) => {
+        const opened = useListPositionsStore((s) => s.opened);
+        const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+        const handleOpenedChange = useCallback(
+            (v: Date[]) => {
+                updateFilter("opened", {
+                    from: v[0],
+                    to: v[1],
+                });
+            },
+            [updateFilter]
+        );
+
+        return (
+            <WithLabel
+                Label={<Label>{positionSearchFiltersLabel.opened}</Label>}
+            >
+                <DatePicker
+                    container={container}
+                    mode="range"
+                    config={{ dates: { toggle: true } }}
+                    dates={dateRangeFilterToDatesArray(opened)}
+                    onDatesChange={handleOpenedChange}
+                />
+            </WithLabel>
+        );
+    }
 );
 
-const InstrumentFilter = memo(
-    ({
-        value,
-        onChange,
-    }: {
-        value?: PositionInstrument | "";
-        onChange: (v: PositionInstrument | "") => void;
-    }) => (
+const SymbolInputField = memo(() => {
+    const symbol = useListPositionsStore((s) => s.symbol);
+    const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+    const handleSymbolChange = useCallback(
+        (_: React.ChangeEvent<HTMLInputElement>, v: string) =>
+            updateFilter("symbol", v),
+        [updateFilter]
+    );
+
+    return (
+        <WithLabel Label={<Label>{positionSearchFiltersLabel.symbol}</Label>}>
+            <SymbolInput value={symbol} onChange={handleSymbolChange} />
+        </WithLabel>
+    );
+});
+
+const InstrumentFilter = memo(() => {
+    const instrument = useListPositionsStore((s) => s.instrument);
+    const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+    const handleInstrumentChange = useCallback(
+        (v: PositionInstrument | "") => updateFilter("instrument", v),
+        [updateFilter]
+    );
+
+    return (
         <WithLabel
             Label={<Label>{positionSearchFiltersLabel.instrument}</Label>}
         >
-            <InstrumentToggle value={value} onChange={onChange} />
+            <InstrumentToggle
+                value={instrument}
+                onChange={handleInstrumentChange}
+            />
         </WithLabel>
-    )
-);
+    );
+});
 
-const DirectionFilter = memo(
-    ({
-        value,
-        onChange,
-    }: {
-        value?: PositionDirection | "";
-        onChange: (v: PositionDirection | "") => void;
-    }) => (
+const DirectionFilter = memo(() => {
+    const direction = useListPositionsStore((s) => s.direction);
+    const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+    const handleDirectionChange = useCallback(
+        (v: PositionDirection | "") => updateFilter("direction", v),
+        [updateFilter]
+    );
+
+    return (
         <WithLabel
             Label={<Label>{positionSearchFiltersLabel.direction}</Label>}
         >
-            <DirectionToggle value={value} onChange={onChange} />
+            <DirectionToggle
+                value={direction}
+                onChange={handleDirectionChange}
+            />
         </WithLabel>
-    )
-);
+    );
+});
 
-const StatusFilter = memo(
-    ({
-        value,
-        onChange,
-    }: {
-        value?: PositionStatusFilterValue;
-        onChange: (v: PositionStatusFilterValue) => void;
-    }) => (
+const StatusFilter = memo(() => {
+    const status = useListPositionsStore((s) => s.status);
+    const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+    const handleStatusChange = useCallback(
+        (v: PositionStatusFilterValue) => updateFilter("status", v),
+        [updateFilter]
+    );
+
+    return (
         <WithLabel Label={<Label>{positionSearchFiltersLabel.status}</Label>}>
-            <PositionStatusSelect value={value} onValueChange={onChange} />
+            <PositionStatusSelect
+                value={status}
+                onValueChange={handleStatusChange}
+            />
         </WithLabel>
-    )
-);
+    );
+});
 
 const RFactorFilter = memo(
-    ({
-        value,
-        operator,
-        onValueChange,
-        onOperatorChange,
-        container,
-    }: {
-        value?: string;
-        operator?: CompareOperator;
-        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-        onOperatorChange: (v: CompareOperator) => void;
-        container: HTMLElement | null;
-    }) => (
-        <WithLabel Label={<Label>{positionSearchFiltersLabel.r_factor}</Label>}>
-            <WithCompare
-                Compare={
-                    <CompareSelect
-                        container={container}
-                        value={operator}
-                        onValueChange={onOperatorChange}
-                    />
-                }
+    ({ container }: { container: HTMLElement | null }) => {
+        const r_factor = useListPositionsStore((s) => s.r_factor);
+        const r_factor_operator = useListPositionsStore(
+            (s) => s.r_factor_operator
+        );
+        const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+        const handleRFactorChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("r_factor", e.target.value),
+            [updateFilter]
+        );
+
+        const handleRFactorOperatorChange = useCallback(
+            (v: CompareOperator) => updateFilter("r_factor_operator", v),
+            [updateFilter]
+        );
+
+        return (
+            <WithLabel
+                Label={<Label>{positionSearchFiltersLabel.r_factor}</Label>}
             >
-                <Input
-                    className="w-20!"
-                    type="number"
-                    step="0.01"
-                    value={value}
-                    onChange={onValueChange}
-                />
-            </WithCompare>
-        </WithLabel>
-    )
+                <WithCompare
+                    Compare={
+                        <CompareSelect
+                            container={container}
+                            value={r_factor_operator}
+                            onValueChange={handleRFactorOperatorChange}
+                        />
+                    }
+                >
+                    <Input
+                        className="w-20!"
+                        type="number"
+                        step="0.01"
+                        value={r_factor}
+                        onChange={handleRFactorChange}
+                    />
+                </WithCompare>
+            </WithLabel>
+        );
+    }
 );
 
 const GrossPnlFilter = memo(
-    ({
-        value,
-        operator,
-        onValueChange,
-        onOperatorChange,
-        container,
-    }: {
-        value?: string;
-        operator?: CompareOperator;
-        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-        onOperatorChange: (v: CompareOperator) => void;
-        container: HTMLElement | null;
-    }) => (
-        <WithLabel
-            Label={<Label>{positionSearchFiltersLabel.gross_pnl}</Label>}
-        >
-            <WithCompare
-                Compare={
-                    <CompareSelect
-                        container={container}
-                        value={operator}
-                        onValueChange={onOperatorChange}
-                    />
-                }
+    ({ container }: { container: HTMLElement | null }) => {
+        const gross_pnl = useListPositionsStore((s) => s.gross_pnl);
+        const gross_pnl_operator = useListPositionsStore(
+            (s) => s.gross_pnl_operator
+        );
+        const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+        const handleGrossPnlChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("gross_pnl", e.target.value),
+            [updateFilter]
+        );
+
+        const handleGrossPnlOperatorChange = useCallback(
+            (v: CompareOperator) => updateFilter("gross_pnl_operator", v),
+            [updateFilter]
+        );
+
+        return (
+            <WithLabel
+                Label={<Label>{positionSearchFiltersLabel.gross_pnl}</Label>}
             >
-                <DecimalInput
-                    kind="amount"
-                    value={value}
-                    onChange={onValueChange}
-                />
-            </WithCompare>
-        </WithLabel>
-    )
+                <WithCompare
+                    Compare={
+                        <CompareSelect
+                            container={container}
+                            value={gross_pnl_operator}
+                            onValueChange={handleGrossPnlOperatorChange}
+                        />
+                    }
+                >
+                    <DecimalInput
+                        kind="amount"
+                        value={gross_pnl}
+                        onChange={handleGrossPnlChange}
+                    />
+                </WithCompare>
+            </WithLabel>
+        );
+    }
 );
 
 const NetPnlFilter = memo(
-    ({
-        value,
-        operator,
-        onValueChange,
-        onOperatorChange,
-        container,
-    }: {
-        value?: string;
-        operator?: CompareOperator;
-        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-        onOperatorChange: (v: CompareOperator) => void;
-        container: HTMLElement | null;
-    }) => (
-        <WithLabel Label={<Label>{positionSearchFiltersLabel.net_pnl}</Label>}>
-            <WithCompare
-                Compare={
-                    <CompareSelect
-                        container={container}
-                        value={operator}
-                        onValueChange={onOperatorChange}
-                    />
-                }
+    ({ container }: { container: HTMLElement | null }) => {
+        const net_pnl = useListPositionsStore((s) => s.net_pnl);
+        const net_pnl_operator = useListPositionsStore(
+            (s) => s.net_pnl_operator
+        );
+        const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+        const handleNetPnlChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("net_pnl", e.target.value),
+            [updateFilter]
+        );
+
+        const handleNetPnlOperatorChange = useCallback(
+            (v: CompareOperator) => updateFilter("net_pnl_operator", v),
+            [updateFilter]
+        );
+
+        return (
+            <WithLabel
+                Label={<Label>{positionSearchFiltersLabel.net_pnl}</Label>}
             >
-                <DecimalInput
-                    kind="amount"
-                    value={value}
-                    onChange={onValueChange}
-                />
-            </WithCompare>
-        </WithLabel>
-    )
+                <WithCompare
+                    Compare={
+                        <CompareSelect
+                            container={container}
+                            value={net_pnl_operator}
+                            onValueChange={handleNetPnlOperatorChange}
+                        />
+                    }
+                >
+                    <DecimalInput
+                        kind="amount"
+                        value={net_pnl}
+                        onChange={handleNetPnlChange}
+                    />
+                </WithCompare>
+            </WithLabel>
+        );
+    }
 );
 
 const NetReturnPercentageFilter = memo(
-    ({
-        value,
-        operator,
-        onValueChange,
-        onOperatorChange,
-        container,
-    }: {
-        value?: string;
-        operator?: CompareOperator;
-        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-        onOperatorChange: (v: CompareOperator) => void;
-        container: HTMLElement | null;
-    }) => (
-        <WithLabel
-            Label={
-                <Label>
-                    {positionSearchFiltersLabel.net_return_percentage}
-                </Label>
-            }
-        >
-            <WithCompare
-                Compare={
-                    <CompareSelect
-                        container={container}
-                        value={operator}
-                        onValueChange={onOperatorChange}
-                    />
+    ({ container }: { container: HTMLElement | null }) => {
+        const net_return_percentage = useListPositionsStore(
+            (s) => s.net_return_percentage
+        );
+        const net_return_percentage_operator = useListPositionsStore(
+            (s) => s.net_return_percentage_operator
+        );
+        const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+        const handleNetReturnPercentageChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("net_return_percentage", e.target.value),
+            [updateFilter]
+        );
+
+        const handleNetReturnPercentageOperatorChange = useCallback(
+            (v: CompareOperator) =>
+                updateFilter("net_return_percentage_operator", v),
+            [updateFilter]
+        );
+
+        return (
+            <WithLabel
+                Label={
+                    <Label>
+                        {positionSearchFiltersLabel.net_return_percentage}
+                    </Label>
                 }
             >
-                <Input
-                    className="w-20!"
-                    type="number"
-                    step="0.01"
-                    value={value}
-                    onChange={onValueChange}
-                />
-            </WithCompare>
-        </WithLabel>
-    )
+                <WithCompare
+                    Compare={
+                        <CompareSelect
+                            container={container}
+                            value={net_return_percentage_operator}
+                            onValueChange={
+                                handleNetReturnPercentageOperatorChange
+                            }
+                        />
+                    }
+                >
+                    <Input
+                        className="w-20!"
+                        type="number"
+                        step="0.01"
+                        value={net_return_percentage}
+                        onChange={handleNetReturnPercentageChange}
+                    />
+                </WithCompare>
+            </WithLabel>
+        );
+    }
 );
 
 const ChargesPercentageFilter = memo(
-    ({
-        value,
-        operator,
-        onValueChange,
-        onOperatorChange,
-        container,
-    }: {
-        value?: string;
-        operator?: CompareOperator;
-        onValueChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-        onOperatorChange: (v: CompareOperator) => void;
-        container: HTMLElement | null;
-    }) => (
-        <WithLabel
-            Label={
-                <Label>{positionSearchFiltersLabel.charges_percentage}</Label>
-            }
-        >
-            <WithCompare
-                Compare={
-                    <CompareSelect
-                        container={container}
-                        value={operator}
-                        onValueChange={onOperatorChange}
-                    />
-                }
-            >
-                <Input
-                    className="w-24!"
-                    type="number"
-                    step="0.01"
-                    value={value}
-                    onChange={onValueChange}
-                />
-            </WithCompare>
-        </WithLabel>
-    )
-);
+    ({ container }: { container: HTMLElement | null }) => {
+        const charges_percentage = useListPositionsStore(
+            (s) => s.charges_percentage
+        );
+        const charges_percentage_operator = useListPositionsStore(
+            (s) => s.charges_percentage_operator
+        );
+        const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-const SymbolInputField = memo(
-    ({
-        value,
-        onChange,
-    }: {
-        value?: string;
-        onChange: (
-            e: React.ChangeEvent<HTMLInputElement>,
-            value: string
-        ) => void;
-    }) => {
+        const handleChargesPercentageChange = useCallback(
+            (e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFilter("charges_percentage", e.target.value),
+            [updateFilter]
+        );
+
+        const handleChargesPercentageOperatorChange = useCallback(
+            (v: CompareOperator) =>
+                updateFilter("charges_percentage_operator", v),
+            [updateFilter]
+        );
+
         return (
             <WithLabel
-                Label={<Label>{positionSearchFiltersLabel.symbol}</Label>}
+                Label={
+                    <Label>
+                        {positionSearchFiltersLabel.charges_percentage}
+                    </Label>
+                }
             >
-                <SymbolInput value={value} onChange={onChange} />
+                <WithCompare
+                    Compare={
+                        <CompareSelect
+                            container={container}
+                            value={charges_percentage_operator}
+                            onValueChange={
+                                handleChargesPercentageOperatorChange
+                            }
+                        />
+                    }
+                >
+                    <Input
+                        className="w-24!"
+                        type="number"
+                        step="0.01"
+                        value={charges_percentage}
+                        onChange={handleChargesPercentageChange}
+                    />
+                </WithCompare>
             </WithLabel>
         );
     }
