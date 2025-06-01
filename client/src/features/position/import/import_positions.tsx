@@ -29,7 +29,6 @@ import { DecimalString } from "@/lib/types";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { IconInfo } from "@/components/icons";
-import { ListPositionContextProvider } from "../list/list_positions_context";
 import { ROUTES } from "@/routes_constants";
 
 export const ImportPositions = () => {
@@ -269,8 +268,4 @@ export const ImportPositions = () => {
     );
 };
 
-export default () => (
-    <ListPositionContextProvider>
-        <ImportPositions />
-    </ListPositionContextProvider>
-);
+export default ImportPositions;

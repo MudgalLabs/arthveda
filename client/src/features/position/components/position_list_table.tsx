@@ -127,7 +127,11 @@ export const PositionListTable: FC<PositionListTable> = memo(
                         {(table) => (
                             <div className="space-y-4">
                                 <div className="flex justify-end gap-x-2">
-                                    {!hideFilters && <PositionListFilters />}
+                                    {!hideFilters && (
+                                        <PositionListFilters
+                                            isFetching={isFetching}
+                                        />
+                                    )}
                                     <DataTableVisibility table={table} />
                                 </div>
 

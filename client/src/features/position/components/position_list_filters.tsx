@@ -12,18 +12,20 @@ import { WithCompare } from "@/components/with_compare";
 import { CompareSelect } from "@/components/select/compare_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { WithDebounce } from "@/components/with_debounce";
-import { useListPositions } from "@/features/position/list/list_positions_context";
 import { SymbolInput } from "@/features/position/components/symbol_input";
 import { positionSearchFiltersLabel } from "@/features/position/utils";
 import { useListPositionsStore } from "@/features/position/list/list_positions_store";
 
-export const PositionListFilters = memo(({}: {}) => {
+export const PositionListFilters = memo(({
+    isFetching = false,
+}: {
+    isFetching?: boolean;
+
+}) => {
     const filters = useListPositionsStore((s) => s.filters);
     const updateFilter = useListPositionsStore((s) => s.updateFilter);
     const applyFilters = useListPositionsStore((s) => s.applyFilters);
     const resetFilters = useListPositionsStore((s) => s.resetFilters);
-
-    const { queryResult } = useListPositions();
 
     const [open, setOpen] = useState(false);
 
@@ -419,7 +421,7 @@ export const PositionListFilters = memo(({}: {}) => {
                                         resetFilters();
                                         setOpen(false);
                                     }}
-                                    loading={queryResult.isFetching}
+                                    loading={isFetching}
                                 >
                                     Reset
                                 </Button>
@@ -430,7 +432,7 @@ export const PositionListFilters = memo(({}: {}) => {
                                         applyFilters();
                                         setOpen(false);
                                     }}
-                                    loading={queryResult.isFetching}
+                                    loading={isFetching}
                                 >
                                     Apply
                                 </Button>

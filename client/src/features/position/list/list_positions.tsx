@@ -1,18 +1,42 @@
 import { useMemo } from "react";
 
 import { PageHeading } from "@/components/page_heading";
-import {
-    ListPositionContextProvider,
-    useListPositions,
-} from "@/features/position/list/list_positions_context";
 import { PositionListTable } from "@/features/position/components/position_list_table";
-import { useListPositionsStore } from "./list_positions_store";
+import { useListPositionsStore } from "@/features/position/list/list_positions_store";
+import { prepareFilters } from "@/features/position/utils";
+import { apiHooks } from "@/hooks/api_hooks";
+import { useEffectOnce } from "@/hooks/use_effect_once";
+import { apiErrorHandler } from "@/lib/api";
 
 export const ListPositions = () => {
     const tableState = useListPositionsStore((s) => s.tableState);
     const setTableState = useListPositionsStore((s) => s.setTableState);
+    const appliedFilters = useListPositionsStore((s) => s.appliedFilters);
 
-    const { queryResult } = useListPositions();
+    const queryResult = apiHooks.position.useSearch({
+        filters: prepareFilters(appliedFilters),
+        pagination: {
+            page: tableState.pagination.pageIndex + 1,
+            limit: tableState.pagination.pageSize,
+        },
+        sort:
+            tableState.sorting.length === 1
+                ? {
+                      field: tableState.sorting[0].id,
+                      order: tableState.sorting[0].desc ? "desc" : "asc",
+                  }
+                : undefined,
+    });
+
+    useEffectOnce(
+        (deps) => {
+            if (deps.queryResult.isError) {
+                apiErrorHandler(queryResult.error);
+            }
+        },
+        { queryResult },
+        (deps) => deps.queryResult.isError
+    );
 
     const positions = useMemo(() => {
         if (queryResult.data?.data?.items) {
@@ -48,8 +72,4 @@ export const ListPositions = () => {
     );
 };
 
-export default () => (
-    <ListPositionContextProvider>
-        <ListPositions />
-    </ListPositionContextProvider>
-);
+export default ListPositions;
