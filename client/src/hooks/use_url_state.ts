@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import qs from "qs";
 import { useDebounce } from "@/hooks/use_debounce";
 
@@ -13,7 +13,6 @@ export function useURLState<T>(
     defaultValue: T,
     customParsers?: ParserMap
 ): [T, React.Dispatch<React.SetStateAction<T>>] {
-    const navigate = useNavigate();
     const location = useLocation();
 
     // Parse query string to state on mount
@@ -21,33 +20,39 @@ export function useURLState<T>(
         const raw = qs.parse(location.search, {
             ignoreQueryPrefix: true,
             allowDots: true,
-        });
-        return deepParseObject<T>(raw as T, customParsers);
+        })[key] as T;
+        const query = deepParseObject<T>(raw, customParsers);
+        return query;
     }, [location.search]);
 
     const [state, setState] = useState<T>(() => ({
         ...defaultValue,
-        // @ts-ignore
-        ...parsedQuery[key],
+        ...parsedQuery,
     }));
 
     const debouncedState = useDebounce(state, 300);
 
     // Sync URL when state changes.
     useEffect(() => {
-        const queryString = qs.stringify(
-            {
-                [key]: debouncedState,
-            },
-            {
-                encodeValuesOnly: true,
-                skipNulls: true,
-                allowDots: true,
-            }
-        );
+        const currentQuery = qs.parse(location.search, {
+            ignoreQueryPrefix: true,
+            allowDots: true,
+        });
 
-        navigate(`?${queryString}`, { replace: true });
-    }, [debouncedState, navigate]);
+        const updatedQuery = {
+            ...currentQuery,
+            [key]: debouncedState,
+        };
+
+        const queryString = qs.stringify(updatedQuery, {
+            encodeValuesOnly: true,
+            skipNulls: true,
+            allowDots: true,
+        });
+
+        const newUrl = `${window.location.pathname}?${queryString}`;
+        window.history.replaceState(null, "", newUrl);
+    }, [debouncedState, key, location.search]);
 
     return [state, setState];
 }
