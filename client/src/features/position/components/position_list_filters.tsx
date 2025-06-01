@@ -136,16 +136,6 @@ const OpenedFilter = memo(
         const opened = useListPositionsStore((s) => s.opened);
         const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-        const handleOpenedChange = useCallback(
-            (v: Date[]) => {
-                updateFilter("opened", {
-                    from: v[0],
-                    to: v[1],
-                });
-            },
-            [updateFilter]
-        );
-
         return (
             <WithLabel
                 Label={<Label>{positionSearchFiltersLabel.opened}</Label>}
@@ -155,7 +145,9 @@ const OpenedFilter = memo(
                     mode="range"
                     config={{ dates: { toggle: true } }}
                     dates={dateRangeFilterToDatesArray(opened)}
-                    onDatesChange={handleOpenedChange}
+                    onDatesChange={(v: Date[]) =>
+                        updateFilter("opened", { from: v[0], to: v[1] })
+                    }
                 />
             </WithLabel>
         );
@@ -166,15 +158,12 @@ const SymbolInputField = memo(() => {
     const symbol = useListPositionsStore((s) => s.symbol);
     const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-    const handleSymbolChange = useCallback(
-        (_: React.ChangeEvent<HTMLInputElement>, v: string) =>
-            updateFilter("symbol", v),
-        [updateFilter]
-    );
-
     return (
         <WithLabel Label={<Label>{positionSearchFiltersLabel.symbol}</Label>}>
-            <SymbolInput value={symbol} onChange={handleSymbolChange} />
+            <SymbolInput
+                value={symbol}
+                onChange={(_, v: string) => updateFilter("symbol", v)}
+            />
         </WithLabel>
     );
 });
@@ -183,18 +172,15 @@ const InstrumentFilter = memo(() => {
     const instrument = useListPositionsStore((s) => s.instrument);
     const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-    const handleInstrumentChange = useCallback(
-        (v: PositionInstrument | "") => updateFilter("instrument", v),
-        [updateFilter]
-    );
-
     return (
         <WithLabel
             Label={<Label>{positionSearchFiltersLabel.instrument}</Label>}
         >
             <InstrumentToggle
                 value={instrument}
-                onChange={handleInstrumentChange}
+                onChange={(v: PositionInstrument | "") =>
+                    updateFilter("instrument", v)
+                }
             />
         </WithLabel>
     );
@@ -204,18 +190,15 @@ const DirectionFilter = memo(() => {
     const direction = useListPositionsStore((s) => s.direction);
     const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-    const handleDirectionChange = useCallback(
-        (v: PositionDirection | "") => updateFilter("direction", v),
-        [updateFilter]
-    );
-
     return (
         <WithLabel
             Label={<Label>{positionSearchFiltersLabel.direction}</Label>}
         >
             <DirectionToggle
                 value={direction}
-                onChange={handleDirectionChange}
+                onChange={(v: PositionDirection | "") =>
+                    updateFilter("direction", v)
+                }
             />
         </WithLabel>
     );
@@ -225,16 +208,13 @@ const StatusFilter = memo(() => {
     const status = useListPositionsStore((s) => s.status);
     const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-    const handleStatusChange = useCallback(
-        (v: PositionStatusFilterValue) => updateFilter("status", v),
-        [updateFilter]
-    );
-
     return (
         <WithLabel Label={<Label>{positionSearchFiltersLabel.status}</Label>}>
             <PositionStatusSelect
                 value={status}
-                onValueChange={handleStatusChange}
+                onValueChange={(v: PositionStatusFilterValue) =>
+                    updateFilter("status", v)
+                }
             />
         </WithLabel>
     );
@@ -248,17 +228,6 @@ const RFactorFilter = memo(
         );
         const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-        const handleRFactorChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("r_factor", e.target.value),
-            [updateFilter]
-        );
-
-        const handleRFactorOperatorChange = useCallback(
-            (v: CompareOperator) => updateFilter("r_factor_operator", v),
-            [updateFilter]
-        );
-
         return (
             <WithLabel
                 Label={<Label>{positionSearchFiltersLabel.r_factor}</Label>}
@@ -268,7 +237,9 @@ const RFactorFilter = memo(
                         <CompareSelect
                             container={container}
                             value={r_factor_operator}
-                            onValueChange={handleRFactorOperatorChange}
+                            onValueChange={(v: CompareOperator) =>
+                                updateFilter("r_factor_operator", v)
+                            }
                         />
                     }
                 >
@@ -277,7 +248,9 @@ const RFactorFilter = memo(
                         type="number"
                         step="0.01"
                         value={r_factor}
-                        onChange={handleRFactorChange}
+                        onChange={(e) =>
+                            updateFilter("r_factor", e.target.value)
+                        }
                     />
                 </WithCompare>
             </WithLabel>
@@ -293,17 +266,6 @@ const GrossPnlFilter = memo(
         );
         const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-        const handleGrossPnlChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("gross_pnl", e.target.value),
-            [updateFilter]
-        );
-
-        const handleGrossPnlOperatorChange = useCallback(
-            (v: CompareOperator) => updateFilter("gross_pnl_operator", v),
-            [updateFilter]
-        );
-
         return (
             <WithLabel
                 Label={<Label>{positionSearchFiltersLabel.gross_pnl}</Label>}
@@ -313,14 +275,18 @@ const GrossPnlFilter = memo(
                         <CompareSelect
                             container={container}
                             value={gross_pnl_operator}
-                            onValueChange={handleGrossPnlOperatorChange}
+                            onValueChange={(v: CompareOperator) =>
+                                updateFilter("gross_pnl_operator", v)
+                            }
                         />
                     }
                 >
                     <DecimalInput
                         kind="amount"
                         value={gross_pnl}
-                        onChange={handleGrossPnlChange}
+                        onChange={(e) =>
+                            updateFilter("gross_pnl", e.target.value)
+                        }
                     />
                 </WithCompare>
             </WithLabel>
@@ -336,17 +302,6 @@ const NetPnlFilter = memo(
         );
         const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-        const handleNetPnlChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("net_pnl", e.target.value),
-            [updateFilter]
-        );
-
-        const handleNetPnlOperatorChange = useCallback(
-            (v: CompareOperator) => updateFilter("net_pnl_operator", v),
-            [updateFilter]
-        );
-
         return (
             <WithLabel
                 Label={<Label>{positionSearchFiltersLabel.net_pnl}</Label>}
@@ -356,14 +311,18 @@ const NetPnlFilter = memo(
                         <CompareSelect
                             container={container}
                             value={net_pnl_operator}
-                            onValueChange={handleNetPnlOperatorChange}
+                            onValueChange={(v: CompareOperator) =>
+                                updateFilter("net_pnl_operator", v)
+                            }
                         />
                     }
                 >
                     <DecimalInput
                         kind="amount"
                         value={net_pnl}
-                        onChange={handleNetPnlChange}
+                        onChange={(e) =>
+                            updateFilter("net_pnl", e.target.value)
+                        }
                     />
                 </WithCompare>
             </WithLabel>
@@ -381,18 +340,6 @@ const NetReturnPercentageFilter = memo(
         );
         const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-        const handleNetReturnPercentageChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("net_return_percentage", e.target.value),
-            [updateFilter]
-        );
-
-        const handleNetReturnPercentageOperatorChange = useCallback(
-            (v: CompareOperator) =>
-                updateFilter("net_return_percentage_operator", v),
-            [updateFilter]
-        );
-
         return (
             <WithLabel
                 Label={
@@ -406,8 +353,11 @@ const NetReturnPercentageFilter = memo(
                         <CompareSelect
                             container={container}
                             value={net_return_percentage_operator}
-                            onValueChange={
-                                handleNetReturnPercentageOperatorChange
+                            onValueChange={(v: CompareOperator) =>
+                                updateFilter(
+                                    "net_return_percentage_operator",
+                                    v
+                                )
                             }
                         />
                     }
@@ -417,7 +367,12 @@ const NetReturnPercentageFilter = memo(
                         type="number"
                         step="0.01"
                         value={net_return_percentage}
-                        onChange={handleNetReturnPercentageChange}
+                        onChange={(e) =>
+                            updateFilter(
+                                "net_return_percentage",
+                                e.target.value
+                            )
+                        }
                     />
                 </WithCompare>
             </WithLabel>
@@ -435,18 +390,6 @@ const ChargesPercentageFilter = memo(
         );
         const updateFilter = useListPositionsStore((s) => s.updateFilter);
 
-        const handleChargesPercentageChange = useCallback(
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFilter("charges_percentage", e.target.value),
-            [updateFilter]
-        );
-
-        const handleChargesPercentageOperatorChange = useCallback(
-            (v: CompareOperator) =>
-                updateFilter("charges_percentage_operator", v),
-            [updateFilter]
-        );
-
         return (
             <WithLabel
                 Label={
@@ -460,8 +403,8 @@ const ChargesPercentageFilter = memo(
                         <CompareSelect
                             container={container}
                             value={charges_percentage_operator}
-                            onValueChange={
-                                handleChargesPercentageOperatorChange
+                            onValueChange={(v: CompareOperator) =>
+                                updateFilter("charges_percentage_operator", v)
                             }
                         />
                     }
@@ -471,7 +414,9 @@ const ChargesPercentageFilter = memo(
                         type="number"
                         step="0.01"
                         value={charges_percentage}
-                        onChange={handleChargesPercentageChange}
+                        onChange={(e) =>
+                            updateFilter("charges_percentage", e.target.value)
+                        }
                     />
                 </WithCompare>
             </WithLabel>
