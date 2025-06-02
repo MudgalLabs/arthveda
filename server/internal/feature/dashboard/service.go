@@ -31,7 +31,6 @@ type getDashboardReponse struct {
 	NetPnL            decimal.Decimal       `json:"net_pnl"`
 	WinRatePercentage float64               `json:"win_rate_percentage"`
 	CumulativePnL     []CumulativePnLBucket `json:"cumulative_pnl"`
-	Positions         []*position.Position  `json:"positions"`
 }
 
 func (s *Service) Get(ctx context.Context, userID uuid.UUID) (*getDashboardReponse, service.Error, error) {
@@ -86,7 +85,6 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID) (*getDashboardRepon
 		NetPnL:            generalStats.NetPnL,
 		WinRatePercentage: generalStats.WinRatePercentage,
 		CumulativePnL:     cumulativePnL,
-		Positions:         positions,
 	}
 
 	return result, service.ErrNone, nil
