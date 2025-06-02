@@ -53,7 +53,7 @@ interface Position {
     instrument: PositionInstrument;
     currency: CurrencyCode;
     risk_amount: DecimalString;
-    charges_amount: DecimalString;
+    total_charges_amount: DecimalString;
 
     direction: PositionDirection;
     status: PositionStatus;

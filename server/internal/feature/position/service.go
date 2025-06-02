@@ -37,9 +37,8 @@ func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWrite
 }
 
 type ComputePayload struct {
-	RiskAmount    decimal.Decimal       `json:"risk_amount"`
-	ChargesAmount decimal.Decimal       `json:"charges_amount"`
-	Trades        []trade.CreatePayload `json:"trades"`
+	RiskAmount decimal.Decimal       `json:"risk_amount"`
+	Trades     []trade.CreatePayload `json:"trades"`
 }
 
 type computeResult struct {
@@ -49,6 +48,7 @@ type computeResult struct {
 	ClosedAt                    *time.Time      `json:"closed_at"` // `nil` if the Status is StatusOpen meaning the position is open.
 	GrossPnLAmount              decimal.Decimal `json:"gross_pnl_amount"`
 	NetPnLAmount                decimal.Decimal `json:"net_pnl_amount"`
+	TotalChargesAmount          decimal.Decimal `json:"total_charges_amount"`
 	RFactor                     decimal.Decimal `json:"r_factor"`
 	NetReturnPercentage         decimal.Decimal `json:"net_return_percentage"`
 	ChargesAsPercentageOfNetPnL decimal.Decimal `json:"charges_as_percentage_of_net_pnl"`
@@ -57,7 +57,7 @@ type computeResult struct {
 }
 
 func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeResult, service.Error, error) {
-	result := compute(payload)
+	result := Compute(payload)
 	return result, service.ErrNone, nil
 }
 
@@ -308,11 +308,10 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 			// Use the compute function to update the position state
 			computePayload := ComputePayload{
-				RiskAmount:    payload.RiskAmount,
-				ChargesAmount: decimal.Zero,
-				Trades:        convertTradesToCreatePayload(openPosition.Trades),
+				RiskAmount: payload.RiskAmount,
+				Trades:     ConvertTradesToCreatePayload(openPosition.Trades),
 			}
-			computeResult := compute(computePayload)
+			computeResult := Compute(computePayload)
 
 			// Update the position with the compute result
 			openPosition.Direction = computeResult.Direction
@@ -342,11 +341,10 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 			// Initialize the position with the first trade
 			computePayload := ComputePayload{
-				RiskAmount:    payload.RiskAmount,
-				ChargesAmount: decimal.Zero,
-				Trades:        []trade.CreatePayload{tradePayload},
+				RiskAmount: payload.RiskAmount,
+				Trades:     []trade.CreatePayload{tradePayload},
 			}
-			computeResult := compute(computePayload)
+			computeResult := Compute(computePayload)
 
 			positionID, err := uuid.NewV7()
 			if err != nil {

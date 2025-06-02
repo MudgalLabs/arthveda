@@ -68,6 +68,7 @@ func (r *tradeRepository) Create(ctx context.Context, trades []*Trade) ([]*Trade
 			t.Time,
 			t.Quantity,
 			t.Price,
+			t.ChargesAmount,
 			t.BrokerTradeID,
 		}
 	}
@@ -75,7 +76,7 @@ func (r *tradeRepository) Create(ctx context.Context, trades []*Trade) ([]*Trade
 	_, err := r.db.CopyFrom(
 		ctx,
 		pgx.Identifier{"trade"},
-		[]string{"id", "position_id", "created_at", "updated_at", "kind", "time", "quantity", "price", "broker_trade_id"},
+		[]string{"id", "position_id", "created_at", "updated_at", "kind", "time", "quantity", "price", "charges_amount", "broker_trade_id"},
 		pgx.CopyFromRows(rows),
 	)
 
@@ -159,7 +160,7 @@ func (r *tradeRepository) findTrades(ctx context.Context, tx pgx.Tx, f *filter) 
 	}
 
 	sql := `
-	SELECT id, position_id, created_at, updated_at, kind, time, quantity, price, broker_trade_id
+	SELECT id, position_id, created_at, updated_at, kind, time, quantity, price, charges_amount, broker_trade_id
 	FROM trade ` + repository.WhereSQL(where)
 
 	rows, err := tx.Query(ctx, sql, args)
@@ -182,6 +183,7 @@ func (r *tradeRepository) findTrades(ctx context.Context, tx pgx.Tx, f *filter) 
 			&trade.Time,
 			&trade.Quantity,
 			&trade.Price,
+			&trade.ChargesAmount,
 			&trade.BrokerTradeID,
 		)
 

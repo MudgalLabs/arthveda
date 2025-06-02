@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS position (
         instrument POSITION_INSTRUMENT NOT NULL,
         currency VARCHAR(3) NOT NULL,
         risk_amount NUMERIC(14, 2) NOT NULL,
-        charges_amount NUMERIC(14, 2) NOT NULL,
+        total_charges_amount NUMERIC(14, 2) NOT NULL,
         direction POSITION_DIRECTION NOT NULL,
         status POSITION_STATUS NOT NULL,
         opened_at TIMESTAMPTZ NOT NULL,
@@ -65,10 +65,13 @@ CREATE TABLE IF NOT EXISTS trade (
         position_id UUID NOT NULL REFERENCES position(id),
         created_at TIMESTAMPTZ NOT NULL,
         updated_at TIMESTAMPTZ,
+
         kind TRADE_KIND NOT NULL,
         time TIMESTAMPTZ NOT NULL,
         quantity NUMERIC(14, 2) NOT NULL,
         price NUMERIC(14, 2) NOT NULL,
+        charges_amount NUMERIC(14, 2) NOT NULL DEFAULT 0,
+
         broker_trade_id VARCHAR(255)
 );
 -- +goose StatementEnd

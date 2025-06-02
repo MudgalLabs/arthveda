@@ -7,6 +7,7 @@ interface NewTrade {
     time: Date;
     quantity: DecimalString;
     price: DecimalString;
+    charges_amount: DecimalString;
 }
 
 interface Trade extends NewTrade {

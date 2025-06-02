@@ -108,7 +108,8 @@ function AddPosition() {
                     opened_at: new Date(data.opened_at),
                     closed_at: data.closed_at ? new Date(data.closed_at) : null,
                 });
-
+            },
+            onSettled: () => {
                 if (!isInitialized) {
                     setIsInitialized(true);
                 }
@@ -132,19 +133,19 @@ function AddPosition() {
 
         save({
             risk_amount: position.risk_amount || "0",
-            charges_amount: position.charges_amount || "0",
             symbol: position.symbol,
             instrument: position.instrument,
             currency: position.currency,
             trades: (position.trades || []).map((t) => {
                 // Removing fields that are not required by the API.
                 // We are removing these fields because the API will throw an error if we send them.
-
-                // @ts-ignore
-                delete t.id;
-                // @ts-ignore
-                delete t.position_id;
-                return t;
+                return {
+                    kind: t.kind,
+                    time: t.time,
+                    quantity: t.quantity || "0",
+                    price: t.price || "0",
+                    charges_amount: t.charges_amount || "0",
+                };
             }),
         });
     };
@@ -156,13 +157,13 @@ function AddPosition() {
 
             compute({
                 risk_amount: position.risk_amount || "0",
-                charges_amount: position.charges_amount || "0",
-                trades: (position.trades || []).map((s) => {
+                trades: (position.trades || []).map((t) => {
                     const trade: NewTrade = {
-                        kind: s.kind,
-                        time: s.time,
-                        quantity: s.quantity || "0",
-                        price: s.price || "0",
+                        kind: t.kind,
+                        time: t.time,
+                        quantity: t.quantity || "0",
+                        price: t.price || "0",
+                        charges_amount: t.charges_amount || "0",
                     };
 
                     return trade;
@@ -181,7 +182,7 @@ function AddPosition() {
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row">
                 <PnLCard
-                    charges_amount={position.charges_amount}
+                    total_charges_amount={position.total_charges_amount}
                     charges_as_percentage_of_net_pnl={
                         position.charges_as_percentage_of_net_pnl
                     }
@@ -277,25 +278,14 @@ function AddPosition() {
                     )}
                 </WithDebounce>
 
-                <WithDebounce
-                    state={position.charges_amount}
-                    onDebounce={(v) => {
-                        updatePosition({
-                            charges_amount: v,
-                        });
-                    }}
-                >
-                    {(value, setValue) => (
-                        <WithLabel Label={<Label>Charges</Label>}>
-                            <DecimalInput
-                                kind="amount"
-                                currency={position.currency}
-                                value={value}
-                                onChange={(e) => setValue(e.target.value)}
-                            />
-                        </WithLabel>
-                    )}
-                </WithDebounce>
+                <WithLabel Label={<Label>Total Charges</Label>}>
+                    <DecimalInput
+                        kind="amount"
+                        currency={position.currency}
+                        value={position.total_charges_amount}
+                        disabled
+                    />
+                </WithLabel>
             </div>
 
             <div className="h-15" />
@@ -477,6 +467,32 @@ const columns: ColumnDef<NewTrade>[] = [
         },
     },
     {
+        accessorKey: "charges_amount",
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="Charges" />
+        ),
+        cell: (ctx) => {
+            const state = usePositionStore((s) => s.position);
+            const { syncWithValue } = useDataTableEditableCell<string>(ctx);
+
+            return (
+                <WithDebounce
+                    state={ctx.row.original.charges_amount}
+                    onDebounce={(v) => syncWithValue(v)}
+                >
+                    {(value, setValue) => (
+                        <DecimalInput
+                            kind="amount"
+                            currency={state.currency}
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
+                        />
+                    )}
+                </WithDebounce>
+            );
+        },
+    },
+    {
         id: "delete",
         header: "",
         cell: ({ row, table }) => {
@@ -508,7 +524,7 @@ const TradesTable = memo(
         trades,
         setTrades,
     }: {
-        trades: NewTrade[];
+        trades: Trade[];
         setTrades: Setter<Trade[]>;
     }) => {
         const updateFn = useMemo(
@@ -563,7 +579,7 @@ const AddTradeButton = memo(
 
 const PnLCard = memo(
     ({
-        charges_amount,
+        total_charges_amount,
         charges_as_percentage_of_net_pnl,
         currency,
         gross_pnl_amount,
@@ -575,7 +591,7 @@ const PnLCard = memo(
         gross_pnl_amount: DecimalString;
         charges_as_percentage_of_net_pnl: DecimalString;
         currency: CurrencyCode;
-        charges_amount: DecimalString;
+        total_charges_amount: DecimalString;
     }) => {
         let trendingIcon: ReactNode = null;
         let textColor = "text-foreground";
@@ -612,11 +628,11 @@ const PnLCard = memo(
                     </p>
                 </div>
 
-                {Number(charges_amount) > 0 && (
+                {Number(total_charges_amount) > 0 && (
                     <p>
                         Charges{" "}
                         <span className="text-foreground-red">
-                            {formatCurrency(charges_amount, currency)}
+                            {formatCurrency(total_charges_amount, currency)}
                         </span>{" "}
                         and{" "}
                         <span className="text-foreground-red">

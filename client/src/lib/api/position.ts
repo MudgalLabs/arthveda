@@ -19,7 +19,6 @@ import {
 
 export interface ComputePositionRequest {
     risk_amount: DecimalString;
-    charges_amount: DecimalString;
     trades: NewTrade[];
 }
 
@@ -30,6 +29,7 @@ export interface ComputePositionResponse {
     closed_at: Date | null;
     gross_pnl_amount: DecimalString;
     net_pnl_amount: DecimalString;
+    total_charges_amount: DecimalString;
     r_factor: DecimalString;
     net_return_percentage: DecimalString;
     charges_as_percentage_of_net_pnl: DecimalString;

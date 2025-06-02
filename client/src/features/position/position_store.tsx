@@ -41,7 +41,7 @@ const defaultState: State = {
         instrument: "equity",
         currency: "inr",
         risk_amount: "",
-        charges_amount: "",
+        total_charges_amount: "",
         opened_at: roundToNearest15Minutes(new Date()),
         closed_at: null,
         direction: "long",
@@ -77,24 +77,8 @@ export const createPositionStore = (initProp?: Position) => {
                     ...newState,
                 };
 
-                let stateHasChangedForCompute = false;
-
-                if (
-                    state.position.risk_amount !== updatedPosition.risk_amount
-                ) {
-                    stateHasChangedForCompute = true;
-                }
-
-                if (
-                    state.position.charges_amount !==
-                    updatedPosition.charges_amount
-                ) {
-                    stateHasChangedForCompute = true;
-                }
-
                 return {
                     position: updatedPosition,
-                    stateHasChangedForCompute,
                 };
             });
         },
@@ -110,7 +94,6 @@ export const createPositionStore = (initProp?: Position) => {
                         ...state.position,
                         trades: newTrades,
                     },
-                    stateHasChangedForCompute: true,
                 };
             });
 
@@ -184,10 +167,6 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
             flag = true;
         }
 
-        if (debouncedPosition.charges_amount !== prevPosition.charges_amount) {
-            flag = true;
-        }
-
         if (!isEqual(debouncedPosition.trades, prevPosition.trades)) {
             flag = true;
         }
@@ -243,6 +222,7 @@ function getEmptyTrade(orderKind: TradeKind): Trade {
         time: roundToNearest15Minutes(new Date()),
         price: "",
         quantity: "",
+        charges_amount: "",
         broker_trade_id: null,
         created_at: new Date(),
         updated_at: null,

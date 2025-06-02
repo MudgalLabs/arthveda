@@ -19,11 +19,11 @@ type Position struct {
 	// Data provided by the user
 	//
 
-	Symbol        string                `json:"symbol" db:"symbol"`
-	Instrument    Instrument            `json:"instrument" db:"instrument"`
-	Currency      currency.CurrencyCode `json:"currency" db:"currency"`
-	RiskAmount    decimal.Decimal       `json:"risk_amount" db:"risk_amount"`
-	ChargesAmount decimal.Decimal       `json:"charges_amount" db:"charges_amount"`
+	Symbol             string                `json:"symbol" db:"symbol"`
+	Instrument         Instrument            `json:"instrument" db:"instrument"`
+	Currency           currency.CurrencyCode `json:"currency" db:"currency"`
+	RiskAmount         decimal.Decimal       `json:"risk_amount" db:"risk_amount"`
+	TotalChargesAmount decimal.Decimal       `json:"total_charges_amount" db:"total_charges_amount"`
 
 	//
 	// Data computed by Arthveda based on data provided by user mentioned above & related trade(s).
@@ -63,7 +63,7 @@ func new(payload CreatePayload) (*Position, error) {
 		return nil, err
 	}
 
-	computeResult := compute(payload.ComputePayload)
+	computeResult := Compute(payload.ComputePayload)
 
 	trades := []*trade.Trade{}
 
@@ -87,7 +87,7 @@ func new(payload CreatePayload) (*Position, error) {
 		Instrument:                  payload.Instrument,
 		Currency:                    payload.Currency,
 		RiskAmount:                  payload.RiskAmount,
-		ChargesAmount:               payload.ChargesAmount,
+		TotalChargesAmount:          computeResult.TotalChargesAmount,
 		Direction:                   computeResult.Direction,
 		Status:                      computeResult.Status,
 		OpenedAt:                    computeResult.OpenedAt,
@@ -105,7 +105,7 @@ func new(payload CreatePayload) (*Position, error) {
 	return position, nil
 }
 
-func compute(payload ComputePayload) computeResult {
+func Compute(payload ComputePayload) computeResult {
 	result := computeResult{
 		OpenedAt:  time.Now().UTC(),
 		Status:    StatusOpen,
@@ -122,6 +122,7 @@ func compute(payload ComputePayload) computeResult {
 	var avgPrice decimal.Decimal
 	grossPnL := decimal.NewFromFloat(0)
 	totalCost := decimal.NewFromFloat(0)
+	totalCharges := decimal.NewFromFloat(0)
 	netQty := decimal.NewFromFloat(0)
 
 	// If there is only one trade, we know the trade is the opening trade.
@@ -140,12 +141,10 @@ func compute(payload ComputePayload) computeResult {
 
 	for i := range payload.Trades {
 		trade := payload.Trades[i]
-		tradeQty := trade.Quantity
-		tradePrice := trade.Price
 
 		var pnl decimal.Decimal
 
-		avgPrice, netQty, direction, pnl, totalCost = applyTradeToPosition(avgPrice, netQty, totalCost, direction, tradeQty, tradePrice, trade.Kind)
+		avgPrice, netQty, direction, pnl, totalCost, totalCharges = applyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, trade.Quantity, trade.Price, trade.ChargesAmount, trade.Kind)
 
 		grossPnL = grossPnL.Add(pnl)
 
@@ -158,7 +157,7 @@ func compute(payload ComputePayload) computeResult {
 
 	// Position is closed.
 	if netQty.IsZero() {
-		netPnL = grossPnL.Sub(payload.ChargesAmount)
+		netPnL = grossPnL.Sub(totalCharges)
 
 		if payload.RiskAmount.IsPositive() {
 			rFactor = netPnL.Div(payload.RiskAmount)
@@ -182,7 +181,7 @@ func compute(payload ComputePayload) computeResult {
 	}
 
 	if grossPnL.IsPositive() {
-		chargesAsPercentageOfNetPnL = payload.ChargesAmount.Div(grossPnL).Mul(decimal.NewFromFloat(100))
+		chargesAsPercentageOfNetPnL = totalCharges.Div(grossPnL).Mul(decimal.NewFromFloat(100))
 	}
 
 	if totalCost.IsPositive() {
@@ -196,6 +195,7 @@ func compute(payload ComputePayload) computeResult {
 	result.GrossPnLAmount = grossPnL
 	result.NetPnLAmount = netPnL
 	result.RFactor = rFactor.Round(2)
+	result.TotalChargesAmount = totalCharges
 	result.NetReturnPercentage = netReturnPercentage.Round(2)
 	result.ChargesAsPercentageOfNetPnL = chargesAsPercentageOfNetPnL.Round(2)
 
@@ -248,21 +248,26 @@ func applyTradeToPosition(
 	currentAvgPrice decimal.Decimal,
 	currentQty decimal.Decimal,
 	totalCost decimal.Decimal,
+	totalCharges decimal.Decimal,
 	direction Direction,
 	tradeQty decimal.Decimal,
 	tradePrice decimal.Decimal,
-	orderKind trade.Kind,
-) (newAvgPrice decimal.Decimal, newQty decimal.Decimal, newDirection Direction, realizedPnL, newTotalCost decimal.Decimal) {
+	tradeChargesAmount decimal.Decimal,
+	tradeKind trade.Kind,
+) (newAvgPrice decimal.Decimal, newQty decimal.Decimal, newDirection Direction, realizedPnL, newTotalCost, newTotalCharges decimal.Decimal) {
 
 	// No-op for 0 order
 	if tradeQty.IsZero() {
-		return currentAvgPrice, currentQty, direction, decimal.Zero, decimal.Zero
+		return currentAvgPrice, currentQty, direction, decimal.Zero, decimal.Zero, decimal.Zero
 	}
 
 	isLong := direction == DirectionLong
-	isBuy := orderKind == trade.TradeKindBuy
+	isBuy := tradeKind == trade.TradeKindBuy
 
 	isScalingIn := (isLong && isBuy) || (!isLong && !isBuy)
+
+	// Add this trade's charges to running total
+	newTotalCharges = totalCharges.Add(tradeChargesAmount)
 
 	if currentQty.IsZero() {
 		// Opening new position
@@ -273,7 +278,7 @@ func applyTradeToPosition(
 
 		newTotalCost = tradePrice.Mul(tradeQty)
 
-		return tradePrice, tradeQty, newDirection, decimal.Zero, newTotalCost
+		return tradePrice, tradeQty, newDirection, decimal.Zero, newTotalCost, newTotalCharges
 	}
 
 	if isScalingIn {
@@ -283,7 +288,7 @@ func applyTradeToPosition(
 		newAvgPrice = tradeCost.Div(newQty)
 		newDirection = direction
 		newTotalCost = totalCost.Add(tradeCost)
-		return newAvgPrice, newQty, newDirection, decimal.Zero, newTotalCost
+		return newAvgPrice, newQty, newDirection, decimal.Zero, newTotalCost, newTotalCharges
 	}
 
 	// Scaling out or flipping
@@ -304,11 +309,11 @@ func applyTradeToPosition(
 
 		// Full close
 		if newQty.IsZero() {
-			return decimal.Zero, decimal.Zero, direction, realizedPnL, totalCost
+			return decimal.Zero, decimal.Zero, direction, realizedPnL, totalCost, newTotalCharges
 		}
 
 		// Partial close
-		return currentAvgPrice, newQty, direction, realizedPnL, totalCost
+		return currentAvgPrice, newQty, direction, realizedPnL, totalCost, newTotalCharges
 	}
 
 	// Flip
@@ -319,10 +324,10 @@ func applyTradeToPosition(
 	}
 
 	newTotalCost = totalCost.Add(tradePrice.Mul(newQty))
-	return tradePrice, netQty, newDirection, realizedPnL, newTotalCost
+	return tradePrice, netQty, newDirection, realizedPnL, newTotalCost, newTotalCharges
 }
 
-func convertTradesToCreatePayload(trades []*trade.Trade) []trade.CreatePayload {
+func ConvertTradesToCreatePayload(trades []*trade.Trade) []trade.CreatePayload {
 	createPayloads := make([]trade.CreatePayload, len(trades))
 	for i, t := range trades {
 		createPayloads[i] = trade.CreatePayload{
