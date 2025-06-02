@@ -176,7 +176,7 @@ func compute(payload ComputePayload) computeResult {
 		status = StatusOpen
 
 		// The position is still open but we have some realised gross pnl.
-		if grossPnL.IsPositive() {
+		if !grossPnL.IsZero() {
 			netPnL = grossPnL
 		}
 	}
