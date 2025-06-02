@@ -143,8 +143,6 @@ function AddPosition() {
                 // @ts-ignore
                 delete t.id;
                 // @ts-ignore
-                delete t.time;
-                // @ts-ignore
                 delete t.position_id;
                 return t;
             }),
