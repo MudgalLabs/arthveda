@@ -96,7 +96,7 @@ func (s *Service) Create(ctx context.Context, payload CreatePayload) (*Position,
 	return position, service.ErrNone, nil
 }
 
-type SearchPayload = common.SearchPayload[searchFilter]
+type SearchPayload = common.SearchPayload[SearchFilter]
 type SearchResult = common.SearchResult[[]*Position]
 
 func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchResult, service.Error, error) {

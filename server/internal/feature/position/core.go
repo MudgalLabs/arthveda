@@ -331,10 +331,11 @@ func ConvertTradesToCreatePayload(trades []*trade.Trade) []trade.CreatePayload {
 	createPayloads := make([]trade.CreatePayload, len(trades))
 	for i, t := range trades {
 		createPayloads[i] = trade.CreatePayload{
-			Kind:     t.Kind,
-			Quantity: t.Quantity,
-			Price:    t.Price,
-			Time:     t.Time,
+			Kind:          t.Kind,
+			Time:          t.Time,
+			Quantity:      t.Quantity,
+			Price:         t.Price,
+			ChargesAmount: t.ChargesAmount,
 		}
 	}
 	return createPayloads

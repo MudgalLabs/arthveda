@@ -48,7 +48,7 @@ const (
 	searchFieldBrokerID            common.SearchField = "broker_id"
 )
 
-type searchFilter struct {
+type SearchFilter struct {
 	// If a user is serching for a specific position, we will make sure
 	// that the Position.CreatedBy matches the current user ID otherwise we will
 	// return a repository.ErrNotFound error.
@@ -182,7 +182,7 @@ func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Po
 
 func (r *positionRepository) GetByID(ctx context.Context, createdBy, positionID uuid.UUID) (*Position, error) {
 	payload := SearchPayload{
-		Filters: searchFilter{
+		Filters: SearchFilter{
 			CreatedBy: &createdBy,
 			ID:        &positionID,
 		},
