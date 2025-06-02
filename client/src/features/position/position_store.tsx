@@ -174,7 +174,7 @@ export const createPositionStore = (initProp?: InitPositionStoreProp) => {
     }));
 };
 
-export function useShouldComputeDebounced(): [boolean, Setter<boolean>] {
+export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
     const position = useAddPositionStore((s) => s.position);
     const debouncedPosition = useDebounce(position, 500);
     const prevDebouncedPositionRef = useRef(debouncedPosition);
@@ -205,7 +205,7 @@ export function useShouldComputeDebounced(): [boolean, Setter<boolean>] {
     return [flag, setFlag];
 }
 
-export function useHasSomethingToDiscard(): boolean {
+export function usePositionCanBeDiscarded(): boolean {
     const position = useAddPositionStore((s) => s.position);
     const initialPosition = useAddPositionStore((s) => s.initialPosition);
 
@@ -215,7 +215,7 @@ export function useHasSomethingToDiscard(): boolean {
     );
 }
 
-export function useTradesAreValid(): boolean {
+export function usePositionTradesAreValid(): boolean {
     const trades = useAddPositionStore((s) => s.position.trades);
     if (!trades) {
         return false;
@@ -223,7 +223,7 @@ export function useTradesAreValid(): boolean {
     return useMemo(() => validateTrades(trades), [trades]);
 }
 
-export function useCanSavePosition(): boolean {
+export function usePositionCanBeSaved(): boolean {
     const position = useAddPositionStore((s) => s.position);
     return useMemo(
         () =>

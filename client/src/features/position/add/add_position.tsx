@@ -64,10 +64,10 @@ import { useAddPositionStore } from "./add_position_context";
 import { ComputePositionResponse } from "@/lib/api/position";
 import { LoadingScreen } from "@/components/loading_screen";
 import {
-    useCanSavePosition,
-    useHasSomethingToDiscard,
-    useShouldComputeDebounced,
-    useTradesAreValid,
+    usePositionCanBeSaved,
+    usePositionCanBeDiscarded,
+    usePositionCanBeComputed,
+    usePositionTradesAreValid,
 } from "@/features/position/position_store";
 
 function AddPosition() {
@@ -99,15 +99,33 @@ function AddPosition() {
             onError: apiErrorHandler,
         });
 
-    const canSave = useCanSavePosition();
+    const { mutateAsync: compute, isPending: isComputing } =
+        apiHooks.position.useCompute({
+            onSuccess: async (res) => {
+                const data = res.data.data as ComputePositionResponse;
+                updatePosition({
+                    ...data,
+                    opened_at: new Date(data.opened_at),
+                    closed_at: data.closed_at ? new Date(data.closed_at) : null,
+                });
+
+                if (!isInitialized) {
+                    setIsInitialized(true);
+                }
+            },
+            onError: apiErrorHandler,
+        });
+
+    const [isInitialized, setIsInitialized] = useState(false);
     const position = useAddPositionStore((s) => s.position);
     const setTrades = useAddPositionStore((s) => s.setTrades);
     const insertNewTrade = useAddPositionStore((s) => s.insertNewTrade);
     const discard = useAddPositionStore((s) => s.discard);
-    const tradesAreValid = useTradesAreValid();
-    const hasSomethingToDiscard = useHasSomethingToDiscard();
     const updatePosition = useAddPositionStore((s) => s.updatePosition);
-    const [isInitialized, setIsInitialized] = useState(false);
+    const [shouldCompute, setShouldCompute] = usePositionCanBeComputed();
+    const canSave = usePositionCanBeSaved();
+    const tradesAreValid = usePositionTradesAreValid();
+    const hasSomethingToDiscard = usePositionCanBeDiscarded();
 
     const handleClickSave = () => {
         if (!canSave) return;
@@ -132,25 +150,6 @@ function AddPosition() {
             }),
         });
     };
-
-    const { mutateAsync: compute, isPending: isComputing } =
-        apiHooks.position.useCompute({
-            onSuccess: async (res) => {
-                const data = res.data.data as ComputePositionResponse;
-                updatePosition({
-                    ...data,
-                    opened_at: new Date(data.opened_at),
-                    closed_at: data.closed_at ? new Date(data.closed_at) : null,
-                });
-
-                if (!isInitialized) {
-                    setIsInitialized(true);
-                }
-            },
-            onError: apiErrorHandler,
-        });
-
-    const [shouldCompute, setShouldCompute] = useShouldComputeDebounced();
 
     // FIXME: For some reason, the compute is being called twice on mount.
     useEffect(() => {
