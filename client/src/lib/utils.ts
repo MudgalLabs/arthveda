@@ -1,6 +1,7 @@
 import qs from "qs";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { isEqual, transform } from "lodash";
 
 import { DateRangeFilter } from "@/lib/types";
 import { CurrencyCode } from "@/features/position/position";
@@ -341,4 +342,29 @@ function deepParseObject<T>(
     }
 
     return input;
+}
+
+type Difference<T> = {
+    [K in keyof T]?: {
+        from: T[K];
+        to: T[K];
+    };
+};
+
+export function getObjectDifferences<T extends Record<string, any>>(
+    obj1: T,
+    obj2: T
+): Difference<T> {
+    return transform(
+        obj1,
+        (result: Difference<T>, value, key: keyof T) => {
+            if (!isEqual(value, obj2[key])) {
+                result[key] = {
+                    from: value,
+                    to: obj2[key],
+                };
+            }
+        },
+        {} as Difference<T>
+    );
 }

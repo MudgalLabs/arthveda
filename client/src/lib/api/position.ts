@@ -122,6 +122,10 @@ export function importPositions(body: ImportPositionsRequest) {
     );
 }
 
+export interface GetPositionResponse {
+    position: Position;
+}
+
 export function getPosition(id: string) {
-    return client.get<ApiRes<Position>>(API_ROUTES.position.get(id));
+    return client.get<ApiRes<GetPositionResponse>>(API_ROUTES.position.get(id));
 }

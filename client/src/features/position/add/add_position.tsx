@@ -153,20 +153,19 @@ function AddPosition() {
     useEffect(() => {
         if (!isInitialized || shouldCompute) {
             setShouldCompute(false);
+
             compute({
                 risk_amount: position.risk_amount || "0",
                 charges_amount: position.charges_amount || "0",
                 trades: (position.trades || []).map((s) => {
-                    const copy = { ...s };
-                    if (copy.quantity === "") copy.quantity = "0";
-                    if (copy.price === "") copy.price = "0";
+                    const trade: NewTrade = {
+                        kind: s.kind,
+                        time: s.time,
+                        quantity: s.quantity || "0",
+                        price: s.price || "0",
+                    };
 
-                    // Removing the some fields because the API will throw error if we send them.
-                    // @ts-ignore
-                    delete copy.id;
-                    // @ts-ignore
-                    delete copy.position_id;
-                    return copy;
+                    return trade;
                 }),
             });
         }

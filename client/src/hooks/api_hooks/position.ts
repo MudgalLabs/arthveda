@@ -15,8 +15,8 @@ import {
     PositionSearchRequest,
     ImportPositionsRequest,
     ImportPositionsResponse,
+    GetPositionResponse,
 } from "@/lib/api/position";
-import { Position } from "@/features/position/position";
 
 export function useCompute(options: AnyUseMutationOptions = {}) {
     return useMutation<
@@ -74,6 +74,6 @@ export function useGetPosition(id: string) {
     return useQuery({
         queryKey: ["useGetPosition", id],
         queryFn: () => api.position.getPosition(id),
-        select: (res) => res.data as ApiRes<Position>,
+        select: (res) => res.data as ApiRes<GetPositionResponse>,
     });
 }

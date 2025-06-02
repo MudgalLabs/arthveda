@@ -29,7 +29,7 @@ interface Action {
 
 export interface PositionStore extends State, Action {}
 
-export type InitPositionStoreProp = Partial<State>;
+export type InitPositionStoreProp = Partial<Position>;
 
 const defaultState: State = {
     initialPosition: null,
@@ -59,20 +59,18 @@ const defaultState: State = {
     },
 };
 
-export const createPositionStore = (initProp?: InitPositionStoreProp) => {
-    const initial = {
-        ...defaultState,
-        ...initProp,
-    };
+export const createPositionStore = (initProp?: Position) => {
+    const position: Position = initProp ?? defaultState.position;
 
-    if (!initProp?.position?.trades) {
-        initial.position.trades = [getEmptyTrade("buy")];
+    if (!position?.trades || position.trades.length === 0) {
+        position.trades = [getEmptyTrade("buy")];
     }
 
-    return createStore<PositionStore>((set, get) => ({
-        ...initial,
+    const initialPosition: Position = position;
 
-        initialPosition: initial.position,
+    return createStore<PositionStore>((set, get) => ({
+        initialPosition,
+        position,
 
         updatePosition: (newState) => {
             set((state) => {
@@ -168,9 +166,7 @@ export const createPositionStore = (initProp?: InitPositionStoreProp) => {
             });
         },
 
-        discard: () => {
-            set((state) => ({ ...state, ...initial }));
-        },
+        discard: () => set(() => ({ position: initialPosition })),
     }));
 };
 
@@ -249,5 +245,8 @@ function getEmptyTrade(orderKind: TradeKind): Trade {
         time: roundToNearest15Minutes(new Date()),
         price: "",
         quantity: "",
+        broker_trade_id: null,
+        created_at: new Date(),
+        updated_at: null,
     };
 }
