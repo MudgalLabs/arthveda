@@ -1,4 +1,4 @@
-import { ComponentProps, useEffect, useMemo, useState } from "react";
+import { ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 
 import { useControlled } from "@/hooks/use_controlled";
 import { IconCalendarRange, IconCalendarSingle } from "@/components/icons";
@@ -47,6 +47,7 @@ function DatePicker({
     });
 
     const [open, setOpen] = useState(false);
+    const prevOpen = useRef(open);
 
     const isDateSet = dates.length > 0;
     const isRange = mode === "range";
@@ -61,10 +62,17 @@ function DatePicker({
     if (time && isRange) width = "w-[330px]";
 
     // To allow the consumer of `DatePicker` be able to do something
-    // similar like onBlur/onFocus but by using onClose/onOpen.
+    // when the popover opens or closes.
     useEffect(() => {
-        if (open && onOpen) onOpen();
-        if (!open && onClose) onClose();
+        if (open && !prevOpen.current) {
+            onOpen?.();
+        }
+
+        if (!open && prevOpen.current) {
+            onClose?.();
+        }
+
+        prevOpen.current = open;
     }, [open]);
 
     return (

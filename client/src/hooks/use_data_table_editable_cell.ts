@@ -16,12 +16,22 @@ function useDataTableEditableCell<TCellValue>(ctx: CellContext<any, any>) {
     const [value, setValue] = useState<TCellValue>(initialValue);
 
     const sync = () => {
+        // If the value has not changed, we don't need to sync.
+        if (value === initialValue) {
+            return;
+        }
+
         table.options.meta?.updateFn?.(index, id, value);
     };
 
     // User can pass a value directly if they don't want to use `setValue`
     // but call `sync` directly. Useful for things like checkboxes, toggles, etc.
     const syncWithValue = (value: TCellValue) => {
+        // If the value has not changed, we don't need to sync.
+        if (value === initialValue) {
+            return;
+        }
+
         table.options.meta?.updateFn?.(index, id, value);
     };
 

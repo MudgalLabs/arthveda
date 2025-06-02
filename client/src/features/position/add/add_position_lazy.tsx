@@ -6,11 +6,7 @@ const AddPosition = lazy(() => import("@/features/position/add/add_position"));
 
 const AddPositionLazy: React.FC = () => (
     <Suspense fallback={<LoadingScreen />}>
-        <AddPositionProvider
-            initState={{
-                creatingOrUpdatingPostion: "creating",
-            }}
-        >
+        <AddPositionProvider>
             <AddPosition />
         </AddPositionProvider>
     </Suspense>

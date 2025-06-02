@@ -1,4 +1,5 @@
 import { createStore } from "zustand";
+import { isEqual } from "lodash";
 
 import { Position } from "@/features/position/position";
 import { Trade, TradeKind } from "@/features/trade/trade";
@@ -9,20 +10,17 @@ import {
     roundToNearest15Minutes,
 } from "@/lib/utils";
 import { Setter } from "@/lib/types";
+import { useAddPositionStore } from "./add/add_position_context";
+import { useDebounce } from "@/hooks/use_debounce";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface State {
-    creatingOrUpdatingPostion: "creating" | "updating" | null;
     position: Position;
-    isInitialized: boolean;
-    tradesAreValid: boolean;
-    canSave: boolean;
-    isComputing: boolean;
-    hasSomethingToDiscard: boolean;
+    initialPosition: Position | null;
 }
 
 interface Action {
-    updatePosition: (newPosition: Partial<Position>) => void;
-    setIsInitialized: (isInitialized: boolean) => void;
+    updatePosition: (newState: Partial<Position>) => void;
     setTrades: Setter<Trade[]>;
     insertNewTrade: () => void;
     removeTrade: (index: number) => void;
@@ -34,7 +32,7 @@ export interface PositionStore extends State, Action {}
 export type InitPositionStoreProp = Partial<State>;
 
 const defaultState: State = {
-    creatingOrUpdatingPostion: null,
+    initialPosition: null,
 
     position: {
         id: "",
@@ -59,39 +57,7 @@ const defaultState: State = {
         open_average_price_amount: "0",
         trades: [],
     },
-
-    isInitialized: false,
-    tradesAreValid: false,
-    canSave: false,
-    isComputing: false,
-    hasSomethingToDiscard: false,
 };
-
-function validateTrades(trades: Trade[] = []) {
-    return (
-        trades.length > 0 &&
-        trades.every((t) => Number(t.quantity) !== 0 && Number(t.price) !== 0)
-    );
-}
-
-function checkCanSave(state: State): boolean {
-    return (
-        !!state.position.symbol &&
-        !!state.position.trades &&
-        validateTrades(state.position.trades)
-    );
-}
-
-function getEmptyTrade(orderKind: TradeKind): Trade {
-    return {
-        id: generateId("row"),
-        position_id: "",
-        kind: orderKind,
-        time: roundToNearest15Minutes(new Date()),
-        price: "",
-        quantity: "",
-    };
-}
 
 export const createPositionStore = (initProp?: InitPositionStoreProp) => {
     const initial = {
@@ -99,28 +65,14 @@ export const createPositionStore = (initProp?: InitPositionStoreProp) => {
         ...initProp,
     };
 
-    if (initProp?.creatingOrUpdatingPostion) {
-        if (initProp?.creatingOrUpdatingPostion === "creating") {
-            initial.position.trades = [getEmptyTrade("buy")];
-        }
+    if (!initProp?.position?.trades) {
+        initial.position.trades = [getEmptyTrade("buy")];
     }
-
-    const tradesAreValid = validateTrades(initial.position.trades ?? []);
-    const canSave = checkCanSave(initial);
-
-    initial.isInitialized = false;
-    initial.tradesAreValid = tradesAreValid;
-    initial.canSave = canSave;
 
     return createStore<PositionStore>((set, get) => ({
         ...initial,
 
-        setIsInitialized: (isInitialized) => {
-            set((state) => ({
-                ...state,
-                isInitialized,
-            }));
-        },
+        initialPosition: initial.position,
 
         updatePosition: (newState) => {
             set((state) => {
@@ -128,13 +80,25 @@ export const createPositionStore = (initProp?: InitPositionStoreProp) => {
                     ...state.position,
                     ...newState,
                 };
-                const canSave = checkCanSave({
-                    ...state,
-                    position: updatedPosition,
-                });
+
+                let stateHasChangedForCompute = false;
+
+                if (
+                    state.position.risk_amount !== updatedPosition.risk_amount
+                ) {
+                    stateHasChangedForCompute = true;
+                }
+
+                if (
+                    state.position.charges_amount !==
+                    updatedPosition.charges_amount
+                ) {
+                    stateHasChangedForCompute = true;
+                }
+
                 return {
                     position: updatedPosition,
-                    canSave,
+                    stateHasChangedForCompute,
                 };
             });
         },
@@ -145,23 +109,12 @@ export const createPositionStore = (initProp?: InitPositionStoreProp) => {
                 : newTradesValueOrFn;
 
             set((state) => {
-                const tradesAreValid = validateTrades(newTrades);
-                const updatedPosition = {
-                    ...state.position,
-                    trades: newTrades,
-                };
-                const canSave = checkCanSave({
-                    ...state,
-                    position: updatedPosition,
-                });
-
                 return {
                     position: {
                         ...state.position,
                         trades: newTrades,
                     },
-                    tradesAreValid,
-                    canSave,
+                    stateHasChangedForCompute: true,
                 };
             });
 
@@ -220,3 +173,81 @@ export const createPositionStore = (initProp?: InitPositionStoreProp) => {
         },
     }));
 };
+
+export function useShouldComputeDebounced(): [boolean, Setter<boolean>] {
+    const position = useAddPositionStore((s) => s.position);
+    const debouncedPosition = useDebounce(position, 500);
+    const prevDebouncedPositionRef = useRef(debouncedPosition);
+
+    const [flag, setFlag] = useState(false);
+
+    useEffect(() => {
+        const prevPosition = prevDebouncedPositionRef.current;
+
+        let flag = false;
+
+        if (debouncedPosition.risk_amount !== prevPosition.risk_amount) {
+            flag = true;
+        }
+
+        if (debouncedPosition.charges_amount !== prevPosition.charges_amount) {
+            flag = true;
+        }
+
+        if (!isEqual(debouncedPosition.trades, prevPosition.trades)) {
+            flag = true;
+        }
+
+        setFlag(flag);
+        prevDebouncedPositionRef.current = debouncedPosition;
+    }, [debouncedPosition]);
+
+    return [flag, setFlag];
+}
+
+export function useHasSomethingToDiscard(): boolean {
+    const position = useAddPositionStore((s) => s.position);
+    const initialPosition = useAddPositionStore((s) => s.initialPosition);
+
+    return useMemo(
+        () => !isEqual(position, initialPosition),
+        [position, initialPosition]
+    );
+}
+
+export function useTradesAreValid(): boolean {
+    const trades = useAddPositionStore((s) => s.position.trades);
+    if (!trades) {
+        return false;
+    }
+    return useMemo(() => validateTrades(trades), [trades]);
+}
+
+export function useCanSavePosition(): boolean {
+    const position = useAddPositionStore((s) => s.position);
+    return useMemo(
+        () =>
+            !!position.symbol &&
+            !!position.trades &&
+            validateTrades(position.trades),
+        [position]
+    );
+}
+
+function validateTrades(trades: Trade[] = []) {
+    return (
+        trades.length > 0 &&
+        trades.every((t) => Number(t.quantity) !== 0 && Number(t.price) !== 0)
+    );
+}
+
+function getEmptyTrade(orderKind: TradeKind): Trade {
+    return {
+        id: generateId("row"),
+        position_id: "",
+        kind: orderKind,
+        time: roundToNearest15Minutes(new Date()),
+        price: "",
+        quantity: "",
+    };
+}

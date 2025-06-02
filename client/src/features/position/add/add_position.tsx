@@ -1,4 +1,4 @@
-import { memo, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { memo, ReactNode, useEffect, useMemo, useState } from "react";
 import Decimal from "decimal.js";
 import {
     ColumnDef,
@@ -35,7 +35,7 @@ import {
     getDataTableCellUpdateFn,
     useDataTableEditableCell,
 } from "@/hooks/use_data_table_editable_cell";
-import { CurrencyCode, Position } from "@/features/position/position";
+import { CurrencyCode } from "@/features/position/position";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import {
     cn,
@@ -63,6 +63,12 @@ import { SymbolInput } from "@/features/position/components/symbol_input";
 import { useAddPositionStore } from "./add_position_context";
 import { ComputePositionResponse } from "@/lib/api/position";
 import { LoadingScreen } from "@/components/loading_screen";
+import {
+    useCanSavePosition,
+    useHasSomethingToDiscard,
+    useShouldComputeDebounced,
+    useTradesAreValid,
+} from "@/features/position/position_store";
 
 function AddPosition() {
     const queryClient = useQueryClient();
@@ -93,20 +99,15 @@ function AddPosition() {
             onError: apiErrorHandler,
         });
 
-    const canSave = useAddPositionStore((s) => s.canSave);
-
+    const canSave = useCanSavePosition();
     const position = useAddPositionStore((s) => s.position);
     const setTrades = useAddPositionStore((s) => s.setTrades);
     const insertNewTrade = useAddPositionStore((s) => s.insertNewTrade);
     const discard = useAddPositionStore((s) => s.discard);
-    const tradesAreValid = useAddPositionStore((s) => s.tradesAreValid);
-    const hasSomethingToDiscard = useAddPositionStore(
-        (s) => s.hasSomethingToDiscard
-    );
+    const tradesAreValid = useTradesAreValid();
+    const hasSomethingToDiscard = useHasSomethingToDiscard();
     const updatePosition = useAddPositionStore((s) => s.updatePosition);
-    const isInitialized = useAddPositionStore((s) => s.isInitialized);
-    const setIsInitialized = useAddPositionStore((s) => s.setIsInitialized);
-    console.log({ position, isInitialized });
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const handleClickSave = () => {
         if (!canSave) return;
@@ -132,8 +133,6 @@ function AddPosition() {
         });
     };
 
-    const prev = useRef<Position | null>(null);
-
     const { mutateAsync: compute, isPending: isComputing } =
         apiHooks.position.useCompute({
             onSuccess: async (res) => {
@@ -143,60 +142,38 @@ function AddPosition() {
                     opened_at: new Date(data.opened_at),
                     closed_at: data.closed_at ? new Date(data.closed_at) : null,
                 });
-                prev.current = position;
-                setIsInitialized(true);
+
+                if (!isInitialized) {
+                    setIsInitialized(true);
+                }
             },
             onError: apiErrorHandler,
         });
 
-    const stateChangedForCompute = useMemo(() => {
-        let flag = false;
+    const [shouldCompute, setShouldCompute] = useShouldComputeDebounced();
 
-        console.log(0);
-        if (prev.current === null) {
-            console.log(1);
-            return true;
-        }
-
-        if (prev.current.risk_amount !== position.risk_amount) {
-            console.log(2);
-            flag = true;
-        }
-
-        if (prev.current.charges_amount !== position.charges_amount) {
-            console.log(3);
-            flag = true;
-        }
-
-        if (prev.current.trades !== position.trades) {
-            console.log(4);
-            flag = true;
-        }
-
-        console.log(5, { flag });
-
-        return flag;
-    }, [position]);
-
+    // FIXME: For some reason, the compute is being called twice on mount.
     useEffect(() => {
-        if (!stateChangedForCompute) return;
-        compute({
-            risk_amount: position.risk_amount || "0",
-            charges_amount: position.charges_amount || "0",
-            trades: (position.trades || []).map((s) => {
-                const copy = { ...s };
-                if (copy.quantity === "") copy.quantity = "0";
-                if (copy.price === "") copy.price = "0";
+        if (!isInitialized || shouldCompute) {
+            setShouldCompute(false);
+            compute({
+                risk_amount: position.risk_amount || "0",
+                charges_amount: position.charges_amount || "0",
+                trades: (position.trades || []).map((s) => {
+                    const copy = { ...s };
+                    if (copy.quantity === "") copy.quantity = "0";
+                    if (copy.price === "") copy.price = "0";
 
-                // Removing the some fields because the API will throw error if we send them.
-                // @ts-ignore
-                delete copy.id;
-                // @ts-ignore
-                delete copy.position_id;
-                return copy;
-            }),
-        });
-    }, [position, compute, tradesAreValid]);
+                    // Removing the some fields because the API will throw error if we send them.
+                    // @ts-ignore
+                    delete copy.id;
+                    // @ts-ignore
+                    delete copy.position_id;
+                    return copy;
+                }),
+            });
+        }
+    }, [compute, isInitialized, shouldCompute]);
 
     if (!isInitialized) {
         return <LoadingScreen />;
@@ -389,7 +366,6 @@ const columns: ColumnDef<NewTrade>[] = [
         cell: (ctx) => {
             const { value, setValue, sync } =
                 useDataTableEditableCell<Date>(ctx);
-            // const { trades } = useAddPosition();
             const trades = useAddPositionStore((s) => s.position.trades || []);
 
             // We are subtracting `2` from length because `1` will be the last one.
@@ -475,7 +451,6 @@ const columns: ColumnDef<NewTrade>[] = [
             <DataTableColumnHeader column={column} title="Price" />
         ),
         cell: (ctx) => {
-            // const { state } = useAddPosition();
             const state = useAddPositionStore((s) => s.position);
             const { syncWithValue } = useDataTableEditableCell<string>(ctx);
             const [error, setError] = useState(false);
@@ -509,7 +484,6 @@ const columns: ColumnDef<NewTrade>[] = [
         id: "delete",
         header: "",
         cell: ({ row, table }) => {
-            // const { removeTrade } = useAddPosition();
             const removeTrade = useAddPositionStore((s) => s.removeTrade);
             // We want to disable this button if we have only 1 trade (rows count = 1).
             const disableButton = table.getRowModel().rows.length === 1;
