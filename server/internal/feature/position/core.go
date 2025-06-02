@@ -144,7 +144,7 @@ func Compute(payload ComputePayload) computeResult {
 
 		var pnl decimal.Decimal
 
-		avgPrice, netQty, direction, pnl, totalCost, totalCharges = applyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, trade.Quantity, trade.Price, trade.ChargesAmount, trade.Kind)
+		avgPrice, netQty, direction, pnl, totalCost, totalCharges = ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, trade.Quantity, trade.Price, trade.ChargesAmount, trade.Kind)
 
 		grossPnL = grossPnL.Add(pnl)
 
@@ -192,16 +192,16 @@ func Compute(payload ComputePayload) computeResult {
 	result.Status = status
 	result.OpenedAt = payload.Trades[0].Time
 	result.ClosedAt = closedAt
-	result.GrossPnLAmount = grossPnL
-	result.NetPnLAmount = netPnL
+	result.GrossPnLAmount = grossPnL.Round(2) // Round to match NUMERIC(14,2)
+	result.NetPnLAmount = netPnL.Round(2)     // Round to match NUMERIC(14,2)
 	result.RFactor = rFactor.Round(2)
-	result.TotalChargesAmount = totalCharges
+	result.TotalChargesAmount = totalCharges.Round(2) // Round to match NUMERIC(14,2)
 	result.NetReturnPercentage = netReturnPercentage.Round(2)
 	result.ChargesAsPercentageOfNetPnL = chargesAsPercentageOfNetPnL.Round(2)
 
 	if netQty.IsPositive() {
 		result.OpenQuantity = netQty
-		result.OpenAveragePriceAmount = avgPrice
+		result.OpenAveragePriceAmount = avgPrice.Round(2) // Round to match NUMERIC(14,2)
 	}
 
 	return result
@@ -244,7 +244,7 @@ const (
 //   - direction indicates whether the position is LONG or SHORT.
 //   - OrderKind.Buy means buying (increases long / closes short).
 //   - OrderKind.Sell means selling (increases short / closes long).
-func applyTradeToPosition(
+func ApplyTradeToPosition(
 	currentAvgPrice decimal.Decimal,
 	currentQty decimal.Decimal,
 	totalCost decimal.Decimal,
@@ -302,6 +302,9 @@ func applyTradeToPosition(
 		pnlPerUnit = currentAvgPrice.Sub(tradePrice) // Buy below avg = profit
 	}
 	realizedPnL = pnlPerUnit.Mul(closeQty)
+
+	// Round realized PnL to match database precision (NUMERIC(14,2))
+	realizedPnL = realizedPnL.Round(2)
 
 	// Check if it's a full close or flip
 	if tradeQty.LessThanOrEqual(currentQty) {

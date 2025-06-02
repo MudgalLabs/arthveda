@@ -196,7 +196,7 @@ export const ImportPositions = () => {
         } else {
             return (
                 <form onSubmit={handleStartImport}>
-                    <div className="flex w-full flex-col justify-between gap-x-16 gap-y-4 sm:flex-row">
+                    <div className="flex flex-col justify-between gap-x-16 gap-y-4 sm:flex-row">
                         <WithLabel Label={<Label>Broker *</Label>}>
                             <BrokerSelect
                                 value={brokerID}
@@ -236,7 +236,7 @@ export const ImportPositions = () => {
 
                     <div className="h-16" />
 
-                    <div className="flex justify-end">
+                    <div className="flex w-full justify-end">
                         <Button
                             className="w-full sm:w-fit"
                             disabled={!file || !brokerID}

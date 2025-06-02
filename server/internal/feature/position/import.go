@@ -341,6 +341,8 @@ func (i *GrowwImporter) parseRow(row []string, metadata *importFileMetadata) (*p
 	// Groww provides the price as total price for the trade,
 	// meaning for the given quantity, the price is the total amount paid.
 	price = price.Div(decimal.NewFromFloat(quantity))
+	// Round the price to match database precision
+	price = price.Round(2)
 
 	tradeTime, err := time.Parse("02-01-2006 03:04 PM", timeStr)
 	if err != nil {

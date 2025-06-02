@@ -4,9 +4,10 @@ import (
 	"arthveda/internal/common"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
-	"fmt"
+	"sort"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
 
@@ -28,49 +29,127 @@ type CumulativePnLBucket struct {
 // - Cumulative PnL is calculated in order of buckets, and each bucket includes PnL from trades in that time range.
 func generateCumulativePnLBuckets(positions []*position.Position, period common.BucketPeriod, start, end time.Time) []CumulativePnLBucket {
 	if len(positions) == 0 {
-		return nil
+		return []CumulativePnLBucket{}
 	}
 
+	// Generate buckets
 	buckets := common.GenerateBuckets(period, start, end)
 	results := make([]CumulativePnLBucket, len(buckets))
-
-	var cumulativePnL decimal.Decimal
-
 	for i, b := range buckets {
-		var pnlForThisBucket decimal.Decimal
-
-		for _, pos := range positions {
-			var tradesInBucket []*trade.Trade
-
-			// Collect trades for this position that fall into the current bucket
-			for _, t := range pos.Trades {
-				if !t.Time.Before(b.Start) && !t.Time.After(b.End) {
-					tradesInBucket = append(tradesInBucket, t)
-				}
-			}
-
-			if len(tradesInBucket) == 0 {
-				fmt.Println("No trades in bucket for position:", pos.ID, "Bucket:", b.Label(), "Actual:", len(pos.Trades))
-				continue
-			}
-
-			// Compute NetPnL (includes charges from each trade)
-			result := position.Compute(position.ComputePayload{
-				RiskAmount: pos.RiskAmount,
-				Trades:     position.ConvertTradesToCreatePayload(tradesInBucket),
-			})
-
-			pnlForThisBucket = pnlForThisBucket.Add(result.NetPnLAmount)
-		}
-
-		cumulativePnL = cumulativePnL.Add(pnlForThisBucket)
-
 		results[i] = CumulativePnLBucket{
 			Start: b.Start,
 			End:   b.End,
-			PnL:   cumulativePnL,
-			Label: b.Label(), // e.g. "2024-05-01" or "Week 18"
+			Label: b.Label(),
+			PnL:   decimal.Zero,
 		}
+	}
+
+	// Collect all trades and sort them by time
+	var allTrades []struct {
+		Trade    *trade.Trade
+		Position *position.Position
+	}
+	for _, pos := range positions {
+		for _, t := range pos.Trades {
+			allTrades = append(allTrades, struct {
+				Trade    *trade.Trade
+				Position *position.Position
+			}{Trade: t, Position: pos})
+		}
+	}
+	sort.Slice(allTrades, func(i, j int) bool {
+		return allTrades[i].Trade.Time.Before(allTrades[j].Trade.Time)
+	})
+
+	// Process trades in time order
+	positionStates := make(map[uuid.UUID]struct {
+		AvgPrice     decimal.Decimal
+		Quantity     decimal.Decimal
+		TotalCost    decimal.Decimal
+		TotalCharges decimal.Decimal
+		Direction    position.Direction
+	}) // Track state of each position
+
+	for _, entry := range allTrades {
+		t := entry.Trade
+		pos := entry.Position
+
+		// Find the active bucket for this trade
+		var activeBucket *CumulativePnLBucket
+		for i := range results {
+			if !t.Time.Before(results[i].Start) && t.Time.Before(results[i].End) {
+				activeBucket = &results[i]
+				break
+			}
+		}
+		if activeBucket == nil {
+			continue // Skip trades outside the bucket range
+		}
+
+		// Get or initialize the position state
+		state, exists := positionStates[pos.ID]
+		if !exists {
+			state = struct {
+				AvgPrice     decimal.Decimal
+				Quantity     decimal.Decimal
+				TotalCost    decimal.Decimal
+				TotalCharges decimal.Decimal
+				Direction    position.Direction
+			}{
+				AvgPrice:     decimal.Zero,
+				Quantity:     decimal.Zero,
+				TotalCost:    decimal.Zero,
+				TotalCharges: decimal.Zero,
+				Direction:    position.DirectionLong, // Default to long
+			}
+			positionStates[pos.ID] = state
+		}
+
+		// Apply the trade to the position and compute PnL
+		newAvgPrice, newQty, newDirection, realizedPnL, newTotalCost, newTotalCharges := position.ApplyTradeToPosition(
+			state.AvgPrice,
+			state.Quantity,
+			state.TotalCost,
+			state.TotalCharges,
+			state.Direction,
+			t.Quantity,
+			t.Price,
+			t.ChargesAmount,
+			t.Kind,
+		)
+
+		// Update the position state
+		positionStates[pos.ID] = struct {
+			AvgPrice     decimal.Decimal
+			Quantity     decimal.Decimal
+			TotalCost    decimal.Decimal
+			TotalCharges decimal.Decimal
+			Direction    position.Direction
+		}{
+			AvgPrice:     newAvgPrice,
+			Quantity:     newQty,
+			TotalCost:    newTotalCost,
+			TotalCharges: newTotalCharges,
+			Direction:    newDirection,
+		}
+
+		// Subtract trade charges from realizedPnL to calculate NetPnL
+		netPnL := realizedPnL.Sub(t.ChargesAmount)
+
+		// Round to match database precision (NUMERIC(14,2))
+		netPnL = netPnL.Round(2)
+
+		// Add net PnL to the bucket (this is bucket-specific PnL, not cumulative yet)
+		activeBucket.PnL = activeBucket.PnL.Add(netPnL)
+	}
+
+	// Convert bucket PnL to cumulative PnL with rounding
+	for i := range results {
+		if i > 0 {
+			results[i].PnL = results[i].PnL.Add(results[i-1].PnL)
+		}
+		// Round final cumulative value to match database precision
+		results[i].PnL = results[i].PnL.Round(2)
 	}
 
 	return results

@@ -124,7 +124,7 @@ type ImportPayload struct {
 	// Currency is the currency in which the positions are denominated.
 	Currency currency.CurrencyCode `form:"currency"`
 	// RiskAmount is the risk amount that will be used to compute R-Factor.
-	RiskAmount decimal.Decimal `form:"risk_amount"`
+	RiskAmount decimal.Decimal `json:"risk_amount"`
 	// Confirm is a boolean flag to indicate whether the positions should be created in the database.
 	Confirm bool
 }
@@ -260,13 +260,16 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 	// Convert aggregated trades to tradesWithOrderIDs
 	for orderID, aggregatedTrade := range aggregatedTrades {
-		averagePrice := aggregatedTrade.TotalPrice.Div(aggregatedTrade.Quantity) // Correct weighted average price calculation
+		averagePrice := aggregatedTrade.TotalPrice.Div(aggregatedTrade.Quantity)
+		// Round the average price to match database precision
+		averagePrice = averagePrice.Round(2)
+
 		tradesWithOrderIDs = append(tradesWithOrderIDs, TradeWithOrderID{
 			OrderID: orderID,
 			Payload: trade.CreatePayload{
 				Kind:     aggregatedTrade.TradeKind,
 				Quantity: aggregatedTrade.Quantity,
-				Price:    averagePrice,
+				Price:    averagePrice, // Use the rounded price
 				Time:     aggregatedTrade.Time,
 			},
 		})
@@ -286,9 +289,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	// Process the sorted trades
 	for _, tradeWithOrderID := range tradesWithOrderIDs {
 		orderID := tradeWithOrderID.OrderID
-
 		tradePayload := tradeWithOrderID.Payload
-
 		symbol, exists := orderIDToSymbolMap[orderID]
 		if !exists {
 			return nil, service.ErrInternalServerError, fmt.Errorf("Order ID %s not found in symbol map", orderID)
@@ -339,12 +340,28 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				return nil, service.ErrInternalServerError, fmt.Errorf("Order ID %s not found in instrument map", orderID)
 			}
 
+			// Debug: Log the trade details before computing
+			l.Debugw("Creating new position with trade",
+				"symbol", symbol,
+				"trade_kind", tradePayload.Kind,
+				"quantity", tradePayload.Quantity,
+				"price", tradePayload.Price,
+				"total_value", tradePayload.Price.Mul(tradePayload.Quantity),
+			)
+
 			// Initialize the position with the first trade
 			computePayload := ComputePayload{
 				RiskAmount: payload.RiskAmount,
 				Trades:     []trade.CreatePayload{tradePayload},
 			}
 			computeResult := Compute(computePayload)
+
+			// Debug: Log the computed result
+			l.Debugw("Computed result for new position",
+				"symbol", symbol,
+				"gross_pnl", computeResult.GrossPnLAmount,
+				"net_pnl", computeResult.NetPnLAmount,
+			)
 
 			positionID, err := uuid.NewV7()
 			if err != nil {
@@ -476,6 +493,7 @@ func (s *Service) Get(ctx context.Context, userID, positionID uuid.UUID) (*Posit
 	if len(trades) == 0 {
 		l.Errorw("No trades found for position. This shouldn't ever happen. There needs to be at least 1 trade for every position. This is not a valid position.", "position_id", position.ID)
 	}
+
 	position.Trades = trades
 
 	return position, service.ErrNone, nil

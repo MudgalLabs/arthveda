@@ -10,7 +10,7 @@ import (
 )
 
 type Reader interface {
-	Get(ctx context.Context, userID uuid.UUID) (*getDashboardReponse, error)
+	GetGeneralStats(ctx context.Context, userID uuid.UUID) (*GetGeneralStatsResponse, error)
 }
 
 type Writer interface{}
@@ -28,7 +28,13 @@ func NewRepository(db *pgxpool.Pool) *dashboardRepository {
 	return &dashboardRepository{db}
 }
 
-func (r *dashboardRepository) Get(ctx context.Context, userID uuid.UUID) (*getDashboardReponse, error) {
+type GetGeneralStatsResponse struct {
+	GrossPnL          decimal.Decimal `json:"gross_pnl"`
+	NetPnL            decimal.Decimal `json:"net_pnl"`
+	WinRatePercentage float64         `json:"win_rate_percentage"`
+}
+
+func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.UUID) (*GetGeneralStatsResponse, error) {
 	pnlSQL := `
 		SELECT
 			COALESCE(SUM(p.gross_pnl_amount), 0) AS gross_pnl,
@@ -78,7 +84,7 @@ func (r *dashboardRepository) Get(ctx context.Context, userID uuid.UUID) (*getDa
 		return nil, fmt.Errorf("winrate sql scan: %w", err)
 	}
 
-	result := &getDashboardReponse{
+	result := &GetGeneralStatsResponse{
 		GrossPnL:          grossPnL,
 		NetPnL:            netPnL,
 		WinRatePercentage: winRatePercentage,

@@ -47,9 +47,15 @@ func GenerateBuckets(period BucketPeriod, start, end time.Time) []Bucket {
 	start = start.Truncate(24 * time.Hour)
 	end = end.Truncate(24 * time.Hour)
 
+	// Adjust start and end for monthly buckets
+	if period == BucketPeriodMonthly {
+		start = time.Date(start.Year(), start.Month(), 1, 0, 0, 0, 0, start.Location())
+		end = time.Date(end.Year(), end.Month(), 1, 0, 0, 0, 0, end.Location()).AddDate(0, 1, -1)
+	}
+
 	current := start
 
-	for current.Before(end) {
+	for current.Before(end) || current.Equal(end) {
 		var next time.Time
 
 		switch period {
