@@ -10,7 +10,7 @@ import {
     roundToNearest15Minutes,
 } from "@/lib/utils";
 import { Setter } from "@/lib/types";
-import { useAddPositionStore } from "./add/add_position_context";
+import { usePositionStore } from "./position_store_context";
 import { useDebounce } from "@/hooks/use_debounce";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -28,8 +28,6 @@ interface Action {
 }
 
 export interface PositionStore extends State, Action {}
-
-export type InitPositionStoreProp = Partial<Position>;
 
 const defaultState: State = {
     initialPosition: null,
@@ -171,7 +169,7 @@ export const createPositionStore = (initProp?: Position) => {
 };
 
 export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
-    const position = useAddPositionStore((s) => s.position);
+    const position = usePositionStore((s) => s.position);
     const debouncedPosition = useDebounce(position, 500);
     const prevDebouncedPositionRef = useRef(debouncedPosition);
 
@@ -202,8 +200,8 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
 }
 
 export function usePositionCanBeDiscarded(): boolean {
-    const position = useAddPositionStore((s) => s.position);
-    const initialPosition = useAddPositionStore((s) => s.initialPosition);
+    const position = usePositionStore((s) => s.position);
+    const initialPosition = usePositionStore((s) => s.initialPosition);
 
     return useMemo(
         () => !isEqual(position, initialPosition),
@@ -212,7 +210,7 @@ export function usePositionCanBeDiscarded(): boolean {
 }
 
 export function usePositionTradesAreValid(): boolean {
-    const trades = useAddPositionStore((s) => s.position.trades);
+    const trades = usePositionStore((s) => s.position.trades);
     if (!trades) {
         return false;
     }
@@ -220,7 +218,7 @@ export function usePositionTradesAreValid(): boolean {
 }
 
 export function usePositionCanBeSaved(): boolean {
-    const position = useAddPositionStore((s) => s.position);
+    const position = usePositionStore((s) => s.position);
     return useMemo(
         () =>
             !!position.symbol &&

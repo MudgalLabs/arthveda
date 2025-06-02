@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { AddPositionProvider } from "@/features/position/add/add_position_context";
+import { PositionStoreProvider } from "@/features/position/position_store_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useEffectOnce } from "@/hooks/use_effect_once";
@@ -47,9 +47,9 @@ const ViewPositionLazy = () => {
 
         return (
             <Suspense fallback={<LoadingScreen />}>
-                <AddPositionProvider initState={position}>
+                <PositionStoreProvider initState={position}>
                     <ViewPosition />
-                </AddPositionProvider>
+                </PositionStoreProvider>
             </Suspense>
         );
     }

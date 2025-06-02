@@ -321,6 +321,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			openPosition.ClosedAt = computeResult.ClosedAt
 			openPosition.GrossPnLAmount = computeResult.GrossPnLAmount
 			openPosition.NetPnLAmount = computeResult.NetPnLAmount
+			openPosition.RiskAmount = payload.RiskAmount
 			openPosition.RFactor = computeResult.RFactor
 			openPosition.NetReturnPercentage = computeResult.NetReturnPercentage
 			openPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL

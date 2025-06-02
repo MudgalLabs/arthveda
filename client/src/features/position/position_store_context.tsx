@@ -1,31 +1,29 @@
 import { createContext, useContext, useRef } from "react";
 import {
     createPositionStore,
-    InitPositionStoreProp,
     PositionStore,
 } from "@/features/position/position_store";
 import { StoreApi, useStore } from "zustand";
+import { Position } from "@/features/position/position";
 
 const Context = createContext<StoreApi<PositionStore> | null>(null);
 
-export const AddPositionProvider = ({
+export const PositionStoreProvider = ({
     children,
     initState,
 }: {
     children: React.ReactNode;
-    initState?: InitPositionStoreProp;
+    initState?: Position;
 }) => {
     const store = useRef(createPositionStore(initState)).current;
     return <Context.Provider value={store}>{children}</Context.Provider>;
 };
 
-export function useAddPositionStore<T>(
-    selector: (state: PositionStore) => T
-): T {
+export function usePositionStore<T>(selector: (state: PositionStore) => T): T {
     const store = useContext(Context);
     if (!store) {
         throw new Error(
-            "useAddPositionStore must be used within AddPositionProvider"
+            "usePositionStore must be used within PositionProvider"
         );
     }
     return useStore(store, selector);

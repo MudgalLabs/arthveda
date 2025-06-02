@@ -60,7 +60,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { WithDebounce } from "@/components/with_debounce";
 import { SymbolInput } from "@/features/position/components/symbol_input";
-import { useAddPositionStore } from "./add_position_context";
+import { usePositionStore } from "../position_store_context";
 import { ComputePositionResponse } from "@/lib/api/position";
 import { LoadingScreen } from "@/components/loading_screen";
 import {
@@ -117,11 +117,11 @@ function AddPosition() {
         });
 
     const [isInitialized, setIsInitialized] = useState(false);
-    const position = useAddPositionStore((s) => s.position);
-    const setTrades = useAddPositionStore((s) => s.setTrades);
-    const insertNewTrade = useAddPositionStore((s) => s.insertNewTrade);
-    const discard = useAddPositionStore((s) => s.discard);
-    const updatePosition = useAddPositionStore((s) => s.updatePosition);
+    const position = usePositionStore((s) => s.position);
+    const setTrades = usePositionStore((s) => s.setTrades);
+    const insertNewTrade = usePositionStore((s) => s.insertNewTrade);
+    const discard = usePositionStore((s) => s.discard);
+    const updatePosition = usePositionStore((s) => s.updatePosition);
     const [shouldCompute, setShouldCompute] = usePositionCanBeComputed();
     const canSave = usePositionCanBeSaved();
     const tradesAreValid = usePositionTradesAreValid();
@@ -362,7 +362,7 @@ const columns: ColumnDef<NewTrade>[] = [
         cell: (ctx) => {
             const { value, setValue, sync } =
                 useDataTableEditableCell<Date>(ctx);
-            const trades = useAddPositionStore((s) => s.position.trades || []);
+            const trades = usePositionStore((s) => s.position.trades || []);
 
             // We are subtracting `2` from length because `1` will be the last one.
             const secondLastTrade = trades[Math.min(trades.length - 2, 0)];
@@ -447,7 +447,7 @@ const columns: ColumnDef<NewTrade>[] = [
             <DataTableColumnHeader column={column} title="Price" />
         ),
         cell: (ctx) => {
-            const state = useAddPositionStore((s) => s.position);
+            const state = usePositionStore((s) => s.position);
             const { syncWithValue } = useDataTableEditableCell<string>(ctx);
             const [error, setError] = useState(false);
 
@@ -480,7 +480,7 @@ const columns: ColumnDef<NewTrade>[] = [
         id: "delete",
         header: "",
         cell: ({ row, table }) => {
-            const removeTrade = useAddPositionStore((s) => s.removeTrade);
+            const removeTrade = usePositionStore((s) => s.removeTrade);
             // We want to disable this button if we have only 1 trade (rows count = 1).
             const disableButton = table.getRowModel().rows.length === 1;
             return (
