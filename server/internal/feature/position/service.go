@@ -122,7 +122,7 @@ type ImportPayload struct {
 	// Broker ID is the ID of the broker from which the positions are being imported.
 	BrokerID uuid.UUID `form:"broker_id"`
 	// Currency is the currency in which the positions are denominated.
-	Currency currency.CurrencyCode `form:"currency"`
+	Currency currency.CurrencyCode `json:"currency"`
 	// RiskAmount is the risk amount that will be used to compute R-Factor.
 	RiskAmount decimal.Decimal `json:"risk_amount"`
 	// Confirm is a boolean flag to indicate whether the positions should be created in the database.
@@ -340,28 +340,12 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				return nil, service.ErrInternalServerError, fmt.Errorf("Order ID %s not found in instrument map", orderID)
 			}
 
-			// Debug: Log the trade details before computing
-			l.Debugw("Creating new position with trade",
-				"symbol", symbol,
-				"trade_kind", tradePayload.Kind,
-				"quantity", tradePayload.Quantity,
-				"price", tradePayload.Price,
-				"total_value", tradePayload.Price.Mul(tradePayload.Quantity),
-			)
-
 			// Initialize the position with the first trade
 			computePayload := ComputePayload{
 				RiskAmount: payload.RiskAmount,
 				Trades:     []trade.CreatePayload{tradePayload},
 			}
 			computeResult := Compute(computePayload)
-
-			// Debug: Log the computed result
-			l.Debugw("Computed result for new position",
-				"symbol", symbol,
-				"gross_pnl", computeResult.GrossPnLAmount,
-				"net_pnl", computeResult.NetPnLAmount,
-			)
 
 			positionID, err := uuid.NewV7()
 			if err != nil {
