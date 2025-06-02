@@ -6,9 +6,9 @@ CREATE TABLE IF NOT EXISTS user_identity (
         password_hash TEXT NOT NULL,
         verified BOOLEAN NOT NULL,
         failed_login_attempts INT NOT NULL,
-        last_login_at TIMESTAMP,
-        created_at TIMESTAMP NOT NULL,
-        updated_at TIMESTAMP
+        last_login_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS user_profile (
@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS user_profile (
         email VARCHAR(255) NOT NULL UNIQUE,
         display_name VARCHAR(255) NOT NULL,
         display_image TEXT NOT NULL,
-        created_at TIMESTAMP NOT NULL,
-        updated_at TIMESTAMP
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS broker (
@@ -37,8 +37,8 @@ CREATE TYPE POSITION_STATUS AS ENUM('win', 'loss', 'breakeven', 'open');
 CREATE TABLE IF NOT EXISTS position (
         id UUID PRIMARY KEY,
         created_by UUID REFERENCES user_profile(user_id),
-        created_at TIMESTAMP NOT NULL,
-        updated_at TIMESTAMP,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ,
         symbol VARCHAR(255) NOT NULL,
         instrument POSITION_INSTRUMENT NOT NULL,
         currency VARCHAR(3) NOT NULL,
@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS position (
         charges_amount NUMERIC(14, 2) NOT NULL,
         direction POSITION_DIRECTION NOT NULL,
         status POSITION_STATUS NOT NULL,
-        opened_at TIMESTAMP NOT NULL,
-        closed_at TIMESTAMP,
+        opened_at TIMESTAMPTZ NOT NULL,
+        closed_at TIMESTAMPTZ,
         gross_pnl_amount NUMERIC(14, 2) NOT NULL,
         net_pnl_amount NUMERIC(14, 2) NOT NULL,
         r_factor NUMERIC(6, 2) NOT NULL,
@@ -63,10 +63,10 @@ CREATE TYPE TRADE_KIND AS ENUM('buy', 'sell');
 CREATE TABLE IF NOT EXISTS trade (
         id UUID PRIMARY KEY,
         position_id UUID NOT NULL REFERENCES position(id),
-        created_at TIMESTAMP NOT NULL,
-        updated_at TIMESTAMP,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ,
         kind TRADE_KIND NOT NULL,
-        time TIMESTAMP NOT NULL,
+        time TIMESTAMPTZ NOT NULL,
         quantity NUMERIC(14, 2) NOT NULL,
         price NUMERIC(14, 2) NOT NULL,
         broker_trade_id VARCHAR(255)
