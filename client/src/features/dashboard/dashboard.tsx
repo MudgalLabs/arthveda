@@ -75,8 +75,13 @@ export const Dashboard = () => {
                     </Card>
 
                     <Card>
-                        <CardTitle>Avg R Factor</CardTitle>
-                        <CardContent>{data.avg_r_factor}</CardContent>
+                        <CardTitle>Avg Win R</CardTitle>
+                        <CardContent>{data.avg_win_r_factor}</CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardTitle>Avg Loss R</CardTitle>
+                        <CardContent>{data.avg_loss_r_factor}</CardContent>
                     </Card>
 
                     <Card>
