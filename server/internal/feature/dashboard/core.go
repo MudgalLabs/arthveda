@@ -18,7 +18,7 @@ type CumulativePnLBucket struct {
 	Label string          `json:"label"`
 }
 
-// generateCumulativePnLBuckets calculates cumulative realized PnL across time buckets
+// getCumulativePnL calculates cumulative realized PnL across time buckets
 // (daily, weekly, or monthly) for the given positions and their associated trades.
 //
 // Notes:
@@ -26,7 +26,7 @@ type CumulativePnLBucket struct {
 // - Trades are assumed to be in UTC.
 // - Charges are considered in this calculation to compute NetPnL.
 // - Uses `position.ApplyTradeToPosition` to calculate realized PnL from partial or full exits.
-func generateCumulativePnLBuckets(positions []*position.Position, period common.BucketPeriod, start, end time.Time) []CumulativePnLBucket {
+func getCumulativePnL(positions []*position.Position, period common.BucketPeriod, start, end time.Time) []CumulativePnLBucket {
 	if len(positions) == 0 {
 		return []CumulativePnLBucket{}
 	}
@@ -152,4 +152,35 @@ func generateCumulativePnLBuckets(positions []*position.Position, period common.
 	}
 
 	return results
+}
+
+type streaks struct {
+	WinStreak  int `json:"win_streak"`
+	LossStreak int `json:"loss_streak"`
+}
+
+func getWinAndLossStreaks(sortedPositions []*position.Position) streaks {
+	var maxWinStreak, maxLossStreak, currentWin, currentLoss int
+
+	for _, pos := range sortedPositions {
+		switch pos.Status {
+		case "win":
+			currentWin++
+			currentLoss = 0
+		case "loss":
+			currentLoss++
+			currentWin = 0
+		default:
+			currentWin = 0
+			currentLoss = 0
+		}
+
+		maxWinStreak = max(maxWinStreak, currentWin)
+		maxLossStreak = max(maxLossStreak, currentLoss)
+	}
+
+	return streaks{
+		WinStreak:  maxWinStreak,
+		LossStreak: maxLossStreak,
+	}
 }

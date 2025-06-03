@@ -2,29 +2,25 @@ import { useMemo } from "react";
 
 import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
-import { cn, formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes_constants";
-import { Card, CardTitle } from "@/components/card";
+import { Card, CardContent, CardTitle } from "@/components/card";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { CumulativeNetPnLWidget } from "@/features/dashboard/widget/cumulative_pnl_widget";
 
 export const Dashboard = () => {
-    const {
-        data: dashboardData,
-        isLoading,
-        isError,
-    } = apiHooks.dashboard.useGet();
+    const { data, isLoading, isError } = apiHooks.dashboard.useGet();
 
     const cumulativePnLData = useMemo(() => {
-        if (!dashboardData) return [];
+        if (!data) return [];
 
-        return dashboardData.data.cumulative_pnl.map((d) => ({
+        return data.cumulative_pnl.map((d) => ({
             ...d,
             pnl: parseFloat(d.pnl),
         }));
-    }, [dashboardData?.data.cumulative_pnl]);
+    }, [data?.cumulative_pnl]);
 
     if (isError) {
         return (
@@ -36,11 +32,11 @@ export const Dashboard = () => {
         return <LoadingScreen />;
     }
 
-    if (!dashboardData) return null;
+    if (!data) return null;
 
-    const grossPnL = dashboardData.data.gross_pnl;
-    const netPnL = dashboardData.data.net_pnl;
-    const winRate = dashboardData.data.win_rate_percentage;
+    const grossPnL = data.gross_pnl;
+    const netPnL = data.net_pnl;
+    const winRate = data.win_rate;
 
     if (!!grossPnL && !!netPnL && !winRate) {
         return <WelcomeMessageForNewUser />;
@@ -50,35 +46,74 @@ export const Dashboard = () => {
         <>
             <PageHeading heading="Dashboard" loading={isLoading} />
             <div>
-                <div className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
+                <div className="[&_[data-slot='card-content']]:flex-center [&_[data-slot='card-content']]:sub-heading [&_[data-slot='card-content']]:sm:heading flex flex-row flex-wrap gap-x-4 gap-y-4 [&>div]:w-full sm:[&>div]:w-fit">
                     <Card>
-                        <CardTitle>Gross PnL</CardTitle>
-
-                        <p
-                            className={cn("big-heading", {
-                                "text-foreground-green": Number(grossPnL) > 0,
-                                "text-foreground-red": Number(grossPnL) < 0,
-                            })}
-                        >
-                            {formatCurrency(dashboardData.data.gross_pnl)}
-                        </p>
+                        <CardTitle>Net PnL</CardTitle>
+                        <CardContent>
+                            {formatCurrency(data.net_pnl)}
+                        </CardContent>
                     </Card>
 
                     <Card>
-                        <CardTitle>Net PnL</CardTitle>
-                        <p
-                            className={cn("big-heading", {
-                                "text-foreground-green": Number(netPnL) > 0,
-                                "text-foreground-red": Number(netPnL) < 0,
-                            })}
-                        >
-                            {formatCurrency(dashboardData.data.net_pnl)}
-                        </p>
+                        <CardTitle>Gross PnL</CardTitle>
+                        <CardContent>
+                            {formatCurrency(data.gross_pnl)}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardTitle>Charges</CardTitle>
+                        <CardContent>
+                            {formatCurrency(data.charges)}
+                        </CardContent>
                     </Card>
 
                     <Card>
                         <CardTitle>Win Rate</CardTitle>
-                        <p className="big-heading">{winRate}%</p>
+                        <CardContent>{data.win_rate}%</CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardTitle>Avg R Factor</CardTitle>
+                        <CardContent>{data.avg_r_factor}</CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardTitle>Avg Win</CardTitle>
+                        <CardContent>
+                            {formatCurrency(data.avg_win)}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardTitle>Avg Loss</CardTitle>
+                        <CardContent>
+                            {formatCurrency(data.avg_loss)}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardTitle>Max Win</CardTitle>
+                        <CardContent>
+                            {formatCurrency(data.max_win)}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardTitle>Max Loss</CardTitle>
+                        <CardContent>
+                            {formatCurrency(data.max_loss)}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardTitle>Win Streak</CardTitle>
+                        <CardContent>{data.win_streak}</CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardTitle>Loss Streak</CardTitle>
+                        <CardContent>{data.loss_streak}</CardContent>
                     </Card>
                 </div>
 
