@@ -19,7 +19,9 @@ export const Dashboard = () => {
 
         return data.cumulative_pnl.map((d) => ({
             ...d,
-            pnl: parseFloat(d.pnl),
+            net_pnl: parseFloat(d.net_pnl),
+            gross_pnl: parseFloat(d.gross_pnl),
+            charges: parseFloat(d.charges),
         }));
     }, [data?.cumulative_pnl]);
 

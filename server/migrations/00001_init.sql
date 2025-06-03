@@ -50,9 +50,9 @@ CREATE TABLE IF NOT EXISTS position (
         closed_at TIMESTAMPTZ,
         gross_pnl_amount NUMERIC(14, 2) NOT NULL,
         net_pnl_amount NUMERIC(14, 2) NOT NULL,
-        r_factor NUMERIC(6, 2) NOT NULL,
-        net_return_percentage NUMERIC(5, 2) NOT NULL,
-        charges_as_percentage_of_net_pnl NUMERIC(5, 2) NOT NULL,
+        r_factor NUMERIC(8, 2) NOT NULL,
+        net_return_percentage NUMERIC(6, 2) NOT NULL,
+        charges_as_percentage_of_net_pnl NUMERIC(6, 2) NOT NULL,
         open_quantity NUMERIC(20, 8) NOT NULL,
         open_average_price_amount NUMERIC(14, 2) NOT NULL,
         broker_id UUID REFERENCES broker(id)

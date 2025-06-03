@@ -19,9 +19,11 @@ interface GeneralStats {
 
 interface CumulativePnLDataItem {
     label: string;
-    pnl: DecimalString;
     start: string;
     end: string;
+    net_pnl: DecimalString;
+    gross_pnl: DecimalString;
+    charges: DecimalString;
 }
 
 export interface GetDashboardResponse extends GeneralStats {
