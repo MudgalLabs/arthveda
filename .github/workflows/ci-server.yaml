@@ -45,4 +45,4 @@ jobs:
 
             - name: Deploy to VPS
               run: |
-                  ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout dev && git pull && docker compose pull server && docker compose up server -d && exit"
+                  ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout main && git pull && docker compose pull server && docker compose up server -d && exit"
