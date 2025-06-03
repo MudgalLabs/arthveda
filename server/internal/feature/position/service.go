@@ -211,10 +211,11 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	// This will help in calculating the weighted average price for trades with the same Order ID.
 	// When a user places a trade, the execution can happen in multiple parts leading to multiple trades with the same Order ID.
 	aggregatedTrades := make(map[string]struct {
-		Quantity   decimal.Decimal
-		TotalPrice decimal.Decimal
 		TradeKind  trade.Kind
 		Time       time.Time
+		Quantity   decimal.Decimal
+		TotalPrice decimal.Decimal
+		Charges    decimal.Decimal
 	})
 
 	metadata, err := importer.getMetadata(rows)
@@ -242,15 +243,17 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			aggregatedTrades[parseRowResult.orderId] = existing
 		} else {
 			aggregatedTrades[parseRowResult.orderId] = struct {
-				Quantity   decimal.Decimal
-				TotalPrice decimal.Decimal
 				TradeKind  trade.Kind
 				Time       time.Time
+				Quantity   decimal.Decimal
+				TotalPrice decimal.Decimal
+				Charges    decimal.Decimal
 			}{
-				Quantity:   parseRowResult.quantity,
-				TotalPrice: parseRowResult.price.Mul(parseRowResult.quantity),
 				TradeKind:  parseRowResult.tradeKind,
 				Time:       parseRowResult.time,
+				Quantity:   parseRowResult.quantity,
+				TotalPrice: parseRowResult.price.Mul(parseRowResult.quantity),
+				Charges:    decimal.NewFromInt(20), // Assuming a fixed charge of 20 for simplicity, this can be adjusted based on the broker's fee structure.
 			}
 		}
 
@@ -267,10 +270,11 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		tradesWithOrderIDs = append(tradesWithOrderIDs, TradeWithOrderID{
 			OrderID: orderID,
 			Payload: trade.CreatePayload{
-				Kind:     aggregatedTrade.TradeKind,
-				Quantity: aggregatedTrade.Quantity,
-				Price:    averagePrice, // Use the rounded price
-				Time:     aggregatedTrade.Time,
+				Kind:          aggregatedTrade.TradeKind,
+				Quantity:      aggregatedTrade.Quantity,
+				Price:         averagePrice, // Use the rounded price
+				Time:          aggregatedTrade.Time,
+				ChargesAmount: aggregatedTrade.Charges,
 			},
 		})
 	}
@@ -312,6 +316,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				RiskAmount: payload.RiskAmount,
 				Trades:     ConvertTradesToCreatePayload(openPosition.Trades),
 			}
+
 			computeResult := Compute(computePayload)
 
 			// Update the position with the compute result
@@ -325,6 +330,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			openPosition.RFactor = computeResult.RFactor
 			openPosition.NetReturnPercentage = computeResult.NetReturnPercentage
 			openPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
+			openPosition.TotalChargesAmount = computeResult.TotalChargesAmount
 
 			// If the position is closed (net quantity is 0), finalize it
 			if computeResult.OpenQuantity.IsZero() {
