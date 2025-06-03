@@ -31,15 +31,17 @@ func NewRepository(db *pgxpool.Pool) *dashboardRepository {
 type generalStats struct {
 	streaks
 
-	WinRate    float64 `json:"win_rate"`
-	GrossPnL   string  `json:"gross_pnl"`
-	NetPnL     string  `json:"net_pnl"`
-	Charges    string  `json:"charges"`
-	AvgRFactor float64 `json:"avg_r_factor"`
-	AvgWin     string  `json:"avg_win"`
-	AvgLoss    string  `json:"avg_loss"`
-	MaxWin     string  `json:"max_win"`
-	MaxLoss    string  `json:"max_loss"`
+	WinRate        float64 `json:"win_rate"`
+	GrossPnL       string  `json:"gross_pnl"`
+	NetPnL         string  `json:"net_pnl"`
+	Charges        string  `json:"charges"`
+	AvgRFactor     float64 `json:"avg_r_factor"`
+	AvgWin         string  `json:"avg_win"`
+	AvgLoss        string  `json:"avg_loss"`
+	MaxWin         string  `json:"max_win"`
+	MaxLoss        string  `json:"max_loss"`
+	AvgWinRFactor  float64 `json:"avg_win_r_factor"`
+	AvgLossRFactor float64 `json:"avg_loss_r_factor"`
 }
 
 func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.UUID, positions []*position.Position) (*generalStats, error) {
@@ -74,7 +76,13 @@ func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.U
 			COALESCE(MAX(net_pnl_amount), 0) AS max_win,
 
 			-- Max Loss
-			COALESCE(MIN(net_pnl_amount), 0) AS max_loss
+			COALESCE(MIN(net_pnl_amount), 0) AS max_loss,
+
+			-- Average R for Wins
+			COALESCE(ROUND(AVG(CASE WHEN status IN ('win', 'breakeven') THEN r_factor END), 2), 0) AS avg_win_r_factor,
+
+			-- Average R for Losses
+			COALESCE(ROUND(AVG(CASE WHEN status = 'loss' THEN r_factor END), 2), 0) AS avg_loss_r_factor
 
 		FROM
 			position
@@ -83,9 +91,9 @@ func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.U
 	`
 
 	var grossPnL, netPnL, charges, avgWin, avgLoss, maxWin, maxLoss string
-	var winRate, avgRFactor float64
+	var winRate, avgRFactor, avgWinRFactor, avgLossRFactor float64
 
-	err := r.db.QueryRow(ctx, pnlSQL, userID).Scan(&winRate, &grossPnL, &netPnL, &charges, &avgRFactor, &avgWin, &avgLoss, &maxWin, &maxLoss)
+	err := r.db.QueryRow(ctx, pnlSQL, userID).Scan(&winRate, &grossPnL, &netPnL, &charges, &avgRFactor, &avgWin, &avgLoss, &maxWin, &maxLoss, &avgWinRFactor, &avgLossRFactor)
 	if err != nil {
 		return nil, fmt.Errorf("pnl sql scan: %w", err)
 	}
@@ -93,15 +101,17 @@ func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.U
 	streaksData := getWinAndLossStreaks(positions)
 
 	result := &generalStats{
-		WinRate:    winRate,
-		GrossPnL:   grossPnL,
-		NetPnL:     netPnL,
-		Charges:    charges,
-		AvgRFactor: avgRFactor,
-		AvgWin:     avgWin,
-		AvgLoss:    avgLoss,
-		MaxWin:     maxWin,
-		MaxLoss:    maxLoss,
+		WinRate:        winRate,
+		GrossPnL:       grossPnL,
+		NetPnL:         netPnL,
+		Charges:        charges,
+		AvgRFactor:     avgRFactor,
+		AvgWin:         avgWin,
+		AvgLoss:        avgLoss,
+		MaxWin:         maxWin,
+		MaxLoss:        maxLoss,
+		AvgWinRFactor:  avgWinRFactor,
+		AvgLossRFactor: avgLossRFactor,
 
 		streaks: streaks{
 			WinStreak:  streaksData.WinStreak,
