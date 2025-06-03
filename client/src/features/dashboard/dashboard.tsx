@@ -11,7 +11,8 @@ import { LoadingScreen } from "@/components/loading_screen";
 import { CumulativeNetPnLWidget } from "@/features/dashboard/widget/cumulative_pnl_widget";
 
 export const Dashboard = () => {
-    const { data, isLoading, isError } = apiHooks.dashboard.useGet();
+    const { data, isLoading, isFetching, isError } =
+        apiHooks.dashboard.useGet();
 
     const cumulativePnLData = useMemo(() => {
         if (!data) return [];
@@ -44,7 +45,7 @@ export const Dashboard = () => {
 
     return (
         <>
-            <PageHeading heading="Dashboard" loading={isLoading} />
+            <PageHeading heading="Dashboard" loading={isFetching} />
             <div>
                 <div className="[&_[data-slot='card-content']]:flex-center [&_[data-slot='card-content']]:sub-heading [&_[data-slot='card-content']]:sm:heading flex flex-row flex-wrap gap-x-4 gap-y-4 [&>div]:w-full sm:[&>div]:w-fit">
                     <Card>
@@ -137,7 +138,7 @@ function WelcomeMessageForNewUser() {
     return (
         <div className="jusify-center mt-20 flex flex-col items-center">
             <div className="flex flex-col gap-y-4">
-                <p>Hey {data?.display_name},</p>
+                <p>Hey {data.display_name},</p>
                 <p>
                     Looks like you are new here and have no{" "}
                     <Link className="text-base!" to={ROUTES.positionList}>
