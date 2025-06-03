@@ -7,6 +7,7 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
+    ReferenceLine,
 } from "recharts";
 
 import { formatCurrency } from "@/lib/utils";
@@ -31,7 +32,7 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
 
             <div className="h-4" />
 
-            <ResponsiveContainer width="100%" height={isMobile ? 250 : 500}>
+            <ResponsiveContainer width="100%" height={isMobile ? 250 : 400}>
                 <AreaChart
                     data={data}
                     margin={{
@@ -99,17 +100,26 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
                     <defs>
                         <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
                             <stop
-                                offset="5%"
+                                offset="10%"
                                 stopColor="var(--color-primary)"
                                 stopOpacity={0.8}
                             />
                             <stop
-                                offset="95%"
+                                offset="90%"
                                 stopColor="var(--color-primary)"
-                                stopOpacity={0.1}
+                                stopOpacity={0.2}
                             />
                         </linearGradient>
                     </defs>
+
+                    <ReferenceLine
+                        y={0}
+                        stroke="var(--color-primary)"
+                        strokeDasharray="3 3"
+                        strokeWidth={2}
+                        strokeOpacity={0.69}
+                    />
+
                     <Area
                         type="monotone"
                         dataKey="pnl"

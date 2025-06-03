@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 type Service struct {
@@ -27,18 +26,11 @@ func NewService(dashboardRepository ReadWriter, positionRepository position.Read
 }
 
 type getDashboardReponse struct {
-	GrossPnL          decimal.Decimal       `json:"gross_pnl"`
-	NetPnL            decimal.Decimal       `json:"net_pnl"`
-	WinRatePercentage float64               `json:"win_rate_percentage"`
-	CumulativePnL     []CumulativePnLBucket `json:"cumulative_pnl"`
+	generalStats
+	CumulativePnL []CumulativePnLBucket `json:"cumulative_pnl"`
 }
 
 func (s *Service) Get(ctx context.Context, userID uuid.UUID) (*getDashboardReponse, service.Error, error) {
-	generalStats, err := s.dashboardRepository.GetGeneralStats(ctx, userID)
-	if err != nil {
-		return nil, service.ErrInternalServerError, err
-	}
-
 	searchPositionPayload := position.SearchPayload{
 		Filters: position.SearchFilter{
 			CreatedBy: &userID,
@@ -78,13 +70,16 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID) (*getDashboardRepon
 	// Extend the end time to include the full bucket
 	end = end.AddDate(0, 0, 1)
 
-	cumulativePnL := generateCumulativePnLBuckets(positions, common.BucketPeriodMonthly, start, end)
+	cumulativePnL := getCumulativePnL(positions, common.BucketPeriodMonthly, start, end)
+
+	stats, err := s.dashboardRepository.GetGeneralStats(ctx, userID, positions)
+	if err != nil {
+		return nil, service.ErrInternalServerError, err
+	}
 
 	result := &getDashboardReponse{
-		GrossPnL:          generalStats.GrossPnL,
-		NetPnL:            generalStats.NetPnL,
-		WinRatePercentage: generalStats.WinRatePercentage,
-		CumulativePnL:     cumulativePnL,
+		generalStats:  *stats,
+		CumulativePnL: cumulativePnL,
 	}
 
 	return result, service.ErrNone, nil

@@ -1,16 +1,16 @@
 package dashboard
 
 import (
+	"arthveda/internal/feature/position"
 	"context"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/shopspring/decimal"
 )
 
 type Reader interface {
-	GetGeneralStats(ctx context.Context, userID uuid.UUID) (*GetGeneralStatsResponse, error)
+	GetGeneralStats(ctx context.Context, userID uuid.UUID, positions []*position.Position) (*generalStats, error)
 }
 
 type Writer interface{}
@@ -28,66 +28,85 @@ func NewRepository(db *pgxpool.Pool) *dashboardRepository {
 	return &dashboardRepository{db}
 }
 
-type GetGeneralStatsResponse struct {
-	GrossPnL          decimal.Decimal `json:"gross_pnl"`
-	NetPnL            decimal.Decimal `json:"net_pnl"`
-	WinRatePercentage float64         `json:"win_rate_percentage"`
+type generalStats struct {
+	streaks
+
+	WinRate    float64 `json:"win_rate"`
+	GrossPnL   string  `json:"gross_pnl"`
+	NetPnL     string  `json:"net_pnl"`
+	Charges    string  `json:"charges"`
+	AvgRFactor float64 `json:"avg_r_factor"`
+	AvgWin     string  `json:"avg_win"`
+	AvgLoss    string  `json:"avg_loss"`
+	MaxWin     string  `json:"max_win"`
+	MaxLoss    string  `json:"max_loss"`
 }
 
-func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.UUID) (*GetGeneralStatsResponse, error) {
+func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.UUID, positions []*position.Position) (*generalStats, error) {
 	pnlSQL := `
 		SELECT
-			COALESCE(SUM(p.gross_pnl_amount), 0) AS gross_pnl,
-			COALESCE(SUM(p.net_pnl_amount), 0) AS net_pnl
-		FROM
-			position p
-		WHERE
-			p.created_by = $1;
-	`
-
-	var grossPnLStr, netPnLStr string
-
-	err := r.db.QueryRow(ctx, pnlSQL, userID).Scan(&grossPnLStr, &netPnLStr)
-	if err != nil {
-		return nil, fmt.Errorf("pnl sql scan: %w", err)
-	}
-
-	grossPnL, err := decimal.NewFromString(grossPnLStr)
-	if err != nil {
-		return nil, fmt.Errorf("grossPnL parse: %w", err)
-	}
-
-	netPnL, err := decimal.NewFromString(netPnLStr)
-	if err != nil {
-		return nil, fmt.Errorf("netPnL parse: %w", err)
-	}
-
-	winRateSQL := `
-		SELECT
+			-- Win Rate (%)
 			COALESCE(
 				ROUND(
-				100.0 *
-				SUM(CASE WHEN status IN ('win', 'breakeven', 'open') THEN 1 ELSE 0 END) /
-				NULLIF(COUNT(*), 0),
-				2
-			), 0) AS win_rate
+					100.0 * 
+					SUM(CASE WHEN status IN ('win', 'breakeven', 'open') THEN 1 ELSE 0 END) 
+					/ NULLIF(COUNT(*), 0),
+					2
+				), 
+				0
+			) AS win_rate,
+
+			-- PnL
+			COALESCE(SUM(gross_pnl_amount), 0) AS gross_pnl,
+			COALESCE(SUM(net_pnl_amount), 0) AS net_pnl,
+			COALESCE(SUM(total_charges_amount), 0) AS charges,
+
+			-- Average R
+			COALESCE(ROUND(AVG(r_factor), 2), 0) AS avg_r_factor,
+
+			-- Average Win
+			COALESCE(ROUND(AVG(CASE WHEN status = 'win' THEN net_pnl_amount END), 2), 0) AS avg_win,
+
+			-- Average Loss
+			COALESCE(ROUND(AVG(CASE WHEN status = 'loss' THEN net_pnl_amount END), 2), 0) AS avg_loss,
+
+			-- Max Win
+			COALESCE(MAX(net_pnl_amount), 0) AS max_win,
+
+			-- Max Loss
+			COALESCE(MIN(net_pnl_amount), 0) AS max_loss
+
 		FROM
 			position
 		WHERE
 			created_by = $1;
 	`
 
-	var winRatePercentage float64
+	var grossPnL, netPnL, charges, avgWin, avgLoss, maxWin, maxLoss string
+	var winRate, avgRFactor float64
 
-	err = r.db.QueryRow(ctx, winRateSQL, userID).Scan(&winRatePercentage)
+	err := r.db.QueryRow(ctx, pnlSQL, userID).Scan(&winRate, &grossPnL, &netPnL, &charges, &avgRFactor, &avgWin, &avgLoss, &maxWin, &maxLoss)
 	if err != nil {
-		return nil, fmt.Errorf("winrate sql scan: %w", err)
+		return nil, fmt.Errorf("pnl sql scan: %w", err)
 	}
 
-	result := &GetGeneralStatsResponse{
-		GrossPnL:          grossPnL,
-		NetPnL:            netPnL,
-		WinRatePercentage: winRatePercentage,
+	streaksData := getWinAndLossStreaks(positions)
+
+	result := &generalStats{
+		WinRate:    winRate,
+		GrossPnL:   grossPnL,
+		NetPnL:     netPnL,
+		Charges:    charges,
+		AvgRFactor: avgRFactor,
+		AvgWin:     avgWin,
+		AvgLoss:    avgLoss,
+		MaxWin:     maxWin,
+		MaxLoss:    maxLoss,
+
+		streaks: streaks{
+			WinStreak:  streaksData.WinStreak,
+			LossStreak: streaksData.LossStreak,
+		},
 	}
 
 	return result, nil
