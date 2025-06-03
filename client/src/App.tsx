@@ -1,4 +1,4 @@
-import { FC, Fragment, PropsWithChildren } from "react";
+import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
 import {
     Navigate,
     Outlet,
@@ -9,14 +9,15 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import "@/index.css";
 
-import { AuthLayout } from "@/auth_layout";
 import { useAuthentication } from "@/features/auth/auth_context";
-import { AppLayout } from "@/app_layout";
 import { ToastProvider } from "@/components/toast";
 import { AuthenticationProvider } from "@/features/auth/auth_context";
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/routes_constants";
+
+const AuthLayout = lazy(() => import("@/auth_layout"));
+const AppLayout = lazy(() => import("@/app_layout"));
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuthentication();
@@ -76,13 +77,13 @@ export default function App() {
 
             <AuthenticationProvider>
                 <SidebarProvider>
-                    {/* <AddPositionContextProvider> */}
                     <TooltipPrimitive.TooltipProvider>
-                        <RouteHandler>
-                            <Outlet />
-                        </RouteHandler>
+                        <Suspense fallback={<LoadingScreen />}>
+                            <RouteHandler>
+                                <Outlet />
+                            </RouteHandler>
+                        </Suspense>
                     </TooltipPrimitive.TooltipProvider>
-                    {/* </AddPositionContextProvider> */}
                 </SidebarProvider>
             </AuthenticationProvider>
             <ScrollRestoration />

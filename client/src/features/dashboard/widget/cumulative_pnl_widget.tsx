@@ -133,3 +133,5 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
         </Card>
     );
 };
+
+export default CumulativeNetPnLWidget;

@@ -1,5 +1,5 @@
 import { createStore } from "zustand";
-import { isEqual } from "lodash";
+import isEqual from "lodash/isEqual";
 
 import { Position } from "@/features/position/position";
 import { Trade, TradeKind } from "@/features/trade/trade";

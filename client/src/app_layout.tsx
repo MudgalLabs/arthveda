@@ -31,3 +31,5 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
         </div>
     );
 };
+
+export default AppLayout;
