@@ -16,7 +16,9 @@ import { Card, CardTitle } from "@/components/card";
 
 interface DataItem {
     label: string;
-    pnl: number;
+    net_pnl: number;
+    gross_pnl: number;
+    charges: number;
 }
 
 type Data = DataItem[];
@@ -26,8 +28,8 @@ interface Props {
 }
 
 const gradientOffset = (data: Data) => {
-    const dataMax = Math.max(...data.map((i) => i.pnl));
-    const dataMin = Math.min(...data.map((i) => i.pnl));
+    const dataMax = Math.max(...data.map((i) => i.net_pnl));
+    const dataMin = Math.min(...data.map((i) => i.net_pnl));
 
     if (dataMax <= 0) {
         return 0;
@@ -161,11 +163,27 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
 
                     <Area
                         type="monotone"
-                        dataKey="pnl"
+                        dataKey="net_pnl"
                         stroke="var(--color-primary)"
                         strokeWidth={1.5}
                         fillOpacity={1}
                         fill="url(#splitColor)"
+                    />
+
+                    <Area
+                        type="monotone"
+                        dataKey="gross_pnl"
+                        stroke="var(--color-success-foreground)"
+                        strokeWidth={1.5}
+                        fillOpacity={0}
+                    />
+
+                    <Area
+                        type="monotone"
+                        dataKey="charges"
+                        stroke="var(--color-error-foreground)"
+                        strokeWidth={1.5}
+                        fillOpacity={0}
                     />
                 </AreaChart>
             </ResponsiveContainer>

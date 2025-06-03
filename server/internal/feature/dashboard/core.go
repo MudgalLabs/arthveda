@@ -12,10 +12,12 @@ import (
 )
 
 type CumulativePnLBucket struct {
-	Start time.Time       `json:"start"`
-	End   time.Time       `json:"end"`
-	PnL   decimal.Decimal `json:"pnl"`
-	Label string          `json:"label"`
+	Label    string          `json:"label"`
+	Start    time.Time       `json:"start"`
+	End      time.Time       `json:"end"`
+	NetPnL   decimal.Decimal `json:"net_pnl"`
+	GrossPnL decimal.Decimal `json:"gross_pnl"`
+	Charges  decimal.Decimal `json:"charges"`
 }
 
 // getCumulativePnL calculates cumulative realized PnL across time buckets
@@ -36,10 +38,12 @@ func getCumulativePnL(positions []*position.Position, period common.BucketPeriod
 	results := make([]CumulativePnLBucket, len(buckets))
 	for i, b := range buckets {
 		results[i] = CumulativePnLBucket{
-			Start: b.Start,
-			End:   b.End,
-			Label: b.Label(),
-			PnL:   decimal.Zero,
+			Start:    b.Start,
+			End:      b.End,
+			Label:    b.Label(),
+			NetPnL:   decimal.Zero,
+			GrossPnL: decimal.Zero,
+			Charges:  decimal.Zero,
 		}
 	}
 
@@ -81,6 +85,7 @@ func getCumulativePnL(positions []*position.Position, period common.BucketPeriod
 				break
 			}
 		}
+
 		if activeBucket == nil {
 			continue // Skip trades outside the bucket range
 		}
@@ -137,18 +142,26 @@ func getCumulativePnL(positions []*position.Position, period common.BucketPeriod
 
 		// Round to match database precision (NUMERIC(14,2))
 		netPnL = netPnL.Round(2)
+		realizedPnL = realizedPnL.Round(2)         // Round GrossPnL for consistency
+		t.ChargesAmount = t.ChargesAmount.Round(2) // Round charges for consistency
 
-		// Add net PnL to the bucket (this is bucket-specific PnL, not cumulative yet)
-		activeBucket.PnL = activeBucket.PnL.Add(netPnL)
+		// Add PnL and charges to the bucket (this is bucket-specific, not cumulative yet)
+		activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
+		activeBucket.GrossPnL = activeBucket.GrossPnL.Add(realizedPnL)
+		activeBucket.Charges = activeBucket.Charges.Add(t.ChargesAmount)
 	}
 
-	// Convert bucket PnL to cumulative PnL with rounding
+	// Convert bucket PnL and charges to cumulative values with rounding
 	for i := range results {
 		if i > 0 {
-			results[i].PnL = results[i].PnL.Add(results[i-1].PnL)
+			results[i].NetPnL = results[i].NetPnL.Add(results[i-1].NetPnL)
+			results[i].GrossPnL = results[i].GrossPnL.Add(results[i-1].GrossPnL)
+			results[i].Charges = results[i].Charges.Add(results[i-1].Charges)
 		}
-		// Round final cumulative value to match database precision
-		results[i].PnL = results[i].PnL.Round(2)
+		// Round final cumulative values to match database precision
+		results[i].NetPnL = results[i].NetPnL.Round(2)
+		results[i].GrossPnL = results[i].GrossPnL.Round(2)
+		results[i].Charges = results[i].Charges.Round(2)
 	}
 
 	return results
