@@ -21,7 +21,7 @@ services:
         build:
             dockerfile: server.dockerfile
         environment:
-            APP_ENV: ${GO_APP_ENV}
+            GO_APP_ENV: ${GO_APP_ENV}
             GO_PORT: ${GO_PORT}
             DB_HOST: ${POSTGRES_HOST}
             DB_PORT: ${POSTGRES_PORT}

@@ -26,7 +26,7 @@ const StatusTag: FC<StatusTagProps> = memo(
                 " : " +
                 openQuantity +
                 " @ " +
-                formatCurrency(openAvgPrice, currency);
+                formatCurrency(openAvgPrice, { currency });
         }
 
         return <Tag variant="muted">{openTagContent}</Tag>;

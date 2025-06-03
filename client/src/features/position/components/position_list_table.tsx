@@ -279,10 +279,9 @@ const columns: ColumnDef<Position>[] = [
             />
         ),
         cell: ({ row }) =>
-            formatCurrency(
-                row.original.gross_pnl_amount,
-                row.original.currency
-            ),
+            formatCurrency(row.original.gross_pnl_amount, {
+                currency: row.original.currency,
+            }),
     },
     {
         id: "net_pnl",
@@ -298,7 +297,9 @@ const columns: ColumnDef<Position>[] = [
             />
         ),
         cell: ({ row }) =>
-            formatCurrency(row.original.net_pnl_amount, row.original.currency),
+            formatCurrency(row.original.net_pnl_amount, {
+                currency: row.original.currency,
+            }),
     },
     {
         id: "charges_percentage",

@@ -29,7 +29,7 @@ function CardTitle({ children, className }: CardTitleProps) {
     return (
         <div
             className={cn(
-                "text-surface-foreground text-sm font-medium",
+                "text-surface-foreground text-base font-medium",
                 className
             )}
         >

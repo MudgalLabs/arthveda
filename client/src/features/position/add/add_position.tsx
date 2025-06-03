@@ -617,13 +617,13 @@ const PnLCard = memo(
                                 "text-foreground-red": grossPnL.isNegative(),
                             })}
                         >
-                            {formatCurrency(gross_pnl_amount, currency)}
+                            {formatCurrency(gross_pnl_amount, { currency })}
                         </span>
                     </p>
                     <p>
                         Net{" "}
                         <span className={textColor}>
-                            {formatCurrency(net_pnl_amount, currency)}
+                            {formatCurrency(net_pnl_amount, { currency })}
                         </span>{" "}
                     </p>
                 </div>
@@ -632,7 +632,7 @@ const PnLCard = memo(
                     <p>
                         Charges{" "}
                         <span className="text-foreground-red">
-                            {formatCurrency(total_charges_amount, currency)}
+                            {formatCurrency(total_charges_amount, { currency })}
                         </span>{" "}
                         and{" "}
                         <span className="text-foreground-red">
@@ -648,7 +648,7 @@ const PnLCard = memo(
             <>
                 <div className={`flex items-end gap-x-2 ${textColor}`}>
                     <p className="big-heading leading-none">
-                        {formatCurrency(net_pnl_amount, currency)}
+                        {formatCurrency(net_pnl_amount, { currency })}
                     </p>
                     <p>{net_return_percentage}%</p>
                     <p>{trendingIcon}</p>
@@ -697,7 +697,7 @@ const PnLCard = memo(
                 <CardContent className="flex h-full flex-col items-start">
                     <div className={`flex items-end gap-x-2 ${textColor}`}>
                         <p className="big-heading leading-none">
-                            {formatCurrency(net_pnl_amount, currency)}
+                            {formatCurrency(net_pnl_amount, { currency })}
                         </p>
                         <p>{net_return_percentage}%</p>
                         <p>{trendingIcon}</p>

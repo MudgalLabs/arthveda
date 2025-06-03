@@ -25,8 +25,8 @@ export interface ComputePositionRequest {
 export interface ComputePositionResponse {
     direction: PositionDirection;
     status: PositionStatus;
-    opened_at: Date;
-    closed_at: Date | null;
+    opened_at: string;
+    closed_at: string | null;
     gross_pnl_amount: DecimalString;
     net_pnl_amount: DecimalString;
     total_charges_amount: DecimalString;
@@ -99,8 +99,8 @@ export interface ImportPositionsResponse {
     positions_count: number;
     duplicate_positions_count: number;
     positions_imported_count: number;
-    from_date: Date;
-    to_date: Date;
+    from_date: string;
+    to_date: string;
 }
 
 export function importPositions(body: ImportPositionsRequest) {

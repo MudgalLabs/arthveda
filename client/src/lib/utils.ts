@@ -189,22 +189,51 @@ export function removeAtIndex<T>(array: T[], index: number): T[] {
 
 export function formatCurrency(
     amount: string | number,
-    currency: CurrencyCode = "inr",
-    withSymbol: boolean = true,
-    locale: string = "en-IN",
-    options: Intl.NumberFormatOptions = {}
+    {
+        currency = "inr",
+        hideSymbol = true,
+        locale = "en-IN",
+        localizationOpts = {},
+        compact = false,
+    }: {
+        currency?: CurrencyCode;
+        hideSymbol?: boolean;
+        locale?: string;
+        localizationOpts?: Intl.NumberFormatOptions;
+        compact?: boolean;
+    } = {}
 ): string {
     const _amount = Number(amount);
-    const _options = deepMerge(
+
+    if (compact) {
+        const absAmount = Math.abs(_amount);
+        let formatted = "";
+
+        if (absAmount >= 1_00_00_000) {
+            formatted = `${(_amount / 1_00_00_000).toFixed(2)}Cr`; // Crores
+        } else if (absAmount >= 1_00_000) {
+            formatted = `${(_amount / 1_00_000).toFixed(2)}L`; // Lakhs
+        } else if (absAmount >= 1_000) {
+            formatted = `${(_amount / 1_000).toFixed(2)}k`; // Thousands
+        } else {
+            formatted = _amount.toFixed(2); // Default formatting for smaller values
+        }
+
+        return hideSymbol
+            ? formatted
+            : `${getCurrencySymbol(currency)}${formatted}`;
+    }
+
+    const options = deepMerge(
         {
-            style: withSymbol ? "currency" : "decimal",
+            style: hideSymbol ? "currency" : "decimal",
             currency: currency,
-            maximumFractionDigits: 4,
+            maximumFractionDigits: 2,
         },
-        options
+        localizationOpts
     );
 
-    return new Intl.NumberFormat(locale, _options).format(_amount);
+    return new Intl.NumberFormat(locale, options).format(_amount);
 }
 
 export function removeFormatCurrency(formatted: string): string {

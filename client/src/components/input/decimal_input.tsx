@@ -55,7 +55,10 @@ export function DecimalInput(props: DecimalInputProps) {
 
             setDisplayValue(
                 isCurrency && value
-                    ? formatCurrency(value, currency, false)
+                    ? formatCurrency(value, {
+                          currency,
+                          hideSymbol: true,
+                      })
                     : value
             );
 

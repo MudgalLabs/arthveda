@@ -45,8 +45,6 @@ const ViewPositionLazy = () => {
             ? new Date(position.closed_at)
             : null;
 
-        console.log("Position data:", position);
-
         return (
             <Suspense fallback={<LoadingScreen />}>
                 <PositionStoreProvider initState={position}>
