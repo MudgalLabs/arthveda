@@ -21,12 +21,11 @@ type CumulativePnLBucket struct {
 // generateCumulativePnLBuckets calculates cumulative realized PnL across time buckets
 // (daily, weekly, or monthly) for the given positions and their associated trades.
 //
-// Assumptions:
-// - `positions` include all trades that fall within [start, end] for all buckets.
+// Notes:
+// - `positions` includes all position that have trade(s) that fall within [start, end].
 // - Trades are assumed to be in UTC.
-// - Charges are not considered in this calculation.
-// - Uses `position.Compute` to calculate realized PnL from partial or full exits.
-// - Cumulative PnL is calculated in order of buckets, and each bucket includes PnL from trades in that time range.
+// - Charges are considered in this calculation to compute NetPnL.
+// - Uses `position.ApplyTradeToPosition` to calculate realized PnL from partial or full exits.
 func generateCumulativePnLBuckets(positions []*position.Position, period common.BucketPeriod, start, end time.Time) []CumulativePnLBucket {
 	if len(positions) == 0 {
 		return []CumulativePnLBucket{}

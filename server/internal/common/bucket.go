@@ -27,7 +27,7 @@ func (b Bucket) Label() string {
 	case BucketPeriodWeekly:
 		return fmt.Sprintf("%s - %s",
 			b.Start.Format("02 Jan"),
-			b.End.AddDate(0, 0, -1).Format("02 Jan"),
+			b.End.AddDate(0, 0, -1).Format("02 Jan"), // 31 May - 06 Jun
 		)
 	case BucketPeriodMonthly:
 		return b.Start.Format("Jan 2006") // May 2025
