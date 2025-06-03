@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import {
     AreaChart,
     Area,
@@ -19,12 +19,30 @@ interface DataItem {
     pnl: number;
 }
 
+type Data = DataItem[];
+
 interface Props {
-    data: DataItem[];
+    data: Data;
 }
+
+const gradientOffset = (data: Data) => {
+    const dataMax = Math.max(...data.map((i) => i.pnl));
+    const dataMin = Math.min(...data.map((i) => i.pnl));
+
+    if (dataMax <= 0) {
+        return 0;
+    }
+    if (dataMin >= 0) {
+        return 1;
+    }
+
+    return dataMax / (dataMax - dataMin);
+};
 
 export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
     const isMobile = useIsMobile();
+
+    const off = useMemo(() => gradientOffset(data), [data]);
 
     return (
         <Card>
@@ -47,6 +65,7 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
                         strokeOpacity={0.3}
                         vertical={false}
                     />
+
                     <XAxis
                         dataKey="label"
                         tick={{
@@ -57,13 +76,15 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
                         tickLine={false}
                         axisLine={false}
                     />
+
                     <YAxis
+                        // Adding some buffer to the Y-axis
                         domain={[
                             (dataMin: number) =>
-                                Math.floor(Math.min(0, dataMin * 1.1) / 1000) *
-                                3000,
+                                Math.floor(Math.min(0, dataMin * 1.15) / 1000) *
+                                1000,
                             (dataMax: number) =>
-                                Math.ceil(dataMax / 1000) * 1000,
+                                Math.ceil((dataMax * 1.05) / 1000) * 1000,
                         ]}
                         tickFormatter={(value: number) =>
                             formatCurrency(value, {
@@ -79,6 +100,7 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
                         tickLine={false}
                         axisLine={false}
                     />
+
                     <Tooltip
                         contentStyle={{
                             borderRadius: "6px",
@@ -97,15 +119,32 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
                             "",
                         ]}
                     />
+
                     <defs>
-                        <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient
+                            id="splitColor"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                        >
                             <stop
-                                offset="10%"
+                                offset={Math.min(0, off - 0.1)}
                                 stopColor="var(--color-primary)"
-                                stopOpacity={0.8}
+                                stopOpacity={0.2}
                             />
                             <stop
-                                offset="90%"
+                                offset={off}
+                                stopColor="var(--color-primary)"
+                                stopOpacity={0}
+                            />
+                            <stop
+                                offset={off}
+                                stopColor="var(--color-primary)"
+                                stopOpacity={0}
+                            />
+                            <stop
+                                offset={Math.min(1, off + 0.1)}
                                 stopColor="var(--color-primary)"
                                 stopOpacity={0.2}
                             />
@@ -114,7 +153,7 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
 
                     <ReferenceLine
                         y={0}
-                        stroke="var(--color-primary)"
+                        stroke="var(--color-foreground-muted)"
                         strokeDasharray="3 3"
                         strokeWidth={2}
                         strokeOpacity={0.69}
@@ -125,8 +164,8 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
                         dataKey="pnl"
                         stroke="var(--color-primary)"
                         strokeWidth={1.5}
-                        fill="url(#fill)"
-                        fillOpacity={0.1}
+                        fillOpacity={1}
+                        fill="url(#splitColor)"
                     />
                 </AreaChart>
             </ResponsiveContainer>
