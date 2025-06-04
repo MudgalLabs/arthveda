@@ -198,7 +198,7 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data, isLoading }) => {
 
                         <ReferenceLine
                             y={0}
-                            stroke="var(--color-foreground)"
+                            stroke="var(--color-red-foreground)"
                             strokeDasharray="3 3"
                             strokeWidth={2}
                             strokeOpacity={0.69}

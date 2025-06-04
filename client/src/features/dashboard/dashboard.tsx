@@ -9,6 +9,7 @@ import { Card, CardContent, CardTitle } from "@/components/card";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { CumulativeNetPnLWidget } from "@/features/dashboard/widget/cumulative_pnl_widget";
+import { PnLCard } from "@/features/dashboard/widget/pnl_card";
 
 export const Dashboard = () => {
     const { data, isLoading, isFetching, isError } =
@@ -49,27 +50,12 @@ export const Dashboard = () => {
         <>
             <PageHeading heading="Dashboard" loading={isFetching} />
             <div>
-                <div className="[&_[data-slot='card-content']]:flex-center [&_[data-slot='card-content']]:sub-heading [&_[data-slot='card-content']]:sm:heading flex flex-row flex-wrap gap-x-4 gap-y-4 [&>div]:w-full sm:[&>div]:w-fit">
-                    <Card>
-                        <CardTitle>Net PnL</CardTitle>
-                        <CardContent>
-                            {formatCurrency(data.net_pnl)}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardTitle>Gross PnL</CardTitle>
-                        <CardContent>
-                            {formatCurrency(data.gross_pnl)}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardTitle>Charges</CardTitle>
-                        <CardContent>
-                            {formatCurrency(data.charges)}
-                        </CardContent>
-                    </Card>
+                <div className="[&_[data-slot='card-content']]:flex-center [&_[data-slot='card-content']]:sub-heading flex flex-row flex-wrap gap-x-4 gap-y-4 [&>div]:w-full sm:[&>div]:w-fit">
+                    <PnLCard
+                        gross_pnl_amount={data.gross_pnl}
+                        net_pnl_amount={data.net_pnl}
+                        total_charges_amount={data.charges}
+                    />
 
                     <Card>
                         <CardTitle>Win Rate</CardTitle>

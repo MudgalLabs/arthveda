@@ -1,4 +1,4 @@
-import { memo, ReactNode, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import Decimal from "decimal.js";
 import {
     ColumnDef,
@@ -13,7 +13,6 @@ import {
     DialogFooter,
     DialogHeader,
     Label,
-    Progress,
     Tooltip,
     DialogContent,
     DialogDescription,
@@ -24,26 +23,14 @@ import {
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
 import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
-import {
-    IconCalendarRange,
-    IconPlus,
-    IconTrash,
-    IconTrendingDown,
-    IconTrendingUp,
-} from "@/components/icons";
+import { IconCalendarRange, IconPlus, IconTrash } from "@/components/icons";
 import {
     getDataTableCellUpdateFn,
     useDataTableEditableCell,
 } from "@/hooks/use_data_table_editable_cell";
-import { CurrencyCode } from "@/features/position/position";
+
 import { Card, CardContent, CardTitle } from "@/components/card";
-import {
-    cn,
-    formatCurrency,
-    formatDate,
-    getElapsedTime,
-    isSameDay,
-} from "@/lib/utils";
+import { formatDate, getElapsedTime, isSameDay } from "@/lib/utils";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { NewTrade, Trade, TradeKind } from "@/features/trade/trade";
@@ -69,6 +56,7 @@ import {
     usePositionCanBeComputed,
     usePositionTradesAreValid,
 } from "@/features/position/position_store";
+import { PnLCard } from "@/features/dashboard/widget/pnl_card";
 
 function AddPosition() {
     const queryClient = useQueryClient();
@@ -573,160 +561,6 @@ const AddTradeButton = memo(
                     Trade
                 </Button>
             </Tooltip>
-        );
-    }
-);
-
-const PnLCard = memo(
-    ({
-        total_charges_amount,
-        charges_as_percentage_of_net_pnl,
-        currency,
-        gross_pnl_amount,
-        net_pnl_amount,
-        net_return_percentage,
-    }: {
-        net_pnl_amount: DecimalString;
-        net_return_percentage: DecimalString;
-        gross_pnl_amount: DecimalString;
-        charges_as_percentage_of_net_pnl: DecimalString;
-        currency: CurrencyCode;
-        total_charges_amount: DecimalString;
-    }) => {
-        let trendingIcon: ReactNode = null;
-        let textColor = "text-foreground";
-        const grossPnL = new Decimal(gross_pnl_amount);
-        const netPnL = new Decimal(net_pnl_amount);
-
-        if (!netPnL.isZero() && netPnL.isPositive()) {
-            trendingIcon = <IconTrendingUp size={20} />;
-            textColor = "text-foreground-green";
-        } else if (netPnL.isNegative()) {
-            trendingIcon = <IconTrendingDown />;
-            textColor = "text-foreground-red";
-        }
-
-        const tooltipContent = (
-            <div className={`justify-between text-[12px]`}>
-                <div className="flex gap-x-2">
-                    <p>
-                        Gross{" "}
-                        <span
-                            className={cn({
-                                "text-foreground-green": grossPnL.isPositive(),
-                                "text-foreground-red": grossPnL.isNegative(),
-                            })}
-                        >
-                            {formatCurrency(gross_pnl_amount, { currency })}
-                        </span>
-                    </p>
-                    <p>
-                        Net{" "}
-                        <span className={textColor}>
-                            {formatCurrency(net_pnl_amount, { currency })}
-                        </span>{" "}
-                    </p>
-                </div>
-
-                {Number(total_charges_amount) > 0 && (
-                    <p>
-                        Charges{" "}
-                        <span className="text-foreground-red">
-                            {formatCurrency(total_charges_amount, { currency })}
-                        </span>{" "}
-                        and{" "}
-                        <span className="text-foreground-red">
-                            {charges_as_percentage_of_net_pnl}%
-                        </span>{" "}
-                        of Gross
-                    </p>
-                )}
-            </div>
-        );
-
-        const cardContent = (
-            <>
-                <div className={`flex items-end gap-x-2 ${textColor}`}>
-                    <p className="big-heading leading-none">
-                        {formatCurrency(net_pnl_amount, { currency })}
-                    </p>
-                    <p>{net_return_percentage}%</p>
-                    <p>{trendingIcon}</p>
-                </div>
-
-                {Number(net_pnl_amount) > 0 && (
-                    <div className="w-full">
-                        <div className="h-4" />
-                        <Tooltip
-                            content={tooltipContent}
-                            contentProps={{
-                                side: "bottom",
-                                className:
-                                    "min-w-(--radix-tooltip-trigger-width)",
-                            }}
-                        >
-                            <Progress
-                                value={
-                                    100 -
-                                    new Decimal(
-                                        charges_as_percentage_of_net_pnl
-                                    ).toNumber()
-                                }
-                            />
-                        </Tooltip>
-                    </div>
-                )}
-            </>
-        );
-
-        if (new Decimal(net_return_percentage).isZero() && grossPnL.isZero()) {
-            return (
-                <Card className="relative min-w-60 flex-col gap-y-2">
-                    <CardTitle>PnL</CardTitle>
-                    <CardContent className="absolute-center">
-                        {cardContent}
-                    </CardContent>
-                </Card>
-            );
-        }
-
-        return (
-            <Card className="flex flex-col gap-y-2">
-                <CardTitle>PnL</CardTitle>
-
-                <CardContent className="flex h-full flex-col items-start">
-                    <div className={`flex items-end gap-x-2 ${textColor}`}>
-                        <p className="big-heading leading-none">
-                            {formatCurrency(net_pnl_amount, { currency })}
-                        </p>
-                        <p>{net_return_percentage}%</p>
-                        <p>{trendingIcon}</p>
-                    </div>
-
-                    {Number(net_pnl_amount) > 0 && (
-                        <div className="w-full">
-                            <div className="h-4" />
-                            <Tooltip
-                                content={tooltipContent}
-                                contentProps={{
-                                    side: "bottom",
-                                    className:
-                                        "min-w-(--radix-tooltip-trigger-width)",
-                                }}
-                            >
-                                <Progress
-                                    value={
-                                        100 -
-                                        new Decimal(
-                                            charges_as_percentage_of_net_pnl
-                                        ).toNumber()
-                                    }
-                                />
-                            </Tooltip>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
         );
     }
 );
