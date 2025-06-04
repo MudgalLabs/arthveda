@@ -89,7 +89,7 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data, isLoading }) => {
         <Card className="relative">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
-            <CardTitle>Cumulative Net PnL</CardTitle>
+            <CardTitle>Cumulative PnL</CardTitle>
 
             <div className="h-2" />
 
