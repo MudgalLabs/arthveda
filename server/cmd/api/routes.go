@@ -32,7 +32,7 @@ func initRouter(a *app) http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		successResponse(w, r, http.StatusOK, "Hi, welcome to Arthveda API. Don't be naughty!!", nil)
+		successResponse(w, r, http.StatusOK, "Hi, welcome to Arthveda API. Don't be naughty!", nil)
 	})
 
 	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
