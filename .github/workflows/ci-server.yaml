@@ -3,7 +3,7 @@ name: "build and deploy server"
 on:
     push:
         branches: ["main"]
-        paths: "server/**"
+        # paths: "server/**"
 
 jobs:
     build-and-deploy-server:
@@ -26,7 +26,7 @@ jobs:
               run: |
                   touch .env
                   echo "GO_PORT=1337" >> .env
-                  echo "POSTGRES_PORT=42069" >> .env
+                  echo "DB_PORT=42069" >> .env
                   echo "REACT_PORT=6969" >> .env
 
             - name: Build and push to DockerHub
