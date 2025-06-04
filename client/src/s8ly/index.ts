@@ -6,6 +6,8 @@
 
 // Button
 export * from "@/s8ly/button/button";
+// Chart
+export * from "@/s8ly/chart/chart";
 // Calendar
 export * from "@/s8ly/calendar/calendar";
 // Checkbox
