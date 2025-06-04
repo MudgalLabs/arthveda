@@ -10,9 +10,24 @@ import {
     ReferenceLine,
 } from "recharts";
 
-import { formatCurrency } from "@/lib/utils";
+import {
+    formatCurrency,
+    LocalStorageKeyCumulativePnLShowCharges,
+    LocalStorageKeyCumulativePnLShowGross,
+} from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { Card, CardTitle } from "@/components/card";
+import { LoadingScreen } from "@/components/loading_screen";
+import {
+    ChartConfig,
+    ChartContainer,
+    ChartTooltipContent,
+    tooltipCursor,
+    axisDefaults,
+    Checkbox,
+    Label,
+} from "@/s8ly";
+import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 
 interface DataItem {
     label: string;
@@ -25,6 +40,7 @@ type Data = DataItem[];
 
 interface Props {
     data: Data;
+    isLoading?: boolean;
 }
 
 const gradientOffset = (data: Data) => {
@@ -41,152 +57,187 @@ const gradientOffset = (data: Data) => {
     return dataMax / (dataMax - dataMin);
 };
 
-export const CumulativeNetPnLWidget: FC<Props> = ({ data }) => {
-    const isMobile = useIsMobile();
+const chartConfig: ChartConfig = {
+    net_pnl: {
+        label: "Net",
+        color: "var(--color-primary)",
+    },
+    gross_pnl: {
+        label: "Gross",
+        color: "var(--color-primary)",
+    },
+    charges: {
+        label: "Charges",
+        color: "var(--color-error-foreground)",
+    },
+};
 
+export const CumulativeNetPnLWidget: FC<Props> = ({ data, isLoading }) => {
+    const [showGross, setShowGross] = useLocalStorageState(
+        LocalStorageKeyCumulativePnLShowGross,
+        false
+    );
+    const [showCharges, setShowCharges] = useLocalStorageState(
+        LocalStorageKeyCumulativePnLShowCharges,
+        false
+    );
+
+    const isMobile = useIsMobile();
     const off = useMemo(() => gradientOffset(data), [data]);
 
     return (
-        <Card>
+        <Card className="relative">
+            {isLoading && <LoadingScreen className="absolute-center" />}
+
             <CardTitle>Cumulative Net PnL</CardTitle>
+
+            <div className="h-2" />
+
+            <div className="flex w-full justify-center gap-x-4 [&>div]:flex [&>div]:items-center [&>div]:gap-x-1">
+                <div>
+                    <Checkbox
+                        id="gross"
+                        checked={showGross}
+                        onCheckedChange={() => setShowGross((prev) => !prev)}
+                    />
+                    <Label htmlFor="gross">Gross</Label>
+                </div>
+
+                <div>
+                    <Checkbox
+                        id="charges"
+                        checked={showCharges}
+                        onCheckedChange={() => setShowCharges((prev) => !prev)}
+                    />
+                    <Label htmlFor="charges">Charges</Label>
+                </div>
+            </div>
 
             <div className="h-4" />
 
-            <ResponsiveContainer width="100%" height={isMobile ? 250 : 400}>
-                <AreaChart
-                    data={data}
-                    margin={{
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        left: isMobile ? -10 : 0,
-                    }}
-                >
-                    <CartesianGrid
-                        stroke="var(--color-primary)"
-                        strokeOpacity={0.3}
-                        vertical={false}
-                    />
-
-                    <XAxis
-                        dataKey="label"
-                        tick={{
-                            fill: "var(--color-foreground-muted)",
-                            fontSize: isMobile ? 10 : 14,
+            <ChartContainer config={chartConfig}>
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 400}>
+                    <AreaChart
+                        data={data}
+                        margin={{
+                            top: 0,
+                            right: 0,
+                            bottom: 0,
+                            left: isMobile ? -10 : 0,
                         }}
-                        tickMargin={5}
-                        tickLine={false}
-                        axisLine={false}
-                    />
+                    >
+                        <CartesianGrid
+                            stroke="var(--color-primary)"
+                            strokeOpacity={0.3}
+                            vertical={false}
+                        />
 
-                    <YAxis
-                        // Adding some buffer to the Y-axis
-                        domain={[
-                            (dataMin: number) =>
-                                Math.floor(Math.min(0, dataMin * 1.15) / 1000) *
-                                1000,
-                            (dataMax: number) =>
-                                Math.ceil((dataMax * 1.05) / 1000) * 1000,
-                        ]}
-                        tickFormatter={(value: number) =>
-                            formatCurrency(value, {
-                                compact: true,
-                                hideSymbol: true,
-                            })
-                        }
-                        tick={{
-                            fill: "var(--color-foreground-muted)",
-                            fontSize: isMobile ? 10 : 14,
-                        }}
-                        tickMargin={5}
-                        tickLine={false}
-                        axisLine={false}
-                    />
+                        <XAxis {...axisDefaults(isMobile)} dataKey="label" />
 
-                    <Tooltip
-                        contentStyle={{
-                            borderRadius: "6px",
-                            background: "var(--color-surface-bg)",
-                            borderColor: "var(--color-surface-border)",
-                            color: "var(--color-foreground)",
-                        }}
-                        cursor={{
-                            stroke: "var(--color-primary)",
-                            strokeWidth: 1,
-                            strokeOpacity: 0.25,
-                        }}
-                        separator=" "
-                        formatter={(value: number) => [
-                            formatCurrency(value),
-                            "",
-                        ]}
-                    />
+                        <YAxis
+                            {...axisDefaults(isMobile)}
+                            // Adding some buffer to the Y-axis
+                            domain={[
+                                (dataMin: number) =>
+                                    Math.floor(
+                                        Math.min(0, dataMin * 1.15) / 1000
+                                    ) * 1000,
+                                (dataMax: number) =>
+                                    Math.ceil((dataMax * 1.05) / 1000) * 1000,
+                            ]}
+                            tickFormatter={(value: number) =>
+                                formatCurrency(value, {
+                                    compact: true,
+                                    hideSymbol: true,
+                                })
+                            }
+                        />
 
-                    <defs>
-                        <linearGradient
-                            id="splitColor"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                        >
-                            <stop
-                                offset={Math.min(0, off - 0.1)}
-                                stopColor="var(--color-primary)"
-                                stopOpacity={0.2}
+                        <Tooltip
+                            cursor={tooltipCursor}
+                            content={
+                                <ChartTooltipContent
+                                    indicator="line"
+                                    formatter={(value) =>
+                                        formatCurrency(value as string)
+                                    }
+                                />
+                            }
+                        />
+
+                        <defs>
+                            <linearGradient
+                                id="splitColor"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                    offset={Math.min(0, off - 0.1)}
+                                    stopColor="var(--color-primary)"
+                                    stopOpacity={0.2}
+                                />
+                                <stop
+                                    offset={off}
+                                    stopColor="var(--color-primary)"
+                                    stopOpacity={0}
+                                />
+                                <stop
+                                    offset={off}
+                                    stopColor="var(--color-primary)"
+                                    stopOpacity={0}
+                                />
+                                <stop
+                                    offset={Math.min(1, off + 0.1)}
+                                    stopColor="var(--color-primary)"
+                                    stopOpacity={0.2}
+                                />
+                            </linearGradient>
+                        </defs>
+
+                        <ReferenceLine
+                            y={0}
+                            stroke="var(--color-foreground)"
+                            strokeDasharray="3 3"
+                            strokeWidth={2}
+                            strokeOpacity={0.69}
+                        />
+
+                        <Area
+                            type="monotone"
+                            dataKey="net_pnl"
+                            stroke="var(--color-primary)"
+                            strokeWidth={1.5}
+                            strokeOpacity={1}
+                            fillOpacity={1}
+                            fill="url(#splitColor)"
+                        />
+
+                        {showGross && (
+                            <Area
+                                type="monotone"
+                                dataKey="gross_pnl"
+                                stroke="var(--color-success-foreground)"
+                                strokeWidth={1}
+                                strokeOpacity={1}
+                                fillOpacity={0}
                             />
-                            <stop
-                                offset={off}
-                                stopColor="var(--color-primary)"
-                                stopOpacity={0}
+                        )}
+
+                        {showCharges && (
+                            <Area
+                                type="monotone"
+                                dataKey="charges"
+                                stroke="var(--color-error-foreground)"
+                                strokeWidth={1}
+                                strokeOpacity={1}
+                                fillOpacity={0}
                             />
-                            <stop
-                                offset={off}
-                                stopColor="var(--color-primary)"
-                                stopOpacity={0}
-                            />
-                            <stop
-                                offset={Math.min(1, off + 0.1)}
-                                stopColor="var(--color-primary)"
-                                stopOpacity={0.2}
-                            />
-                        </linearGradient>
-                    </defs>
-
-                    <ReferenceLine
-                        y={0}
-                        stroke="var(--color-foreground-muted)"
-                        strokeDasharray="3 3"
-                        strokeWidth={2}
-                        strokeOpacity={0.69}
-                    />
-
-                    <Area
-                        type="monotone"
-                        dataKey="net_pnl"
-                        stroke="var(--color-primary)"
-                        strokeWidth={1.5}
-                        fillOpacity={1}
-                        fill="url(#splitColor)"
-                    />
-
-                    <Area
-                        type="monotone"
-                        dataKey="gross_pnl"
-                        stroke="var(--color-success-foreground)"
-                        strokeWidth={1.5}
-                        fillOpacity={0}
-                    />
-
-                    <Area
-                        type="monotone"
-                        dataKey="charges"
-                        stroke="var(--color-error-foreground)"
-                        strokeWidth={1.5}
-                        fillOpacity={0}
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
+                        )}
+                    </AreaChart>
+                </ResponsiveContainer>
+            </ChartContainer>
         </Card>
     );
 };

@@ -16,6 +16,10 @@ export function isProd(): boolean {
 export type LocalStorageKey = string;
 
 export const LocalStorageKeySidebarOpen: LocalStorageKey = "sidebar_open";
+export const LocalStorageKeyCumulativePnLShowGross: LocalStorageKey =
+    "cumulative_pnl_show_gross";
+export const LocalStorageKeyCumulativePnLShowCharges: LocalStorageKey =
+    "cumulative_pnl_show_charges";
 
 export function saveToLocalStorage(key: LocalStorageKey, value: string) {
     localStorage.setItem(key, value);
