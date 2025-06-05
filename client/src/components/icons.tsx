@@ -41,3 +41,5 @@ export { LuInfo as IconInfo } from "react-icons/lu";
 export { LuColumns3 as IconColumns } from "react-icons/lu";
 export { LuListFilter as IconListFilter } from "react-icons/lu";
 export { LuArrowUpRight as IconArrowUpRight } from "react-icons/lu";
+export { LuArrowDownRight as IconArrowDownRight } from "react-icons/lu";
+export { LuGripVertical as IconGripVertical } from "react-icons/lu";

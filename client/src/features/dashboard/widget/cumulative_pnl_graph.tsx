@@ -41,6 +41,7 @@ type Data = DataItem[];
 interface Props {
     data: Data;
     isLoading?: boolean;
+    isResizable?: boolean;
 }
 
 const gradientOffset = (data: Data) => {
@@ -72,7 +73,11 @@ const chartConfig: ChartConfig = {
     },
 };
 
-export const CumulativePnLCurve: FC<Props> = ({ data, isLoading }) => {
+export const CumulativePnLCurve: FC<Props> = ({
+    data,
+    isLoading,
+    isResizable,
+}) => {
     const [showGross, setShowGross] = useLocalStorageState(
         LocalStorageKeyCumulativePnLShowGross,
         false
@@ -86,7 +91,7 @@ export const CumulativePnLCurve: FC<Props> = ({ data, isLoading }) => {
     const off = useMemo(() => gradientOffset(data), [data]);
 
     return (
-        <Card className="relative w-full">
+        <Card className="relative h-full w-full">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
             <CardTitle>Cumulative PnL Curve</CardTitle>
@@ -116,13 +121,13 @@ export const CumulativePnLCurve: FC<Props> = ({ data, isLoading }) => {
             <div className="h-4" />
 
             <ChartContainer config={chartConfig}>
-                <ResponsiveContainer width="100%" height={isMobile ? 250 : 400}>
+                <ResponsiveContainer width="100%" minHeight={300} height="100%">
                     <AreaChart
                         data={data}
                         margin={{
                             top: 0,
                             right: 0,
-                            bottom: 0,
+                            bottom: isResizable ? 80 : 0, // Adding this so that the chat doesn't overflow.
                             left: isMobile ? -10 : 0,
                         }}
                     >

@@ -47,7 +47,7 @@ export const OverviewCard = memo(
         }
 
         return (
-            <Card className="flex min-w-72 flex-col gap-y-2">
+            <Card className="flex h-full w-full min-w-72 flex-col gap-y-2">
                 <CardTitle>Overview</CardTitle>
                 <CardContent className="flex h-full flex-col items-start">
                     <span className="label-muted">Net</span>

@@ -14,7 +14,7 @@ interface WinningCardProps {
 
 export const WinningCard: FC<WinningCardProps> = (props) => {
     return (
-        <Card>
+        <Card className="h-full w-full">
             <CardTitle className="flex items-center justify-between gap-x-2">
                 <div className="flex items-center gap-x-2">
                     Winning
@@ -24,7 +24,7 @@ export const WinningCard: FC<WinningCardProps> = (props) => {
                     />
                 </div>
 
-                <div>{props.winRate}%</div>
+                <div className="mr-4">{props.winRate}%</div>
             </CardTitle>
 
             <CardContent>

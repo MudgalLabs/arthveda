@@ -15,6 +15,8 @@ export function isProd(): boolean {
 
 export type LocalStorageKey = string;
 
+export const LocalStorageKeyDashboardLayout: LocalStorageKey =
+    "dashboard_layout";
 export const LocalStorageKeySidebarOpen: LocalStorageKey = "sidebar_open";
 export const LocalStorageKeyCumulativePnLShowGross: LocalStorageKey =
     "cumulative_pnl_show_gross";

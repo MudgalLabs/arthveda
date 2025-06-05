@@ -2,12 +2,12 @@ import { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
     children: ReactNode;
     className?: string;
 }
 
-function Card({ children, className }: CardProps) {
+function Card({ children, className, ...props }: CardProps) {
     return (
         <div
             data-slow="card"
@@ -16,6 +16,7 @@ function Card({ children, className }: CardProps) {
                 "hover:border-accent transition-colors",
                 className
             )}
+            {...props}
         >
             {children}
         </div>

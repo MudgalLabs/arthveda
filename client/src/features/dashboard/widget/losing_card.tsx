@@ -14,7 +14,7 @@ interface LosingCardProps {
 
 export const LosingCard: FC<LosingCardProps> = (props) => {
     return (
-        <Card className="">
+        <Card className="h-full w-full">
             <CardTitle className="flex items-center justify-between gap-x-2">
                 <div className="flex items-center gap-x-2">
                     Losing
@@ -24,7 +24,7 @@ export const LosingCard: FC<LosingCardProps> = (props) => {
                     />
                 </div>
 
-                <div>{props.lossRate}%</div>
+                <div className="mr-4">{props.lossRate}%</div>
             </CardTitle>
 
             <CardContent>
