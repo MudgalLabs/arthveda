@@ -8,8 +8,8 @@ import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { CumulativePnLCurve } from "@/features/dashboard/widget/cumulative_pnl_graph";
 import { OverviewCard } from "@/features/dashboard/widget/overview_card";
-import { WinningCard } from "./widget/winning_card";
-import { LosingCard } from "./widget/loosing_card";
+import { WinningCard } from "@/features/dashboard/widget/winning_card";
+import { LosingCard } from "@/features/dashboard/widget/losing_card";
 
 export const Dashboard = () => {
     const { data, isLoading, isFetching, isError } =
@@ -49,7 +49,7 @@ export const Dashboard = () => {
     return (
         <>
             <PageHeading heading="Dashboard" loading={isFetching} />
-            <div>
+            <div className="flex flex-col gap-y-4">
                 <div className="flex flex-col gap-x-4 gap-y-4 sm:flex-row [&>div]:w-full">
                     <OverviewCard
                         gross_pnl_amount={data.gross_pnl}
@@ -73,8 +73,6 @@ export const Dashboard = () => {
                         lossStreak={data.loss_streak}
                     />
                 </div>
-
-                <div className="h-10" />
 
                 <CumulativePnLCurve data={cumulativePnLData} />
             </div>

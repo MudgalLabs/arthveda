@@ -194,7 +194,7 @@ export function formatCurrency(
     amount: string | number,
     {
         currency = "inr",
-        hideSymbol = true,
+        hideSymbol = false,
         locale = "en-IN",
         localizationOpts = {},
         compact = false,
@@ -229,7 +229,7 @@ export function formatCurrency(
 
     const options = deepMerge(
         {
-            style: hideSymbol ? "currency" : "decimal",
+            style: hideSymbol ? "decimal" : "currency",
             currency: currency,
             maximumFractionDigits: 2,
         },

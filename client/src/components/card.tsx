@@ -13,6 +13,7 @@ function Card({ children, className }: CardProps) {
             data-slow="card"
             className={cn(
                 "bg-surface-bg border-surface-border rounded-md border-1 p-3",
+                "hover:border-accent transition-colors",
                 className
             )}
         >
