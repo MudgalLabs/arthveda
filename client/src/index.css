@@ -130,19 +130,22 @@ select:-webkit-autofill:focus {
 /* Typography */
 
 @utility big-heading {
-    @apply font-heading text-[32px] font-semibold;
+    @apply font-heading text-[32px] font-bold;
 }
 @utility heading {
     @apply font-heading text-[24px] font-semibold;
 }
 @utility sub-heading {
-    @apply font-heading text-[20px] font-semibold;
+    @apply font-heading text-[20px] font-medium;
 }
 @utility paragraph {
     @apply font-content text-[16px] font-normal;
 }
 @utility label {
     @apply text-foreground text-sm font-medium;
+}
+@utility label-muted {
+    @apply text-foreground-muted text-sm;
 }
 @utility small {
     @apply font-content text-[14px] font-normal;

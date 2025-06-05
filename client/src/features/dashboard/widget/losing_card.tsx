@@ -15,10 +15,13 @@ interface LosingCardProps {
 export const LosingCard: FC<LosingCardProps> = (props) => {
     return (
         <Card className="">
-            <CardTitle className="text-error-foreground flex items-center justify-between gap-x-2">
+            <CardTitle className="flex items-center justify-between gap-x-2">
                 <div className="flex items-center gap-x-2">
                     Losing
-                    <IconTrendingDown size={24} />
+                    <IconTrendingDown
+                        size={24}
+                        className="text-foreground-red"
+                    />
                 </div>
 
                 <div>{props.lossRate}%</div>
@@ -29,24 +32,24 @@ export const LosingCard: FC<LosingCardProps> = (props) => {
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <div>
-                        <p className="label">R Factor</p>
+                        <p className="label-muted">R Factor</p>
                         <p className="heading">{props.lossRFactor}</p>
                     </div>
 
                     <div>
-                        <p className="label">Streak</p>
+                        <p className="label-muted">Streak</p>
                         <p className="heading">{props.lossStreak}</p>
                     </div>
 
                     <div>
-                        <p className="label">Max</p>
+                        <p className="label-muted">Max</p>
                         <p className="heading">
                             {formatCurrency(props.maxLoss)}
                         </p>
                     </div>
 
                     <div>
-                        <p className="label">Avg</p>
+                        <p className="label-muted">Avg</p>
                         <p className="heading">
                             {formatCurrency(props.avgLoss)}
                         </p>

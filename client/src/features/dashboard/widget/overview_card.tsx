@@ -50,7 +50,7 @@ export const OverviewCard = memo(
             <Card className="flex min-w-72 flex-col gap-y-2">
                 <CardTitle>Overview</CardTitle>
                 <CardContent className="flex h-full flex-col items-start">
-                    <span className="label">Net</span>
+                    <span className="label-muted">Net</span>
                     <div className={`flex items-end gap-x-2 ${textColor}`}>
                         <p className="heading leading-none">
                             {formatCurrency(net_pnl_amount, { currency })}
@@ -91,7 +91,7 @@ export const OverviewCard = memo(
 
                         <div className="flex w-full justify-between gap-x-4">
                             <div>
-                                <span className="label">Gross</span>
+                                <span className="label-muted">Gross</span>
                                 <p className="paragraph">
                                     <span
                                         className={cn("font-semibold", {
@@ -109,7 +109,7 @@ export const OverviewCard = memo(
                             </div>
 
                             <div>
-                                <span className="label">Charges</span>
+                                <span className="label-muted">Charges</span>
                                 <p className="paragraph">
                                     <span className="text-foreground-red font-semibold">
                                         {formatCurrency(total_charges_amount, {
