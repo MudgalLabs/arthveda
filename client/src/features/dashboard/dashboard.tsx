@@ -2,15 +2,14 @@ import { useMemo } from "react";
 
 import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
-import { formatCurrency } from "@/lib/utils";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes_constants";
-import { Card, CardContent, CardTitle } from "@/components/card";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
-import { CumulativeNetPnLWidget } from "@/features/dashboard/widget/cumulative_pnl_widget";
-import { PnLCard } from "@/features/dashboard/widget/pnl_card";
-import { toast } from "@/components/toast";
+import { CumulativePnLCurve } from "@/features/dashboard/widget/cumulative_pnl_graph";
+import { OverviewCard } from "@/features/dashboard/widget/overview_card";
+import { WinningCard } from "./widget/winning_card";
+import { LosingCard } from "./widget/loosing_card";
 
 export const Dashboard = () => {
     const { data, isLoading, isFetching, isError } =
@@ -51,70 +50,33 @@ export const Dashboard = () => {
         <>
             <PageHeading heading="Dashboard" loading={isFetching} />
             <div>
-                <div className="flex flex-row flex-wrap gap-x-4 gap-y-4 [&>div]:w-full sm:[&>div]:w-fit">
-                    <PnLCard
+                <div className="flex flex-col gap-x-4 gap-y-4 sm:flex-row [&>div]:w-full">
+                    <OverviewCard
                         gross_pnl_amount={data.gross_pnl}
                         net_pnl_amount={data.net_pnl}
                         total_charges_amount={data.charges}
                     />
 
-                    <Card>
-                        <CardTitle>Win Rate</CardTitle>
-                        <CardContent>{data.win_rate}%</CardContent>
-                    </Card>
+                    <WinningCard
+                        winRate={data.win_rate}
+                        winRFactor={data.avg_win_r_factor}
+                        maxWin={data.max_win}
+                        avgWin={data.avg_win}
+                        winStreak={data.win_streak}
+                    />
 
-                    <Card>
-                        <CardTitle>Avg Win R</CardTitle>
-                        <CardContent>{data.avg_win_r_factor}</CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardTitle>Avg Loss R</CardTitle>
-                        <CardContent>{data.avg_loss_r_factor}</CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardTitle>Avg Win</CardTitle>
-                        <CardContent>
-                            {formatCurrency(data.avg_win)}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardTitle>Avg Loss</CardTitle>
-                        <CardContent>
-                            {formatCurrency(data.avg_loss)}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardTitle>Max Win</CardTitle>
-                        <CardContent>
-                            {formatCurrency(data.max_win)}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardTitle>Max Loss</CardTitle>
-                        <CardContent>
-                            {formatCurrency(data.max_loss)}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardTitle>Win Streak</CardTitle>
-                        <CardContent>{data.win_streak}</CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardTitle>Loss Streak</CardTitle>
-                        <CardContent>{data.loss_streak}</CardContent>
-                    </Card>
+                    <LosingCard
+                        lossRate={data.loss_rate}
+                        lossRFactor={data.avg_loss_r_factor}
+                        maxLoss={data.max_loss}
+                        avgLoss={data.avg_loss}
+                        lossStreak={data.loss_streak}
+                    />
                 </div>
 
                 <div className="h-10" />
 
-                <CumulativeNetPnLWidget data={cumulativePnLData} />
+                <CumulativePnLCurve data={cumulativePnLData} />
             </div>
         </>
     );

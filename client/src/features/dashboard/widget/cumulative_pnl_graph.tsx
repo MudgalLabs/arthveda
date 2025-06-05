@@ -72,7 +72,7 @@ const chartConfig: ChartConfig = {
     },
 };
 
-export const CumulativeNetPnLWidget: FC<Props> = ({ data, isLoading }) => {
+export const CumulativePnLCurve: FC<Props> = ({ data, isLoading }) => {
     const [showGross, setShowGross] = useLocalStorageState(
         LocalStorageKeyCumulativePnLShowGross,
         false
@@ -86,10 +86,10 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data, isLoading }) => {
     const off = useMemo(() => gradientOffset(data), [data]);
 
     return (
-        <Card className="relative">
+        <Card className="relative w-full">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
-            <CardTitle>Cumulative PnL</CardTitle>
+            <CardTitle>Cumulative PnL Curve</CardTitle>
 
             <div className="h-2" />
 
@@ -242,4 +242,4 @@ export const CumulativeNetPnLWidget: FC<Props> = ({ data, isLoading }) => {
     );
 };
 
-export default CumulativeNetPnLWidget;
+export default CumulativePnLCurve;

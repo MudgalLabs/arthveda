@@ -41,7 +41,7 @@ const defaultState: State = {
         instrument: "equity",
         currency: "inr",
         risk_amount: "",
-        total_charges_amount: "",
+        total_charges_amount: "0",
         opened_at: roundToNearest15Minutes(new Date()),
         closed_at: null,
         direction: "long",

@@ -56,7 +56,7 @@ import {
     usePositionCanBeComputed,
     usePositionTradesAreValid,
 } from "@/features/position/position_store";
-import { PnLCard } from "@/features/dashboard/widget/pnl_card";
+import { OverviewCard } from "@/features/dashboard/widget/overview_card";
 
 function AddPosition() {
     const queryClient = useQueryClient();
@@ -169,7 +169,7 @@ function AddPosition() {
             <PageHeading heading="Add Position" loading={isComputing} />
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row">
-                <PnLCard
+                <OverviewCard
                     total_charges_amount={position.total_charges_amount}
                     charges_as_percentage_of_net_pnl={
                         position.charges_as_percentage_of_net_pnl
@@ -209,7 +209,7 @@ function AddPosition() {
 
             <div className="h-15" />
 
-            <div className="flex flex-col gap-y-4 sm:flex-row sm:justify-between">
+            <div className="flex flex-col gap-x-8 gap-y-4 sm:flex-row">
                 <WithDebounce
                     state={position.symbol}
                     onDebounce={(v) => {
@@ -265,15 +265,6 @@ function AddPosition() {
                         </WithLabel>
                     )}
                 </WithDebounce>
-
-                <WithLabel Label={<Label>Total Charges</Label>}>
-                    <DecimalInput
-                        kind="amount"
-                        currency={position.currency}
-                        value={position.total_charges_amount}
-                        disabled
-                    />
-                </WithLabel>
             </div>
 
             <div className="h-15" />
@@ -594,10 +585,10 @@ const DurationCard = memo(
         );
 
         return (
-            <Card className="flex flex-col gap-y-2">
+            <Card className="realtive flex flex-col gap-y-2">
                 <CardTitle>Duration</CardTitle>
 
-                <CardContent className="flex h-full flex-col items-center gap-y-2">
+                <CardContent className="flex-center flex h-full flex-col gap-y-2">
                     <p className="heading">
                         {days} days {hours} hours {minutes} mins
                     </p>

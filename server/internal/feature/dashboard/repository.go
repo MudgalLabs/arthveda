@@ -32,6 +32,7 @@ type generalStats struct {
 	streaks
 
 	WinRate        float64 `json:"win_rate"`
+	LossRate       float64 `json:"loss_rate"`
 	GrossPnL       string  `json:"gross_pnl"`
 	NetPnL         string  `json:"net_pnl"`
 	Charges        string  `json:"charges"`
@@ -98,10 +99,13 @@ func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.U
 		return nil, fmt.Errorf("pnl sql scan: %w", err)
 	}
 
+	lossRate := 100.0 - winRate
+
 	streaksData := getWinAndLossStreaks(positions)
 
 	result := &generalStats{
 		WinRate:        winRate,
+		LossRate:       lossRate,
 		GrossPnL:       grossPnL,
 		NetPnL:         netPnL,
 		Charges:        charges,
