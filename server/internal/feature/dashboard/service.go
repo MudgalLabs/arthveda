@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 type Service struct {
@@ -83,4 +84,14 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID) (*getDashboardRepon
 	}
 
 	return result, service.ErrNone, nil
+}
+
+type DailyNetPnL struct {
+	Date   time.Time       `json:"start"`
+	Label  string          `json:"label"`
+	NetPnL decimal.Decimal `json:"net_pnl"`
+}
+
+func (s *Service) GetDailyNetPnL(ctx context.Context, userID uuid.UUID) ([]*DailyNetPnL, service.Error, error) {
+	return nil, service.ErrNone, nil
 }
