@@ -30,10 +30,7 @@ function CardTitle({ children, className }: CardTitleProps) {
     return (
         <div
             data-slow="card-title"
-            className={cn(
-                "text-surface-foreground text-sm font-medium",
-                className
-            )}
+            className={cn("text-surface-foreground font-medium", className)}
         >
             {children}
         </div>

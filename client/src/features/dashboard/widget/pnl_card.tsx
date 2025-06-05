@@ -47,41 +47,13 @@ export const PnLCard = memo(
         }
 
         const tooltipContent = (
-            <div className={`justify-between text-[12px]`}>
-                <div className="flex gap-x-2">
-                    <p>
-                        Gross{" "}
-                        <span
-                            className={cn({
-                                "text-foreground-green": grossPnL.isPositive(),
-                                "text-foreground-red": grossPnL.isNegative(),
-                            })}
-                        >
-                            {formatCurrency(gross_pnl_amount, { currency })}
-                        </span>
-                    </p>
-                    <p>
-                        Net{" "}
-                        <span className={textColor}>
-                            {formatCurrency(net_pnl_amount, { currency })}
-                        </span>{" "}
-                    </p>
-                </div>
-
-                {Number(total_charges_amount) > 0 && (
-                    <p>
-                        Charges{" "}
-                        <span className="text-foreground-red">
-                            {formatCurrency(total_charges_amount, { currency })}
-                        </span>{" "}
-                        and{" "}
-                        <span className="text-foreground-red">
-                            {charges_as_percentage_of_net_pnl}%
-                        </span>{" "}
-                        of Gross
-                    </p>
-                )}
-            </div>
+            <p className="text-sm">
+                Charges are{" "}
+                <span className="text-foreground-red">
+                    {charges_as_percentage_of_net_pnl}%
+                </span>{" "}
+                of gross profits
+            </p>
         );
 
         const cardContent = (
@@ -102,9 +74,7 @@ export const PnLCard = memo(
                         <Tooltip
                             content={tooltipContent}
                             contentProps={{
-                                side: "bottom",
-                                className:
-                                    "min-w-(--radix-tooltip-trigger-width)",
+                                side: "right",
                             }}
                         >
                             <Progress
@@ -116,12 +86,41 @@ export const PnLCard = memo(
                                 }
                             />
                         </Tooltip>
+
+                        <div className="h-2" />
+
+                        <div className="flex w-full justify-between gap-x-4">
+                            <p className="paragraph">
+                                <span
+                                    className={cn("font-semibold", {
+                                        "text-foreground-green":
+                                            grossPnL.isPositive(),
+                                        "text-foreground-red":
+                                            grossPnL.isNegative(),
+                                    })}
+                                >
+                                    {formatCurrency(gross_pnl_amount, {
+                                        currency,
+                                    })}
+                                </span>
+                            </p>
+
+                            <p className="paragraph">
+                                <span className="text-foreground-red font-semibold">
+                                    {formatCurrency(total_charges_amount, {
+                                        currency,
+                                    })}
+                                </span>
+                            </p>
+                        </div>
+
+                        <div className="h-2" />
                     </div>
                 )}
             </>
         );
 
-        if (netReturnPercentage.isZero() && grossPnL.isZero()) {
+        if (grossPnL.isZero() || grossPnL.isNegative()) {
             return (
                 <Card className="relative min-w-60 flex-col gap-y-2">
                     <CardTitle>PnL</CardTitle>
@@ -135,40 +134,8 @@ export const PnLCard = memo(
         return (
             <Card className="flex flex-col gap-y-2">
                 <CardTitle>PnL</CardTitle>
-
                 <CardContent className="flex h-full flex-col items-start">
-                    <div className={`flex items-end gap-x-2 ${textColor}`}>
-                        <p className="big-heading leading-none">
-                            {formatCurrency(net_pnl_amount, { currency })}
-                        </p>
-                        {net_return_percentage && (
-                            <p>{netReturnPercentage.toFixed(2).toString()}%</p>
-                        )}
-                        <p>{trendingIcon}</p>
-                    </div>
-
-                    {Number(net_pnl_amount) > 0 && (
-                        <div className="w-full">
-                            <div className="h-4" />
-                            <Tooltip
-                                content={tooltipContent}
-                                contentProps={{
-                                    side: "bottom",
-                                    className:
-                                        "min-w-(--radix-tooltip-trigger-width)",
-                                }}
-                            >
-                                <Progress
-                                    value={
-                                        100 -
-                                        new Decimal(
-                                            charges_as_percentage_of_net_pnl
-                                        ).toNumber()
-                                    }
-                                />
-                            </Tooltip>
-                        </div>
-                    )}
+                    {cardContent}
                 </CardContent>
             </Card>
         );

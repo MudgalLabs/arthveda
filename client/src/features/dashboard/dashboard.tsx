@@ -10,6 +10,7 @@ import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { CumulativeNetPnLWidget } from "@/features/dashboard/widget/cumulative_pnl_widget";
 import { PnLCard } from "@/features/dashboard/widget/pnl_card";
+import { toast } from "@/components/toast";
 
 export const Dashboard = () => {
     const { data, isLoading, isFetching, isError } =
@@ -50,7 +51,7 @@ export const Dashboard = () => {
         <>
             <PageHeading heading="Dashboard" loading={isFetching} />
             <div>
-                <div className="[&_[data-slot='card-content']]:flex-center [&_[data-slot='card-content']]:sub-heading flex flex-row flex-wrap gap-x-4 gap-y-4 [&>div]:w-full sm:[&>div]:w-fit">
+                <div className="flex flex-row flex-wrap gap-x-4 gap-y-4 [&>div]:w-full sm:[&>div]:w-fit">
                     <PnLCard
                         gross_pnl_amount={data.gross_pnl}
                         net_pnl_amount={data.net_pnl}

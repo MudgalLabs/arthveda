@@ -57,6 +57,10 @@
     --color-success-border: hsl(150, 85%, 16%);
     --color-success-foreground: hsl(145, 100%, 68%);
 
+    --color-warning-bg: hsl(50, 100%, 8%);
+    --color-warning-border: hsl(50, 100%, 15%);
+    --color-warning-foreground: hsl(50, 100%, 50%);
+
     --font-heading: IBM Plex Sans;
     --font-content: IBM Plex Sans;
     --font-logo: Museo Sans;
@@ -136,6 +140,9 @@ select:-webkit-autofill:focus {
 }
 @utility paragraph {
     @apply font-content text-[16px] font-normal;
+}
+@utility label {
+    @apply text-foreground text-sm font-medium;
 }
 @utility small {
     @apply font-content text-[14px] font-normal;

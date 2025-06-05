@@ -7,12 +7,14 @@ interface TooltipProps extends TooltipPrimitive.TooltipProps {
     content: React.ReactNode;
     disabled?: boolean;
     contentProps?: TooltipPrimitive.TooltipContentProps;
+    variant?: "default" | "info" | "warning" | "error" | "success";
 }
 
 export const Tooltip: FC<TooltipProps> = ({
     children,
     content,
     disabled,
+    variant = "default",
     open,
     defaultOpen,
     onOpenChange,
@@ -43,7 +45,19 @@ export const Tooltip: FC<TooltipProps> = ({
             <div className="opacity-0 transition-opacity duration-150 ease-in-out peer-hover:opacity-100">
                 <TooltipPrimitive.Content
                     className={cn(
-                        "bg-muted border-border text-foreground 0 z-20 m-2 rounded-md border-1 px-3 py-2 text-sm font-medium",
+                        "z-100 m-2 rounded-md border-1 px-3 py-2 text-sm font-medium",
+                        {
+                            "bg-muted border-border text-foreground":
+                                variant === "default",
+                            "bg-surface-bg border-surface-border text-surface-foreground":
+                                variant === "info",
+                            "bg-success-bg border-success-border text-success-foreground":
+                                variant === "success",
+                            "bg-warning-bg border-warning-border text-warning-foreground":
+                                variant === "warning",
+                            "bg-error-bg border-error-border text-error-foreground":
+                                variant === "error",
+                        },
                         contentPropsClassName
                     )}
                     {...contentPropsRest}
