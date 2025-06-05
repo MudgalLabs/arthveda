@@ -170,6 +170,7 @@ function AddPosition() {
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row">
                 <OverviewCard
+                    className="w-full sm:w-fit"
                     total_charges_amount={position.total_charges_amount}
                     charges_as_percentage_of_net_pnl={
                         position.charges_as_percentage_of_net_pnl

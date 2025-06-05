@@ -171,7 +171,7 @@ export const Dashboard = () => {
                 onLayoutChange={(_, layouts) =>
                     setLayouts(layouts as Record<DashboardLayoutSize, Layout[]>)
                 }
-                containerPadding={[0, 8]}
+                containerPadding={[0, 0]}
                 margin={[16, 16]}
                 resizeHandles={["se"]}
                 resizeHandle={

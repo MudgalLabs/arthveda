@@ -16,6 +16,7 @@ export const OverviewCard = memo(
         charges_as_percentage_of_net_pnl,
         net_return_percentage = "",
         currency,
+        className,
     }: {
         net_pnl_amount: DecimalString;
         gross_pnl_amount: DecimalString;
@@ -23,6 +24,7 @@ export const OverviewCard = memo(
         charges_as_percentage_of_net_pnl?: DecimalString;
         net_return_percentage?: DecimalString;
         currency?: CurrencyCode;
+        className?: string;
     }) => {
         let trendingIcon: ReactNode = null;
         let textColor = "text-foreground";
@@ -46,8 +48,20 @@ export const OverviewCard = memo(
                 .toFixed(2);
         }
 
+        let progressValue =
+            100 - new Decimal(charges_as_percentage_of_net_pnl).toNumber();
+
+        if (grossPnL.isNegative()) {
+            progressValue = 0;
+        }
+
         return (
-            <Card className="flex h-full w-full min-w-72 flex-col gap-y-2">
+            <Card
+                className={cn(
+                    "flex h-full w-full min-w-72 flex-col gap-y-2",
+                    className
+                )}
+            >
                 <CardTitle>Overview</CardTitle>
                 <CardContent className="flex h-full flex-col items-start">
                     <span className="label-muted">Net</span>
@@ -70,21 +84,14 @@ export const OverviewCard = memo(
                                     <span className="text-foreground-red font-semibold">
                                         {charges_as_percentage_of_net_pnl}%
                                     </span>{" "}
-                                    of gross profits
+                                    of gross
                                 </p>
                             }
                             contentProps={{
                                 side: "right",
                             }}
                         >
-                            <Progress
-                                value={
-                                    100 -
-                                    new Decimal(
-                                        charges_as_percentage_of_net_pnl
-                                    ).toNumber()
-                                }
-                            />
+                            <Progress value={progressValue} />
                         </Tooltip>
 
                         <div className="h-2" />
