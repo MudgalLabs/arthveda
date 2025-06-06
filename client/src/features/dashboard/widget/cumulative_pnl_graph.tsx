@@ -91,7 +91,7 @@ export const CumulativePnLCurve: FC<Props> = ({
     const off = useMemo(() => gradientOffset(data), [data]);
 
     return (
-        <Card className="relative h-full w-full">
+        <Card className="relative h-full w-full overflow-hidden">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
             <CardTitle>Cumulative PnL Curve</CardTitle>

@@ -21,7 +21,7 @@ export const LosingCard: FC<LosingCardProps> = (props) => {
                     <IconTrendingDown size={24} />
                 </div>
 
-                <div> {props.lossRate}%</div>
+                <div>{props.lossRate}%</div>
             </CardTitle>
 
             <CardContent>

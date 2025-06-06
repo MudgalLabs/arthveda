@@ -1,5 +1,8 @@
-import { FC, useMemo } from "react";
+import { FC, useMemo, useState } from "react";
 import { Responsive, WidthProvider, Layout } from "react-grid-layout";
+
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 
 import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
@@ -11,13 +14,9 @@ import { CumulativePnLCurve } from "@/features/dashboard/widget/cumulative_pnl_g
 import { OverviewCard } from "@/features/dashboard/widget/overview_card";
 import { WinningCard } from "@/features/dashboard/widget/winning_card";
 import { LosingCard } from "@/features/dashboard/widget/losing_card";
-import { useLocalStorageState } from "@/hooks/use_local_storage_state";
-import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
-
 import { IconChevronDownRight, IconGripVertical } from "@/components/icons";
-
-import "react-grid-layout/css/styles.css";
-import "react-resizable/css/styles.css";
+// import { useLocalStorageState } from "@/hooks/use_local_storage_state";
+// import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
 type DashboardLayoutSize = "lg" | "sm";
 
@@ -30,7 +29,6 @@ const lgLayout: Layout[] = [
         h: 4,
         minW: 3,
         minH: 4,
-        maxH: 4,
     },
     {
         i: "winning",
@@ -40,7 +38,6 @@ const lgLayout: Layout[] = [
         h: 4,
         minW: 3,
         minH: 4,
-        maxH: 4,
     },
     {
         i: "losing",
@@ -50,7 +47,6 @@ const lgLayout: Layout[] = [
         h: 4,
         minW: 3,
         minH: 4,
-        maxH: 4,
     },
     {
         i: "cumulative_pnl_curve",
@@ -67,27 +63,27 @@ const smLayout: Layout[] = [
         x: 0,
         y: 0,
         w: 4,
-        h: 4.5,
-        minW: 4,
-        minH: 4.5,
+        h: 4,
+        minW: 3,
+        minH: 4,
     },
     {
         i: "winning",
         x: 0,
         y: 5,
         w: 4,
-        h: 4.5,
-        minW: 4,
-        minH: 4.5,
+        h: 4,
+        minW: 3,
+        minH: 4,
     },
     {
         i: "losing",
         x: 0,
         y: 10,
         w: 4,
-        h: 4.5,
-        minW: 4,
-        minH: 4.5,
+        h: 4,
+        minW: 3,
+        minH: 4,
     },
     {
         i: "cumulative_pnl_curve",
@@ -97,14 +93,14 @@ const smLayout: Layout[] = [
         h: 10,
         minW: 3,
         maxW: 3,
-        minH: 10,
+        minH: 8,
     },
 ];
 
 export const Dashboard = () => {
-    const [layouts, setLayouts] = useLocalStorageState<
+    const [layouts, setLayouts] = useState<
         Record<DashboardLayoutSize, Layout[]>
-    >(LocalStorageKeyDashboardLayout, {
+    >({
         lg: lgLayout,
         sm: smLayout,
     });
