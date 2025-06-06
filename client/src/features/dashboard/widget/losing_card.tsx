@@ -18,13 +18,10 @@ export const LosingCard: FC<LosingCardProps> = (props) => {
             <CardTitle className="flex items-center justify-between gap-x-2">
                 <div className="flex items-center gap-x-2">
                     Losing
-                    <IconTrendingDown
-                        size={24}
-                        className="text-foreground-red"
-                    />
+                    <IconTrendingDown size={24} />
                 </div>
 
-                <div className="mr-4">{props.lossRate}%</div>
+                <div> {props.lossRate}%</div>
             </CardTitle>
 
             <CardContent>

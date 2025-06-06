@@ -18,13 +18,10 @@ export const WinningCard: FC<WinningCardProps> = (props) => {
             <CardTitle className="flex items-center justify-between gap-x-2">
                 <div className="flex items-center gap-x-2">
                     Winning
-                    <IconTrendingUp
-                        size={24}
-                        className="text-foreground-green"
-                    />
+                    <IconTrendingUp size={24} />
                 </div>
 
-                <div className="mr-4">{props.winRate}%</div>
+                <div>{props.winRate}%</div>
             </CardTitle>
 
             <CardContent>

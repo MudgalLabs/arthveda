@@ -160,3 +160,7 @@ select:-webkit-autofill:focus {
 @utility flex-center {
     @apply flex items-center justify-center;
 }
+
+.react-resizable-handle react-resizable-handle-se::after {
+    background: white !important;
+}

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { FC, useMemo } from "react";
 import { Responsive, WidthProvider, Layout } from "react-grid-layout";
 
 import { PageHeading } from "@/components/page_heading";
@@ -14,13 +14,10 @@ import { LosingCard } from "@/features/dashboard/widget/losing_card";
 import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
-import { WidgetDragHandle } from "@/features/dashboard/widget/widget";
-import { IconArrowDownRight } from "@/components/icons";
+import { IconChevronDownRight, IconGripVertical } from "@/components/icons";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-
-const ResponsiveGridLayout = WidthProvider(Responsive);
 
 type DashboardLayoutSize = "lg" | "sm";
 
@@ -30,30 +27,30 @@ const lgLayout: Layout[] = [
         x: 0,
         y: 0,
         w: 4,
-        h: 4.5,
-        minW: 4,
-        minH: 4.5,
-        isResizable: false,
+        h: 4,
+        minW: 3,
+        minH: 4,
+        maxH: 4,
     },
     {
         i: "winning",
         x: 4,
         y: 0,
         w: 4,
-        h: 4.5,
-        minW: 4,
-        minH: 4.5,
-        isResizable: false,
+        h: 4,
+        minW: 3,
+        minH: 4,
+        maxH: 4,
     },
     {
         i: "losing",
         x: 8,
         y: 0,
         w: 4,
-        h: 4.5,
-        minW: 4,
-        minH: 4.5,
-        isResizable: false,
+        h: 4,
+        minW: 3,
+        minH: 4,
+        maxH: 4,
     },
     {
         i: "cumulative_pnl_curve",
@@ -61,8 +58,6 @@ const lgLayout: Layout[] = [
         y: 5,
         w: 6,
         h: 10,
-        minW: 4,
-        minH: 10,
     },
 ];
 
@@ -75,7 +70,6 @@ const smLayout: Layout[] = [
         h: 4.5,
         minW: 4,
         minH: 4.5,
-        isResizable: false,
     },
     {
         i: "winning",
@@ -85,7 +79,6 @@ const smLayout: Layout[] = [
         h: 4.5,
         minW: 4,
         minH: 4.5,
-        isResizable: false,
     },
     {
         i: "losing",
@@ -95,7 +88,6 @@ const smLayout: Layout[] = [
         h: 4.5,
         minW: 4,
         minH: 4.5,
-        isResizable: false,
     },
     {
         i: "cumulative_pnl_curve",
@@ -130,6 +122,8 @@ export const Dashboard = () => {
             charges: parseFloat(d.charges),
         }));
     }, [data?.cumulative_pnl]);
+
+    const ResponsiveGridLayout = useMemo(() => WidthProvider(Responsive), []);
 
     if (isError) {
         return (
@@ -174,47 +168,64 @@ export const Dashboard = () => {
                 containerPadding={[0, 0]}
                 margin={[16, 16]}
                 resizeHandles={["se"]}
-                resizeHandle={
-                    <div className="react-resizable-handle text-foreground-muted hover:text-foreground absolute right-0 bottom-0 cursor-se-resize">
-                        <IconArrowDownRight size={16} />
-                    </div>
-                }
+                // @ts-ignore - The types from react-grid-layout are not fully accurate with the current version.
+                resizeHandle={(handleAxis, ref) => {
+                    if (handleAxis === "se") {
+                        return (
+                            <div
+                                ref={ref}
+                                key="se"
+                                className="text-accent absolute right-0 bottom-0 cursor-se-resize rounded-sm"
+                            >
+                                <IconChevronDownRight size={15} />
+                            </div>
+                        );
+                    }
+                    return null;
+                }}
                 draggableHandle=".custom-drag-handle"
             >
                 <div key="overview">
-                    <OverviewCard
-                        gross_pnl_amount={data.gross_pnl}
-                        net_pnl_amount={data.net_pnl}
-                        total_charges_amount={data.charges}
-                    />
-                    <WidgetDragHandle />
+                    <WidgetContainer>
+                        <OverviewCard
+                            gross_pnl_amount={data.gross_pnl}
+                            net_pnl_amount={data.net_pnl}
+                            total_charges_amount={data.charges}
+                        />
+                    </WidgetContainer>
                 </div>
 
                 <div key="winning">
-                    <WinningCard
-                        winRate={data.win_rate}
-                        winRFactor={data.avg_win_r_factor}
-                        maxWin={data.max_win}
-                        avgWin={data.avg_win}
-                        winStreak={data.win_streak}
-                    />
-                    <WidgetDragHandle />
+                    <WidgetContainer>
+                        <WinningCard
+                            winRate={data.win_rate}
+                            winRFactor={data.avg_win_r_factor}
+                            maxWin={data.max_win}
+                            avgWin={data.avg_win}
+                            winStreak={data.win_streak}
+                        />
+                    </WidgetContainer>
                 </div>
 
                 <div key="losing">
-                    <LosingCard
-                        lossRate={data.loss_rate}
-                        lossRFactor={data.avg_loss_r_factor}
-                        maxLoss={data.max_loss}
-                        avgLoss={data.avg_loss}
-                        lossStreak={data.loss_streak}
-                    />
-                    <WidgetDragHandle />
+                    <WidgetContainer>
+                        <LosingCard
+                            lossRate={data.loss_rate}
+                            lossRFactor={data.avg_loss_r_factor}
+                            maxLoss={data.max_loss}
+                            avgLoss={data.avg_loss}
+                            lossStreak={data.loss_streak}
+                        />
+                    </WidgetContainer>
                 </div>
 
                 <div key="cumulative_pnl_curve">
-                    <CumulativePnLCurve data={cumulativePnLData} isResizable />
-                    <WidgetDragHandle />
+                    <WidgetContainer>
+                        <CumulativePnLCurve
+                            data={cumulativePnLData}
+                            isResizable
+                        />
+                    </WidgetContainer>
                 </div>
             </ResponsiveGridLayout>
         </div>
@@ -256,3 +267,18 @@ function WelcomeMessageForNewUser() {
         </div>
     );
 }
+
+interface WidgetContainerProps {
+    children?: React.ReactNode;
+}
+
+const WidgetContainer: FC<WidgetContainerProps> = (props) => {
+    return (
+        <div className="relative h-full w-full">
+            {props.children}
+            <div className="custom-drag-handle text-accent absolute top-1 right-0 cursor-move">
+                <IconGripVertical size={16} />
+            </div>
+        </div>
+    );
+};
