@@ -220,7 +220,7 @@ export function useIsEditingPosition(): boolean {
     const position = usePositionStore((s) => s.position);
     const location = useLocation();
     // If the position ID is present in the URL, then we are editing.
-    return location.pathname.includes(position.id);
+    return !!position.id && location.pathname.endsWith(position.id);
 }
 
 function validateTrades(trades: Trade[] = []) {

@@ -54,6 +54,8 @@ const lgLayout: Layout[] = [
         y: 5,
         w: 6,
         h: 10,
+        minW: 4,
+        minH: 7,
     },
 ];
 
@@ -90,10 +92,10 @@ const smLayout: Layout[] = [
         x: 0,
         y: 15,
         w: 3,
-        h: 10,
-        minW: 3,
-        maxW: 3,
-        minH: 8,
+        h: 7,
+        minW: 4,
+        maxW: 4,
+        minH: 7,
     },
 ];
 
@@ -173,7 +175,7 @@ export const Dashboard = () => {
                                 key="se"
                                 className="text-accent absolute right-0 bottom-0 cursor-se-resize rounded-sm"
                             >
-                                <IconChevronDownRight size={15} />
+                                <IconChevronDownRight size={18} />
                             </div>
                         );
                     }

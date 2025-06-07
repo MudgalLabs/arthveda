@@ -25,7 +25,7 @@ import {
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
 import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
-import { IconCalendarRange, IconPlus, IconTrash } from "@/components/icons";
+import { IconCalendarRange, IconCross, IconPlus } from "@/components/icons";
 import {
     getDataTableCellUpdateFn,
     useDataTableEditableCell,
@@ -320,9 +320,9 @@ function AddPosition() {
 
             <TradesTable trades={position.trades || []} setTrades={setTrades} />
 
-            <div className="h-8" />
+            <div className="h-2" />
 
-            <div className="flex-center">
+            <div className="flex w-full justify-end">
                 <AddTradeButton
                     tradesAreValid={tradesAreValid}
                     insertNewTrade={insertNewTrade}
@@ -331,15 +331,17 @@ function AddPosition() {
 
             <div className="h-10" />
 
-            <div className="flex flex-col justify-between gap-x-12 sm:flex-row">
-                <div>
-                    <DeleteButton
-                        deletePosition={() => deletePosition(position.id)}
-                        isDeleting={isDeleting}
-                    />
+            <div className="flex flex-col justify-between gap-x-12 gap-y-4 sm:flex-row">
+                <div className="flex flex-col justify-between gap-2 sm:flex-row">
+                    {isEditingPosition && (
+                        <DeleteButton
+                            deletePosition={() => deletePosition(position.id)}
+                            isDeleting={isDeleting}
+                        />
+                    )}
                 </div>
 
-                <div className="flex items-center gap-x-2">
+                <div className="flex flex-col justify-between gap-2 sm:flex-row">
                     <DiscardButton
                         hasSomethingToDiscard={hasPositionDataChanged}
                         discard={discard}
@@ -349,8 +351,8 @@ function AddPosition() {
                         onClick={handleClickSave}
                         loading={isCreating || isUpdating}
                         disabled={
-                            (isCreatingPosition && !canSave) ||
-                            (isEditingPosition && !hasPositionDataChanged)
+                            (isEditingPosition && !hasPositionDataChanged) ||
+                            !canSave
                         }
                     >
                         Save
@@ -542,12 +544,12 @@ const columns: ColumnDef<CreateTrade>[] = [
                     disabled={!disableButton}
                 >
                     <Button
-                        variant="destructive"
+                        variant="ghost"
                         size="icon"
                         onClick={() => removeTrade(row.index)}
                         disabled={disableButton}
                     >
-                        <IconTrash className="text-red-foreground" size={20} />
+                        <IconCross className="text-red-foreground" size={18} />
                     </Button>
                 </Tooltip>
             );
