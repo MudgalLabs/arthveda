@@ -2,7 +2,7 @@ import { DecimalString } from "@/lib/types";
 
 type TradeKind = "buy" | "sell";
 
-interface NewTrade {
+interface CreateTrade {
     kind: TradeKind;
     time: Date;
     quantity: DecimalString;
@@ -10,7 +10,7 @@ interface NewTrade {
     charges_amount: DecimalString;
 }
 
-interface Trade extends NewTrade {
+interface Trade extends CreateTrade {
     id: string;
     position_id: string;
     broker_trade_id: string | null;
@@ -18,4 +18,4 @@ interface Trade extends NewTrade {
     updated_at: Date | null;
 }
 
-export type { NewTrade, Trade, TradeKind };
+export type { CreateTrade, Trade, TradeKind };

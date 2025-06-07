@@ -1,10 +1,11 @@
 import { Suspense, lazy } from "react";
+import { useParams } from "react-router-dom";
+
 import { PositionStoreProvider } from "@/features/position/position_store_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 import { apiErrorHandler } from "@/lib/api";
-import { useParams } from "react-router-dom";
 
 const ViewPosition = lazy(
     () => import("@/features/position/view/view_position")

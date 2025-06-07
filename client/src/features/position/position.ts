@@ -66,6 +66,7 @@ interface Position {
     charges_as_percentage_of_net_pnl: DecimalString;
     open_quantity: DecimalString;
     open_average_price_amount: DecimalString;
+    broker_id: string | null;
 
     trades: Trade[] | null;
 }

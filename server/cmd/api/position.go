@@ -47,9 +47,7 @@ func createPositionHandler(s *position.Service) http.HandlerFunc {
 			return
 		}
 
-		payload.CreatedBy = userID
-
-		position, errKind, err := s.Create(ctx, payload)
+		position, errKind, err := s.Create(ctx, userID, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

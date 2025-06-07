@@ -63,18 +63,17 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeR
 
 type CreatePayload struct {
 	ComputePayload
-	CreatedBy uuid.UUID
 
 	Symbol     string                `json:"symbol"`
 	Instrument Instrument            `json:"instrument"`
 	Currency   currency.CurrencyCode `json:"currency"`
 }
 
-func (s *Service) Create(ctx context.Context, payload CreatePayload) (*Position, service.Error, error) {
+func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePayload) (*Position, service.Error, error) {
 	logger := logger.FromCtx(ctx)
 	var err error
 
-	position, err := new(payload)
+	position, err := new(userID, payload)
 	if err != nil {
 		return nil, service.ErrInternalServerError, err
 	}
@@ -493,7 +492,7 @@ func (s *Service) Get(ctx context.Context, userID, positionID uuid.UUID) (*Posit
 type UpdatePayload struct {
 	// We can just use the same payload as CreatePayload for updates.
 	CreatePayload
-	BrokerID uuid.UUID `json:"broker_id"`
+	BrokerID *uuid.UUID `json:"broker_id"`
 }
 
 // FIXME: We should figure out a way to use DB transactions.

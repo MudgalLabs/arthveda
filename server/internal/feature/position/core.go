@@ -56,7 +56,7 @@ type Position struct {
 	IsDuplicate bool `json:"is_duplicate"`
 }
 
-func new(payload CreatePayload) (*Position, error) {
+func new(userID uuid.UUID, payload CreatePayload) (*Position, error) {
 	now := time.Now().UTC()
 
 	positionID, err := uuid.NewV7()
@@ -82,7 +82,7 @@ func new(payload CreatePayload) (*Position, error) {
 
 	position := &Position{
 		ID:                          positionID,
-		CreatedBy:                   payload.CreatedBy,
+		CreatedBy:                   userID,
 		CreatedAt:                   now,
 		Symbol:                      payload.Symbol,
 		Instrument:                  payload.Instrument,
@@ -147,7 +147,7 @@ func (originalPosition *Position) update(payload UpdatePayload) (Position, error
 	updatedPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
 	updatedPosition.OpenQuantity = computeResult.OpenQuantity
 	updatedPosition.OpenAveragePriceAmount = computeResult.OpenAveragePriceAmount
-	updatedPosition.BrokerID = &payload.BrokerID
+	updatedPosition.BrokerID = payload.BrokerID
 
 	updatedPosition.Trades = trades
 
