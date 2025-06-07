@@ -1,10 +1,12 @@
 import { memo, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Decimal from "decimal.js";
 import {
     ColumnDef,
     getCoreRowModel,
     useReactTable,
 } from "@tanstack/react-table";
+
 import {
     Button,
     DataTable,
@@ -28,19 +30,16 @@ import {
     getDataTableCellUpdateFn,
     useDataTableEditableCell,
 } from "@/hooks/use_data_table_editable_cell";
-
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { formatDate, getElapsedTime, isSameDay } from "@/lib/utils";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
-import { NewTrade, Trade, TradeKind } from "@/features/trade/trade";
+import { CreateTrade, Trade, TradeKind } from "@/features/trade/trade";
 import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
-import { Link } from "@/components/link";
-import { ROUTES } from "@/routes_constants";
 import { apiErrorHandler } from "@/lib/api";
 import { DecimalString, Setter } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -52,37 +51,71 @@ import { ComputePositionResponse } from "@/lib/api/position";
 import { LoadingScreen } from "@/components/loading_screen";
 import {
     usePositionCanBeSaved,
-    usePositionCanBeDiscarded,
+    useHasPositionDataChanged,
     usePositionCanBeComputed,
     usePositionTradesAreValid,
+    useIsCreatingPosition,
+    useIsEditingPosition,
 } from "@/features/position/position_store";
 import { OverviewCard } from "@/features/dashboard/widget/overview_card";
+import { ROUTES } from "@/routes_constants";
 
 function AddPosition() {
-    const queryClient = useQueryClient();
+    const isCreatingPosition = useIsCreatingPosition();
+    const isEditingPosition = useIsEditingPosition();
 
-    const { mutateAsync: save, isPending: isSaving } =
+    const queryClient = useQueryClient();
+    const navigate = useNavigate();
+
+    const { mutateAsync: create, isPending: isCreating } =
         apiHooks.position.useCreate({
-            onSuccess: async () => {
+            onSuccess: async (res) => {
+                const positionID = res.data.data.position.id;
                 toast.success("Position Created", {
-                    description: (
-                        <p>
-                            Go to{" "}
-                            <Link
-                                to={ROUTES.positionList}
-                                className="text-inherit!"
-                            >
-                                Positions Tab
-                            </Link>{" "}
-                            to see your positions
-                        </p>
-                    ),
+                    action: {
+                        label: "View",
+                        onClick: () => {
+                            navigate(ROUTES.viewPosition(positionID));
+                        },
+                    },
                 });
 
                 discard();
                 queryClient.invalidateQueries({
                     queryKey: ["useGetDashboard"],
                 });
+                queryClient.invalidateQueries({
+                    queryKey: ["usePositionsSearch"],
+                });
+            },
+            onError: apiErrorHandler,
+        });
+
+    const { mutateAsync: update, isPending: isUpdating } =
+        apiHooks.position.useUpdate({
+            onSuccess: async () => {
+                toast.success("Position Updated");
+                queryClient.invalidateQueries({
+                    queryKey: ["useGetDashboard"],
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["usePositionsSearch"],
+                });
+            },
+            onError: apiErrorHandler,
+        });
+
+    const { mutateAsync: deletePosition, isPending: isDeleting } =
+        apiHooks.position.useDelete({
+            onSuccess: async () => {
+                toast.success("Position Deleted");
+                queryClient.invalidateQueries({
+                    queryKey: ["useGetDashboard"],
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["usePositionsSearch"],
+                });
+                navigate(ROUTES.positionList);
             },
             onError: apiErrorHandler,
         });
@@ -114,12 +147,12 @@ function AddPosition() {
     const [shouldCompute, setShouldCompute] = usePositionCanBeComputed();
     const canSave = usePositionCanBeSaved();
     const tradesAreValid = usePositionTradesAreValid();
-    const hasSomethingToDiscard = usePositionCanBeDiscarded();
+    const hasPositionDataChanged = useHasPositionDataChanged();
 
     const handleClickSave = () => {
         if (!canSave) return;
 
-        save({
+        const dataForCreate = {
             risk_amount: position.risk_amount || "0",
             symbol: position.symbol,
             instrument: position.instrument,
@@ -135,7 +168,18 @@ function AddPosition() {
                     charges_amount: t.charges_amount || "0",
                 };
             }),
-        });
+        };
+
+        const dataForUpdate = {
+            ...dataForCreate,
+            broker_id: position.broker_id,
+        };
+
+        if (isCreatingPosition) {
+            create(dataForCreate);
+        } else if (isEditingPosition) {
+            update({ id: position.id, body: dataForUpdate });
+        }
     };
 
     // FIXME: For some reason, the compute is being called twice on mount.
@@ -146,7 +190,7 @@ function AddPosition() {
             compute({
                 risk_amount: position.risk_amount || "0",
                 trades: (position.trades || []).map((t) => {
-                    const trade: NewTrade = {
+                    const trade: CreateTrade = {
                         kind: t.kind,
                         time: t.time,
                         quantity: t.quantity || "0",
@@ -287,19 +331,31 @@ function AddPosition() {
 
             <div className="h-10" />
 
-            <div className="flex flex-col justify-end gap-x-4 gap-y-2 sm:flex-row">
-                <DiscardButton
-                    hasSomethingToDiscard={hasSomethingToDiscard}
-                    discard={discard}
-                />
+            <div className="flex flex-col justify-between gap-x-12 sm:flex-row">
+                <div>
+                    <DeleteButton
+                        deletePosition={() => deletePosition(position.id)}
+                        isDeleting={isDeleting}
+                    />
+                </div>
 
-                <Button
-                    onClick={handleClickSave}
-                    loading={isSaving}
-                    disabled={!canSave}
-                >
-                    Save
-                </Button>
+                <div className="flex items-center gap-x-2">
+                    <DiscardButton
+                        hasSomethingToDiscard={hasPositionDataChanged}
+                        discard={discard}
+                    />
+
+                    <Button
+                        onClick={handleClickSave}
+                        loading={isCreating || isUpdating}
+                        disabled={
+                            (isCreatingPosition && !canSave) ||
+                            (isEditingPosition && !hasPositionDataChanged)
+                        }
+                    >
+                        Save
+                    </Button>
+                </div>
             </div>
         </>
     );
@@ -307,7 +363,7 @@ function AddPosition() {
 
 export default AddPosition;
 
-const columns: ColumnDef<NewTrade>[] = [
+const columns: ColumnDef<CreateTrade>[] = [
     {
         accessorKey: "kind",
         header: ({ column }) => (
@@ -648,6 +704,49 @@ const DiscardButton = memo(
                                 Discard
                             </Button>
                         </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        );
+    }
+);
+
+const DeleteButton = memo(
+    ({
+        deletePosition,
+        isDeleting,
+    }: {
+        deletePosition: () => Promise<void>;
+        isDeleting?: boolean;
+    }) => {
+        const [open, setOpen] = useState(false);
+
+        return (
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="destructive">Delete</Button>
+                </DialogTrigger>
+
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this position?
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={async () => {
+                                await deletePosition();
+                                setOpen(false);
+                            }}
+                            loading={isDeleting}
+                        >
+                            Delete
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

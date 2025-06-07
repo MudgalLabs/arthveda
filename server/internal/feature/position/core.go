@@ -3,6 +3,7 @@ package position
 import (
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/feature/trade"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -55,7 +56,7 @@ type Position struct {
 	IsDuplicate bool `json:"is_duplicate"`
 }
 
-func new(payload CreatePayload) (*Position, error) {
+func new(userID uuid.UUID, payload CreatePayload) (*Position, error) {
 	now := time.Now().UTC()
 
 	positionID, err := uuid.NewV7()
@@ -81,7 +82,7 @@ func new(payload CreatePayload) (*Position, error) {
 
 	position := &Position{
 		ID:                          positionID,
-		CreatedBy:                   payload.CreatedBy,
+		CreatedBy:                   userID,
 		CreatedAt:                   now,
 		Symbol:                      payload.Symbol,
 		Instrument:                  payload.Instrument,
@@ -103,6 +104,54 @@ func new(payload CreatePayload) (*Position, error) {
 	}
 
 	return position, nil
+}
+
+func (originalPosition *Position) update(payload UpdatePayload) (Position, error) {
+	now := time.Now().UTC()
+	updatedPosition := Position{
+		ID:        originalPosition.ID,
+		CreatedBy: originalPosition.CreatedBy,
+		CreatedAt: originalPosition.CreatedAt,
+		UpdatedAt: &now,
+	}
+
+	computeResult := Compute(payload.ComputePayload)
+
+	trades := []*trade.Trade{}
+
+	for _, tradePayload := range payload.Trades {
+		// Attach the Position's ID.
+		tradePayload.PositionID = originalPosition.ID
+
+		trade, err := trade.New(tradePayload)
+		if err != nil {
+			return updatedPosition, fmt.Errorf("create trade: %w", err)
+		}
+
+		trades = append(trades, trade)
+	}
+
+	updatedPosition.Symbol = payload.Symbol
+	updatedPosition.Instrument = payload.Instrument
+	updatedPosition.Currency = payload.Currency
+	updatedPosition.RiskAmount = payload.RiskAmount
+	updatedPosition.TotalChargesAmount = computeResult.TotalChargesAmount
+	updatedPosition.Direction = computeResult.Direction
+	updatedPosition.Status = computeResult.Status
+	updatedPosition.OpenedAt = computeResult.OpenedAt
+	updatedPosition.ClosedAt = computeResult.ClosedAt
+	updatedPosition.GrossPnLAmount = computeResult.GrossPnLAmount
+	updatedPosition.NetPnLAmount = computeResult.NetPnLAmount
+	updatedPosition.RFactor = computeResult.RFactor
+	updatedPosition.NetReturnPercentage = computeResult.NetReturnPercentage
+	updatedPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
+	updatedPosition.OpenQuantity = computeResult.OpenQuantity
+	updatedPosition.OpenAveragePriceAmount = computeResult.OpenAveragePriceAmount
+	updatedPosition.BrokerID = payload.BrokerID
+
+	updatedPosition.Trades = trades
+
+	return updatedPosition, nil
 }
 
 func Compute(payload ComputePayload) computeResult {

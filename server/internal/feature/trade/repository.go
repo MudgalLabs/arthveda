@@ -18,7 +18,8 @@ type Reader interface {
 }
 
 type Writer interface {
-	Create(ctx context.Context, trades []*Trade) ([]*Trade, error)
+	CreateForPosition(ctx context.Context, trades []*Trade) ([]*Trade, error)
+	DeleteByPositionID(ctx context.Context, positionID uuid.UUID) error
 }
 
 type ReadWriter interface {
@@ -42,7 +43,7 @@ func NewRepository(db *pgxpool.Pool) *tradeRepository {
 	return &tradeRepository{db}
 }
 
-func (r *tradeRepository) Create(ctx context.Context, trades []*Trade) ([]*Trade, error) {
+func (r *tradeRepository) CreateForPosition(ctx context.Context, trades []*Trade) ([]*Trade, error) {
 	if len(trades) == 0 {
 		return nil, nil
 	}
@@ -85,6 +86,28 @@ func (r *tradeRepository) Create(ctx context.Context, trades []*Trade) ([]*Trade
 	}
 
 	return trades, nil
+}
+
+func (r *tradeRepository) DeleteByPositionID(ctx context.Context, positionID uuid.UUID) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
+
+	defer tx.Rollback(ctx)
+
+	sql := `DELETE FROM trade WHERE position_id = $1`
+	_, err = tx.Exec(ctx, sql, positionID)
+
+	if err != nil {
+		return fmt.Errorf("delete: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+
+	return nil
 }
 
 func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error) {

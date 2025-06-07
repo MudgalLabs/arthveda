@@ -7,7 +7,7 @@ import {
     PositionInstrument,
     PositionStatus,
 } from "@/features/position/position";
-import { NewTrade } from "@/features/trade/trade";
+import { CreateTrade } from "@/features/trade/trade";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { ApiRes, client } from "@/lib/api/client";
 import {
@@ -19,7 +19,7 @@ import {
 
 export interface ComputePositionRequest {
     risk_amount: DecimalString;
-    trades: NewTrade[];
+    trades: CreateTrade[];
 }
 
 export interface ComputePositionResponse {
@@ -59,6 +59,25 @@ export function create(body: CreatePositionRequest) {
         API_ROUTES.position.create,
         body
     );
+}
+
+export interface UpdatePositionRequest extends CreatePositionRequest {
+    broker_id?: string | null;
+}
+
+export interface UpdatePositionResponse {
+    position: Position;
+}
+
+export function update(id: string, body: UpdatePositionRequest) {
+    return client.patch<UpdatePositionRequest, ApiRes<UpdatePositionResponse>>(
+        API_ROUTES.position.update(id),
+        body
+    );
+}
+
+export function deletePosition(id: string) {
+    return client.delete(API_ROUTES.position.deletePosition(id));
 }
 
 export interface PositionSearchFilters {

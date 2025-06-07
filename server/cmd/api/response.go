@@ -13,12 +13,6 @@ func successResponse(w http.ResponseWriter, r *http.Request, statusCode int, mes
 	writeJSONResponse(w, statusCode, apires.Success(statusCode, message, data))
 }
 
-func errorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string, errors []apires.ApiError) {
-	l := logger.FromCtx(r.Context())
-	l.Errorw("error response", "message", message, "error", errors)
-	writeJSONResponse(w, statusCode, apires.Error(statusCode, message, errors))
-}
-
 func internalServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
 	l.Errorw("internal error response", "error", err.Error())

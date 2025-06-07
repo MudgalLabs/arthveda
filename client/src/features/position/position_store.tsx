@@ -13,6 +13,8 @@ import { Setter } from "@/lib/types";
 import { usePositionStore } from "./position_store_context";
 import { useDebounce } from "@/hooks/use_debounce";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { ROUTES } from "@/routes_constants";
 
 interface State {
     position: Position;
@@ -53,6 +55,7 @@ const defaultState: State = {
         charges_as_percentage_of_net_pnl: "0",
         open_quantity: "0",
         open_average_price_amount: "0",
+        broker_id: null,
         trades: [],
     },
 };
@@ -178,7 +181,7 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
     return [flag, setFlag];
 }
 
-export function usePositionCanBeDiscarded(): boolean {
+export function useHasPositionDataChanged(): boolean {
     const position = usePositionStore((s) => s.position);
     const initialPosition = usePositionStore((s) => s.initialPosition);
 
@@ -205,6 +208,19 @@ export function usePositionCanBeSaved(): boolean {
             validateTrades(position.trades),
         [position]
     );
+}
+
+export function useIsCreatingPosition(): boolean {
+    const location = useLocation();
+    // If the current path is the add position route, then we are creating a new position.
+    return location.pathname === ROUTES.addPosition;
+}
+
+export function useIsEditingPosition(): boolean {
+    const position = usePositionStore((s) => s.position);
+    const location = useLocation();
+    // If the position ID is present in the URL, then we are editing.
+    return location.pathname.includes(position.id);
 }
 
 function validateTrades(trades: Trade[] = []) {

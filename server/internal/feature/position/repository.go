@@ -20,7 +20,8 @@ type Reader interface {
 
 type Writer interface {
 	Create(ctx context.Context, position *Position) error
-	Delete(ctx context.Context, ID uuid.UUID) error
+	Update(ctx context.Context, position *Position) error
+	Delete(ctx context.Context, position *Position) error
 }
 
 type ReadWriter interface {
@@ -160,13 +161,71 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 	return nil
 }
 
-func (r *positionRepository) Delete(ctx context.Context, ID uuid.UUID) error {
+func (r *positionRepository) Update(ctx context.Context, position *Position) error {
+	const sql = `
+        UPDATE position
+        SET
+            created_by = @created_by,
+            created_at = @created_at,
+            updated_at = @updated_at,
+            symbol = @symbol,
+            instrument = @instrument,
+            currency = @currency,
+            risk_amount = @risk_amount,
+            total_charges_amount = @total_charges_amount,
+            direction = @direction,
+            status = @status,
+            opened_at = @opened_at,
+            closed_at = @closed_at,
+            gross_pnl_amount = @gross_pnl_amount,
+            net_pnl_amount = @net_pnl_amount,
+            r_factor = @r_factor,
+            net_return_percentage = @net_return_percentage,
+            charges_as_percentage_of_net_pnl = @charges_as_percentage_of_net_pnl,
+            open_quantity = @open_quantity,
+            open_average_price_amount = @open_average_price_amount,
+            broker_id = @broker_id
+        WHERE id = @id
+    `
+
+	_, err := r.db.Exec(ctx, sql, pgx.NamedArgs{
+		"id":                               position.ID,
+		"created_by":                       position.CreatedBy,
+		"created_at":                       position.CreatedAt,
+		"updated_at":                       position.UpdatedAt,
+		"symbol":                           position.Symbol,
+		"instrument":                       position.Instrument,
+		"currency":                         position.Currency,
+		"risk_amount":                      position.RiskAmount,
+		"total_charges_amount":             position.TotalChargesAmount,
+		"direction":                        position.Direction,
+		"status":                           position.Status,
+		"opened_at":                        position.OpenedAt,
+		"closed_at":                        position.ClosedAt,
+		"gross_pnl_amount":                 position.GrossPnLAmount,
+		"net_pnl_amount":                   position.NetPnLAmount,
+		"r_factor":                         position.RFactor,
+		"net_return_percentage":            position.NetReturnPercentage,
+		"charges_as_percentage_of_net_pnl": position.ChargesAsPercentageOfNetPnL,
+		"open_quantity":                    position.OpenQuantity,
+		"open_average_price_amount":        position.OpenAveragePriceAmount,
+		"broker_id":                        position.BrokerID,
+	})
+
+	if err != nil {
+		return fmt.Errorf("sql exec: %w", err)
+	}
+
+	return nil
+}
+
+func (r *positionRepository) Delete(ctx context.Context, position *Position) error {
 	const sql = `
         DELETE FROM position
         WHERE id = @id
     `
 
-	_, err := r.db.Exec(ctx, sql, pgx.NamedArgs{"id": ID})
+	_, err := r.db.Exec(ctx, sql, pgx.NamedArgs{"id": position.ID})
 	if err != nil {
 		return fmt.Errorf("sql exec: %w", err)
 	}
@@ -201,6 +260,8 @@ func (r *positionRepository) GetByID(ctx context.Context, createdBy, positionID 
 	return positions[0], nil
 }
 
+// TODO: Pass a flag argument like `attach_trades` and if true, we fetch the trades in the same query
+// append it to the `Position.Trades` slice.
 func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload) ([]*Position, int, error) {
 	baseSQL := `
 		SELECT
