@@ -17,6 +17,7 @@ import {
     ImportPositionsResponse,
     GetPositionResponse,
     UpdatePositionRequest,
+    UpdatePositionResponse,
 } from "@/lib/api/position";
 
 export function useCompute(options: AnyUseMutationOptions = {}) {
@@ -49,7 +50,7 @@ export function useCreate(options: AnyUseMutationOptions = {}) {
 
 export function useUpdate(options: AnyUseMutationOptions = {}) {
     return useMutation<
-        ApiRes<null>,
+        ApiRes<UpdatePositionResponse>,
         unknown,
         { id: string; body: UpdatePositionRequest },
         unknown
@@ -62,6 +63,15 @@ export function useUpdate(options: AnyUseMutationOptions = {}) {
             body: UpdatePositionRequest;
         }) => {
             return api.position.update(id, body);
+        },
+        ...options,
+    });
+}
+
+export function useDelete(options: AnyUseMutationOptions = {}) {
+    return useMutation({
+        mutationFn: (id: string) => {
+            return api.position.deletePosition(id);
         },
         ...options,
     });

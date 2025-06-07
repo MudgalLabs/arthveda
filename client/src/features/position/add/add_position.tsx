@@ -70,10 +70,6 @@ function AddPosition() {
     const { mutateAsync: create, isPending: isCreating } =
         apiHooks.position.useCreate({
             onSuccess: async (res) => {
-                console.log("Position created", {
-                    id: res.data.data.position.id,
-                });
-
                 const positionID = res.data.data.position.id;
                 toast.success("Position Created", {
                     action: {
@@ -88,6 +84,9 @@ function AddPosition() {
                 queryClient.invalidateQueries({
                     queryKey: ["useGetDashboard"],
                 });
+                queryClient.invalidateQueries({
+                    queryKey: ["usePositionsSearch"],
+                });
             },
             onError: apiErrorHandler,
         });
@@ -99,6 +98,24 @@ function AddPosition() {
                 queryClient.invalidateQueries({
                     queryKey: ["useGetDashboard"],
                 });
+                queryClient.invalidateQueries({
+                    queryKey: ["usePositionsSearch"],
+                });
+            },
+            onError: apiErrorHandler,
+        });
+
+    const { mutateAsync: deletePosition, isPending: isDeleting } =
+        apiHooks.position.useDelete({
+            onSuccess: async () => {
+                toast.success("Position Deleted");
+                queryClient.invalidateQueries({
+                    queryKey: ["useGetDashboard"],
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["usePositionsSearch"],
+                });
+                navigate(ROUTES.positionList);
             },
             onError: apiErrorHandler,
         });
@@ -314,22 +331,31 @@ function AddPosition() {
 
             <div className="h-10" />
 
-            <div className="flex flex-col justify-end gap-x-4 gap-y-2 sm:flex-row">
-                <DiscardButton
-                    hasSomethingToDiscard={hasPositionDataChanged}
-                    discard={discard}
-                />
+            <div className="flex flex-col justify-between gap-x-12 sm:flex-row">
+                <div>
+                    <DeleteButton
+                        deletePosition={() => deletePosition(position.id)}
+                        isDeleting={isDeleting}
+                    />
+                </div>
 
-                <Button
-                    onClick={handleClickSave}
-                    loading={isCreating || isUpdating}
-                    disabled={
-                        (isCreatingPosition && !canSave) ||
-                        (isEditingPosition && !hasPositionDataChanged)
-                    }
-                >
-                    Save
-                </Button>
+                <div className="flex items-center gap-x-2">
+                    <DiscardButton
+                        hasSomethingToDiscard={hasPositionDataChanged}
+                        discard={discard}
+                    />
+
+                    <Button
+                        onClick={handleClickSave}
+                        loading={isCreating || isUpdating}
+                        disabled={
+                            (isCreatingPosition && !canSave) ||
+                            (isEditingPosition && !hasPositionDataChanged)
+                        }
+                    >
+                        Save
+                    </Button>
+                </div>
             </div>
         </>
     );
@@ -678,6 +704,49 @@ const DiscardButton = memo(
                                 Discard
                             </Button>
                         </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        );
+    }
+);
+
+const DeleteButton = memo(
+    ({
+        deletePosition,
+        isDeleting,
+    }: {
+        deletePosition: () => Promise<void>;
+        isDeleting?: boolean;
+    }) => {
+        const [open, setOpen] = useState(false);
+
+        return (
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="destructive">Delete</Button>
+                </DialogTrigger>
+
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this position?
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={async () => {
+                                await deletePosition();
+                                setOpen(false);
+                            }}
+                            loading={isDeleting}
+                        >
+                            Delete
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

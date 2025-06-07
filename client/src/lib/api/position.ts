@@ -51,9 +51,7 @@ export interface CreatePositionRequest extends ComputePositionRequest {
 }
 
 export interface CreatePositionResponse {
-    symbol: string;
-    instrument: PositionInstrument;
-    currency: CurrencyCode;
+    position: Position;
 }
 
 export function create(body: CreatePositionRequest) {
@@ -67,11 +65,19 @@ export interface UpdatePositionRequest extends CreatePositionRequest {
     broker_id?: string | null;
 }
 
+export interface UpdatePositionResponse {
+    position: Position;
+}
+
 export function update(id: string, body: UpdatePositionRequest) {
-    return client.patch<UpdatePositionRequest, ApiRes<null>>(
+    return client.patch<UpdatePositionRequest, ApiRes<UpdatePositionResponse>>(
         API_ROUTES.position.update(id),
         body
     );
+}
+
+export function deletePosition(id: string) {
+    return client.delete(API_ROUTES.position.deletePosition(id));
 }
 
 export interface PositionSearchFilters {

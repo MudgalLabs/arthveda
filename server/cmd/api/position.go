@@ -125,12 +125,6 @@ func deletePositionHandler(s *position.Service) http.HandlerFunc {
 			return
 		}
 
-		var payload position.UpdatePayload
-		if err := decodeJSONRequest(&payload, r); err != nil {
-			malformedJSONResponse(w, r, err)
-			return
-		}
-
 		errKind, err := s.Delete(ctx, userID, positionID)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
