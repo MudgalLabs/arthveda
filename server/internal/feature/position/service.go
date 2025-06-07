@@ -84,10 +84,10 @@ func (s *Service) Create(ctx context.Context, payload CreatePayload) (*Position,
 		return nil, service.ErrInternalServerError, err
 	}
 
-	trades, err := s.tradeRepository.Create(ctx, position.Trades)
+	trades, err := s.tradeRepository.CreateForPosition(ctx, position.Trades)
 	if err != nil {
 		logger.Errorw("failed to create trades after creating a position, so deleting the position that was created", "error", err, "position_id", position.ID)
-		s.positionRepository.Delete(ctx, position.ID)
+		s.positionRepository.Delete(ctx, position)
 		return nil, service.ErrInternalServerError, err
 	}
 
@@ -440,9 +440,10 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			}
 
 			// Create the trades in the database
-			_, err = s.tradeRepository.Create(ctx, position.Trades)
+			_, err = s.tradeRepository.CreateForPosition(ctx, position.Trades)
 			if err != nil {
-				s.positionRepository.Delete(ctx, position.ID)
+				// Delete the position if trades creation fails.
+				s.positionRepository.Delete(ctx, position)
 				return nil, service.ErrInternalServerError, err
 			}
 
@@ -487,4 +488,89 @@ func (s *Service) Get(ctx context.Context, userID, positionID uuid.UUID) (*Posit
 	position.Trades = trades
 
 	return position, service.ErrNone, nil
+}
+
+type UpdatePayload struct {
+	// We can just use the same payload as CreatePayload for updates.
+	CreatePayload
+	BrokerID uuid.UUID `json:"broker_id"`
+}
+
+// FIXME: We should figure out a way to use DB transactions.
+func (s *Service) Update(ctx context.Context, userID, positionID uuid.UUID, payload UpdatePayload) (*Position, service.Error, error) {
+	l := logger.FromCtx(ctx)
+
+	originalPosition, err := s.positionRepository.GetByID(ctx, userID, positionID)
+	if err != nil || originalPosition == nil {
+		if err == repository.ErrNotFound {
+			return nil, service.ErrNotFound, fmt.Errorf("Position not found with ID: %s", positionID)
+		}
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get position by ID: %w", err)
+	}
+
+	if originalPosition.CreatedBy != userID {
+		return nil, service.ErrUnauthorized, fmt.Errorf("user is not allowed to update position %s", positionID)
+	}
+
+	// Update the position fields, including trades.
+	updatedPosition, err := originalPosition.update(payload)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to update position: %w", err)
+	}
+
+	// Delete existing trades for the position.
+	// This is necessary because we are replacing all trades with the new ones. Simple and effective.
+	err = s.tradeRepository.DeleteByPositionID(ctx, positionID)
+	if err != nil {
+		l.Errorw("failed to delete trades for position", "error", err, "position_id", originalPosition.ID)
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to delete trades for position: %w", err)
+	}
+
+	// Create new trades for the position.
+	trades, err := s.tradeRepository.CreateForPosition(ctx, updatedPosition.Trades)
+	if err != nil {
+		l.Errorw("failed to create trades for position", "error", err, "position_id", originalPosition.ID)
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to create new trades for position: %w", err)
+	}
+
+	// Attach the newly created trades to the updated position.
+	updatedPosition.Trades = trades
+
+	// Save the updated position in the repository.
+	err = s.positionRepository.Update(ctx, &updatedPosition)
+	if err != nil {
+		l.Errorw("failed to update position in repository", "error", err, "position_id", originalPosition.ID)
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to update position in repository: %w", err)
+	}
+
+	return &updatedPosition, service.ErrNone, nil
+}
+
+// FIXME: We should figure out a way to use DB transactions.
+func (s *Service) Delete(ctx context.Context, userID, positionID uuid.UUID) (service.Error, error) {
+	position, err := s.positionRepository.GetByID(ctx, userID, positionID)
+	if err != nil || position == nil {
+		if err == repository.ErrNotFound {
+			return service.ErrNotFound, fmt.Errorf("Position not found with ID: %s", positionID)
+		}
+		return service.ErrInternalServerError, fmt.Errorf("failed to get position by ID: %w", err)
+	}
+
+	if position.CreatedBy != userID {
+		return service.ErrUnauthorized, fmt.Errorf("user is not allowed to delete position %s", positionID)
+	}
+
+	// Delete trades associated with the position.
+	err = s.tradeRepository.DeleteByPositionID(ctx, positionID)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("failed to delete trades for position: %w", err)
+	}
+
+	// Delete the position itself.
+	err = s.positionRepository.Delete(ctx, position)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("failed to delete position: %w", err)
+	}
+
+	return service.ErrNone, nil
 }

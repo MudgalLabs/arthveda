@@ -55,7 +55,7 @@ func createPositionHandler(s *position.Service) http.HandlerFunc {
 			return
 		}
 
-		successResponse(w, r, http.StatusCreated, "Position created successfully", position)
+		successResponse(w, r, http.StatusCreated, "Position created successfully", map[string]any{"position": position})
 	}
 }
 
@@ -80,6 +80,66 @@ func getPositionHandler(s *position.Service) http.HandlerFunc {
 		}
 
 		successResponse(w, r, http.StatusCreated, "", map[string]any{"position": position})
+	}
+}
+
+func updatePositionHandler(s *position.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		l := logger.FromCtx(ctx)
+		userID := getUserIDFromContext(ctx)
+		id := chi.URLParam(r, "id")
+
+		positionID, err := uuid.Parse(id)
+		if err != nil {
+			l.Warnw("Invalid position ID", "id", id, "error", err.Error())
+			badRequestResponse(w, r, errors.New("Invalid position ID"))
+			return
+		}
+
+		var payload position.UpdatePayload
+		if err := decodeJSONRequest(&payload, r); err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		position, errKind, err := s.Update(ctx, userID, positionID, payload)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, "", map[string]any{"position": position})
+	}
+}
+
+func deletePositionHandler(s *position.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		l := logger.FromCtx(ctx)
+		userID := getUserIDFromContext(ctx)
+		id := chi.URLParam(r, "id")
+
+		positionID, err := uuid.Parse(id)
+		if err != nil {
+			l.Warnw("Invalid position ID", "id", id, "error", err.Error())
+			badRequestResponse(w, r, errors.New("Invalid position ID"))
+			return
+		}
+
+		var payload position.UpdatePayload
+		if err := decodeJSONRequest(&payload, r); err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		errKind, err := s.Delete(ctx, userID, positionID)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, "Position deleted successfully", nil)
 	}
 }
 
