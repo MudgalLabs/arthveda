@@ -23,17 +23,15 @@ var (
 )
 
 func IsProd() bool {
-	if APP_ENV == "" {
-		panic("APP_ENV is not set. Did you call env.Init()? Make sure you have set the APP_ENV in your .env file?")
-	}
 	return APP_ENV == "production"
 }
 
+// When running in Docker, the environment variables are loaded by Docker from .env at the root.
 func Init() {
+
+	// We load the .env file from the parent directory just in case we are running in development mode.
+	// This is because the .env file is in the root of the project.
 	err := godotenv.Load("../.env")
-	if err != nil {
-		panic("error loading .env file: " + err.Error())
-	}
 
 	APP_ENV = os.Getenv("GO_APP_ENV")
 	PORT = os.Getenv("GO_PORT")
@@ -48,4 +46,13 @@ func Init() {
 	DB_URL = os.Getenv("DB_URL")
 	GOOGLE_CLIENT_ID = os.Getenv("GOOGLE_CLIENT_ID")
 	GOOGLE_CLIENT_SECRET = os.Getenv("GOOGLE_CLIENT_SECRET")
+
+	// If APP_ENV is not set, we either missed it in the .env file or the .env file was not loaded
+	// by Docker or by the application above. That's why we check if APP_ENV is empty, then
+	// if we got error loading the .env file, if both are true, we panic with an error message.
+	if APP_ENV == "" {
+		if err != nil {
+			panic("Error loading .env file: " + err.Error())
+		}
+	}
 }
