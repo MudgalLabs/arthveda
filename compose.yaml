@@ -26,11 +26,9 @@ services:
             GO_JWT_SECRET: ${GO_JWT_SECRET}
             GO_LOG_LEVEL: ${GO_LOG_LEVEL}
             GO_LOG_FILE: ${GO_LOG_FILE}
-            DB_HOST: ${DB_HOST}
-            DB_PORT: ${DB_PORT}
-            DB_NAME: ${DB_NAME}
-            DB_USER: ${DB_USER}
-            DB_PASSWORD: ${DB_PASSWORD}
+            DB_URL: ${DB_URL}
+            GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
         ports:
             - "${GO_PORT}:${GO_PORT}"
         networks:

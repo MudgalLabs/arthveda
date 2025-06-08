@@ -4,7 +4,6 @@ import (
 	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"context"
-	"fmt"
 	"log"
 
 	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
@@ -14,10 +13,9 @@ import (
 
 func Init() (*pgxpool.Pool, error) {
 	l := logger.Get()
+
+	connectionStr := env.DB_URL
 	l.Info("connecting to database")
-
-	connectionStr := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable", env.DB_HOST, env.DB_PORT, env.DB_NAME, env.DB_USER, env.DB_PASSWORD)
-
 	l.Debug("conectionStr: ", connectionStr)
 
 	config, err := pgxpool.ParseConfig(connectionStr)
