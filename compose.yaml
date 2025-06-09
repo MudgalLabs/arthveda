@@ -27,6 +27,8 @@ services:
             GO_LOG_LEVEL: ${GO_LOG_LEVEL}
             GO_LOG_FILE: ${GO_LOG_FILE}
             DB_URL: ${DB_URL}
+            FRONTEND_URL: ${FRONTEND_URL}
+            GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL}
             GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
             GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
         ports:

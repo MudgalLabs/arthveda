@@ -12,17 +12,24 @@ import (
 var GoogleConfig *oauth2.Config
 
 func InitGoogle() {
+	redirectURL := env.GOOGLE_REDIRECT_URL
 	clientID := env.GOOGLE_CLIENT_ID
 	clientSecret := env.GOOGLE_CLIENT_SECRET
 
+	// TOOD: Move this check to `env.go`
 	if clientID == "" || clientSecret == "" {
-		panic("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in environment variables")
+		panic("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET is not set in environment variables")
+	}
+
+	// TOOD: Move this check to `env.go`
+	if redirectURL == "" {
+		panic("GOOGLE_REDIRECT_URL is not set in environment variables")
 	}
 
 	GoogleConfig = &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		RedirectURL:  "http://localhost:1337/v1/auth/oauth/google/callback",
+		RedirectURL:  redirectURL,
 		Scopes:       []string{"email", "profile"},
 		Endpoint:     google.Endpoint,
 	}

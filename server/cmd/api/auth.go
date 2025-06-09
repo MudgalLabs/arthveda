@@ -1,6 +1,7 @@
 package main
 
 import (
+	"arthveda/internal/env"
 	"arthveda/internal/feature/user_identity"
 	"arthveda/internal/logger"
 	"arthveda/internal/oauth"
@@ -92,11 +93,17 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 		ctx := r.Context()
 		l := logger.FromCtx(ctx)
 
+		frontendURL := env.FRONTEND_URL
+
+		if frontendURL == "" {
+			panic("FRONTEND_URL is not set in environment variables")
+		}
+
 		code := r.URL.Query().Get("code")
 
 		if code == "" {
 			l.Error("Missing code parameter in OAuth callback")
-			http.Redirect(w, r, "http://localhost:6969/sign-in?oauth_error=true", http.StatusFound)
+			http.Redirect(w, r, frontendURL+"/sign-in?oauth_error=true", http.StatusFound)
 			return
 		}
 
@@ -116,7 +123,7 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 			}
 
 			http.SetCookie(w, &cookie)
-			http.Redirect(w, r, "http://localhost:6969/sign-in?oauth_error=true", http.StatusFound)
+			http.Redirect(w, r, frontendURL+"/sign-in?oauth_error=true", http.StatusFound)
 			return
 		}
 
@@ -132,6 +139,6 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 		}
 
 		http.SetCookie(w, &cookie)
-		http.Redirect(w, r, "http://localhost:6969/dashboard", http.StatusFound)
+		http.Redirect(w, r, frontendURL+"/dashboard", http.StatusFound)
 	}
 }
