@@ -13,6 +13,12 @@ func successResponse(w http.ResponseWriter, r *http.Request, statusCode int, mes
 	writeJSONResponse(w, statusCode, apires.Success(statusCode, message, data))
 }
 
+func errorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string, err error) {
+	l := logger.FromCtx(r.Context())
+	l.Infow("error response", "message", message, "error", err)
+	writeJSONResponse(w, statusCode, apires.ErrorSimple(statusCode, message))
+}
+
 func internalServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
 	l.Errorw("internal error response", "error", err.Error())
@@ -39,7 +45,7 @@ func invalidInputResponse(w http.ResponseWriter, r *http.Request, errs service.I
 
 func conflictResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
-	l.Warnw("conflict response", "error", err)
+	l.Infow("conflict response", "error", err)
 	writeJSONResponse(w, http.StatusConflict, apires.Error(http.StatusConflict, err.Error(), nil))
 }
 
@@ -51,7 +57,7 @@ func notFoundResponse(w http.ResponseWriter, r *http.Request, err error) {
 
 func unauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, message string, err error) {
 	l := logger.FromCtx(r.Context())
-	l.Warnw("error response", "message", message, "error", err)
+	l.Warnw("unauthorized response", "message", message, "error", err)
 
 	msg := "unauthorized"
 	if message != "" {
@@ -67,7 +73,7 @@ func serviceErrResponse(w http.ResponseWriter, r *http.Request, errKind service.
 
 	// Just a safety net.
 	if err == nil || errKind == service.ErrNone {
-		l.DPanicw("errKind and/or err is not present", "error", err, "errKind", errKind)
+		l.Errorw("errKind and/or err is not present", "error", err, "errKind", errKind)
 		return
 	}
 

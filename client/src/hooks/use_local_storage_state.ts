@@ -1,6 +1,6 @@
 import {
     loadFromLocalStorage,
-    LocalStorageKey,
+    PersistKey,
     saveToLocalStorage,
 } from "@/lib/utils";
 import { isFunction } from "@tanstack/react-table";
@@ -15,7 +15,7 @@ interface Options<T> {
 
 export function useLocalStorageState<T>(
     /** Unique key that will be used to persist state in LocalStorage. */
-    key: LocalStorageKey,
+    key: PersistKey,
     /**
      * Default value to fallback to in case we don't have anything stored
      * in the LocalStorage. This can also be considered as initial state.

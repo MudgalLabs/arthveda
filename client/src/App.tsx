@@ -9,18 +9,51 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import "@/index.css";
 
-import { useAuthentication } from "@/features/auth/auth_context";
 import { ToastProvider } from "@/components/toast";
-import { AuthenticationProvider } from "@/features/auth/auth_context";
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/routes_constants";
+import { useAuthStore } from "@/features/auth/auth_store";
+import { apiHooks } from "@/hooks/api_hooks";
+import { useEffectOnce } from "@/hooks/use_effect_once";
+import { apiErrorHandler } from "@/lib/api";
 
 const AppLayout = lazy(() => import("@/app_layout"));
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
-    const { isAuthenticated, isLoading } = useAuthentication();
+    const accessToken = useAuthStore((s) => s.accessToken);
+    const setUser = useAuthStore((s) => s.setUser);
+    const isLoading = useAuthStore((s) => s.isLoading);
+    const setIsLoading = useAuthStore((s) => s.setIsLoading);
+
     const { pathname } = useLocation();
+    const { data, isSuccess, isError, error } = apiHooks.user.useMe();
+
+    useEffectOnce(
+        (deps) => {
+            if (deps.isError && deps.error) {
+                apiErrorHandler(error);
+                setIsLoading(false);
+            }
+        },
+        { isError, error },
+        (deps) => {
+            return deps.isError;
+        }
+    );
+
+    useEffectOnce(
+        (deps) => {
+            if (deps.isSuccess && deps.data) {
+                setUser(deps.data.data);
+                setIsLoading(false);
+            }
+        },
+        { isSuccess, data },
+        (deps) => {
+            return deps.isSuccess;
+        }
+    );
 
     if (isLoading) {
         return (
@@ -33,14 +66,14 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     // The user is not signed in and is trying to access a protected route
     // or going to home('/') page. There is no home route.
     if (
-        !isAuthenticated &&
+        !accessToken &&
         (ROUTES_PROTECTED.includes(pathname) || pathname == ROUTES.index)
     ) {
         // Redirect user to signin screen.
         return <Navigate to={ROUTES.signIn} />;
     }
 
-    if (isAuthenticated) {
+    if (accessToken) {
         // The user is trying to go to home(`/`) or to the auth flow route.
         // We should redirect the user to `/dashboard` as they are signed in.
         if (ROUTES_PUBLIC.includes(pathname)) {
@@ -68,17 +101,16 @@ export default function App() {
                 hooks and state. */}
             <ToastProvider />
 
-            <AuthenticationProvider>
-                <SidebarProvider>
-                    <TooltipPrimitive.TooltipProvider>
-                        <Suspense fallback={<LoadingScreen />}>
-                            <RouteHandler>
-                                <Outlet />
-                            </RouteHandler>
-                        </Suspense>
-                    </TooltipPrimitive.TooltipProvider>
-                </SidebarProvider>
-            </AuthenticationProvider>
+            <SidebarProvider>
+                <TooltipPrimitive.TooltipProvider>
+                    <Suspense fallback={<LoadingScreen />}>
+                        <RouteHandler>
+                            <Outlet />
+                        </RouteHandler>
+                    </Suspense>
+                </TooltipPrimitive.TooltipProvider>
+            </SidebarProvider>
+
             <ScrollRestoration />
         </Fragment>
     );
