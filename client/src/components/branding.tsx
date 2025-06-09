@@ -4,12 +4,19 @@ import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
 
 interface BrandingProps {
-    size?: "small" | "default" | "large";
     className?: string;
+    size?: "small" | "default" | "large";
+    hideText?: boolean;
+    hideLogo?: boolean;
 }
 
 export const Branding: FC<BrandingProps> = (props) => {
-    const { className, size = "default" } = props;
+    const {
+        className,
+        size = "default",
+        hideLogo = false,
+        hideText = false,
+    } = props;
 
     const classes = {
         small: {
@@ -33,8 +40,12 @@ export const Branding: FC<BrandingProps> = (props) => {
                 className
             )}
         >
-            <Logo size={classes[size].logo} />
-            <h1 className={" " + classes[size].text}>arthveda</h1>
+            {!hideLogo && <Logo size={classes[size].logo} />}
+            {!hideText && (
+                <h1 className={cn("leading-0!", classes[size].text)}>
+                    arthveda
+                </h1>
+            )}
         </div>
     );
 };

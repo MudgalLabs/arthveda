@@ -242,7 +242,7 @@ function WelcomeMessageForNewUser() {
     return (
         <div className="jusify-center mt-20 flex flex-col items-center">
             <div className="flex flex-col gap-y-4">
-                <p>Hey {data.display_name},</p>
+                <p>Hey {data.name},</p>
                 <p>
                     Looks like you are new here and have no{" "}
                     <Link className="text-base!" to={ROUTES.positionList}>

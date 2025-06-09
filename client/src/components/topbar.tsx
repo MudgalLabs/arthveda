@@ -1,6 +1,6 @@
 import { Button } from "@/s8ly";
 import { useSidebar } from "@/components/sidebar/sidebar_context";
-import { IconImport, IconPlus, IconSidebarToggle } from "@/components/icons";
+import { IconSidebarToggle } from "@/components/icons";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
 import { Tooltip } from "@/s8ly";
@@ -32,21 +32,6 @@ export const Topbar = () => {
 
                 <Link to={ROUTES.dashboard} variant="unstyled">
                     <Branding className="hidden sm:inline-flex" size="small" />
-                </Link>
-            </div>
-
-            <div className="mr-4 inline-flex gap-x-4">
-                <Link to={ROUTES.addPosition}>
-                    <Button variant="secondary" size="small">
-                        <IconPlus size={18} /> Add Position
-                    </Button>
-                </Link>
-
-                <Link to={ROUTES.importPositions}>
-                    <Button variant="secondary" size="small">
-                        <IconImport size={18} />
-                        Import Positions
-                    </Button>
                 </Link>
             </div>
         </div>

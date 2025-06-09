@@ -3,9 +3,7 @@
 CREATE TABLE IF NOT EXISTS user_identity (
         id UUID PRIMARY KEY,
         email VARCHAR(255) NOT NULL UNIQUE,
-        password_hash TEXT NOT NULL,
         verified BOOLEAN NOT NULL,
-        failed_login_attempts INT NOT NULL,
         last_login_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL,
         updated_at TIMESTAMPTZ
@@ -14,8 +12,8 @@ CREATE TABLE IF NOT EXISTS user_identity (
 CREATE TABLE IF NOT EXISTS user_profile (
         user_id UUID PRIMARY KEY UNIQUE REFERENCES user_identity(id),
         email VARCHAR(255) NOT NULL UNIQUE,
-        display_name VARCHAR(255) NOT NULL,
-        display_image TEXT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        avatar_url TEXT,
         created_at TIMESTAMPTZ NOT NULL,
         updated_at TIMESTAMPTZ
 );
@@ -28,7 +26,7 @@ CREATE TABLE IF NOT EXISTS broker (
 INSERT INTO broker (id, name) VALUES (gen_random_uuid(), 'Zerodha');
 INSERT INTO broker (id, name) VALUES (gen_random_uuid(), 'Groww');
 
-CREATE TYPE POSITION_INSTRUMENT AS ENUM('equity','future','option');
+CREATE TYPE POSITION_INSTRUMENT AS ENUM('equity');
 
 CREATE TYPE POSITION_DIRECTION AS ENUM('long','short');
 
@@ -83,8 +81,8 @@ DROP TYPE POSITION_DIRECTION CASCADE;
 DROP TYPE POSITION_STATUS CASCADE;
 DROP TYPE TRADE_KIND CASCADE;
 
--- DROP TABLE user_identity CASCADE;
--- DROP TABLE user_profile CASCADE;
+DROP TABLE user_identity CASCADE;
+DROP TABLE user_profile CASCADE;
 DROP TABLE position CASCADE;
 DROP TABLE trade CASCADE;
 DROP TABLE broker CASCADE;

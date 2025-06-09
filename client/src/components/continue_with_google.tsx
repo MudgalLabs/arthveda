@@ -20,16 +20,17 @@ export const ContinueWithGoogle: FC<ContinueWithGoogleProps> = (props) => {
     }
 
     return (
-        <a href={googleOAuthURL}>
-            <Button
-                variant="secondary"
-                type="button"
-                className={cn("h-10 w-full!", className)}
-                {...rest}
-            >
-                <Google />
-                Continue with Google
-            </Button>
-        </a>
+        <Button
+            variant="secondary"
+            type="button"
+            className={cn("", className)}
+            onClick={() => {
+                window.location.assign(googleOAuthURL);
+            }}
+            {...rest}
+        >
+            <Google />
+            Continue with Google
+        </Button>
     );
 };

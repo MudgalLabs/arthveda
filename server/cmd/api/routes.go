@@ -41,12 +41,9 @@ func initRouter(a *app) http.Handler {
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/sign-up", signUpHandler(a.service.UserIdentityService))
-			r.Post("/sign-in", signInHandler(a.service.UserIdentityService))
-			r.Post("/sign-out", signOutHandler(a.service.UserIdentityService))
-
 			r.Get("/oauth/google", googleSignInHandler(a.service.UserIdentityService))
 			r.Get("/oauth/google/callback", googleCallbackHandler(a.service.UserIdentityService))
+			r.Post("/sign-out", signOutHandler(a.service.UserIdentityService))
 		})
 
 		r.Route("/brokers", func(r chi.Router) {

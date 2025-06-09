@@ -4,7 +4,6 @@ import { ROUTES } from "@/routes_constants";
 // Public
 import NotFoundLazy from "@/features/not_found/not_found_lazy";
 import SignInLazy from "@/features/auth/sign_in/sign_in_lazy";
-import SignUpLazy from "@/features/auth/sign_up/sign_up_lazy";
 
 // Protected
 import DashboardLazy from "@/features/dashboard/dashboard_lazy";
@@ -29,10 +28,6 @@ export const routes: Array<RouteObject> = [
     {
         path: ROUTES.signIn,
         element: <SignInLazy />,
-    },
-    {
-        path: ROUTES.signUp,
-        element: <SignUpLazy />,
     },
     /**
      * PROTECTED

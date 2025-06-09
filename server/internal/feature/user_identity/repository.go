@@ -18,6 +18,7 @@ type Reader interface {
 
 type Writer interface {
 	SignUp(ctx context.Context, name string, userIdentity *UserIdentity) (*user_profile.UserProfile, error)
+	Update(ctx context.Context, userIdentity *UserIdentity) error
 }
 
 type ReadWriter interface {
@@ -97,7 +98,7 @@ func (r *userIdentityRepository) findUserIdentities(ctx context.Context, tx pgx.
 	}
 
 	sql := `
-	SELECT id, email, password_hash, verified, failed_login_attempts, last_login_at, created_at, updated_at 
+	SELECT id, email, verified, last_login_at, created_at, updated_at 
 	FROM user_identity ` + repository.WhereSQL(where)
 
 	rows, err := tx.Query(ctx, sql, args)
@@ -110,7 +111,7 @@ func (r *userIdentityRepository) findUserIdentities(ctx context.Context, tx pgx.
 	for rows.Next() {
 		var ui UserIdentity
 
-		err := rows.Scan(&ui.ID, &ui.Email, &ui.PasswordHash, &ui.Verified, &ui.FailedLoginAttempts, &ui.LastLoginAt, &ui.CreatedAt, &ui.UpdatedAt)
+		err := rows.Scan(&ui.ID, &ui.Email, &ui.Verified, &ui.LastLoginAt, &ui.CreatedAt, &ui.UpdatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
@@ -133,37 +134,35 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 	defer tx.Rollback(ctx)
 
 	identitySQL := `
-	INSERT INTO user_identity (id, email, password_hash, verified, failed_login_attempts, last_login_at, created_at, updated_at)
-	VALUES (@id, @email, @password_hash, @verified, @failed_login_attempts, @last_login_at, @created_at, @updated_at)
+	INSERT INTO user_identity (id, email, verified, last_login_at, created_at, updated_at)
+	VALUES (@id, @email, @verified, @last_login_at, @created_at, @updated_at)
 	`
 	identitySQLArgs := pgx.NamedArgs{
-		"id":                    userIdentity.ID,
-		"email":                 userIdentity.Email,
-		"password_hash":         userIdentity.PasswordHash,
-		"verified":              userIdentity.Verified,
-		"failed_login_attempts": userIdentity.FailedLoginAttempts,
-		"last_login_at ":        userIdentity.LastLoginAt,
-		"created_at":            userIdentity.CreatedAt,
-		"updated_at":            userIdentity.UpdatedAt,
+		"id":            userIdentity.ID,
+		"email":         userIdentity.Email,
+		"verified":      userIdentity.Verified,
+		"last_login_at": userIdentity.LastLoginAt,
+		"created_at":    userIdentity.CreatedAt,
+		"updated_at":    userIdentity.UpdatedAt,
 	}
 	_, err = tx.Exec(ctx, identitySQL, identitySQLArgs)
 	if err != nil {
-		return nil, fmt.Errorf("user identity sql scan: %w", err)
+		return nil, fmt.Errorf("user identity sql exec: %w", err)
 	}
 
 	userProfile := user_profile.NewUserProfile(userIdentity.ID, userIdentity.Email, name)
 
 	profileSQL := `
-	INSERT INTO user_profile (user_id, email, display_name, display_image, created_at, updated_at)
-	VALUES (@user_id, @email, @display_name, @display_image, @created_at, @updated_at)
+	INSERT INTO user_profile (user_id, email, name, avatar_url, created_at, updated_at)
+	VALUES (@user_id, @email, @name, @avatar_url, @created_at, @updated_at)
 	`
 	profileSQLArgs := pgx.NamedArgs{
-		"user_id":       userProfile.UserID,
-		"email":         userProfile.Email,
-		"display_name":  userProfile.DisplayName,
-		"display_image": userProfile.DisplayImage,
-		"created_at":    userProfile.CreatedAt,
-		"updated_at":    userProfile.UpdatedAt,
+		"user_id":    userProfile.UserID,
+		"email":      userProfile.Email,
+		"name":       userProfile.Name,
+		"avatar_url": userProfile.AvatarURL,
+		"created_at": userProfile.CreatedAt,
+		"updated_at": userProfile.UpdatedAt,
 	}
 	_, err = tx.Exec(ctx, profileSQL, profileSQLArgs)
 	if err != nil {
@@ -175,4 +174,26 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 	}
 
 	return userProfile, nil
+}
+
+func (r *userIdentityRepository) Update(ctx context.Context, userIdentity *UserIdentity) error {
+	updateSQL := `
+	UPDATE user_identity
+	SET email = @email, verified = @verified, last_login_at = @last_login_at, updated_at = @updated_at
+	WHERE id = @id
+	`
+	updateSQLArgs := pgx.NamedArgs{
+		"id":            userIdentity.ID,
+		"email":         userIdentity.Email,
+		"verified":      userIdentity.Verified,
+		"last_login_at": userIdentity.LastLoginAt,
+		"updated_at":    userIdentity.UpdatedAt,
+	}
+
+	_, err := r.db.Exec(ctx, updateSQL, updateSQLArgs)
+	if err != nil {
+		return fmt.Errorf("update sql exec: %w", err)
+	}
+
+	return nil
 }

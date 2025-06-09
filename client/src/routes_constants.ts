@@ -3,8 +3,6 @@ export const ROUTES = {
     index: "/",
     notFound: "*",
     signIn: "/sign-in",
-    signUp: "/sign-up",
-    forgotPassword: "/forgot-password",
 
     // App routes that will be accessible if a user is signed in.
     dashboard: "/dashboard",
@@ -18,13 +16,7 @@ export const ROUTES = {
     viewPosition: (id = "") => `/position/${id}`,
 };
 
-export const ROUTES_PUBLIC = [
-    ROUTES.index,
-    ROUTES.notFound,
-    ROUTES.signIn,
-    ROUTES.signUp,
-    ROUTES.forgotPassword,
-];
+export const ROUTES_PUBLIC = [ROUTES.index, ROUTES.notFound, ROUTES.signIn];
 
 export const ROUTES_PROTECTED = [
     ROUTES.addPosition,

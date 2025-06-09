@@ -16,7 +16,6 @@ import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/routes_constants";
 
-const AuthLayout = lazy(() => import("@/auth_layout"));
 const AppLayout = lazy(() => import("@/app_layout"));
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
@@ -56,12 +55,6 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
         ) {
             return <AppLayout>{children}</AppLayout>;
         }
-    }
-
-    // User is about to visit a public route. Most likely either to an
-    // auth flow screen or a 404 screen.
-    if (ROUTES_PUBLIC.includes(pathname)) {
-        return <AuthLayout>{children}</AuthLayout>;
     }
 
     return children;

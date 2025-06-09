@@ -7,7 +7,9 @@ import { Link } from "@/components/link";
 import {
     IconDashboard,
     IconExpandUpDown,
+    IconImport,
     IconLogout,
+    IconPlus,
     IconSettings,
     IconTrades,
     IconType,
@@ -28,7 +30,12 @@ import { apiErrorHandler } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/routes_constants";
 
-const sidebarRoutes = [ROUTES.dashboard, ROUTES.positionList];
+const sidebarRoutes = [
+    ROUTES.dashboard,
+    ROUTES.positionList,
+    ROUTES.addPosition,
+    ROUTES.importPositions,
+];
 
 export const Sidebar = () => {
     const { data } = useAuthentication();
@@ -89,6 +96,26 @@ export const Sidebar = () => {
                             onClick={() => handleClick(ROUTES.positionList)}
                         />
                     </Link>
+
+                    <Link to={ROUTES.addPosition} variant="unstyled">
+                        <SidebarNavItem
+                            label="Add Position"
+                            Icon={IconPlus}
+                            open={isOpen}
+                            isActive={activeRoute === ROUTES.addPosition}
+                            onClick={() => handleClick(ROUTES.addPosition)}
+                        />
+                    </Link>
+
+                    <Link to={ROUTES.importPositions} variant="unstyled">
+                        <SidebarNavItem
+                            label="Import Positions"
+                            Icon={IconImport}
+                            open={isOpen}
+                            isActive={activeRoute === ROUTES.importPositions}
+                            onClick={() => handleClick(ROUTES.importPositions)}
+                        />
+                    </Link>
                 </div>
             </div>
 
@@ -101,8 +128,8 @@ export const Sidebar = () => {
                     sidebarOpen={isOpen}
                     setActiveRoute={setActiveRoute}
                     email={data!.email}
-                    displayName={data?.display_name}
-                    profileImageURL={data?.display_image}
+                    displayName={data?.name}
+                    profileImageURL={data?.avatar_url}
                     isMobile={isMobile}
                 />
             </div>
@@ -233,7 +260,7 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
         sidebarOpen,
         setActiveRoute,
         email,
-        displayName = "Set Your Name",
+        displayName = "",
         profileImageURL = "",
         isMobile,
     } = props;
