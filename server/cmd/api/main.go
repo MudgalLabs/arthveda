@@ -11,6 +11,7 @@ import (
 	"arthveda/internal/feature/user_identity"
 	"arthveda/internal/feature/user_profile"
 	"arthveda/internal/logger"
+	"arthveda/internal/oauth"
 	"context"
 	"errors"
 	"net/http"
@@ -60,6 +61,8 @@ func main() {
 	}
 
 	defer db.Close()
+
+	oauth.InitGoogle()
 
 	brokerRepository := broker.NewRepository(db)
 	dashboardRepository := dashboard.NewRepository(db)

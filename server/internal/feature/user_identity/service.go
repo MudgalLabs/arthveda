@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/apires"
 	"arthveda/internal/env"
 	"arthveda/internal/feature/user_profile"
+	"arthveda/internal/oauth"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
@@ -197,6 +198,87 @@ func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*user_prof
 		} else {
 			return nil, "", service.ErrInternalServerError, fmt.Errorf("compare hash and password: %w", err)
 		}
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": userIdentity.ID,
+		"exp":     time.Now().UTC().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(env.JWT_SECRET))
+	if err != nil {
+		return nil, "", service.ErrInternalServerError, fmt.Errorf("create authentication token: %w", err)
+	}
+
+	return userProfile, tokenString, service.ErrNone, nil
+}
+
+func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*user_profile.UserProfile, string, service.Error, error) {
+	// Exchanging the code for an access token
+	googleOAuthToken, err := oauth.GoogleConfig.Exchange(context.Background(), code)
+	if err != nil {
+		return nil, "", service.ErrBadRequest, fmt.Errorf("exchange code for token: %w", err)
+	}
+
+	// Creating an HTTP client to make authenticated request using the access key.
+	// This client method also regenerate the access key using the refresh key.
+	client := oauth.GoogleConfig.Client(ctx, googleOAuthToken)
+
+	// Getting the user public details from google API endpoint
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	if err != nil {
+		return nil, "", service.ErrBadRequest, fmt.Errorf("get user info: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	userInfo, err := oauth.ParseGoogleUserInfo(resp.Body)
+	if err != nil {
+		return nil, "", service.ErrInternalServerError, fmt.Errorf("parse google user info: %w", err)
+	}
+
+	fmt.Printf("Google user info: %v\n", userInfo)
+
+	// Look for an existing user identity with the email from Google.
+	userIdentity, err := s.userIdentityRepository.FindUserIdentityByEmail(ctx, userInfo.Email)
+	if err != nil {
+		// If the error is not ErrNotFound, something went wrong.
+		if err != repository.ErrNotFound {
+			return nil, "", service.ErrInternalServerError, fmt.Errorf("find user identity by email: %w", err)
+		}
+	}
+
+	var userProfile *user_profile.UserProfile
+
+	if userIdentity == nil {
+		// No user found with the email, create a new user profile.
+		userIdentity, err = newUserIdentity(userInfo.Email, "") // Password is not needed for OAuth users.
+		if err != nil {
+			return nil, "", service.ErrInternalServerError, fmt.Errorf("new user identity: %w", err)
+		}
+
+		userProfile, err = s.userIdentityRepository.SignUp(ctx, userInfo.Name, userIdentity)
+		if err != nil {
+			return nil, "", service.ErrInternalServerError, fmt.Errorf("repository sign up: %w", err)
+		}
+	} else {
+		userProfile, err = s.userProfileRepository.FindUserProfileByUserID(ctx, userIdentity.ID)
+		if err != nil {
+			return nil, "", service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
+		}
+	}
+
+	if userProfile == nil {
+		return nil, "", service.ErrInternalServerError, fmt.Errorf("user profile not found for user identity: %s", userIdentity.ID)
+	}
+
+	// Update the user profile with the new name and avatar URL.
+	userProfile.DisplayName = userInfo.Name
+	userProfile.DisplayImage = userInfo.AvatarURL
+
+	err = s.userProfileRepository.Update(ctx, userProfile)
+	if err != nil {
+		return nil, "", service.ErrInternalServerError, fmt.Errorf("update user profile: %w", err)
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

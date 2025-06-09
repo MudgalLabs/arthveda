@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/repository"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -14,7 +15,9 @@ type Reader interface {
 	FindUserProfileByUserID(ctx context.Context, userID uuid.UUID) (*UserProfile, error)
 }
 
-type Writer interface{}
+type Writer interface {
+	Update(ctx context.Context, userProfile *UserProfile) error
+}
 
 type ReadWriter interface {
 	Reader
@@ -101,4 +104,21 @@ func (r *userProfileRepository) findUserProfiles(ctx context.Context, tx pgx.Tx,
 	}
 
 	return userProfiles, nil
+}
+
+func (r *userProfileRepository) Update(ctx context.Context, userProfile *UserProfile) error {
+	updatedAt := time.Now().UTC()
+
+	sql := `
+		UPDATE user_profile
+		SET email = $1, display_name = $2, display_image = $3, updated_at = $4
+		WHERE user_id = $5
+	`
+
+	_, err := r.db.Exec(ctx, sql, userProfile.Email, userProfile.DisplayName, userProfile.DisplayImage, updatedAt, userProfile.UserID)
+	if err != nil {
+		return fmt.Errorf("update: %w", err)
+	}
+
+	return nil
 }

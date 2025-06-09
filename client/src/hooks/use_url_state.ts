@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import isEqual from "lodash/isEqual";
 
 import { useDebounce } from "@/hooks/use_debounce";
 import { loadFromURL, LoadFromURLParser, saveToURL } from "@/lib/utils";
@@ -16,12 +17,15 @@ export function useURLState<T>(
     const [state, setState] = useState<T>(() =>
         loadFromURL(key, defaultValue, customParsers)
     );
-
+    const previousStateRef = useRef<T>(state);
     const debouncedState = useDebounce(state, 300);
 
     // Sync URL when state changes.
     useEffect(() => {
-        saveToURL(key, debouncedState);
+        if (!isEqual(debouncedState, previousStateRef.current)) {
+            saveToURL(key, debouncedState);
+            previousStateRef.current = debouncedState;
+        }
     }, [debouncedState, key]);
 
     return [state, setState];

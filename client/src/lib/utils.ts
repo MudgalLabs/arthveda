@@ -303,7 +303,32 @@ export function loadFromURL<T>(
         allowDots: true,
     })[key] as T;
     const parsedQuery = deepParseObject<T>(raw, customParsers);
-    return { ...defaultValue, ...parsedQuery };
+
+    if (
+        raw === "" ||
+        raw === undefined ||
+        parsedQuery === "" ||
+        parsedQuery === undefined
+    ) {
+        // No value in URL, return default value.
+        return defaultValue as T;
+    }
+
+    if (
+        Object.keys(parsedQuery as object).length === 0 &&
+        parsedQuery !== undefined
+    ) {
+        // We found a value in URL, but it's not an object (e.g., empty string).
+        return parsedQuery as T;
+    }
+
+    if (Object.keys(parsedQuery as object).length > 0) {
+        // Parsed query is an object with keys, return it.
+        return { ...defaultValue, ...parsedQuery };
+    }
+
+    // Fallback to default value if nothing else matches.
+    return defaultValue as T;
 }
 
 export function saveToURL<T>(key: string, value: T) {

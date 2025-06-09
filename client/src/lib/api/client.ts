@@ -6,7 +6,7 @@ let API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
     if (isProd()) {
-        throw new Error("Arthveda's API URL is invalid: " + API_URL);
+        throw new Error("API URL is missing");
     } else {
         API_URL = "http://localhost:1337";
     }

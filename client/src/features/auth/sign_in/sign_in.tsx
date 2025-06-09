@@ -12,8 +12,22 @@ import { apiErrorHandler } from "@/lib/api";
 import { toast } from "@/components/toast";
 import { SigninResponse } from "@/lib/api/auth";
 import { ROUTES } from "@/routes_constants";
+import { useURLState } from "@/hooks/use_url_state";
+import { useEffectOnce } from "@/hooks/use_effect_once";
 
 export function SignIn() {
+    const [isOAuthError] = useURLState("oauth_error", false);
+
+    useEffectOnce(
+        (deps) => {
+            if (deps.isOAuthError) {
+                toast.error("Something went wrong with Google sign in");
+            }
+        },
+        { isOAuthError },
+        (deps) => !!deps.isOAuthError
+    );
+
     const client = useQueryClient();
     const navigate = useNavigate();
 
