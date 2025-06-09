@@ -134,16 +134,17 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 	defer tx.Rollback(ctx)
 
 	identitySQL := `
-	INSERT INTO user_identity (id, email, verified, last_login_at, created_at, updated_at)
-	VALUES (@id, @email, @verified, @last_login_at, @created_at, @updated_at)
+	INSERT INTO user_identity (id, email, verified, oauth_provider, last_login_at, created_at, updated_at)
+	VALUES (@id, @email, @verified, @oauth_provider, @last_login_at,  @created_at, @updated_at)
 	`
 	identitySQLArgs := pgx.NamedArgs{
-		"id":            userIdentity.ID,
-		"email":         userIdentity.Email,
-		"verified":      userIdentity.Verified,
-		"last_login_at": userIdentity.LastLoginAt,
-		"created_at":    userIdentity.CreatedAt,
-		"updated_at":    userIdentity.UpdatedAt,
+		"id":             userIdentity.ID,
+		"email":          userIdentity.Email,
+		"verified":       userIdentity.Verified,
+		"oauth_provider": userIdentity.OAuthProvider,
+		"last_login_at":  userIdentity.LastLoginAt,
+		"created_at":     userIdentity.CreatedAt,
+		"updated_at":     userIdentity.UpdatedAt,
 	}
 	_, err = tx.Exec(ctx, identitySQL, identitySQLArgs)
 	if err != nil {

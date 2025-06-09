@@ -64,9 +64,9 @@ func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*user_p
 
 	var userProfile *user_profile.UserProfile
 
+	// No user found with the email, create a new user profile.
 	if userIdentity == nil {
-		// No user found with the email, create a new user profile.
-		userIdentity, err = new(userInfo.Email, userInfo.VerifiedEmail)
+		userIdentity, err = new(userInfo.Email, "google", userInfo.VerifiedEmail)
 		if err != nil {
 			return nil, "", service.ErrInternalServerError, fmt.Errorf("new user identity: %w", err)
 		}
@@ -76,6 +76,7 @@ func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*user_p
 			return nil, "", service.ErrInternalServerError, fmt.Errorf("sign up: %w", err)
 		}
 	} else {
+		// The user already exists.
 		userProfile, err = s.userProfileRepository.FindUserProfileByUserID(ctx, userIdentity.ID)
 		if err != nil {
 			return nil, "", service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
