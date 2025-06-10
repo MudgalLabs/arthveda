@@ -37,30 +37,55 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 			return
 		}
 
-		_, authTokens, _, err := s.OAuthGoogleCallback(ctx, code)
+		_, tokenString, _, err := s.OAuthGoogleCallback(ctx, code)
 
 		if err != nil {
 			l.Errorw("Error during OAuth Google callback", "error", err)
+
+			cookie := http.Cookie{
+				Name:     "Authentication",
+				Value:    "",
+				Path:     "/",
+				Domain:   "",
+				MaxAge:   -1, // 1 hour
+				Secure:   false,
+				HttpOnly: false,
+			}
+
+			http.SetCookie(w, &cookie)
 			http.Redirect(w, r, frontendURL+"/sign-in?oauth_error=true", http.StatusFound)
 			return
 		}
 
-		http.Redirect(w, r, frontendURL+"/sign-in?access_token="+authTokens.AccessToken+"&refresh_token="+authTokens.RefreshToken, http.StatusFound)
+		cookie := http.Cookie{
+			Name:     "Authentication",
+			Value:    tokenString,
+			Path:     "/",
+			Domain:   "",
+			MaxAge:   3600 * 24 * 30, // 30 days
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteNoneMode,
+		}
+
+		http.SetCookie(w, &cookie)
+		http.Redirect(w, r, frontendURL, http.StatusFound)
 	}
 }
 
-func refreshAuthTokensHandler(s *user_identity.Service) http.HandlerFunc {
+func signOutHandler(_ *user_identity.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		refreshToken := r.URL.Query().Get("refresh_token")
-
-		newAuthTokens, _, err := s.RefreshAuthTokens(ctx, refreshToken)
-
-		if err != nil {
-			errorResponse(w, r, http.StatusForbidden, "Failed to refresh auth tokens", err)
-			return
+		cookie := http.Cookie{
+			Name:     "Authentication",
+			Value:    "",
+			Path:     "/",
+			Domain:   "",
+			MaxAge:   -1, // 1 hour
+			Secure:   false,
+			HttpOnly: false,
 		}
 
-		successResponse(w, r, http.StatusOK, "", newAuthTokens)
+		http.SetCookie(w, &cookie)
+		successResponse(w, r, http.StatusOK, "Signout successful", nil)
 	}
 }

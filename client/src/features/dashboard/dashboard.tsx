@@ -8,13 +8,13 @@ import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/routes_constants";
+import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { CumulativePnLCurve } from "@/features/dashboard/widget/cumulative_pnl_graph";
 import { OverviewCard } from "@/features/dashboard/widget/overview_card";
 import { WinningCard } from "@/features/dashboard/widget/winning_card";
 import { LosingCard } from "@/features/dashboard/widget/losing_card";
 import { IconChevronDownRight, IconGripVertical } from "@/components/icons";
-import { useAuthStore } from "@/features/auth/auth_store";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -233,16 +233,16 @@ export const Dashboard = () => {
 export default Dashboard;
 
 function WelcomeMessageForNewUser() {
-    const user = useAuthStore((s) => s.user);
+    const { data } = useAuthentication();
 
-    if (!user) {
+    if (!data) {
         return null;
     }
 
     return (
         <div className="jusify-center mt-20 flex flex-col items-center">
             <div className="flex flex-col gap-y-4">
-                <p>Hey {user.name},</p>
+                <p>Hey {data.name},</p>
                 <p>
                     Looks like you are new here and have no{" "}
                     <Link className="text-base!" to={ROUTES.positionList}>

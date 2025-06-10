@@ -1,6 +1,8 @@
 export const API_ROUTES = {
     auth: {
-        refresh: "/v1/auth/refresh",
+        signin: "/v1/auth/sign-in",
+        signup: "/v1/auth/sign-up",
+        signout: "/v1/auth/sign-out",
     },
     broker: {
         list: "/v1/brokers",

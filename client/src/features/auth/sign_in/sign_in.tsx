@@ -1,53 +1,23 @@
 import { ContinueWithGoogle } from "@/components/continue_with_google";
 import { toast } from "@/components/toast";
+import { useURLState } from "@/hooks/use_url_state";
+import { useEffectOnce } from "@/hooks/use_effect_once";
 import { Branding } from "@/components/branding";
 import { IconGithub } from "@/components/icons";
 import { Card, CardContent } from "@/components/card";
-import {
-    PersistKeyAccessToken,
-    PersistKeyOAuthError,
-    PersistKeyRefreshToken,
-    saveToLocalStorage,
-} from "@/lib/utils";
-import { useEffect } from "react";
-import { useEffectOnce } from "@/hooks/use_effect_once";
-import { useAuthStore } from "../auth_store";
 
 export function SignIn() {
-    const params = new URLSearchParams(window.location.search);
-
-    const isOAuthError = params.get(PersistKeyOAuthError);
-    const accessToken = params.get(PersistKeyAccessToken);
-    const refreshToken = params.get(PersistKeyRefreshToken);
+    const [isOAuthError] = useURLState("oauth_error", false);
 
     useEffectOnce(
-        () => {
-            toast.error("Google sign in failed. Please try again.");
+        (deps) => {
+            if (deps.isOAuthError) {
+                toast.error("Something went wrong with Google sign in");
+            }
         },
         { isOAuthError },
-        (deps) => {
-            return deps.isOAuthError !== null && deps.isOAuthError === "true";
-        }
+        (deps) => !!deps.isOAuthError
     );
-
-    const setAccessToken = useAuthStore((s) => s.setAccessToken);
-
-    useEffect(() => {
-        // We got access and refresh tokens, so we can proceed with the authentication flow.
-        if (
-            accessToken !== null &&
-            refreshToken !== null &&
-            accessToken !== "" &&
-            refreshToken !== ""
-        ) {
-            setAccessToken(accessToken);
-            saveToLocalStorage(
-                PersistKeyRefreshToken,
-                JSON.stringify(refreshToken)
-            );
-            window.location.assign("/");
-        }
-    }, []);
 
     return (
         <div className="flex h-dvh w-full flex-col items-center justify-between overflow-auto px-4">

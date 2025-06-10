@@ -1,15 +1,31 @@
-import { client } from "@/lib/api/client";
+import { client, ApiRes } from "@/lib/api/client";
 import { API_ROUTES } from "@/lib/api/api_routes";
+import { User } from "@/lib/api/user";
 
-export interface AuthTokens {
-    access_token: string;
-    refresh_token: string;
+export interface SignupRequest {
+    name: string;
+    email: string;
+    password: string;
 }
 
-export function refresh(refreshToken: string) {
-    return client.get(API_ROUTES.auth.refresh, {
-        params: {
-            refresh_token: refreshToken,
-        },
-    });
+export function signup(body: SignupRequest) {
+    return client.post<SignupRequest, ApiRes>(API_ROUTES.auth.signup, body);
+}
+
+export interface SigninRequest {
+    email: string;
+    password: string;
+}
+
+export interface SigninResponse extends User {}
+
+export function signin(body: SigninRequest) {
+    return client.post<SigninRequest, ApiRes<SigninResponse>>(
+        API_ROUTES.auth.signin,
+        body
+    );
+}
+
+export function signout() {
+    return client.post(API_ROUTES.auth.signout);
 }

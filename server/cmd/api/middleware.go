@@ -4,10 +4,8 @@ import (
 	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -24,34 +22,18 @@ func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		l := logger.FromCtx(ctx)
+		errorMsg := "You need to be signed in to use this route. POST /auth/sign-in to sign in."
 
-		errorMsg := "You are not logged in. Please log in to continue."
-
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			unauthorizedErrorResponse(w, r, errorMsg, errors.New("missing Authoriation header"))
+		cookie, err := r.Cookie("Authentication")
+		if err != nil {
+			l.Warnw("failed to read cookie", "error", err)
+			unauthorizedErrorResponse(w, r, errorMsg, err)
 			return
 		}
 
-		// Extract the token from the "Authorization: Bearer <Access_Token>" format
-		const prefix = "Bearer "
-		if !strings.HasPrefix(authHeader, prefix) {
-			unauthorizedErrorResponse(w, r, errorMsg, errors.New("invalid Authorization header"))
-			return
-		}
+		l.Debugw("authentication cookie found", "cookie", cookie.Value)
 
-		tokenString := strings.TrimPrefix(authHeader, prefix)
-		tokenString = strings.TrimSpace(tokenString)
-
-		if tokenString == "" {
-			l.Warnw("empty bearer token")
-			unauthorizedErrorResponse(w, r, errorMsg, errors.New("empty bearer token"))
-			return
-		}
-
-		l.Debugw("authorization token found", "token", tokenString)
-
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (any, error) {
 			return []byte(env.JWT_SECRET), nil
 		}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 

@@ -2,11 +2,7 @@ import { FC, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Tooltip } from "@/s8ly/tooltip/tooltip";
-import {
-    cn,
-    PersistKeyRefreshToken,
-    removeFromLocalStorage,
-} from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
 import {
     IconDashboard,
@@ -25,10 +21,14 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
 } from "@/s8ly/dropdown_menu/dropdown_menu";
+import { useAuthentication } from "@/features/auth/auth_context";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiHooks } from "@/hooks/api_hooks";
+import { toast } from "@/components/toast";
 import { useSidebar } from "@/components/sidebar/sidebar_context";
+import { apiErrorHandler } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/routes_constants";
-import { useAuthStore } from "@/features/auth/auth_store";
 
 const sidebarRoutes = [
     ROUTES.dashboard,
@@ -38,7 +38,7 @@ const sidebarRoutes = [
 ];
 
 export const Sidebar = () => {
-    const user = useAuthStore((s) => s.user);
+    const { data } = useAuthentication();
     const { pathname } = useLocation();
     const { isOpen, setIsOpen } = useSidebar();
     const isMobile = useIsMobile();
@@ -62,10 +62,6 @@ export const Sidebar = () => {
         navigate(route);
         setActiveRoute(route);
     };
-
-    if (!user) {
-        return null;
-    }
 
     return (
         <div
@@ -131,9 +127,9 @@ export const Sidebar = () => {
                 <SidebarProfileMenu
                     sidebarOpen={isOpen}
                     setActiveRoute={setActiveRoute}
-                    email={user!.email}
-                    displayName={user?.name}
-                    profileImageURL={user?.avatar_url}
+                    email={data!.email}
+                    displayName={data?.name}
+                    profileImageURL={data?.avatar_url}
                     isMobile={isMobile}
                 />
             </div>
@@ -269,10 +265,23 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
         isMobile,
     } = props;
 
-    const removeAccessToken = useAuthStore((s) => s.removeAccessToken);
-    const removeUser = useAuthStore((s) => s.removeUser);
-
     const [menuOpened, setMenuOpened] = useState(false);
+
+    const navigate = useNavigate();
+    const client = useQueryClient();
+
+    const { mutate: signout, isPending: isSignoutPending } =
+        apiHooks.auth.useSignout({
+            onSuccess: async () => {
+                // NOTE: Make sure to await otherwise the screen will flicker.
+                await client.invalidateQueries();
+                navigate("/");
+                toast.info("Goodbye! Thank you for using Arthveda", {
+                    icon: <p>👋</p>,
+                });
+            },
+            onError: apiErrorHandler,
+        });
 
     return (
         <DropdownMenu open={menuOpened} onOpenChange={setMenuOpened}>
@@ -320,12 +329,11 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
-                    onSelect={() => {
-                        removeAccessToken();
-                        removeUser();
-                        removeFromLocalStorage(PersistKeyRefreshToken);
-                        window.location.assign("/");
-                    }}
+                    className={cn({
+                        "cursor-not-allowed hover:bg-none": isSignoutPending,
+                    })}
+                    onSelect={() => signout()}
+                    disabled={isSignoutPending}
                 >
                     <IconLogout size={18} />
                     Sign out

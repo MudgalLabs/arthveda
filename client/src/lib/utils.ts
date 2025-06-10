@@ -13,24 +13,21 @@ export function isProd(): boolean {
     return process.env.NODE_ENV === "production";
 }
 
-export type PersistKey = string;
+export type LocalStorageKey = string;
 
-export const LocalStorageKeyDashboardLayout: PersistKey = "dashboard_layout";
-export const LocalStorageKeySidebarOpen: PersistKey = "sidebar_open";
-export const LocalStorageKeyCumulativePnLShowGross: PersistKey =
+export const LocalStorageKeyDashboardLayout: LocalStorageKey =
+    "dashboard_layout";
+export const LocalStorageKeySidebarOpen: LocalStorageKey = "sidebar_open";
+export const LocalStorageKeyCumulativePnLShowGross: LocalStorageKey =
     "cumulative_pnl_show_gross";
-export const LocalStorageKeyCumulativePnLShowCharges: PersistKey =
+export const LocalStorageKeyCumulativePnLShowCharges: LocalStorageKey =
     "cumulative_pnl_show_charges";
-export const PersistKeyOAuthError: PersistKey = "oauth_error";
-export const PersistKeyAccessToken: PersistKey = "access_token";
-export const PersistKeyRefreshToken: PersistKey = "refresh_token";
-export const PersistKeyUser: PersistKey = "user";
 
-export function saveToLocalStorage(key: PersistKey, value: string) {
+export function saveToLocalStorage(key: LocalStorageKey, value: string) {
     localStorage.setItem(key, value);
 }
 
-export function loadFromLocalStorage<T>(key: PersistKey): T | null {
+export function loadFromLocalStorage<T>(key: LocalStorageKey): T | null {
     try {
         const valueStr = localStorage.getItem(key);
 
@@ -45,10 +42,6 @@ export function loadFromLocalStorage<T>(key: PersistKey): T | null {
         console.error("Failed to load from LocalStorage: ", err);
         return null;
     }
-}
-
-export function removeFromLocalStorage(key: PersistKey) {
-    localStorage.removeItem(key);
 }
 
 interface formatDateOptions {
