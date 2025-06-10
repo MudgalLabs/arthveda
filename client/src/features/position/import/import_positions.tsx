@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -25,10 +25,10 @@ import {
 import { PositionListTable } from "@/features/position/components/position_list_table";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
-import { DecimalString } from "@/lib/types";
+import { DecimalString, Setter } from "@/lib/types";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
-import { IconArrowLeft, IconInfo } from "@/components/icons";
+import { IconArrowLeft, IconCheck, IconInfo } from "@/components/icons";
 import { ROUTES } from "@/routes_constants";
 import { MultiStep } from "@/components/multi_step/multi_step";
 import { LoadingScreen } from "@/components/loading_screen";
@@ -263,6 +263,29 @@ export const ImportPositions = () => {
         handleConfirm,
     ]);
 
+    const [state, setState] = useState<State>({
+        broker_id: "",
+        file: null,
+        currency: "inr",
+        risk_amount: "",
+    });
+
+    const canGoToNextStep = useCallback(
+        (stepID: string) => {
+            switch (stepID) {
+                case "broker-step":
+                    // Broker is required.
+                    return state.broker_id !== "";
+                case "file-step":
+                    // File is required.
+                    return state.file !== null;
+                default:
+                    return true;
+            }
+        },
+        [state]
+    );
+
     return (
         <>
             <PageHeading heading="Import Positions" />
@@ -272,11 +295,11 @@ export const ImportPositions = () => {
             <MultiStep.Root>
                 <MultiStep.StepperContainer>
                     <MultiStep.Stepper>
-                        {({ index, currentStepIndex, goto }) => {
+                        {({ index, currentStepIndex }) => {
                             return (
-                                <button
+                                <div
                                     className={cn(
-                                        "h-2 w-8 cursor-pointer rounded-md transition-all",
+                                        "h-2 w-8 rounded-md transition-all",
                                         {
                                             "bg-secondary":
                                                 index > currentStepIndex,
@@ -285,7 +308,6 @@ export const ImportPositions = () => {
                                             "w-24": index === currentStepIndex,
                                         }
                                     )}
-                                    onClick={() => goto(index)}
                                 />
                             );
                         }}
@@ -294,19 +316,19 @@ export const ImportPositions = () => {
 
                 <MultiStep.Content>
                     <MultiStep.Step id="broker-step">
-                        <BrokerStep />
+                        <BrokerStep state={state} setState={setState} />
                     </MultiStep.Step>
 
                     <MultiStep.Step id="file-step">
-                        <FileStep />
+                        <FileStep state={state} setState={setState} />
                     </MultiStep.Step>
 
                     <MultiStep.Step id="options-step">
-                        <OptionsStep />
+                        <OptionsStep state={state} setState={setState} />
                     </MultiStep.Step>
 
                     <MultiStep.Step id="review-step">
-                        <ReviewStep />
+                        <ReviewStep state={state} setState={setState} />
                     </MultiStep.Step>
                 </MultiStep.Content>
 
@@ -325,8 +347,12 @@ export const ImportPositions = () => {
                     </MultiStep.PreviousStepButton>
 
                     <MultiStep.NextStepButton>
-                        {({ next, hasNext }) => (
-                            <Button variant="primary" onClick={() => next()}>
+                        {({ next, hasNext, currentStepId }) => (
+                            <Button
+                                variant="primary"
+                                disabled={!canGoToNextStep(currentStepId)}
+                                onClick={() => next()}
+                            >
                                 {hasNext ? "Continue" : "Finish"}
                             </Button>
                         )}
@@ -339,7 +365,19 @@ export const ImportPositions = () => {
 
 export default ImportPositions;
 
-const BrokerStep = () => {
+interface State {
+    broker_id: string;
+    file: File | null;
+    currency: CurrencyCode;
+    risk_amount: DecimalString;
+}
+
+interface ImportStepProps {
+    state: State;
+    setState: Setter<State>;
+}
+
+const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
     const { data, isLoading } = apiHooks.broker.useList();
 
     if (isLoading) {
@@ -360,18 +398,32 @@ const BrokerStep = () => {
             <div className="h-8" />
 
             <ul className="flex gap-4">
-                {brokers.map((broker) => (
-                    <li key={broker.id}>
-                        <BrokerTile
-                            key={broker.id}
-                            name={broker.name}
-                            image={getBrokerLogo(broker.name as BrokerName)}
-                            onClick={() => {
-                                alert(`Selected broker: ${broker.name}`);
-                            }}
-                        />
-                    </li>
-                ))}
+                {brokers.map((broker) => {
+                    const isSelected = state.broker_id === broker.id;
+                    return (
+                        <li key={broker.id}>
+                            <BrokerTile
+                                key={broker.id}
+                                className={cn({
+                                    "border-primary": isSelected,
+                                })}
+                                name={broker.name}
+                                image={getBrokerLogo(broker.name as BrokerName)}
+                                isSelected={isSelected}
+                                onClick={() => {
+                                    setState((prev) => ({
+                                        ...prev,
+                                        // Toggle it if the same broker is clicked again.
+                                        broker_id:
+                                            prev.broker_id === broker.id
+                                                ? ""
+                                                : broker.id,
+                                    }));
+                                }}
+                            />
+                        </li>
+                    );
+                })}
             </ul>
         </>
     );
@@ -393,34 +445,50 @@ const getBrokerLogo = (name: BrokerName) => {
 };
 
 const BrokerTile = ({
+    className,
     name,
     image,
     onClick,
+    isSelected,
 }: {
+    className?: string;
     name: string;
     image: string;
     onClick: () => void;
+    isSelected: boolean;
 }) => {
     return (
         <button onClick={onClick} className="cursor-pointer">
-            <Card className="flex-center gap-x-2 p-8">
+            <Card className={cn(className, "flex-center relative gap-x-2 p-8")}>
                 <img src={image} alt={`${name} logo`} className="h-10" />
                 <p className="heading text-surface-foreground font-medium">
                     {name}
                 </p>
+
+                <div
+                    className={cn(
+                        "bg-primary text-foreground flex-center absolute top-1 right-1 rounded-full transition-opacity",
+                        {
+                            "opacity-0": !isSelected,
+                            "opacity-100": isSelected,
+                        }
+                    )}
+                >
+                    <IconCheck size={22} />
+                </div>
             </Card>
         </button>
     );
 };
 
-const FileStep = () => {
+const FileStep: FC<ImportStepProps> = () => {
     return <h2 className="sub-heading">File</h2>;
 };
 
-const OptionsStep = () => {
+const OptionsStep: FC<ImportStepProps> = () => {
     return <h2 className="sub-heading">Options</h2>;
 };
 
-const ReviewStep = () => {
+const ReviewStep: FC<ImportStepProps> = () => {
     return <h2 className="sub-heading">Review</h2>;
 };

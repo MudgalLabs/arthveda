@@ -14,15 +14,19 @@ import {
 } from "@/components/multi_step/multi_step_context";
 import { cn } from "@/lib/utils";
 
-interface MultiStepRootProps {
+interface RootProps {
     children: React.ReactNode;
 }
 
-const Root: FC<MultiStepRootProps> = ({ children }) => {
+const Root: FC<RootProps> = ({ children }) => {
     return <MultiStepProvider>{children}</MultiStepProvider>;
 };
 
-const StepperContainer = ({ children }: { children: ReactNode }) => {
+interface StepperContainerProps {
+    children: React.ReactNode;
+}
+
+const StepperContainer: FC<StepperContainerProps> = ({ children }) => {
     return (
         <div className="flex-center flex-col">
             <ul className="flex gap-x-8">{children}</ul>
@@ -34,21 +38,24 @@ interface StepperProps {
     children: (renderProps: {
         index: number;
         currentStepIndex: number;
-        goto: (index: number) => void;
     }) => ReactNode;
 }
 
 const Stepper: FC<StepperProps> = ({ children }) => {
-    const { noOfSteps, currentStepIndex, goto } = useMultiStep();
+    const { noOfSteps, currentStepIndex } = useMultiStep();
 
     const steps = Array.from({ length: noOfSteps }).fill(0);
 
     return steps.map((_, index) => (
-        <li key={index}>{children({ index, currentStepIndex, goto })}</li>
+        <li key={index}>{children({ index, currentStepIndex })}</li>
     ));
 };
 
-const Content = ({ children }: { children: React.ReactNode }) => {
+interface ContentProps {
+    children: React.ReactNode;
+}
+
+const Content: FC<ContentProps> = ({ children }) => {
     const childrenArray = Children.toArray(children);
 
     const { setNoOfSteps } = useMultiStep();
@@ -145,4 +152,14 @@ export const MultiStep = {
     Step,
     PreviousStepButton,
     NextStepButton,
+};
+
+export type {
+    RootProps,
+    StepperContainerProps,
+    StepperProps,
+    ContentProps,
+    StepProps,
+    PreviousStepButtonProps,
+    NextStepButtonProps,
 };

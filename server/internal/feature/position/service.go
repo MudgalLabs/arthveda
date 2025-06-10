@@ -115,15 +115,19 @@ func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchRes
 }
 
 type ImportPayload struct {
+	// Broker ID is the ID of the broker from which the positions are being imported.
+	BrokerID uuid.UUID `form:"broker_id"`
+
 	// The excel file from which we will import positions.
 	// These files are expected to be in .xlsx format and are provided by a broker.
 	File multipart.File `form:"file"`
-	// Broker ID is the ID of the broker from which the positions are being imported.
-	BrokerID uuid.UUID `form:"broker_id"`
+
 	// Currency is the currency in which the positions are denominated.
 	Currency currency.CurrencyCode `json:"currency"`
+
 	// RiskAmount is the risk amount that will be used to compute R-Factor.
 	RiskAmount decimal.Decimal `json:"risk_amount"`
+
 	// Confirm is a boolean flag to indicate whether the positions should be created in the database.
 	Confirm bool
 }
