@@ -1,54 +1,148 @@
-import { FC } from "react";
+import {
+    Children,
+    cloneElement,
+    FC,
+    isValidElement,
+    ReactElement,
+    ReactNode,
+    useEffect,
+} from "react";
 
-import { useMultiStep } from "@/components/multi_step/use_multi_step";
+import {
+    MultiStepProvider,
+    useMultiStep,
+} from "@/components/multi_step/multi_step_context";
 import { cn } from "@/lib/utils";
-import { Button } from "@/s8ly";
-import { IconArrowLeft } from "../icons";
 
-interface MultiStepProps {
-    steps: React.ReactElement[];
+interface MultiStepRootProps {
+    children: React.ReactNode;
 }
 
-export const MultiStep: FC<MultiStepProps> = ({ steps }) => {
-    const { currentStepIndex, goto, next, prev, hasNext, hasPrevious } =
-        useMultiStep(steps);
+const Root: FC<MultiStepRootProps> = ({ children }) => {
+    return <MultiStepProvider>{children}</MultiStepProvider>;
+};
+
+const StepperContainer = ({ children }: { children: ReactNode }) => {
+    return (
+        <div className="flex-center flex-col">
+            <ul className="flex gap-x-8">{children}</ul>
+        </div>
+    );
+};
+
+interface StepperProps {
+    children: (renderProps: {
+        index: number;
+        currentStepIndex: number;
+        goto: (index: number) => void;
+    }) => ReactNode;
+}
+
+const Stepper: FC<StepperProps> = ({ children }) => {
+    const { noOfSteps, currentStepIndex, goto } = useMultiStep();
+
+    const steps = Array.from({ length: noOfSteps }).fill(0);
+
+    return steps.map((_, index) => (
+        <li key={index}>{children({ index, currentStepIndex, goto })}</li>
+    ));
+};
+
+const Content = ({ children }: { children: React.ReactNode }) => {
+    const childrenArray = Children.toArray(children);
+
+    const { setNoOfSteps } = useMultiStep();
+
+    useEffect(() => {
+        setNoOfSteps(childrenArray.length);
+    }, [childrenArray.length, setNoOfSteps]);
+
+    const enhancedChildren = childrenArray.map((child, index) => {
+        if (isValidElement(child)) {
+            return cloneElement(child as ReactElement<any>, {
+                index,
+            });
+        }
+
+        return child;
+    });
+
+    return <div>{enhancedChildren}</div>;
+};
+
+interface StepProps {
+    children: React.ReactNode;
+    id: string;
+    className?: string;
+}
+
+const Step: FC<StepProps> = (props) => {
+    const { children, id, className } = props;
+    const { index } = props as any;
+
+    if (index === undefined) {
+        throw new Error("<Step /> must be rendered inside <Content />");
+    }
+
+    const { currentStepIndex, stepIdxToIdRef, setCurrentStepId } =
+        useMultiStep();
+
+    stepIdxToIdRef.current[index] = id;
+
+    useEffect(() => {
+        if (index === currentStepIndex) {
+            setCurrentStepId(id);
+        }
+    }, []); // Only run once when the component mounts to initialize the step ID.
 
     return (
-        <>
-            <div className="flex-center flex-col">
-                <ul className="flex gap-x-8">
-                    {steps.map((_, index) => (
-                        <li key={index} style={{}}>
-                            <button
-                                className={cn(
-                                    "h-2 w-8 cursor-pointer rounded-md transition-all",
-                                    {
-                                        "bg-secondary":
-                                            index > currentStepIndex,
-                                        "bg-primary": index <= currentStepIndex,
-                                        "w-24": index === currentStepIndex,
-                                    }
-                                )}
-                                onClick={() => goto(index)}
-                            />
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
-            {steps[currentStepIndex]}
-
-            <div className="flex w-full justify-between gap-x-4 sm:justify-end">
-                {hasPrevious && (
-                    <Button variant="secondary" onClick={() => prev()}>
-                        <IconArrowLeft /> Go back
-                    </Button>
-                )}
-
-                <Button variant="primary" onClick={() => next()}>
-                    {hasNext ? "Continue" : "Finish"}
-                </Button>
-            </div>
-        </>
+        <div
+            className={cn(className, {
+                hidden: index !== currentStepIndex,
+            })}
+        >
+            {children}
+        </div>
     );
+};
+
+interface PreviousStepButtonProps {
+    children: (renderProps: {
+        hasPrevious: boolean;
+        prev: () => void;
+        currentStepIndex: number;
+        currentStepId: string;
+    }) => ReactNode;
+}
+
+const PreviousStepButton: FC<PreviousStepButtonProps> = ({ children }) => {
+    const { prev, hasPrevious, currentStepIndex, currentStepId } =
+        useMultiStep();
+
+    return children({ hasPrevious, prev, currentStepIndex, currentStepId });
+};
+
+interface NextStepButtonProps {
+    children: (renderProps: {
+        hasNext: boolean;
+        next: () => void;
+        currentStepIndex: number;
+        currentStepId: string;
+    }) => ReactNode;
+}
+
+const NextStepButton: FC<NextStepButtonProps> = ({ children }) => {
+    const { next, hasNext, currentStepIndex, currentStepId } = useMultiStep();
+
+    return children({ hasNext, next, currentStepIndex, currentStepId });
+};
+
+export const MultiStep = {
+    Root,
+    StepperContainer,
+    Stepper,
+    Content,
+    Step,
+    PreviousStepButton,
+    NextStepButton,
 };

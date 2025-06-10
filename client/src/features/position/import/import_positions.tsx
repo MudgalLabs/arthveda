@@ -28,7 +28,7 @@ import { CurrencyCode } from "@/lib/api/currency";
 import { DecimalString } from "@/lib/types";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
-import { IconInfo } from "@/components/icons";
+import { IconArrowLeft, IconInfo } from "@/components/icons";
 import { ROUTES } from "@/routes_constants";
 import { MultiStep } from "@/components/multi_step/multi_step";
 import { LoadingScreen } from "@/components/loading_screen";
@@ -263,20 +263,76 @@ export const ImportPositions = () => {
         handleConfirm,
     ]);
 
-    const steps = [
-        <BrokerStep key="broker-step" />,
-        <FileStep key="file-step" />,
-        <OptionsStep key="options-step" />,
-        <ReviewStep key="review-step" />,
-    ];
-
     return (
         <>
             <PageHeading heading="Import Positions" />
 
             {/* {content} */}
 
-            <MultiStep steps={steps} />
+            <MultiStep.Root>
+                <MultiStep.StepperContainer>
+                    <MultiStep.Stepper>
+                        {({ index, currentStepIndex, goto }) => {
+                            return (
+                                <button
+                                    className={cn(
+                                        "h-2 w-8 cursor-pointer rounded-md transition-all",
+                                        {
+                                            "bg-secondary":
+                                                index > currentStepIndex,
+                                            "bg-primary":
+                                                index <= currentStepIndex,
+                                            "w-24": index === currentStepIndex,
+                                        }
+                                    )}
+                                    onClick={() => goto(index)}
+                                />
+                            );
+                        }}
+                    </MultiStep.Stepper>
+                </MultiStep.StepperContainer>
+
+                <MultiStep.Content>
+                    <MultiStep.Step id="broker-step">
+                        <BrokerStep />
+                    </MultiStep.Step>
+
+                    <MultiStep.Step id="file-step">
+                        <FileStep />
+                    </MultiStep.Step>
+
+                    <MultiStep.Step id="options-step">
+                        <OptionsStep />
+                    </MultiStep.Step>
+
+                    <MultiStep.Step id="review-step">
+                        <ReviewStep />
+                    </MultiStep.Step>
+                </MultiStep.Content>
+
+                <div className="flex w-full justify-between gap-x-4 sm:justify-end">
+                    <MultiStep.PreviousStepButton>
+                        {({ prev, hasPrevious }) =>
+                            hasPrevious && (
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => prev()}
+                                >
+                                    <IconArrowLeft /> Go back
+                                </Button>
+                            )
+                        }
+                    </MultiStep.PreviousStepButton>
+
+                    <MultiStep.NextStepButton>
+                        {({ next, hasNext }) => (
+                            <Button variant="primary" onClick={() => next()}>
+                                {hasNext ? "Continue" : "Finish"}
+                            </Button>
+                        )}
+                    </MultiStep.NextStepButton>
+                </div>
+            </MultiStep.Root>
         </>
     );
 };
@@ -305,7 +361,7 @@ const BrokerStep = () => {
 
             <ul className="flex gap-4">
                 {brokers.map((broker) => (
-                    <li>
+                    <li key={broker.id}>
                         <BrokerTile
                             key={broker.id}
                             name={broker.name}
@@ -323,6 +379,7 @@ const BrokerStep = () => {
 
 import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
 import GrowwLogo from "@/assets/brokers/groww.svg";
+import { cn } from "@/lib/utils";
 
 const getBrokerLogo = (name: BrokerName) => {
     switch (name) {
