@@ -15,7 +15,6 @@ var (
 	DB_USER              string
 	DB_PASSWORD          string
 	DB_URL               string
-	JWT_SECRET           string
 	LOG_LEVEL            string
 	LOG_FILE             string
 	FRONTEND_URL         string
@@ -37,7 +36,6 @@ func Init() {
 
 	APP_ENV = os.Getenv("GO_APP_ENV")
 	PORT = os.Getenv("GO_PORT")
-	JWT_SECRET = os.Getenv("GO_JWT_SECRET")
 	LOG_LEVEL = os.Getenv("GO_LOG_LEVEL")
 	LOG_FILE = os.Getenv("GO_LOG_FILE")
 	DB_HOST = os.Getenv("DB_HOST")

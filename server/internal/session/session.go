@@ -7,13 +7,13 @@ import (
 	"github.com/alexedwards/scs/v2"
 )
 
-const SessionKey = "session_id"
+const Lifetime = time.Hour * 24 * 7 // 7 days
 
 var Manager *scs.SessionManager
 
 func Init() {
 	Manager = scs.New()
-	Manager.Lifetime = time.Hour * 24 * 7 // 7 days
+	Manager.Lifetime = Lifetime
 	Manager.Cookie.Path = "/"
 	Manager.Cookie.Domain = ""
 	Manager.Cookie.Secure = true

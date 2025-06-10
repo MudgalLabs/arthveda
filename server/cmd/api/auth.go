@@ -11,7 +11,7 @@ import (
 
 func googleSignInHandler(_ *user_identity.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		url := oauth.GoogleConfig.AuthCodeURL("this_should_be_something_random_and_signed_like_a_jwt")
+		url := oauth.GoogleConfig.AuthCodeURL("")
 		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	}
 }
@@ -38,7 +38,7 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 			return
 		}
 
-		_, tokenString, _, err := s.OAuthGoogleCallback(ctx, code)
+		userProfile, _, err := s.OAuthGoogleCallback(ctx, code)
 
 		if err != nil {
 			l.Errorw("Error during OAuth Google callback", "error", err)
@@ -46,7 +46,7 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 			return
 		}
 
-		session.Manager.Put(ctx, "token", tokenString)
+		session.Manager.Put(ctx, "user_id", userProfile.UserID.String())
 		http.Redirect(w, r, frontendURL, http.StatusFound)
 	}
 }

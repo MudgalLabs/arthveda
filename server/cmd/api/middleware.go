@@ -1,7 +1,6 @@
 package main
 
 import (
-	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"arthveda/internal/session"
 	"context"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
@@ -26,39 +24,23 @@ func authMiddleware(next http.Handler) http.Handler {
 		l := logger.FromCtx(ctx)
 		errorMsg := "You need to be signed in to use this route. POST /auth/sign-in to sign in."
 
-		tokenStr := session.Manager.GetString(ctx, "token")
+		userID := session.Manager.GetString(ctx, "user_id")
 
-		if tokenStr == "" {
-			l.Warnw("no token found for the session")
-			unauthorizedErrorResponse(w, r, errorMsg, errors.New("no token found in session"))
+		if userID == "" {
+			l.Warnw("no user ID found in the session")
+			unauthorizedErrorResponse(w, r, errorMsg, errors.New("no user ID found in session"))
 			return
 		}
 
-		l.Debugw("token found in the session", "token", tokenStr)
+		l.Debugw("user ID found in the session", "user_id", userID)
 
-		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
-			return []byte(env.JWT_SECRET), nil
-		}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
+		// Extend the session lifetime.
+		session.Manager.SetDeadline(ctx, time.Now().Add(session.Lifetime))
 
-		if err != nil {
-			l.Warnw("failed to parse the token", "error", err)
-			unauthorizedErrorResponse(w, r, errorMsg, err)
-			return
-		}
+		ctx = context.WithValue(ctx, userIDKey, userID)
 
-		// TODO: Instead store the user.
-		// Maybe add a caching layer using Redis?
-		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			id := claims["user_id"].(string)
-			ctx = context.WithValue(ctx, userIDKey, id)
-			// Add `user_id` to this ctx's logger.
-			l = l.With(zap.String(string(userIDKey), id))
-		} else {
-			l.Warnw("failed to check claims in the token", "error", err)
-			unauthorizedErrorResponse(w, r, errorMsg, err)
-			return
-		}
-
+		// Add `user_id` to this ctx's logger.
+		l = l.With(zap.String(string(userIDKey), userID))
 		lrw := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
 		// the logger is associated with the request context here
@@ -72,12 +54,12 @@ func authMiddleware(next http.Handler) http.Handler {
 func getUserIDFromContext(ctx context.Context) uuid.UUID {
 	idStr, ok := ctx.Value(userIDKey).(string)
 	if !ok {
-		panic("user id not valid in context")
+		panic("user ID not valid in context")
 	}
 
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		panic(fmt.Sprintf("user id is not uuid: %s", err.Error()))
+		panic(fmt.Sprintf("user ID is not uuid: %s", err.Error()))
 	}
 	return id
 }
