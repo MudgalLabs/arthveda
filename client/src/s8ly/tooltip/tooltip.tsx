@@ -38,11 +38,11 @@ export const Tooltip: FC<TooltipProps> = ({
             delayDuration={delayDuration}
             disableHoverableContent={disableHoverableContent}
         >
-            <TooltipPrimitive.Trigger className="peer" asChild>
+            <TooltipPrimitive.Trigger asChild>
                 {children}
             </TooltipPrimitive.Trigger>
 
-            <div className="opacity-0 transition-opacity duration-150 ease-in-out peer-hover:opacity-100">
+            <TooltipPrimitive.Portal>
                 <TooltipPrimitive.Content
                     className={cn(
                         "z-100 m-2 rounded-md border-1 px-3 py-2 text-sm font-medium",
@@ -69,7 +69,7 @@ export const Tooltip: FC<TooltipProps> = ({
                         fill="var(--color-accent)"
                     />
                 </TooltipPrimitive.Content>
-            </div>
+            </TooltipPrimitive.Portal>
         </TooltipPrimitive.Root>
     );
 };

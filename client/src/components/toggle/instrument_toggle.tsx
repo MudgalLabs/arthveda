@@ -24,12 +24,12 @@ export function InstrumentToggle({
             <ToggleGroupItem value="equity" aria-label="Toggle equity">
                 Equity
             </ToggleGroupItem>
-            <ToggleGroupItem value="future" aria-label="Toggle future">
+            {/* <ToggleGroupItem value="future" aria-label="Toggle future">
                 Future
             </ToggleGroupItem>
             <ToggleGroupItem value="option" aria-label="Toggle option">
                 Option
-            </ToggleGroupItem>
+            </ToggleGroupItem> */}
         </ToggleGroup>
     );
 }
