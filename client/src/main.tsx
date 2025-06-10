@@ -1,11 +1,16 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+    QueryClient,
+    QueryClientProvider,
+    QueryCache,
+} from "@tanstack/react-query";
 
 import { Error } from "@/features/error/error";
 import routes from "@/routes";
 import App from "@/App";
+import { apiErrorHandler } from "./lib/api";
 
 const container = document.getElementById("root") as HTMLElement;
 
@@ -27,6 +32,12 @@ const queryClient = new QueryClient({
             refetchOnWindowFocus: false,
         },
     },
+
+    queryCache: new QueryCache({
+        onError: (error) => {
+            apiErrorHandler(error);
+        },
+    }),
 });
 
 root.render(

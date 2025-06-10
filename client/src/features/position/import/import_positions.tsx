@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -21,7 +22,6 @@ import {
     DialogClose,
     Tooltip,
 } from "@/s8ly";
-import { useMemo, useState } from "react";
 import { PositionListTable } from "@/features/position/components/position_list_table";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
@@ -30,6 +30,10 @@ import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { IconInfo } from "@/components/icons";
 import { ROUTES } from "@/routes_constants";
+import { MultiStep } from "@/components/multi_step/multi_step";
+import { LoadingScreen } from "@/components/loading_screen";
+import { BrokerName } from "@/lib/api/broker";
+import { Card } from "@/components/card";
 
 export const ImportPositions = () => {
     const [brokerID, setBrokerID] = useState<string>("");
@@ -259,13 +263,107 @@ export const ImportPositions = () => {
         handleConfirm,
     ]);
 
+    const steps = [
+        <BrokerStep key="broker-step" />,
+        <FileStep key="file-step" />,
+        <OptionsStep key="options-step" />,
+        <ReviewStep key="review-step" />,
+    ];
+
     return (
-        <div className="h-full w-full">
+        <>
             <PageHeading heading="Import Positions" />
 
-            {content}
-        </div>
+            {/* {content} */}
+
+            <MultiStep steps={steps} />
+        </>
     );
 };
 
 export default ImportPositions;
+
+const BrokerStep = () => {
+    const { data, isLoading } = apiHooks.broker.useList();
+
+    if (isLoading) {
+        return <LoadingScreen />;
+    }
+
+    const brokers = data?.data || [];
+
+    return (
+        <>
+            <div className="h-4" />
+
+            <h2 className="sub-heading">Broker</h2>
+            <p className="label-muted">
+                Select the broker from which you want to import positions
+            </p>
+
+            <div className="h-8" />
+
+            <ul className="flex gap-4">
+                {brokers.map((broker) => (
+                    <li>
+                        <BrokerTile
+                            key={broker.id}
+                            name={broker.name}
+                            image={getBrokerLogo(broker.name as BrokerName)}
+                            onClick={() => {
+                                alert(`Selected broker: ${broker.name}`);
+                            }}
+                        />
+                    </li>
+                ))}
+            </ul>
+        </>
+    );
+};
+
+import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
+import GrowwLogo from "@/assets/brokers/groww.svg";
+
+const getBrokerLogo = (name: BrokerName) => {
+    switch (name) {
+        case "Zerodha":
+            return ZerodhaLogo;
+        case "Groww":
+            return GrowwLogo;
+        default:
+            return "";
+    }
+};
+
+const BrokerTile = ({
+    name,
+    image,
+    onClick,
+}: {
+    name: string;
+    image: string;
+    onClick: () => void;
+}) => {
+    return (
+        <button onClick={onClick} className="cursor-pointer">
+            <Card className="flex-center gap-x-2 p-8">
+                <img src={image} alt={`${name} logo`} className="h-10" />
+                <p className="heading text-surface-foreground font-medium">
+                    {name}
+                </p>
+            </Card>
+        </button>
+    );
+};
+
+const FileStep = () => {
+    return <h2 className="sub-heading">File</h2>;
+};
+
+const OptionsStep = () => {
+    return <h2 className="sub-heading">Options</h2>;
+};
+
+const ReviewStep = () => {
+    return <h2 className="sub-heading">Review</h2>;
+};
