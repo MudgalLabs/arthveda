@@ -32,7 +32,6 @@ func initRouter(a *app) http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	session.Init() // NOTE: calling this init in main.go is not working correctly.
 	r.Use(session.Manager.LoadAndSave)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {

@@ -3,9 +3,12 @@ package dbx
 import (
 	"arthveda/internal/env"
 	"arthveda/internal/logger"
+	"arthveda/internal/session"
 	"context"
 	"log"
+	"time"
 
+	"github.com/alexedwards/scs/pgxstore"
 	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -33,14 +36,16 @@ func Init() (*pgxpool.Pool, error) {
 		return nil
 	}
 
-	db, err := pgxpool.NewWithConfig(context.Background(), config)
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		log.Panic(err)
 		return nil, err
 	}
 
+	session.Manager.Store = pgxstore.NewWithCleanupInterval(pool, 12*time.Hour)
+
 	// Checking if the connection to the DB is working fine.
-	err = db.Ping(context.Background())
+	err = pool.Ping(context.Background())
 	if err != nil {
 		log.Panic(err)
 		return nil, err
@@ -48,7 +53,7 @@ func Init() (*pgxpool.Pool, error) {
 
 	l.Info("connected to database")
 
-	return db, nil
+	return pool, nil
 }
 
 type myQueryTracer struct {

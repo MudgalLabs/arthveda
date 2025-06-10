@@ -73,6 +73,15 @@ CREATE TABLE IF NOT EXISTS trade (
 
         broker_trade_id VARCHAR(255)
 );
+
+CREATE TABLE sessions (
+	token TEXT PRIMARY KEY,
+	data BYTEA NOT NULL,
+	expiry TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX sessions_expiry_idx ON sessions (expiry);
+
 -- +goose StatementEnd
 
 -- +goose Down
@@ -87,5 +96,6 @@ DROP TABLE user_profile CASCADE;
 DROP TABLE position CASCADE;
 DROP TABLE trade CASCADE;
 DROP TABLE broker CASCADE;
+DROP TABLE sessions CASCADE;
 -- +goose StatementEnd
 

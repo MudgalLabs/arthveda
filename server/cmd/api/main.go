@@ -12,6 +12,7 @@ import (
 	"arthveda/internal/feature/user_profile"
 	"arthveda/internal/logger"
 	"arthveda/internal/oauth"
+	"arthveda/internal/session"
 	"context"
 	"errors"
 	"net/http"
@@ -54,6 +55,8 @@ func main() {
 	// IDK what this does but it was on the blogpost so I'm using it.
 	// I think it has something to do with Go sync for multi threading?
 	defer logger.Get().Sync()
+
+	session.Init()
 
 	db, err := dbx.Init()
 	if err != nil {
