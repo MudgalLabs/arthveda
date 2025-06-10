@@ -1,6 +1,7 @@
 package main
 
 import (
+	"arthveda/internal/session"
 	"net/http"
 	"time"
 
@@ -30,6 +31,9 @@ func initRouter(a *app) http.Handler {
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
+
+	session.Init() // NOTE: calling this init in main.go is not working correctly.
+	r.Use(session.Manager.LoadAndSave)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		successResponse(w, r, http.StatusOK, "Hi, welcome to Arthveda API. Don't be naughty!", nil)

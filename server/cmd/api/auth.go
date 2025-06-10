@@ -5,6 +5,7 @@ import (
 	"arthveda/internal/feature/user_identity"
 	"arthveda/internal/logger"
 	"arthveda/internal/oauth"
+	"arthveda/internal/session"
 	"net/http"
 )
 
@@ -41,51 +42,18 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 
 		if err != nil {
 			l.Errorw("Error during OAuth Google callback", "error", err)
-
-			cookie := http.Cookie{
-				Name:     "Authentication",
-				Value:    "",
-				Path:     "/",
-				Domain:   "",
-				MaxAge:   -1, // 1 hour
-				Secure:   false,
-				HttpOnly: false,
-			}
-
-			http.SetCookie(w, &cookie)
 			http.Redirect(w, r, frontendURL+"/sign-in?oauth_error=true", http.StatusFound)
 			return
 		}
 
-		cookie := http.Cookie{
-			Name:     "Authentication",
-			Value:    tokenString,
-			Path:     "/",
-			Domain:   "",
-			MaxAge:   3600 * 24 * 30, // 30 days
-			Secure:   true,
-			HttpOnly: true,
-			SameSite: http.SameSiteNoneMode,
-		}
-
-		http.SetCookie(w, &cookie)
+		session.Manager.Put(ctx, "token", tokenString)
 		http.Redirect(w, r, frontendURL, http.StatusFound)
 	}
 }
 
 func signOutHandler(_ *user_identity.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cookie := http.Cookie{
-			Name:     "Authentication",
-			Value:    "",
-			Path:     "/",
-			Domain:   "",
-			MaxAge:   -1, // 1 hour
-			Secure:   false,
-			HttpOnly: false,
-		}
-
-		http.SetCookie(w, &cookie)
+		session.Manager.Destroy(r.Context())
 		successResponse(w, r, http.StatusOK, "Signout successful", nil)
 	}
 }

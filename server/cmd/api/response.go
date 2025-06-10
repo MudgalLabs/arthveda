@@ -9,7 +9,7 @@ import (
 
 func successResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string, data any) {
 	l := logger.FromCtx(r.Context())
-	l.Infow("success response", "message", message, "data", data)
+	l.Debugw("success response", "message", message, "data", data)
 	writeJSONResponse(w, statusCode, apires.Success(statusCode, message, data))
 }
 
@@ -21,31 +21,31 @@ func internalServerErrorResponse(w http.ResponseWriter, r *http.Request, err err
 
 func badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
-	l.Infow("bad request response", "error", err)
+	l.Debugw("bad request response", "error", err)
 	writeJSONResponse(w, http.StatusBadRequest, apires.Error(http.StatusBadRequest, err.Error(), nil))
 }
 
 func malformedJSONResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
-	l.Infow("malformed json response", "error", err.Error())
+	l.Debugw("malformed json response", "error", err.Error())
 	writeJSONResponse(w, http.StatusBadRequest, apires.MalformedJSONError(err))
 }
 
 func invalidInputResponse(w http.ResponseWriter, r *http.Request, errs service.InputValidationErrors) {
 	l := logger.FromCtx(r.Context())
-	l.Infow("invalid input response", "error", errs)
+	l.Debugw("invalid input response", "error", errs)
 	writeJSONResponse(w, http.StatusBadRequest, apires.InvalidInputError(errs))
 }
 
 func conflictResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
-	l.Warnw("conflict response", "error", err)
+	l.Debugw("conflict response", "error", err)
 	writeJSONResponse(w, http.StatusConflict, apires.Error(http.StatusConflict, err.Error(), nil))
 }
 
 func notFoundResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
-	l.Infow("not found response", "error", err)
+	l.Debugw("not found response", "error", err)
 	writeJSONResponse(w, http.StatusNotFound, apires.Error(http.StatusNotFound, err.Error(), nil))
 }
 

@@ -3,7 +3,9 @@ package main
 import (
 	"arthveda/internal/env"
 	"arthveda/internal/logger"
+	"arthveda/internal/session"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -24,16 +26,17 @@ func authMiddleware(next http.Handler) http.Handler {
 		l := logger.FromCtx(ctx)
 		errorMsg := "You need to be signed in to use this route. POST /auth/sign-in to sign in."
 
-		cookie, err := r.Cookie("Authentication")
-		if err != nil {
-			l.Warnw("failed to read cookie", "error", err)
-			unauthorizedErrorResponse(w, r, errorMsg, err)
+		tokenStr := session.Manager.GetString(ctx, "token")
+
+		if tokenStr == "" {
+			l.Warnw("no token found for the session")
+			unauthorizedErrorResponse(w, r, errorMsg, errors.New("no token found in session"))
 			return
 		}
 
-		l.Debugw("authentication cookie found", "cookie", cookie.Value)
+		l.Debugw("token found in the session", "token", tokenStr)
 
-		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (any, error) {
+		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 			return []byte(env.JWT_SECRET), nil
 		}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
