@@ -32,7 +32,7 @@ import { IconArrowLeft, IconCheck, IconInfo } from "@/components/icons";
 import { ROUTES } from "@/routes_constants";
 import { MultiStep } from "@/components/multi_step/multi_step";
 import { LoadingScreen } from "@/components/loading_screen";
-import { BrokerName } from "@/lib/api/broker";
+import { Broker, BrokerName } from "@/lib/api/broker";
 import { Card } from "@/components/card";
 
 export const ImportPositions = () => {
@@ -264,10 +264,12 @@ export const ImportPositions = () => {
     ]);
 
     const [state, setState] = useState<State>({
-        broker_id: "",
+        brokerID: "",
+        brokerName: null,
         file: null,
+        instrument: "equity",
         currency: "inr",
-        risk_amount: "",
+        riskAmount: "",
     });
 
     const canGoToNextStep = useCallback(
@@ -275,7 +277,7 @@ export const ImportPositions = () => {
             switch (stepID) {
                 case "broker-step":
                     // Broker is required.
-                    return state.broker_id !== "";
+                    return state.brokerID !== "";
                 case "file-step":
                     // File is required.
                     return state.file !== null;
@@ -314,6 +316,8 @@ export const ImportPositions = () => {
                     </MultiStep.Stepper>
                 </MultiStep.StepperContainer>
 
+                <div className="h-4" />
+
                 <MultiStep.Content>
                     <MultiStep.Step id="broker-step">
                         <BrokerStep state={state} setState={setState} />
@@ -332,18 +336,22 @@ export const ImportPositions = () => {
                     </MultiStep.Step>
                 </MultiStep.Content>
 
+                <div className="h-8" />
+
                 <div className="flex w-full justify-between gap-x-4 sm:justify-end">
                     <MultiStep.PreviousStepButton>
-                        {({ prev, hasPrevious }) =>
-                            hasPrevious && (
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => prev()}
-                                >
-                                    <IconArrowLeft /> Go back
-                                </Button>
-                            )
-                        }
+                        {({ prev, hasPrevious }) => (
+                            <Button
+                                className={cn({
+                                    "opacity-0": !hasPrevious,
+                                    "opacity-100": hasPrevious,
+                                })}
+                                variant="secondary"
+                                onClick={() => prev()}
+                            >
+                                <IconArrowLeft /> Go back
+                            </Button>
+                        )}
                     </MultiStep.PreviousStepButton>
 
                     <MultiStep.NextStepButton>
@@ -366,10 +374,12 @@ export const ImportPositions = () => {
 export default ImportPositions;
 
 interface State {
-    broker_id: string;
+    brokerID: string;
+    brokerName: BrokerName | null;
     file: File | null;
+    instrument: PositionInstrument;
     currency: CurrencyCode;
-    risk_amount: DecimalString;
+    riskAmount: DecimalString;
 }
 
 interface ImportStepProps {
@@ -386,10 +396,27 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
 
     const brokers = data?.data || [];
 
+    const handleClick = (broker: Broker) => {
+        setState((prev) => {
+            // Toggle it if the same broker is clicked again.
+            const nextBrokerID = prev.brokerID === broker.id ? "" : broker.id;
+
+            let nextBrokerName = null;
+
+            if (nextBrokerID !== "") {
+                nextBrokerName = broker.name as BrokerName;
+            }
+
+            return {
+                ...prev,
+                brokerID: nextBrokerID,
+                brokerName: nextBrokerName,
+            };
+        });
+    };
+
     return (
         <>
-            <div className="h-4" />
-
             <h2 className="sub-heading">Broker</h2>
             <p className="label-muted">
                 Select the broker from which you want to import positions
@@ -397,9 +424,9 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
 
             <div className="h-8" />
 
-            <ul className="flex gap-4">
+            <ul className="flex flex-col gap-4 sm:flex-row">
                 {brokers.map((broker) => {
-                    const isSelected = state.broker_id === broker.id;
+                    const isSelected = state.brokerID === broker.id;
                     return (
                         <li key={broker.id}>
                             <BrokerTile
@@ -407,19 +434,10 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
                                 className={cn({
                                     "border-primary": isSelected,
                                 })}
-                                name={broker.name}
+                                name={broker.name as BrokerName}
                                 image={getBrokerLogo(broker.name as BrokerName)}
                                 isSelected={isSelected}
-                                onClick={() => {
-                                    setState((prev) => ({
-                                        ...prev,
-                                        // Toggle it if the same broker is clicked again.
-                                        broker_id:
-                                            prev.broker_id === broker.id
-                                                ? ""
-                                                : broker.id,
-                                    }));
-                                }}
+                                onClick={() => handleClick(broker)}
                             />
                         </li>
                     );
@@ -432,6 +450,8 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
 import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
 import GrowwLogo from "@/assets/brokers/groww.svg";
 import { cn } from "@/lib/utils";
+import { PositionInstrument } from "../position";
+import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 
 const getBrokerLogo = (name: BrokerName) => {
     switch (name) {
@@ -452,13 +472,13 @@ const BrokerTile = ({
     isSelected,
 }: {
     className?: string;
-    name: string;
+    name: BrokerName;
     image: string;
     onClick: () => void;
     isSelected: boolean;
 }) => {
     return (
-        <button onClick={onClick} className="cursor-pointer">
+        <button onClick={onClick} className="w-full cursor-pointer sm:w-fit">
             <Card className={cn(className, "flex-center relative gap-x-2 p-8")}>
                 <img src={image} alt={`${name} logo`} className="h-10" />
                 <p className="heading text-surface-foreground font-medium">
@@ -481,12 +501,185 @@ const BrokerTile = ({
     );
 };
 
-const FileStep: FC<ImportStepProps> = () => {
-    return <h2 className="sub-heading">File</h2>;
+const ZerodhaTradingHistoryUpload: FC = () => {
+    return (
+        <ol className="list-decimal pl-8">
+            <li>
+                Login to your{" "}
+                <a
+                    className="text-base!"
+                    href="https://console.zerodha.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Zerodha
+                </a>{" "}
+                account
+            </li>
+            <li>Navigate to Reports and select Tradebook</li>
+            <li>Select the necessary filters and click View</li>
+            <li>Click XLSX to download the Excel file</li>
+            <li>
+                Upload your Excel file below (You will be able to review the
+                import before it is saved.)
+            </li>
+        </ol>
+    );
 };
 
-const OptionsStep: FC<ImportStepProps> = () => {
-    return <h2 className="sub-heading">Options</h2>;
+const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
+    // If broker is not selected, we don't show the file upload step.
+    if (state.brokerName === null || state.brokerID === "") {
+        return (
+            <p className="text-foreground-red">
+                You need to select a Broker first before performing this step.
+            </p>
+        );
+    }
+
+    const name = state.brokerName;
+    const logo = getBrokerLogo(state.brokerName);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+
+        setState((prev) => ({
+            ...prev,
+            file: selectedFile ?? null,
+        }));
+    };
+
+    return (
+        <>
+            <h2 className="sub-heading">File</h2>
+            <p className="label-muted">Upload the trading history excel file</p>
+
+            <div className="h-8" />
+
+            <div className="flex items-center gap-x-2">
+                <img src={logo} alt={`${name} logo`} className="h-10" />
+
+                <span className="heading text-foreground font-medium">
+                    {name}
+                </span>
+            </div>
+
+            <div className="h-4" />
+
+            <p className="text-foreground-muted">
+                Follow the directions below to upload your trading history
+                through {name}
+            </p>
+
+            <div className="h-2" />
+
+            <ZerodhaTradingHistoryUpload />
+
+            <div className="h-8" />
+
+            <Input type="file" onChange={handleFileChange} />
+        </>
+    );
+};
+
+const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
+    return (
+        <>
+            <h2 className="sub-heading">Options</h2>
+            <p className="label-muted">
+                Customize how your positions are imported
+            </p>
+
+            <div className="h-8" />
+
+            <div className="flex flex-col gap-x-16 gap-y-4 sm:flex-row">
+                <WithLabel Label={<Label>Instrument</Label>}>
+                    <InstrumentToggle
+                        value={state.instrument}
+                        onChange={(v) => {
+                            if (v) {
+                                setState((prev) => ({
+                                    ...prev,
+                                    instrument: v,
+                                }));
+                            }
+                        }}
+                    />
+                </WithLabel>
+
+                <WithLabel Label={<Label>Currency</Label>}>
+                    <CurrencySelect
+                        value={state.currency}
+                        onValueChange={(v) =>
+                            setState((prev) => ({
+                                ...prev,
+                                currency: v,
+                            }))
+                        }
+                    />
+                </WithLabel>
+
+                <WithLabel
+                    Label={
+                        <div className="flex items-center gap-x-2">
+                            <Label>Risk per position</Label>
+                            <Tooltip
+                                content={
+                                    <div className="max-w-[300px]">
+                                        Amount you risked on each position. This
+                                        will be used to calculate R Factor. You
+                                        can leave it empty if you don't want to
+                                        set it. In the next step, you will be
+                                        able to review and change the risk
+                                        amount for each position.
+                                    </div>
+                                }
+                            >
+                                <IconInfo size={14} />
+                            </Tooltip>
+                        </div>
+                    }
+                >
+                    <DecimalInput
+                        kind="amount"
+                        currency={state.currency}
+                        value={state.riskAmount}
+                        onChange={(e) =>
+                            setState((prev) => ({
+                                ...prev,
+                                riskAmount: e.target.value,
+                            }))
+                        }
+                    />
+                </WithLabel>
+
+                <WithLabel
+                    Label={
+                        <div className="flex items-center gap-x-2">
+                            <Label>Charges per position</Label>
+                            <Tooltip
+                                content={<div className="max-w-[300px]"></div>}
+                            >
+                                <IconInfo size={14} />
+                            </Tooltip>
+                        </div>
+                    }
+                >
+                    <DecimalInput
+                        kind="amount"
+                        currency={state.currency}
+                        value={state.riskAmount}
+                        onChange={(e) =>
+                            setState((prev) => ({
+                                ...prev,
+                                riskAmount: e.target.value,
+                            }))
+                        }
+                    />
+                </WithLabel>
+            </div>
+        </>
+    );
 };
 
 const ReviewStep: FC<ImportStepProps> = () => {
