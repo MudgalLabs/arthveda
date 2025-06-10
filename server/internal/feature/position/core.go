@@ -260,8 +260,6 @@ type Instrument string
 
 const (
 	InstrumentEquity Instrument = "equity"
-	InstrumentFuture Instrument = "future"
-	InstrumentOption Instrument = "option"
 )
 
 type Direction string
