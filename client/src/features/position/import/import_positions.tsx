@@ -177,18 +177,21 @@ export const ImportPositions = () => {
     const getNextButtonLabel = useCallback((props: MultiStepProps): ReactNode => {
         const { hasNext, currentStepId } = props;
 
-        let label: ReactNode = null;
-
         if (currentStepId === "options-step") {
-            label = "Review";
+            return (
+                <>
+                    Review
+                    <IconArrowRight />
+                </>
+            );
         }
 
         if (currentStepId === "review-step") {
-            label = "Finish";
+            return "Finish";
         }
 
         if (hasNext) {
-            label = (
+            return (
                 <>
                     Continue
                     <IconArrowRight />
@@ -196,12 +199,14 @@ export const ImportPositions = () => {
             );
         }
 
-        return label;
+        return null;
     }, []);
 
     return (
         <>
             <PageHeading heading="Import Positions" />
+
+            <div className="h-4" />
 
             <MultiStep.Root>
                 <MultiStep.StepperContainer>
@@ -220,7 +225,7 @@ export const ImportPositions = () => {
                     </MultiStep.Stepper>
                 </MultiStep.StepperContainer>
 
-                <div className="h-4" />
+                <div className="h-8" />
 
                 <MultiStep.Content>
                     <MultiStep.Step id="broker-step">
@@ -246,7 +251,7 @@ export const ImportPositions = () => {
 
                 <div className="h-8" />
 
-                <div className="flex w-full gap-x-4 sm:justify-end">
+                <div className="flex w-full justify-between gap-x-4 sm:justify-end">
                     <MultiStep.PreviousStepButton>
                         {({ prev, hasPrevious }) => (
                             <Button
@@ -407,7 +412,7 @@ const BrokerTile = ({
     );
 };
 
-const ZerodhaTradingHistoryUpload: FC = () => {
+const ZerodhaTradingHistoryDirections: FC = () => {
     return (
         <ol className="list-decimal pl-8">
             <li>
@@ -415,12 +420,34 @@ const ZerodhaTradingHistoryUpload: FC = () => {
                 <a className="text-base!" href="https://console.zerodha.com" target="_blank" rel="noopener noreferrer">
                     Zerodha
                 </a>{" "}
-                account
+                console account
             </li>
-            <li>Navigate to Reports and select Tradebook</li>
-            <li>Select the necessary filters and click View</li>
-            <li>Click XLSX to download the Excel file</li>
-            <li>Upload your Excel file below (You will be able to review the import before it is saved.)</li>
+            <li>
+                Navigate to <strong>Reports </strong> and select <strong>Tradebook</strong>
+            </li>
+            <li>Select the necessary filters and click submit button</li>
+            <li>
+                Click <strong>XLSX </strong> to download the Excel file
+            </li>
+            <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
+        </ol>
+    );
+};
+
+const GrowwTradingHistoryDirections: FC = () => {
+    return (
+        <ol className="list-decimal pl-8">
+            <li>Go to your profile</li>
+            <li>
+                Select the <strong>Reports</strong> option
+            </li>
+            <li>
+                Under <strong>Transactions</strong>, choose <strong>Stock Order History</strong>
+            </li>
+            <li>
+                Select the time frame and click <strong>Download</strong>
+            </li>
+            <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
         </ol>
     );
 };
@@ -464,7 +491,13 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
 
             <div className="h-2" />
 
-            <ZerodhaTradingHistoryUpload />
+            {name === "Zerodha" ? (
+                <ZerodhaTradingHistoryDirections />
+            ) : name === "Groww" ? (
+                <GrowwTradingHistoryDirections />
+            ) : (
+                <p className="text-foreground-red">Unsupported broker for file import</p>
+            )}
 
             <div className="h-8" />
 
