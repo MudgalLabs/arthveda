@@ -1,10 +1,5 @@
 import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
-import {
-    Navigate,
-    Outlet,
-    ScrollRestoration,
-    useLocation,
-} from "react-router-dom";
+import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import "@/index.css";
@@ -24,18 +19,15 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
 
     if (isLoading) {
         return (
-            <div className="h-full w-full">
-                <LoadingScreen withLogo />
+            <div className="h-screen w-screen">
+                <LoadingScreen />
             </div>
         );
     }
 
     // The user is not signed in and is trying to access a protected route
     // or going to home('/') page. There is no home route.
-    if (
-        !isAuthenticated &&
-        (ROUTES_PROTECTED.includes(pathname) || pathname == ROUTES.index)
-    ) {
+    if (!isAuthenticated && (ROUTES_PROTECTED.includes(pathname) || pathname == ROUTES.index)) {
         // Redirect user to signin screen.
         return <Navigate to={ROUTES.signIn} />;
     }
@@ -49,10 +41,7 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
         }
 
         // User is about to visit an app route.
-        if (
-            ROUTES_PROTECTED.includes(pathname) ||
-            pathname.startsWith(pathname)
-        ) {
+        if (ROUTES_PROTECTED.includes(pathname) || pathname.startsWith(pathname)) {
             return <AppLayout>{children}</AppLayout>;
         }
     }
@@ -71,7 +60,13 @@ export default function App() {
             <AuthenticationProvider>
                 <SidebarProvider>
                     <TooltipPrimitive.TooltipProvider>
-                        <Suspense fallback={<LoadingScreen />}>
+                        <Suspense
+                            fallback={
+                                <div className="h-screen w-screen">
+                                    <LoadingScreen />
+                                </div>
+                            }
+                        >
                             <RouteHandler>
                                 <Outlet />
                             </RouteHandler>
