@@ -1,17 +1,6 @@
-import {
-    Children,
-    cloneElement,
-    FC,
-    isValidElement,
-    ReactElement,
-    ReactNode,
-    useEffect,
-} from "react";
+import { Children, cloneElement, FC, isValidElement, ReactElement, ReactNode, useEffect } from "react";
 
-import {
-    MultiStepProvider,
-    useMultiStep,
-} from "@/components/multi_step/multi_step_context";
+import { MultiStepProps, MultiStepProvider, useMultiStep } from "@/components/multi_step/multi_step_context";
 import { cn } from "@/lib/utils";
 
 interface RootProps {
@@ -35,20 +24,13 @@ const StepperContainer: FC<StepperContainerProps> = ({ children }) => {
 };
 
 interface StepperProps {
-    children: (renderProps: {
-        index: number;
-        currentStepIndex: number;
-    }) => ReactNode;
+    children: (props: MultiStepProps & { index: number }) => ReactNode;
 }
 
 const Stepper: FC<StepperProps> = ({ children }) => {
-    const { noOfSteps, currentStepIndex } = useMultiStep();
-
-    const steps = Array.from({ length: noOfSteps }).fill(0);
-
-    return steps.map((_, index) => (
-        <li key={index}>{children({ index, currentStepIndex })}</li>
-    ));
+    const props = useMultiStep();
+    const steps = Array.from({ length: props.noOfSteps }).fill(0);
+    return steps.map((_, index) => <li key={index}>{children({ index, ...props })}</li>);
 };
 
 interface ContentProps {
@@ -91,8 +73,7 @@ const Step: FC<StepProps> = (props) => {
         throw new Error("<Step /> must be rendered inside <Content />");
     }
 
-    const { currentStepIndex, stepIdxToIdRef, setCurrentStepId } =
-        useMultiStep();
+    const { currentStepIndex, stepIdxToIdRef, setCurrentStepId } = useMultiStep();
 
     stepIdxToIdRef.current[index] = id;
 
@@ -114,34 +95,21 @@ const Step: FC<StepProps> = (props) => {
 };
 
 interface PreviousStepButtonProps {
-    children: (renderProps: {
-        hasPrevious: boolean;
-        prev: () => void;
-        currentStepIndex: number;
-        currentStepId: string;
-    }) => ReactNode;
+    children: (props: MultiStepProps) => ReactNode;
 }
 
 const PreviousStepButton: FC<PreviousStepButtonProps> = ({ children }) => {
-    const { prev, hasPrevious, currentStepIndex, currentStepId } =
-        useMultiStep();
-
-    return children({ hasPrevious, prev, currentStepIndex, currentStepId });
+    const props = useMultiStep();
+    return children(props);
 };
 
 interface NextStepButtonProps {
-    children: (renderProps: {
-        hasNext: boolean;
-        next: () => void;
-        currentStepIndex: number;
-        currentStepId: string;
-    }) => ReactNode;
+    children: (props: MultiStepProps) => ReactNode;
 }
 
 const NextStepButton: FC<NextStepButtonProps> = ({ children }) => {
-    const { next, hasNext, currentStepIndex, currentStepId } = useMultiStep();
-
-    return children({ hasNext, next, currentStepIndex, currentStepId });
+    const props = useMultiStep();
+    return children(props);
 };
 
 export const MultiStep = {

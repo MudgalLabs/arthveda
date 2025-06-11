@@ -23,7 +23,6 @@ services:
         environment:
             GO_APP_ENV: ${GO_APP_ENV}
             GO_PORT: ${GO_PORT}
-            GO_JWT_SECRET: ${GO_JWT_SECRET}
             GO_LOG_LEVEL: ${GO_LOG_LEVEL}
             GO_LOG_FILE: ${GO_LOG_FILE}
             DB_URL: ${DB_URL}

@@ -216,9 +216,9 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 				return
 			}
 
-			if riskAmount.LessThanOrEqual(decimal.Zero) {
+			if riskAmount.IsNegative() {
 				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
-					apires.NewApiError("Risk amount must be greater than zero", "", "risk_amount", riskAmountStr),
+					apires.NewApiError("Risk amount cannot be negative", "", "risk_amount", riskAmountStr),
 				))
 				return
 			}

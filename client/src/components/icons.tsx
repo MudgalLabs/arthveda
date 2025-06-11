@@ -43,4 +43,5 @@ export { LuListFilter as IconListFilter } from "react-icons/lu";
 export { LuArrowUpRight as IconArrowUpRight } from "react-icons/lu";
 export { LuArrowDownRight as IconArrowDownRight } from "react-icons/lu";
 export { LuGripVertical as IconGripVertical } from "react-icons/lu";
+export { LuCircle as IconCircle } from "react-icons/lu";
 export { TbChevronDownRight as IconChevronDownRight } from "react-icons/tb";

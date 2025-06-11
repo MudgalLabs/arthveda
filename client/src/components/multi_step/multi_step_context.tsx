@@ -1,13 +1,6 @@
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 
-interface MultiStepContextType {
+export interface MultiStepProps {
     noOfSteps: number;
     setNoOfSteps: (noOfSteps: number) => void;
     currentStepIndex: number;
@@ -21,9 +14,7 @@ interface MultiStepContextType {
     prev: () => void;
 }
 
-const MultiStepContext = createContext<MultiStepContextType>(
-    {} as MultiStepContextType
-);
+const MultiStepContext = createContext<MultiStepProps>({} as MultiStepProps);
 
 export function MultiStepProvider({ children }: { children: React.ReactNode }) {
     const [noOfSteps, setNoOfSteps] = useState(0);
@@ -59,7 +50,7 @@ export function MultiStepProvider({ children }: { children: React.ReactNode }) {
         [noOfSteps]
     );
 
-    const value: MultiStepContextType = useMemo(
+    const value: MultiStepProps = useMemo(
         () => ({
             noOfSteps,
             setNoOfSteps,
@@ -77,11 +68,7 @@ export function MultiStepProvider({ children }: { children: React.ReactNode }) {
         [noOfSteps, currentStepIndex, currentStepId, goto, next, prev]
     );
 
-    return (
-        <MultiStepContext.Provider value={value}>
-            {children}
-        </MultiStepContext.Provider>
-    );
+    return <MultiStepContext.Provider value={value}>{children}</MultiStepContext.Provider>;
 }
 
 export function useMultiStep() {

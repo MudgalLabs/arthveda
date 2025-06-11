@@ -28,6 +28,8 @@ export * from "@/s8ly/input/input";
 export * from "@/s8ly/popover/popover";
 // Progress
 export * from "@/s8ly/progress/progress";
+// RadioGroup
+export * from "@/s8ly/radio_group/radio_group";
 // Select
 export * from "@/s8ly/select/select";
 // Seperator

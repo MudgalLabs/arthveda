@@ -1,11 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-    Input,
-    InputProps,
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/s8ly";
+import { Input, InputProps, Popover, PopoverContent, PopoverTrigger } from "@/s8ly";
 import { CurrencyCode } from "@/features/position/position";
 import { cn, formatCurrency, getCurrencySymbol } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";
@@ -57,6 +51,7 @@ export function DecimalInput(props: DecimalInputProps) {
                 isCurrency && value
                     ? formatCurrency(value, {
                           currency,
+                          hideSymbol: true,
                       })
                     : value
             );
@@ -169,18 +164,12 @@ export function DecimalInput(props: DecimalInputProps) {
 
 type DecimalFieldKind = "amount" | "quantity";
 
-const decimalConstraints: Record<
-    DecimalFieldKind,
-    { precision: number; scale: number }
-> = {
+const decimalConstraints: Record<DecimalFieldKind, { precision: number; scale: number }> = {
     amount: { precision: 14, scale: 2 },
     quantity: { precision: 20, scale: 8 },
 };
 
-function validateDecimalString(
-    value: string,
-    kind: DecimalFieldKind
-): { valid: boolean; error?: string } {
+function validateDecimalString(value: string, kind: DecimalFieldKind): { valid: boolean; error?: string } {
     const { precision, scale } = decimalConstraints[kind];
 
     const [intPartRaw = "", fracPart = ""] = value.split(".");

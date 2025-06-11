@@ -14,10 +14,8 @@ const buttonVariants = cva(
                     "bg-primary text-foreground enabled:hover:bg-primary/90 enabled:active:bg-primary focus-visible:ring-foreground!",
                 secondary:
                     "bg-accent-muted text-foreground enabled:hover:bg-accent-muted/80 enabled:active:bg-accent-muted",
-                outline:
-                    "bg-transparent text-foreground border-1 border-accent-muted enabled:hover:bg-accent-muted",
-                destructive:
-                    "bg-red-bg text-red-foreground enabled:hover:bg-red-bg/90 focus-visible:ring-foreground!",
+                outline: "bg-transparent text-foreground border-1 border-accent-muted enabled:hover:bg-accent-muted",
+                destructive: "bg-red-bg text-red-foreground enabled:hover:bg-red-bg/90 focus-visible:ring-foreground!",
                 success:
                     "bg-green-bg text-green-foreground enabled:hover:bg-green-bg/90 focus-visible:ring-foreground!",
                 ghost: "enabled:hover:bg-accent-muted enabled:hover:text-foreground",
@@ -36,29 +34,15 @@ const buttonVariants = cva(
     }
 );
 
-interface ButtonProps
-    extends ComponentProps<"button">,
-        VariantProps<typeof buttonVariants> {
+interface ButtonProps extends ComponentProps<"button">, VariantProps<typeof buttonVariants> {
     loading?: boolean;
 }
 
 const Button: FC<ButtonProps> = memo((props) => {
-    const {
-        className,
-        children,
-        disabled,
-        loading = false,
-        variant = "primary",
-        size = "default",
-        ...rest
-    } = props;
+    const { className, children, disabled, loading = false, variant = "primary", size = "default", ...rest } = props;
 
     return (
-        <button
-            className={cn(buttonVariants({ variant, size, className }))}
-            disabled={disabled || loading}
-            {...rest}
-        >
+        <button className={cn(buttonVariants({ variant, size, className }))} disabled={disabled || loading} {...rest}>
             {loading && (
                 <div className="absolute inline-flex items-center">
                     <Loading color="var(--color-foreground)" />
@@ -66,13 +50,10 @@ const Button: FC<ButtonProps> = memo((props) => {
             )}
 
             <span
-                className={cn(
-                    "inline-flex items-center justify-center gap-2 whitespace-nowrap transition",
-                    {
-                        "opacity-0": loading,
-                        "opacity-100": !loading,
-                    }
-                )}
+                className={cn("inline-flex items-center justify-center gap-2 whitespace-nowrap transition", {
+                    "opacity-0": loading,
+                    "opacity-100": !loading,
+                })}
             >
                 {children}
             </span>

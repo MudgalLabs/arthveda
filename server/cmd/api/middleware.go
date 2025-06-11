@@ -24,6 +24,16 @@ func authMiddleware(next http.Handler) http.Handler {
 		l := logger.FromCtx(ctx)
 		errorMsg := "You need to be signed in to use this route. POST /auth/sign-in to sign in."
 
+		// Check if the session cookie exists
+		_, err := r.Cookie("session")
+		if err != nil {
+			if errors.Is(err, http.ErrNoCookie) {
+				l.Warn("no session found")
+				unauthorizedErrorResponse(w, r, errorMsg, errors.New("no session found"))
+				return
+			}
+		}
+
 		userID := session.Manager.GetString(ctx, "user_id")
 
 		if userID == "" {
