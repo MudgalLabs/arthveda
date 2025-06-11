@@ -42,10 +42,14 @@ const Button: FC<ButtonProps> = memo((props) => {
     const { className, children, disabled, loading = false, variant = "primary", size = "default", ...rest } = props;
 
     return (
-        <button className={cn(buttonVariants({ variant, size, className }))} disabled={disabled || loading} {...rest}>
+        <button
+            className={cn("relative", buttonVariants({ variant, size, className }))}
+            disabled={disabled || loading}
+            {...rest}
+        >
             {loading && (
-                <div className="absolute inline-flex items-center">
-                    <Loading color="var(--color-foreground)" />
+                <div className="absolute inset-0 inline-flex items-center justify-center">
+                    <Loading color="currentColor" />
                 </div>
             )}
 

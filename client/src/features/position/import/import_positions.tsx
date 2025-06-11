@@ -145,24 +145,22 @@ export const ImportPositions = () => {
         );
     };
 
-    const canGoToNextStep = useCallback(
-        (stepID: string) => {
-            switch (stepID) {
-                case "broker-step":
-                    // Broker is required.
-                    return state.brokerID !== "";
-                case "file-step":
-                    // File is required.
-                    return state.file !== null;
-                default:
-                    return true;
-            }
-        },
-        [state]
-    );
-
     const getNextButtonProps = ({ currentStepId, goto, next }: MultiStepProps) => {
         let onClick = next;
+        let loading = isPending;
+        let disabled = false;
+
+        if (currentStepId === "broker-step") {
+            if (state.brokerID === "") {
+                disabled = true;
+            }
+        }
+
+        if (currentStepId === "file-step") {
+            if (state.file === null) {
+                disabled = true;
+            }
+        }
 
         if (currentStepId === "options-step") {
             onClick = () => {
@@ -183,9 +181,6 @@ export const ImportPositions = () => {
                 });
             };
         }
-
-        let loading = isPending;
-        const disabled = !canGoToNextStep(currentStepId);
 
         return {
             onClick,
