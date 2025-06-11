@@ -7,22 +7,7 @@ import { toast } from "@/components/toast";
 import { WithLabel } from "@/components/with_label";
 import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
-import {
-    Button,
-    Input,
-    Label,
-    Dialog,
-    DialogFooter,
-    DialogHeader,
-    DialogContent,
-    DialogDescription,
-    DialogTitle,
-    DialogTrigger,
-    DialogClose,
-    Tooltip,
-    RadioGroup,
-    RadioGroupItem,
-} from "@/s8ly";
+import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem } from "@/s8ly";
 import { PositionListTable } from "@/features/position/components/position_list_table";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
@@ -375,7 +360,6 @@ import { cn } from "@/lib/utils";
 import { Position, PositionInstrument } from "../position";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { MultiStepProps } from "@/components/multi_step/multi_step_context";
-import { isEqual } from "lodash";
 
 const getBrokerLogo = (name: BrokerName) => {
     switch (name) {
@@ -621,90 +605,3 @@ const ReviewStep: FC<ImportStepProps & { positions: Position[] }> = ({ positions
         </>
     );
 };
-
-// const content = useMemo(() => {
-//         if (showConfirm) {
-//             return (
-//                 <>
-//                     <PositionListTable positions={data?.positions || []} hideFilters />
-
-//                     <div className="h-4" />
-
-//                     <div className="flex flex-col justify-end gap-x-2 gap-y-2 sm:flex-row">
-//                         <Dialog>
-//                             <DialogTrigger asChild>
-//                                 <Button variant="secondary">Discard</Button>
-//                             </DialogTrigger>
-
-//                             <DialogContent>
-//                                 <DialogHeader>
-//                                     <DialogTitle>Discard</DialogTitle>
-//                                     <DialogDescription>
-//                                         Are you sure you want to discard importing these positions?
-//                                     </DialogDescription>
-//                                 </DialogHeader>
-
-//                                 <DialogFooter>
-//                                     <DialogClose asChild>
-//                                         <Button type="button" variant="destructive" onClick={handleCancel}>
-//                                             Discard
-//                                         </Button>
-//                                     </DialogClose>
-//                                 </DialogFooter>
-//                             </DialogContent>
-//                         </Dialog>
-
-//                         <Button variant="primary" onClick={handleConfirm} loading={isPending}>
-//                             Finish Import
-//                         </Button>
-
-//                         <div className="h-4" />
-//                     </div>
-//                 </>
-//             );
-//         } else {
-//             return (
-//                 <form onSubmit={handleStartImport}>
-//                     <div className="flex flex-col justify-between gap-x-16 gap-y-4 sm:flex-row">
-//                         <WithLabel Label={<Label>Broker *</Label>}>
-//                             <BrokerSelect value={brokerID} onValueChange={(v) => setBrokerID(v)} />
-//                         </WithLabel>
-
-//                         <WithLabel Label={<Label>File *</Label>}>
-//                             <Input type="file" onChange={handleFileChange} />
-//                         </WithLabel>
-
-//                         <WithLabel Label={<Label>Currency</Label>}>
-//                             <CurrencySelect value={currency} onValueChange={(v) => setCurrency(v)} />
-//                         </WithLabel>
-
-//                         <WithLabel
-//                             Label={
-//                                 <div className="flex items-center gap-x-2">
-//                                     <Label>Risk Amount</Label>
-//                                     <Tooltip content="Amount you risked on each position">
-//                                         <IconInfo size={14} />
-//                                     </Tooltip>
-//                                 </div>
-//                             }
-//                         >
-//                             <DecimalInput
-//                                 kind="amount"
-//                                 currency={currency}
-//                                 value={riskAmount}
-//                                 onChange={(e) => setRiskAmount(e.target.value)}
-//                             />
-//                         </WithLabel>
-//                     </div>
-
-//                     <div className="h-16" />
-
-//                     <div className="flex w-full justify-end">
-//                         <Button className="w-full sm:w-fit" disabled={!file || !brokerID} loading={isPending}>
-//                             Start Import
-//                         </Button>
-//                     </div>
-//                 </form>
-//             );
-//         }
-//     }, [showConfirm, data, file, brokerID, isPending, handleCancel, handleStartImport, handleConfirm]);
