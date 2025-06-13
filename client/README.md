@@ -1,3 +1,0 @@
-# Arthveda
-
-The frontend app.

@@ -26,24 +26,24 @@ Arthveda is India first. Why? Well there are already several tools out there tha
 
 Here you will be getting the analytics for your positions.
 
-<img src="./readme_assets/dashboard.png" alt="arthveda dashboard" />
+<img src="./.github/screenshots/dashboard.png" alt="arthveda dashboard" />
 
 ### Positions
 
 View, sort and filter your Positions.
 
-<img src="./readme_assets/positions.png" alt="arthveda dashboard" />
+<img src="./.github/screenshots/positions.png" alt="arthveda dashboard" />
 
 ### Import Positions
 
 Follow the simple import wizard to import historical positions data from the supported brokers.
 
-<img src="./readme_assets/import_positions.png" alt="arthveda dashboard" />
+<img src="./.github/screenshots/import_positions.png" alt="arthveda dashboard" />
 
 ### Add Position
 
 You can manually add positions too if your broker isn't supported. We aim to support as many brokers as we can but until then this screen will help you.
 
-<img src="./readme_assets/add_position.png" alt="arthveda dashboard" />
+<img src="./.github/screenshots/add_position.png" alt="arthveda dashboard" />
 
 ### Instructions to self host or run locally will be added soon.

@@ -1,0 +1,63 @@
+networks:
+    arthveda_network:
+        name: arthveda_network
+
+services:
+    arthveda_web:
+        container_name: arthveda_web
+        image: ceoshikhar/arthveda_web
+        build:
+            dockerfile: web.dockerfile
+        environment:
+            VITE_API_URL: "http://localhost:1337"
+            VITE_GOOGLE_OAUTH_URL: "http://localhost:1337/v1/auth/oauth/google"
+        ports:
+            - 6969:6969
+        networks:
+            - arthveda_network
+        depends_on:
+            arthveda_api:
+                condition: service_started
+
+    arthveda_api:
+        container_name: arthveda_api
+        image: ceoshikhar/arthveda_api
+        build:
+            dockerfile: api.dockerfile
+        environment:
+            API_ENV: production # or `development` for development
+            API_LOG_LEVEL: info
+            API_LOG_FILE: arthveda_api.log
+            DB_URL: "postgres://${DB_USER}:${DB_PASSWORD}@arthveda_db:42069/arthveda?sslmode=disable"
+            WEB_URL: "http://localhost:6969"
+            GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL}
+            GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+        ports:
+            - 1337:1337
+        networks:
+            - arthveda_network
+        depends_on:
+            arthveda_db:
+                condition: service_healthy
+                restart: true
+
+    arthveda_db:
+        container_name: arthveda_db
+        image: postgres:17.4
+        environment:
+            PGPORT: 42069
+            POSTGRES_DB: arthveda
+            POSTGRES_USER: ${DB_USER}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        ports:
+            - 42069:42069
+        networks:
+            - arthveda_network
+        volumes:
+            - ./docker_volumes/db_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d arthveda"]
+            interval: 10s
+            timeout: 5s
+            retries: 5

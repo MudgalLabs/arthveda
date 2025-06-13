@@ -2,3 +2,5 @@
 
 *.log
 *.logs
+
+docker_volumes
