@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./readme_assets/banner.png" alt="arthveda banner" />
+  <img src="./.github/screenshots/banner.png" alt="arthveda banner" />
   <h1>arthveda</h1>
   <p><strong>An open-source trading analytics dashboard that integrates with your broker to help you track, analyze, and improve your performance.</strong></p>
 </div>
