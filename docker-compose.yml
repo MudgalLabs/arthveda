@@ -9,8 +9,8 @@ services:
         build:
             dockerfile: web.dockerfile
         environment:
-            VITE_API_URL: "http://localhost:1337"
-            VITE_GOOGLE_OAUTH_URL: "http://localhost:1337/v1/auth/oauth/google"
+            VITE_API_URL: ${API_URL}
+            VITE_GOOGLE_OAUTH_URL: ${VITE_GOOGLE_OAUTH_URL}
         ports:
             - 6969:6969
         networks:
@@ -28,7 +28,7 @@ services:
             API_ENV: production # or `development` for development
             API_LOG_LEVEL: info
             API_LOG_FILE: arthveda_api.log
-            DB_URL: "postgres://${DB_USER}:${DB_PASSWORD}@arthveda_db:42069/arthveda?sslmode=disable"
+            DB_URL: ${DB_URL}
             WEB_URL: ${WEB_URL}
             GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL}
             GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
