@@ -29,7 +29,7 @@ services:
             API_LOG_LEVEL: info
             API_LOG_FILE: arthveda_api.log
             DB_URL: "postgres://${DB_USER}:${DB_PASSWORD}@arthveda_db:42069/arthveda?sslmode=disable"
-            WEB_URL: "http://localhost:6969"
+            WEB_URL: ${WEB_URL}
             GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL}
             GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
             GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
