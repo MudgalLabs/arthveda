@@ -31,8 +31,8 @@ jobs:
 
             - name: Build and push to DockerHub
               run: |
-                  docker compose build api
-                  docker push ${{ secrets.DOCKERHUB_USERNAME }}/arthveda-api:dev
+                  docker compose build arthveda_api
+                  docker push ${{ secrets.DOCKERHUB_USERNAME }}/arthveda-api
 
             - name: Set up SSH
               uses: webfactory/ssh-agent@v0.9.0
@@ -45,4 +45,4 @@ jobs:
 
             - name: Deploy to VPS
               run: |
-                  ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout main && git pull && docker compose pull api && docker compose up api -d && exit"
+                  ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout main && git pull && docker compose pull arthveda_api && docker compose up arthveda_api -d && exit"
