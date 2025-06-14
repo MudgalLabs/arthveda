@@ -21,7 +21,7 @@ services:
 
     arthveda_api:
         container_name: arthveda_api
-        image: ceoshikhar/arthveda_api
+        image: ceoshikhar/arthveda_api:dev
         build:
             dockerfile: api.dockerfile
         environment:
