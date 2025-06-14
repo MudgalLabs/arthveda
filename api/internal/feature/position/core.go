@@ -318,16 +318,16 @@ func Compute(payload ComputePayload) (computeResult, error) {
 type tradeChargeSplit = string
 
 const (
-	tradeChargeSplitIntrday  tradeChargeSplit = "intraday"
+	tradeChargeSplitIntraday tradeChargeSplit = "intraday"
 	tradeChargeSplitDelivery tradeChargeSplit = "delivery"
 )
 
 type chargeSplit struct {
 	// Quantity of the trade for which this charge is applicable.
-	quantity decimal.Decimal
+	Quantity decimal.Decimal `json:"quantity"`
 
 	// Kind of charge split.
-	kind tradeChargeSplit
+	Kind tradeChargeSplit `json:"kind"`
 }
 
 type tradeChargesContext struct {
@@ -386,7 +386,7 @@ func computeTradeChargesContext(trades []*trade.Trade) (chargeContextByTradeId c
 			for j := i - 1; j >= 0; j-- {
 				prevTrade := trades[j]
 
-				if prevTrade.Kind == openTrade.Kind {
+				if prevTrade.Kind == currTrade.Kind {
 					// Skip same kind trades as we want to update the opposite side if they exists.
 					continue
 				}
@@ -395,8 +395,8 @@ func computeTradeChargesContext(trades []*trade.Trade) (chargeContextByTradeId c
 				// we will mark the current trade as delivery for the remaining quantity.
 				if prevTrade.Time.Day() != currTrade.Time.Day() {
 					split := chargeSplit{
-						quantity: currTradeQtyRemaining,
-						kind:     tradeChargeSplitDelivery,
+						Quantity: currTradeQtyRemaining,
+						Kind:     tradeChargeSplitDelivery,
 					}
 
 					chargeContextByTradeId[currTrade.ID] = &tradeChargesContext{
@@ -456,14 +456,14 @@ func computeTradeChargesContext(trades []*trade.Trade) (chargeContextByTradeId c
 
 						// Add the charge split for the previous trade as intraday for the quantity that was sold.
 						prevTradeChargesContext.ChargesSplits = append(prevTradeChargesContext.ChargesSplits, chargeSplit{
-							quantity: qtyReduced,
-							kind:     tradeChargeSplitIntrday,
+							Quantity: qtyReduced,
+							Kind:     tradeChargeSplitIntraday,
 						})
 
 						// Add the charge split for the current trade as intraday for the quantity that was sold.
 						currTradeChargesContext.ChargesSplits = append(currTradeChargesContext.ChargesSplits, chargeSplit{
-							quantity: qtyReduced,
-							kind:     tradeChargeSplitIntrday,
+							Quantity: qtyReduced,
+							Kind:     tradeChargeSplitIntraday,
 						})
 
 						// Update the remaining quantity for the previous trade.
@@ -518,8 +518,8 @@ func computeTradeChargesContext(trades []*trade.Trade) (chargeContextByTradeId c
 			}
 
 			split := chargeSplit{
-				quantity: qty,
-				kind:     tradeChargeSplitDelivery,
+				Quantity: qty,
+				Kind:     tradeChargeSplitDelivery,
 			}
 
 			// Add the charge split for the trade as delivery for the remaining quantity.
@@ -531,7 +531,7 @@ func computeTradeChargesContext(trades []*trade.Trade) (chargeContextByTradeId c
 	for tradeID, context := range chargeContextByTradeId {
 		fmt.Printf("Trade ID: %s\n", tradeID)
 		for _, split := range context.ChargesSplits {
-			fmt.Printf("  - Quantity: %s, Kind: %s\n", split.quantity.String(), split.kind)
+			fmt.Printf("  - Quantity: %s, Kind: %s\n", split.Quantity.String(), split.Kind)
 		}
 	}
 

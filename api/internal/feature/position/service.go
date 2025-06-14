@@ -45,6 +45,9 @@ type ComputeServiceResult struct {
 	computeResult
 	Trades        []*trade.Trade                    `json:"trades_lol"`
 	ChargeContext computeTradeeChargesContextResult `json:"charge_context"`
+
+	// This order should match the order of trades in the ComputePayload.
+	TradeCharges []decimal.Decimal `json:"trade_charges"`
 }
 
 func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeServiceResult, service.Error, error) {
@@ -77,9 +80,27 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 		}
 	}
 
+	tradeCharges := make([]decimal.Decimal, len(position.Trades))
+	for i, trade := range position.Trades {
+		// Get the charge for each trade from the charge context.
+		charge, exists := chargeContext[trade.ID]
+		if !exists {
+			return result, service.ErrInternalServerError, fmt.Errorf("charge not found for trade ID: %s", trade.ID)
+		}
+
+		for _, chargeSplit := range charge.ChargesSplits {
+			if chargeSplit.Kind == tradeChargeSplitIntraday {
+				qty, _ := chargeSplit.Quantity.Float64()
+				oldCharge := tradeCharges[i]
+				tradeCharges[i] = oldCharge.Add(decimal.NewFromFloat(1 * qty))
+			}
+		}
+	}
+
 	result.computeResult = computeResult
 	result.Trades = position.Trades
 	result.ChargeContext = chargeContext
+	result.TradeCharges = tradeCharges
 	return result, service.ErrNone, nil
 }
 
