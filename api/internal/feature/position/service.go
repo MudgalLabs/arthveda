@@ -41,21 +41,6 @@ type ComputePayload struct {
 	Trades     []trade.CreatePayload `json:"trades"`
 }
 
-type computeResult struct {
-	Direction                   Direction       `json:"direction"`
-	Status                      Status          `json:"status"`
-	OpenedAt                    time.Time       `json:"opened_at"`
-	ClosedAt                    *time.Time      `json:"closed_at"` // `nil` if the Status is StatusOpen meaning the position is open.
-	GrossPnLAmount              decimal.Decimal `json:"gross_pnl_amount"`
-	NetPnLAmount                decimal.Decimal `json:"net_pnl_amount"`
-	TotalChargesAmount          decimal.Decimal `json:"total_charges_amount"`
-	RFactor                     decimal.Decimal `json:"r_factor"`
-	NetReturnPercentage         decimal.Decimal `json:"net_return_percentage"`
-	ChargesAsPercentageOfNetPnL decimal.Decimal `json:"charges_as_percentage_of_net_pnl"`
-	OpenQuantity                decimal.Decimal `json:"open_quantity"`
-	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount"`
-}
-
 func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeResult, service.Error, error) {
 	result := Compute(payload)
 	return result, service.ErrNone, nil

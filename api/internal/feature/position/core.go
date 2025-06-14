@@ -154,6 +154,21 @@ func (originalPosition *Position) update(payload UpdatePayload) (Position, error
 	return updatedPosition, nil
 }
 
+type computeResult struct {
+	Direction                   Direction       `json:"direction"`
+	Status                      Status          `json:"status"`
+	OpenedAt                    time.Time       `json:"opened_at"`
+	ClosedAt                    *time.Time      `json:"closed_at"` // `nil` if the Status is StatusOpen meaning the position is open.
+	GrossPnLAmount              decimal.Decimal `json:"gross_pnl_amount"`
+	NetPnLAmount                decimal.Decimal `json:"net_pnl_amount"`
+	TotalChargesAmount          decimal.Decimal `json:"total_charges_amount"`
+	RFactor                     decimal.Decimal `json:"r_factor"`
+	NetReturnPercentage         decimal.Decimal `json:"net_return_percentage"`
+	ChargesAsPercentageOfNetPnL decimal.Decimal `json:"charges_as_percentage_of_net_pnl"`
+	OpenQuantity                decimal.Decimal `json:"open_quantity"`
+	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount"`
+}
+
 func Compute(payload ComputePayload) computeResult {
 	result := computeResult{
 		OpenedAt:  time.Now().UTC(),
