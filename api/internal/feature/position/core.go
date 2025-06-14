@@ -331,89 +331,211 @@ type chargeSplit struct {
 }
 
 type tradeChargesContext struct {
-	tradeID       uuid.UUID
-	chargesSplits []chargeSplit
+	TradeID       uuid.UUID     `json:"trade_id"`
+	ChargesSplits []chargeSplit `json:"charges_splits"`
 }
+
+// chargeContextByTradeId is a map of trade ID to the charges context for that trade.
+type computeTradeeChargesContextResult = map[uuid.UUID]*tradeChargesContext
 
 // computeTradeChargesContext computes the charges context for all the trades of a EQUITY position only.
 // The context allows us to later compute the charges for each trade based on the splits.
 // Each split tells us how much quantity of a trade is applicable for a particular charge kind (intraday or delivery).
-func computeTradeChargesContext(trades []*trade.Trade) (chargeByTradeId map[uuid.UUID]decimal.Decimal, totalCharges decimal.Decimal) {
-	chargeByTradeId = make(map[uuid.UUID]decimal.Decimal)
-	totalCharges = decimal.Zero
+func computeTradeChargesContext(trades []*trade.Trade) (chargeContextByTradeId computeTradeeChargesContextResult, userError bool, err error) {
+	// We will keep track of the charges context for each trade.
+	chargeContextByTradeId = make(map[uuid.UUID]*tradeChargesContext)
 
 	// Safety check
 	if len(trades) == 0 {
-		return chargeByTradeId, totalCharges
+		return chargeContextByTradeId, false, nil
 	}
 
 	// We assume that the trades are sorted by time.
 	// So the first trade is the opening trade of the position.
-	// openTradeTime := trades[0].Time
+	openTrade := trades[0]
 
-	// We will keep track of the charges context for each trade.
-	chargeContextByTradeId := make(map[uuid.UUID]*tradeChargesContext)
-
-	// Keep track of previous buy trades with their remaining quantity.
-	// We will use this to mark the previous buy trades as intraday for the quantity that was sold.
-	prevBuyTradesWithRemainingQty := map[uuid.UUID]decimal.Decimal{}
+	// Keep track of trades of the opposite kind to the open trade.
+	// We will use this to mark the opposite trades as intraday or delivery.
+	// After looping through all trades, we will have a map of trades that are of
+	// the opposite kind to the open trade and their remaining quantity and they
+	// will be considered as delivery trades because they were not consumed by any
+	// opposite trades on the same day.
+	otherKindTradesWithRemainingQty := map[uuid.UUID]decimal.Decimal{}
 
 	// We will loop through all trades, until we reach a trade that is after the opening trade
-	for i, t := range trades {
-		// If the trade is a buy, we add it to the context.
-		if t.Kind == trade.TradeKindBuy {
-			prevBuyTradesWithRemainingQty[t.ID] = t.Quantity
+	for i, currTrade := range trades {
+		// If the trade is matching the open trade kind, we are scaling in.
+		// So all the same direction trades can be just added directly.
+		if currTrade.Kind == openTrade.Kind {
+			otherKindTradesWithRemainingQty[currTrade.ID] = currTrade.Quantity
 			continue
 		}
 
-		if t.Kind == trade.TradeKindSell {
-			sellQty := t.Quantity
+		// We have come across a trade that isn't matching the kind for the open trade.
+		// So in a long position, this would be sell trade and vice-versa.
+		// PERF: Nested loops. Can we optimize this?
+		if currTrade.Kind != openTrade.Kind {
+			// We will keep reducting this qty if we find opposite trades when looping backwards.
+			// If this quantity hits 0, or we hit a trade that was done on a different day,
+			// we will add a charge split as delivery for this qty.
+			// NOTE: This value gets mutated !!!
+			currTradeQtyRemaining := currTrade.Quantity
 
 			// If the trade is a sell, we need to loop backwards to find the previous buy trades
 			// and mark them as intraday for the quantity that was sold.
 			for j := i - 1; j >= 0; j-- {
 				prevTrade := trades[j]
 
-				if prevTrade.Kind == trade.TradeKindSell {
-					// Skip sell trades
+				if prevTrade.Kind == openTrade.Kind {
+					// Skip same kind trades as we want to update the opposite side if they exists.
 					continue
 				}
 
-				if prevTrade.Time.Day() == t.Time.Day() {
-					// If the previous trade is on the same day as the sell trade,
-					// we know that this is an intraday sell trade.
-					// We will mark the previous buy trade as intraday for the quantity that was sold.
-					// Also this trade as a intraday sell trade.
-
-					if remainingQty, exists := prevBuyTradesWithRemainingQty[prevTrade.ID]; exists {
-						if remainingQty.GreaterThan(decimal.Zero) {
-						} else {
-							// We keep going back until we find a previouis buy trade with remaining quantity
-							// or hit a trade that was done on a different day.
-							continue
-						}
-					}
-				}
-
-				// If we have no buy trades done on the same day as the sell trade,
-				// we know that this trade is a delivery sell trade.
-				if prevTrade.Time.Day() != t.Time.Day() {
+				// If we reach a trade that is on a different day,
+				// we will mark the current trade as delivery for the remaining quantity.
+				if prevTrade.Time.Day() != currTrade.Time.Day() {
 					split := chargeSplit{
-						quantity: sellQty,
+						quantity: currTradeQtyRemaining,
 						kind:     tradeChargeSplitDelivery,
 					}
 
-					chargeContextByTradeId[t.ID] = &tradeChargesContext{
-						tradeID:       t.ID,
-						chargesSplits: []chargeSplit{split},
+					chargeContextByTradeId[currTrade.ID] = &tradeChargesContext{
+						TradeID:       currTrade.ID,
+						ChargesSplits: []chargeSplit{split},
 					}
+
+					// We no longer have to keep going back as we have reached another day,
+					// meaning whatever quantity is left is delivery.
 					break
+				}
+
+				// We have a previous trade that is on the same day as the current trade
+				// and the trade is of opposite kind.
+				if prevTrade.Time.Day() == currTrade.Time.Day() {
+					// If the previous trade is on the same day as the opening trade,
+					// we know that this is an intraday trade.
+					// We will mark the previous opposite kind trade as intraday for the quantity that was in this trade.
+					// Also mark this trade as a intraday.
+
+					if prevTradeRemainingQty, exists := otherKindTradesWithRemainingQty[prevTrade.ID]; exists {
+						prevTradeChargesContext, exists := chargeContextByTradeId[prevTrade.ID]
+						if !exists {
+							// If we don't have a context for the previous trade, we create one.
+							prevTradeChargesContext = &tradeChargesContext{
+								TradeID:       prevTrade.ID,
+								ChargesSplits: []chargeSplit{},
+							}
+							chargeContextByTradeId[prevTrade.ID] = prevTradeChargesContext
+						}
+
+						currTradeChargesContext, exists := chargeContextByTradeId[currTrade.ID]
+						if !exists {
+							// If we don't have a context for the current trade, we create one.
+							currTradeChargesContext = &tradeChargesContext{
+								TradeID:       currTrade.ID,
+								ChargesSplits: []chargeSplit{},
+							}
+							chargeContextByTradeId[currTrade.ID] = currTradeChargesContext
+						}
+
+						var newPrevRemainingQty, newCurrTradeQty, qtyReduced decimal.Decimal
+
+						// If the previous trade has remaining quantity more than the current trade quantity,
+						// we can subtract the current trade quantity from the previous trade remaining quantity.
+						if prevTradeRemainingQty.GreaterThanOrEqual(currTradeQtyRemaining) {
+							newPrevRemainingQty = prevTradeRemainingQty.Sub(currTradeQtyRemaining)
+							newCurrTradeQty = decimal.Zero
+							qtyReduced = currTradeQtyRemaining
+						} else {
+							// If the previous trade remaining quantity is less than the current trade quantity,
+							// we will subtract the previous trade remaining quantity from the current trade quantity.
+							newPrevRemainingQty = decimal.Zero
+							newCurrTradeQty = currTradeQtyRemaining.Sub(prevTradeRemainingQty)
+							qtyReduced = prevTradeRemainingQty
+						}
+
+						// Add the charge split for the previous trade as intraday for the quantity that was sold.
+						prevTradeChargesContext.ChargesSplits = append(prevTradeChargesContext.ChargesSplits, chargeSplit{
+							quantity: qtyReduced,
+							kind:     tradeChargeSplitIntrday,
+						})
+
+						// Add the charge split for the current trade as intraday for the quantity that was sold.
+						currTradeChargesContext.ChargesSplits = append(currTradeChargesContext.ChargesSplits, chargeSplit{
+							quantity: qtyReduced,
+							kind:     tradeChargeSplitIntrday,
+						})
+
+						// Update the remaining quantity for the previous trade.
+						otherKindTradesWithRemainingQty[prevTrade.ID] = newPrevRemainingQty
+						// Update the current trade quantity remaining.
+						currTradeQtyRemaining = newCurrTradeQty
+
+						chargeContextByTradeId[prevTrade.ID] = prevTradeChargesContext
+						chargeContextByTradeId[currTrade.ID] = currTradeChargesContext
+
+						// If we consume all the previous trade remaining quantity,
+						// we need to make sure we haven't reached the start of the trades.
+						// If we have reached the start of the trades and we have quantity left for the
+						// current trade, that means have imbalance of quantity.
+						// This is a case where we have sold more quantity than we had bought or vice-versa.
+						if j == 0 && newCurrTradeQty.GreaterThan(decimal.Zero) {
+							if openTrade.Kind == trade.TradeKindBuy {
+								// If the open trade is a buy, it means we have sold more quantity than we had bought.
+								return chargeContextByTradeId, true, fmt.Errorf("You cannot sell more quantity than you have open")
+							} else {
+								// If the open trade is a sell, it means we have bought more quantity than we had sold.
+								return chargeContextByTradeId, true, fmt.Errorf("You cannot buy more quantity than you have open")
+							}
+						}
+
+						// If the current trade quantity remaining is zero, we can break.
+						if currTradeQtyRemaining.IsZero() {
+							// We have consumed all the quantity of the current trade,
+							// so we can break out of the loop.
+							break
+						}
+					}
 				}
 			}
 		}
 	}
 
-	return chargeByTradeId, totalCharges
+	// After looping through all trades, we will have a map of trades that are of
+	// the opposite kind to the open trade and their remaining quantity.
+	// We will mark these trades as delivery for the remaining quantity.
+	// If the remaining quantity is greater than zero, we will add a charge split as delivery for the remaining quantity.
+	for tradeID, qty := range otherKindTradesWithRemainingQty {
+		if qty.IsPositive() {
+			context, exists := chargeContextByTradeId[tradeID]
+			if !exists {
+				// If we don't have a context for the trade, we create one.
+				context = &tradeChargesContext{
+					TradeID:       tradeID,
+					ChargesSplits: []chargeSplit{},
+				}
+				chargeContextByTradeId[tradeID] = context
+			}
+
+			split := chargeSplit{
+				quantity: qty,
+				kind:     tradeChargeSplitDelivery,
+			}
+
+			// Add the charge split for the trade as delivery for the remaining quantity.
+			context.ChargesSplits = append(context.ChargesSplits, split)
+			chargeContextByTradeId[tradeID] = context
+		}
+	}
+
+	for tradeID, context := range chargeContextByTradeId {
+		fmt.Printf("Trade ID: %s\n", tradeID)
+		for _, split := range context.ChargesSplits {
+			fmt.Printf("  - Quantity: %s, Kind: %s\n", split.quantity.String(), split.kind)
+		}
+	}
+
+	return chargeContextByTradeId, false, nil
 }
 
 // ApplyTradeToPosition applies a trade to an existing position,

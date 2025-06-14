@@ -41,13 +41,45 @@ type ComputePayload struct {
 	Trades     []trade.CreatePayload `json:"trades"`
 }
 
-func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeResult, service.Error, error) {
-	result, err := Compute(payload)
+type ComputeServiceResult struct {
+	computeResult
+	Trades        []*trade.Trade                    `json:"trades_lol"`
+	ChargeContext computeTradeeChargesContextResult `json:"charge_context"`
+}
+
+func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeServiceResult, service.Error, error) {
+	result := ComputeServiceResult{}
+	computeResult, err := Compute(payload)
 
 	if err != nil {
 		return result, service.ErrBadRequest, err
 	}
 
+	position, userErr, err := new(uuid.Nil, CreatePayload{
+		ComputePayload: payload,
+	})
+
+	if err != nil {
+		if userErr {
+			return result, service.ErrBadRequest, err
+		} else {
+			return result, service.ErrInternalServerError, fmt.Errorf("new: %w", err)
+		}
+	}
+
+	// Compute the charges context for the trades.
+	chargeContext, userErr, err := computeTradeChargesContext(position.Trades)
+	if err != nil {
+		if userErr {
+			return result, service.ErrBadRequest, err
+		} else {
+			return result, service.ErrInternalServerError, fmt.Errorf("computeTradeChargesContext: %w", err)
+		}
+	}
+
+	result.computeResult = computeResult
+	result.Trades = position.Trades
+	result.ChargeContext = chargeContext
 	return result, service.ErrNone, nil
 }
 
