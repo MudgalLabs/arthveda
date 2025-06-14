@@ -9,7 +9,8 @@ import (
 
 func successResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string, data any) {
 	l := logger.FromCtx(r.Context())
-	l.Debugw("success response", "message", message, "data", data)
+	// Not logging data to avoid unnecessary exposure and log size increase.
+	l.Debugw("success response", "message", message)
 	writeJSONResponse(w, statusCode, apires.Success(statusCode, message, data))
 }
 

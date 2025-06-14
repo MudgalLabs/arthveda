@@ -56,15 +56,40 @@ type Position struct {
 	IsDuplicate bool `json:"is_duplicate"`
 }
 
-func new(userID uuid.UUID, payload CreatePayload) (*Position, error) {
+type Instrument string
+
+const (
+	InstrumentEquity Instrument = "equity"
+)
+
+type Direction string
+
+const (
+	DirectionLong  Direction = "long"
+	DirectionShort Direction = "short"
+)
+
+type Status string
+
+const (
+	StatusWin       Status = "win"
+	StatusLoss      Status = "loss"
+	StatusBreakeven Status = "breakeven"
+	StatusOpen      Status = "open"
+)
+
+func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr bool, err error) {
 	now := time.Now().UTC()
 
 	positionID, err := uuid.NewV7()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	computeResult := Compute(payload.ComputePayload)
+	computeResult, err := Compute(payload.ComputePayload)
+	if err != nil {
+		return nil, true, err
+	}
 
 	trades := []*trade.Trade{}
 
@@ -74,13 +99,13 @@ func new(userID uuid.UUID, payload CreatePayload) (*Position, error) {
 
 		trade, err := trade.New(tradePayload)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		trades = append(trades, trade)
 	}
 
-	position := &Position{
+	position = &Position{
 		ID:                          positionID,
 		CreatedBy:                   userID,
 		CreatedAt:                   now,
@@ -103,10 +128,10 @@ func new(userID uuid.UUID, payload CreatePayload) (*Position, error) {
 		Trades:                      trades,
 	}
 
-	return position, nil
+	return position, false, nil
 }
 
-func (originalPosition *Position) update(payload UpdatePayload) (Position, error) {
+func (originalPosition *Position) update(payload UpdatePayload) (position Position, userErr bool, err error) {
 	now := time.Now().UTC()
 	updatedPosition := Position{
 		ID:        originalPosition.ID,
@@ -115,7 +140,10 @@ func (originalPosition *Position) update(payload UpdatePayload) (Position, error
 		UpdatedAt: &now,
 	}
 
-	computeResult := Compute(payload.ComputePayload)
+	computeResult, err := Compute(payload.ComputePayload)
+	if err != nil {
+		return updatedPosition, true, err
+	}
 
 	trades := []*trade.Trade{}
 
@@ -125,7 +153,7 @@ func (originalPosition *Position) update(payload UpdatePayload) (Position, error
 
 		trade, err := trade.New(tradePayload)
 		if err != nil {
-			return updatedPosition, fmt.Errorf("create trade: %w", err)
+			return updatedPosition, false, fmt.Errorf("create trade: %w", err)
 		}
 
 		trades = append(trades, trade)
@@ -151,7 +179,7 @@ func (originalPosition *Position) update(payload UpdatePayload) (Position, error
 
 	updatedPosition.Trades = trades
 
-	return updatedPosition, nil
+	return updatedPosition, false, nil
 }
 
 type computeResult struct {
@@ -169,7 +197,7 @@ type computeResult struct {
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount"`
 }
 
-func Compute(payload ComputePayload) computeResult {
+func Compute(payload ComputePayload) (computeResult, error) {
 	result := computeResult{
 		OpenedAt:  time.Now().UTC(),
 		Status:    StatusOpen,
@@ -177,7 +205,7 @@ func Compute(payload ComputePayload) computeResult {
 	}
 
 	if len(payload.Trades) == 0 {
-		return result
+		return result, nil
 	}
 
 	var closedAt *time.Time = nil
@@ -200,20 +228,36 @@ func Compute(payload ComputePayload) computeResult {
 			result.Direction = DirectionShort
 		}
 
-		return result
+		return result, nil
 	}
 
-	for i := range payload.Trades {
-		trade := payload.Trades[i]
+	if payload.Trades[0].Kind == trade.TradeKindBuy {
+		direction = DirectionLong
+	} else {
+		direction = DirectionShort
+	}
 
+	for _, t := range payload.Trades {
 		var pnl decimal.Decimal
+		var newDirection Direction
 
-		avgPrice, netQty, direction, pnl, totalCost, totalCharges = ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, trade.Quantity, trade.Price, trade.ChargesAmount, trade.Kind)
+		avgPrice, netQty, newDirection, pnl, totalCost, totalCharges = ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, t.Quantity, t.Price, t.ChargesAmount, t.Kind)
+
+		// Trade direction changed, meaning we flipped.
+		// We don't wanna allow users to sell (if long) or buy (if short) more quantity than they have open.
+		// So we will return an error.
+		if newDirection != direction {
+			if direction == DirectionLong {
+				return result, fmt.Errorf("You cannot sell more quantity than you have open")
+			} else {
+				return result, fmt.Errorf("You cannot buy more quantity than you have open")
+			}
+		}
 
 		grossPnL = grossPnL.Add(pnl)
 
 		if netQty.IsZero() {
-			closedAt = &trade.Time
+			closedAt = &t.Time
 		}
 	}
 
@@ -268,30 +312,109 @@ func Compute(payload ComputePayload) computeResult {
 		result.OpenAveragePriceAmount = avgPrice.Round(2) // Round to match NUMERIC(14,2)
 	}
 
-	return result
+	return result, nil
 }
 
-type Instrument string
+type tradeChargeSplit = string
 
 const (
-	InstrumentEquity Instrument = "equity"
+	tradeChargeSplitIntrday  tradeChargeSplit = "intraday"
+	tradeChargeSplitDelivery tradeChargeSplit = "delivery"
 )
 
-type Direction string
+type chargeSplit struct {
+	// Quantity of the trade for which this charge is applicable.
+	quantity decimal.Decimal
 
-const (
-	DirectionLong  Direction = "long"
-	DirectionShort Direction = "short"
-)
+	// Kind of charge split.
+	kind tradeChargeSplit
+}
 
-type Status string
+type tradeChargesContext struct {
+	tradeID       uuid.UUID
+	chargesSplits []chargeSplit
+}
 
-const (
-	StatusWin       Status = "win"
-	StatusLoss      Status = "loss"
-	StatusBreakeven Status = "breakeven"
-	StatusOpen      Status = "open"
-)
+// computeTradeChargesContext computes the charges context for all the trades of a EQUITY position only.
+// The context allows us to later compute the charges for each trade based on the splits.
+// Each split tells us how much quantity of a trade is applicable for a particular charge kind (intraday or delivery).
+func computeTradeChargesContext(trades []*trade.Trade) (chargeByTradeId map[uuid.UUID]decimal.Decimal, totalCharges decimal.Decimal) {
+	chargeByTradeId = make(map[uuid.UUID]decimal.Decimal)
+	totalCharges = decimal.Zero
+
+	// Safety check
+	if len(trades) == 0 {
+		return chargeByTradeId, totalCharges
+	}
+
+	// We assume that the trades are sorted by time.
+	// So the first trade is the opening trade of the position.
+	// openTradeTime := trades[0].Time
+
+	// We will keep track of the charges context for each trade.
+	chargeContextByTradeId := make(map[uuid.UUID]*tradeChargesContext)
+
+	// Keep track of previous buy trades with their remaining quantity.
+	// We will use this to mark the previous buy trades as intraday for the quantity that was sold.
+	prevBuyTradesWithRemainingQty := map[uuid.UUID]decimal.Decimal{}
+
+	// We will loop through all trades, until we reach a trade that is after the opening trade
+	for i, t := range trades {
+		// If the trade is a buy, we add it to the context.
+		if t.Kind == trade.TradeKindBuy {
+			prevBuyTradesWithRemainingQty[t.ID] = t.Quantity
+			continue
+		}
+
+		if t.Kind == trade.TradeKindSell {
+			sellQty := t.Quantity
+
+			// If the trade is a sell, we need to loop backwards to find the previous buy trades
+			// and mark them as intraday for the quantity that was sold.
+			for j := i - 1; j >= 0; j-- {
+				prevTrade := trades[j]
+
+				if prevTrade.Kind == trade.TradeKindSell {
+					// Skip sell trades
+					continue
+				}
+
+				if prevTrade.Time.Day() == t.Time.Day() {
+					// If the previous trade is on the same day as the sell trade,
+					// we know that this is an intraday sell trade.
+					// We will mark the previous buy trade as intraday for the quantity that was sold.
+					// Also this trade as a intraday sell trade.
+
+					if remainingQty, exists := prevBuyTradesWithRemainingQty[prevTrade.ID]; exists {
+						if remainingQty.GreaterThan(decimal.Zero) {
+						} else {
+							// We keep going back until we find a previouis buy trade with remaining quantity
+							// or hit a trade that was done on a different day.
+							continue
+						}
+					}
+				}
+
+				// If we have no buy trades done on the same day as the sell trade,
+				// we know that this trade is a delivery sell trade.
+				if prevTrade.Time.Day() != t.Time.Day() {
+					split := chargeSplit{
+						quantity: sellQty,
+						kind:     tradeChargeSplitDelivery,
+					}
+
+					chargeContextByTradeId[t.ID] = &tradeChargesContext{
+						tradeID:       t.ID,
+						chargesSplits: []chargeSplit{split},
+					}
+					break
+				}
+			}
+		}
+	}
+
+	return chargeByTradeId, totalCharges
+}
 
 // ApplyTradeToPosition applies a trade to an existing position,
 // handling scaling in, closing, or flipping the position.

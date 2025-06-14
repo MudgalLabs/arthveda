@@ -42,7 +42,12 @@ type ComputePayload struct {
 }
 
 func (s *Service) Compute(ctx context.Context, payload ComputePayload) (computeResult, service.Error, error) {
-	result := Compute(payload)
+	result, err := Compute(payload)
+
+	if err != nil {
+		return result, service.ErrBadRequest, err
+	}
+
 	return result, service.ErrNone, nil
 }
 
@@ -58,9 +63,13 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePa
 	logger := logger.FromCtx(ctx)
 	var err error
 
-	position, err := new(userID, payload)
+	position, userErr, err := new(userID, payload)
 	if err != nil {
-		return nil, service.ErrInternalServerError, err
+		if userErr {
+			return nil, service.ErrBadRequest, err
+		} else {
+			return nil, service.ErrInternalServerError, fmt.Errorf("new: %w", err)
+		}
 	}
 
 	err = s.positionRepository.Create(ctx, position)
@@ -122,6 +131,7 @@ type ImportResult struct {
 	PositionsCount          int         `json:"positions_count"`
 	DuplicatePositionsCount int         `json:"duplicate_positions_count"`
 	PositionsImportedCount  int         `json:"positions_imported_count"`
+	InvalidPositionsCount   int         `json:"invalid_positions_count"`
 	FromDate                time.Time   `json:"from_date"`
 	ToDate                  time.Time   `json:"to_date"`
 }
@@ -278,6 +288,10 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		// Not returning an error here, as we can still process trades without existing broker trade IDs.
 	}
 
+	// Number of positions that are invalid in the import file.
+	// This is used to track how many positions were invalid and skipped during the import.
+	invalidPositionsByPosID := map[uuid.UUID]bool{}
+
 	// Process the sorted trades
 	for _, tradeWithOrderID := range tradesWithOrderIDs {
 		orderID := tradeWithOrderID.OrderID
@@ -305,7 +319,11 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				Trades:     ConvertTradesToCreatePayload(openPosition.Trades),
 			}
 
-			computeResult := Compute(computePayload)
+			computeResult, err := Compute(computePayload)
+			if err != nil {
+				invalidPositionsByPosID[openPosition.ID] = true
+				continue
+			}
 
 			// Update the position with the compute result
 			openPosition.Direction = computeResult.Direction
@@ -339,7 +357,12 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				RiskAmount: payload.RiskAmount,
 				Trades:     []trade.CreatePayload{tradePayload},
 			}
-			computeResult := Compute(computePayload)
+
+			computeResult, err := Compute(computePayload)
+			if err != nil {
+				invalidPositionsByPosID[openPosition.ID] = true
+				continue
+			}
 
 			positionID, err := uuid.NewV7()
 			if err != nil {
@@ -377,6 +400,11 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 	// Add any remaining open positions to the finalized positions
 	for _, openPosition := range openPositions {
+		if invalid, exists := invalidPositionsByPosID[openPosition.ID]; exists && invalid {
+			l.Debugw("skipping invalid position", "position_id", openPosition.ID, "symbol", openPosition.Symbol)
+			// Skip invalid positions
+			continue
+		}
 		finalizedPositions = append(finalizedPositions, openPosition)
 	}
 
@@ -412,7 +440,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		}
 
 		if isDuplicate {
-			l.Infow("skipping position because it is a duplicate", "symbol", position.Symbol, "opened_at", position.OpenedAt)
+			l.Debugw("skipping position because it is a duplicate", "symbol", position.Symbol, "opened_at", position.OpenedAt)
 			duplicatePositionsCount += 1
 			finalizedPositions[positionIdx].IsDuplicate = true
 			// We skip the position if it has any duplicate trades.
@@ -446,6 +474,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		PositionsCount:          len(finalizedPositions), // Client can check length of positions?
 		DuplicatePositionsCount: duplicatePositionsCount,
 		PositionsImportedCount:  positionsImported,
+		InvalidPositionsCount:   len(invalidPositionsByPosID),
 		FromDate:                metadata.from,
 		ToDate:                  metadata.to,
 	}
@@ -501,9 +530,13 @@ func (s *Service) Update(ctx context.Context, userID, positionID uuid.UUID, payl
 	}
 
 	// Update the position fields, including trades.
-	updatedPosition, err := originalPosition.update(payload)
+	updatedPosition, userErr, err := originalPosition.update(payload)
 	if err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("failed to update position: %w", err)
+		if userErr {
+			return nil, service.ErrBadRequest, err
+		} else {
+			return nil, service.ErrInternalServerError, fmt.Errorf("failed to update position: %w", err)
+		}
 	}
 
 	// Delete existing trades for the position.
