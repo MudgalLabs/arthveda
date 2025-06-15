@@ -161,6 +161,8 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
     const debouncedPosition = useDebounce(position, 500);
     const prevDebouncedPositionRef = useRef(debouncedPosition);
 
+    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
+
     const [flag, setFlag] = useState(false);
 
     useEffect(() => {
@@ -174,6 +176,12 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
 
         if (!isEqual(debouncedPosition.trades, prevPosition.trades)) {
             flag = true;
+        }
+
+        if (enableAutoCharges) {
+            if (debouncedPosition.broker_id !== prevPosition.broker_id) {
+                flag = true;
+            }
         }
 
         setFlag(flag);

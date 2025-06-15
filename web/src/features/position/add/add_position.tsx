@@ -112,6 +112,7 @@ function AddPosition() {
         onError: apiErrorHandler,
     });
 
+    const [skipCompute, setSkipCompute] = useState(false);
     const setTrades = usePositionStore((s) => s.setTrades);
 
     const { mutateAsync: compute, isPending: isComputing } = apiHooks.position.useCompute({
@@ -127,6 +128,10 @@ function AddPosition() {
                         charges_amount: charges[index] || "0",
                     }))
                 );
+                // We are doing this because, updating the trades will trigger the compute again.
+                // In the compute call in the useEffect, we should check for this flag, skip the compute
+                // and set this to `false` again.
+                setSkipCompute(true);
             }
 
             updatePosition({
@@ -191,6 +196,11 @@ function AddPosition() {
 
     // FIXME: For some reason, the compute is being called twice on mount.
     useEffect(() => {
+        if (skipCompute) {
+            setSkipCompute(false);
+            return;
+        }
+
         if (!isInitialized || shouldCompute) {
             setShouldCompute(false);
 
@@ -212,7 +222,7 @@ function AddPosition() {
                 broker_id: position.broker_id,
             });
         }
-    }, [compute, isInitialized, shouldCompute]);
+    }, [compute, isInitialized, shouldCompute, skipCompute, position, enableAutoCharges, setShouldCompute]);
 
     if (!isInitialized) {
         return <LoadingScreen />;
