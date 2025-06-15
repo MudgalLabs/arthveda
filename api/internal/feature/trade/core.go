@@ -8,6 +8,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Trade represents a trade made in a Position and the `trade` table in the database.
+// TODO: Add "Exchange" field to the Trade struct to indicate which exchange the trade was made on.
+// This will help us with time related logic like buckets, intraday, etc.
 type Trade struct {
 	ID            uuid.UUID       `json:"id" db:"id"`
 	PositionID    uuid.UUID       `json:"position_id" db:"position_id"` // The ID of the Position to which this Trade belongs to.

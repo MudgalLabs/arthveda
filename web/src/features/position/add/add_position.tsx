@@ -284,6 +284,7 @@ function AddPosition() {
                                 onChange={(_, v) => setValue(v)}
                                 aria-invalid={!value}
                                 aria-describedby="first-name-error"
+                                errorMsg="Symbol is required"
                             />
                         </WithLabel>
                     )}
@@ -335,16 +336,17 @@ function AddPosition() {
                         </Label>
                     }
                 >
-                    {enableAutoCharges && (
-                        <BrokerSelect
-                            value={position.broker_id || ""}
-                            onValueChange={(v) =>
-                                updatePosition({
-                                    broker_id: v,
-                                })
-                            }
-                        />
-                    )}
+                    <BrokerSelect
+                        value={position.broker_id || ""}
+                        onValueChange={(v) =>
+                            updatePosition({
+                                broker_id: v,
+                            })
+                        }
+                        disabled={!enableAutoCharges}
+                        error={!position.broker_id && enableAutoCharges}
+                        errorMsg="Broker is required"
+                    />
                 </WithLabel>
             </div>
 

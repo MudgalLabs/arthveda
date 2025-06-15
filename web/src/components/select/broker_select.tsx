@@ -15,16 +15,13 @@ function BrokerSelect(props: Omit<SelectProps, "options">) {
         value: "-1",
         label: (
             <>
-                <p>
-                    Don't see your broker here? We are working on supporting
-                    more brokers!
-                </p>
+                <p>Don't see your broker here? We are working on supporting more brokers!</p>
             </>
         ),
         disabled: true,
     });
 
-    return <Select loading={isLoading} options={options} {...props} />;
+    return <Select loading={isLoading} options={options} placeholder="Choose Broker" {...props} />;
 }
 
 export { BrokerSelect };

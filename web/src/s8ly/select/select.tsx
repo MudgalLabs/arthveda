@@ -5,6 +5,7 @@ import { IconCheck, IconChevronDown, IconChevronUp } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";
 import { Loading } from "@/components/loading";
+import { InputErrorMessage } from "@/components/input_error_message";
 
 interface SelectOptionItem<T = string> {
     value: T;
@@ -23,6 +24,8 @@ interface SelectProps extends SelectPrimitive.SelectProps {
         item?: string;
     };
     loading?: boolean;
+    error?: boolean;
+    errorMsg?: string;
 }
 
 const Select: FC<SelectProps> = ({
@@ -33,6 +36,8 @@ const Select: FC<SelectProps> = ({
     classNames,
     disabled,
     loading,
+    error,
+    errorMsg,
     placeholder,
     defaultValue = "",
     value: valueProp,
@@ -72,8 +77,8 @@ const Select: FC<SelectProps> = ({
                     "focus:outline-accent text-sm focus:outline-1 focus:outline-offset-0",
                     {
                         "text-foreground-muted": !value,
-                        "opacity-60 disabled:cursor-not-allowed":
-                            disabled || loading,
+                        "opacity-60 disabled:cursor-not-allowed": disabled || loading,
+                        "border-border-red relative": error,
                     },
                     classNames?.trigger
                 )}
@@ -84,9 +89,7 @@ const Select: FC<SelectProps> = ({
                     </div>
                 ) : (
                     <>
-                        <SelectPrimitive.Value
-                            placeholder={placeholder ?? "Choose"}
-                        />
+                        <SelectPrimitive.Value placeholder={placeholder ?? "Choose"} />
                         <SelectPrimitive.Icon
                             className={cn("text-primary-500", {
                                 "-rotate-180 transition-transform": open,
@@ -98,6 +101,7 @@ const Select: FC<SelectProps> = ({
                         </SelectPrimitive.Icon>
                     </>
                 )}
+                {error && errorMsg && <InputErrorMessage className="absolute -bottom-5 left-0" errorMsg={errorMsg} />}
             </SelectPrimitive.Trigger>
 
             <SelectPrimitive.Portal container={container}>
@@ -138,13 +142,7 @@ interface SelectItemProps extends SelectPrimitive.SelectItemProps {
     ref?: Ref<HTMLDivElement>;
 }
 
-const SelectItem: FC<SelectItemProps> = ({
-    ref,
-    children,
-    className,
-    disabled,
-    ...props
-}) => {
+const SelectItem: FC<SelectItemProps> = ({ ref, children, className, disabled, ...props }) => {
     return (
         <SelectPrimitive.Item
             ref={ref}

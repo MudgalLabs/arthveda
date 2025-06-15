@@ -5,6 +5,7 @@ import (
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -25,7 +26,6 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 	}
 
 	for i, trade := range trades {
-		var config computeChargesConfig
 
 		if instrument == InstrumentEquity {
 			chargeContext, exists := chargeContextByTradeId[trade.ID]
@@ -36,8 +36,12 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 				continue
 			}
 
+			finalCharges := decimal.Zero
+
 			// For equity trades, we will need to take care of intraday and delivery.
 			for _, split := range chargeContext.ChargesSplits {
+				var config computeChargesConfig
+
 				switch split.EquityTradeKind {
 				case EquityTradeIntraday:
 					config = equityIntradayChargesConfig
@@ -49,12 +53,14 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 				}
 
 				// Calculate the total charges for the trade based on the split.
-				tradeValue := trade.Quantity.Mul(trade.Price)
-				totalCharges := getTotalChargesForTrade(tradeValue, config)
-				charges[i] = totalCharges
-				// Apply the charges to the trade.
-				trades[i].ChargesAmount = totalCharges
+				tradeValue := split.Quantity.Mul(trade.Price)
+				charges := getTotalChargesForTrade(tradeValue, trade.Kind, config)
+				finalCharges = finalCharges.Add(charges)
 			}
+
+			charges[i] = finalCharges
+			// Apply the charges to the trade.
+			trades[i].ChargesAmount = finalCharges
 		} else {
 			// TODO: Handle other instruments if needed.
 		}
@@ -65,21 +71,75 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 
 // getTotalChargesForTrade computes the total charges for a trade based on the trade value and the configuration.
 // tradeValue is the value of the trade (quantity * price).
-func getTotalChargesForTrade(tradeValue decimal.Decimal, config computeChargesConfig) decimal.Decimal {
-	// Brokerage charges
-	// Formule : tradeValue * brokeragePercent -> apply min/max
+func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind trade.Kind, config computeChargesConfig) decimal.Decimal {
+	// Calcualte brokerage
+	// Formula : tradeValue * brokeragePercent -> apply min/max
 	brokerageCharges := tradeValue.Mul(decimal.NewFromFloat(config.brokerage.percent / 100))
 
 	// Apply min/max brokerage charges
 	if brokerageCharges.GreaterThan(decimal.NewFromFloat(config.brokerage.max)) {
 		brokerageCharges = decimal.NewFromFloat(config.brokerage.max)
 	}
+
 	if brokerageCharges.LessThan(decimal.NewFromFloat(config.brokerage.min)) {
 		brokerageCharges = decimal.NewFromFloat(config.brokerage.min)
 	}
 
+	// Calculate STT
+	var sttCharges decimal.Decimal
+
+	switch tradeKind {
+	case trade.TradeKindBuy:
+		sttCharges = tradeValue.Mul(decimal.NewFromFloat(config.stt.percentOnBuy / 100))
+	case trade.TradeKindSell:
+		sttCharges = tradeValue.Mul(decimal.NewFromFloat(config.stt.percentOnSell / 100))
+	}
+
+	// Calculate exchange transaction charges
+	// TODO: We need to pass exchange as a parameter to this function.
+	exchangeTxnCharges := tradeValue.Mul(decimal.NewFromFloat(config.exchangeTransactionCharges.percentForNSE / 100))
+
+	// Calculate stamp charges
+	var stampCharges decimal.Decimal
+
+	if tradeKind == trade.TradeKindBuy {
+		stampCharges = tradeValue.Mul(decimal.NewFromFloat(config.stampChargesPercent / 100))
+	}
+
+	// calculate SEBI charges
+	sebiCharges := tradeValue.Mul(decimal.NewFromFloat(config.sebiChargesPercent / 100))
+
+	// Calculate DP charges
+	var dpCharges decimal.Decimal
+
+	// DP charges are only applicable for sell trades.
+	if tradeKind == trade.TradeKindSell {
+		dpCharges = config.dpChargesAmount
+	}
+
+	// Calculate NSE Investor Protection Fund charges
+	nseInvestorProtectionFundCharges := tradeValue.Mul(decimal.NewFromFloat(config.nseInvestorProtectionFundPercentage / 100))
+
+	// Calculate GST on brokerage, sebi charges & exchange transaction charges
+	gstCharges := brokerageCharges.Add(sebiCharges).Add(exchangeTxnCharges).Mul(decimal.NewFromFloat(config.gstPercent / 100))
+
 	// We will add other charges later, for now we just set the brokerage charges.
-	totalCharges := brokerageCharges
+	totalCharges := brokerageCharges.Add(sttCharges).Add(exchangeTxnCharges).Add(stampCharges).Add(sebiCharges).Add(dpCharges).Add(nseInvestorProtectionFundCharges).Add(gstCharges)
+
+	// Log the charges for debugging purposes.
+	logger.Get().Debugw("getTotalChargesForTrade",
+		"trade_value", tradeValue,
+		"trade_kind", tradeKind,
+		"brokerage_charges", brokerageCharges,
+		"stt_charges", sttCharges,
+		"exchange_txn_charges", exchangeTxnCharges,
+		"stamp_charges", stampCharges,
+		"sebi_charges", sebiCharges,
+		"dp_charges", dpCharges,
+		"nse_investor_protection_fund_charges", nseInvestorProtectionFundCharges,
+		"gst_charges", gstCharges,
+		"total_charges", totalCharges,
+	)
 
 	return totalCharges
 }
@@ -117,6 +177,19 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 	// Safety check
 	if len(trades) == 0 {
 		return chargeContextByTradeId, false, nil
+	}
+
+	// Hardcoded timezone for Asia/Kolkata (IST).
+	// TODO: Store `Exchange` in Trade and use that to determine the timezone.
+	loc, _ := time.LoadLocation(string(trade.AsiaKolkataTZ))
+
+	// Convert trade.Time to IST timezone because trades are in UTC.
+	// If we don't convert the time, we will not be able to correctly determine
+	// if the trades are on the same day or not because the trades are in UTC
+	// and UTC time can break a trade into two different days that isn't matching
+	// the expected day in IST.
+	for _, t := range trades {
+		t.Time = t.Time.In(loc)
 	}
 
 	// We assume that the trades are sorted by time.
@@ -315,15 +388,20 @@ type exchangeTransactionChargesConfig struct {
 	percentForBSE float64
 }
 
+// TODO: Instead of using float64 for percentages, we should use decimal.Decimal for better precision?
 type computeChargesConfig struct {
-	brokerage                  brokerageConfig
-	stt                        sttConfig
-	exchangeTransactionCharges exchangeTransactionChargesConfig
-	stampChargesPercent        float64
-	sebiChargesPercent         float64
-	gstPercent                 float64
+	brokerage                           brokerageConfig
+	stt                                 sttConfig
+	exchangeTransactionCharges          exchangeTransactionChargesConfig
+	stampChargesPercent                 float64
+	sebiChargesPercent                  float64
+	dpChargesAmount                     decimal.Decimal
+	nseInvestorProtectionFundPercentage float64
+	gstPercent                          float64
 }
 
+// TODO: We need to pass exchange as a parameter to this function
+// so that we can compute the charges based on the exchange.
 func getComputeTradeChargesConfig(brokerName broker.Name, instrument Instrument, etk *equityTrade) computeChargesConfig {
 	const (
 		gstPercent         = 18
@@ -331,12 +409,14 @@ func getComputeTradeChargesConfig(brokerName broker.Name, instrument Instrument,
 	)
 
 	config := computeChargesConfig{
-		brokerage:                  getBrokerageConfig(brokerName, instrument, etk),
-		stt:                        getSttConfig(instrument, etk),
-		exchangeTransactionCharges: getExchangeTransactionChargesConfig(instrument),
-		stampChargesPercent:        getStampChargesPercent(instrument, etk),
-		sebiChargesPercent:         sebiChargesPercent,
-		gstPercent:                 gstPercent,
+		brokerage:                           getBrokerageConfig(brokerName, instrument, etk),
+		stt:                                 getSttConfig(instrument, etk),
+		exchangeTransactionCharges:          getExchangeTransactionChargesConfig(instrument),
+		stampChargesPercent:                 getStampChargesPercent(instrument, etk),
+		sebiChargesPercent:                  sebiChargesPercent,
+		dpChargesAmount:                     getDpChargesAmount(brokerName),
+		nseInvestorProtectionFundPercentage: getNSEInvestorProtectionFundPercentage(instrument),
+		gstPercent:                          gstPercent,
 	}
 
 	return config
@@ -429,4 +509,29 @@ func getStampChargesPercent(instrument Instrument, etk *equityTrade) float64 {
 	}
 
 	return stampChargesPercent
+}
+
+func getDpChargesAmount(b broker.Name) decimal.Decimal {
+	switch b {
+	case broker.BrokerNameGroww:
+		return decimal.NewFromFloat(16.5)
+	case broker.BrokerNameZerodha:
+		return decimal.NewFromFloat(15.34)
+	default:
+		logger.Get().Errorw("getDpChargesAmount: unknown broker for dp charges", "broker", b)
+		return decimal.Zero
+	}
+}
+
+func getNSEInvestorProtectionFundPercentage(instrument Instrument) float64 {
+	var (
+		equityNSEInvestorProtectionFundPercentage = 0.0001
+	)
+
+	switch instrument {
+	case InstrumentEquity:
+		return equityNSEInvestorProtectionFundPercentage
+	default:
+		return 0
+	}
 }
