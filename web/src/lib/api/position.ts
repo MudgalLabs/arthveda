@@ -10,16 +10,14 @@ import {
 import { CreateTrade } from "@/features/trade/trade";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { ApiRes, client } from "@/lib/api/client";
-import {
-    DateRangeFilter,
-    DecimalString,
-    SearchRequest,
-    SearchResponse,
-} from "@/lib/types";
+import { DateRangeFilter, DecimalString, SearchRequest, SearchResponse } from "@/lib/types";
 
 export interface ComputePositionRequest {
-    risk_amount: DecimalString;
     trades: CreateTrade[];
+    risk_amount: DecimalString;
+    instrument: PositionInstrument;
+    enable_auto_charges: boolean;
+    broker_id: string | null; // This needs to be set if `auto_calculate_charges` is true.
 }
 
 export interface ComputePositionResponse {
@@ -35,19 +33,20 @@ export interface ComputePositionResponse {
     charges_as_percentage_of_net_pnl: DecimalString;
     open_quantity: DecimalString;
     open_average_price_amount: DecimalString;
+
+    trade_charges: DecimalString[] | null;
 }
 
 export function compute(body: ComputePositionRequest) {
-    return client.post<ComputePositionRequest, ApiRes<ComputePositionResponse>>(
-        API_ROUTES.position.compute,
-        body
-    );
+    return client.post<ComputePositionRequest, ApiRes<ComputePositionResponse>>(API_ROUTES.position.compute, body);
 }
 
-export interface CreatePositionRequest extends ComputePositionRequest {
+export interface CreatePositionRequest {
     symbol: string;
     instrument: PositionInstrument;
     currency: CurrencyCode;
+    risk_amount: DecimalString;
+    trades: CreateTrade[];
 }
 
 export interface CreatePositionResponse {
@@ -55,14 +54,11 @@ export interface CreatePositionResponse {
 }
 
 export function create(body: CreatePositionRequest) {
-    return client.post<CreatePositionRequest, ApiRes<CreatePositionResponse>>(
-        API_ROUTES.position.create,
-        body
-    );
+    return client.post<CreatePositionRequest, ApiRes<CreatePositionResponse>>(API_ROUTES.position.create, body);
 }
 
 export interface UpdatePositionRequest extends CreatePositionRequest {
-    broker_id?: string | null;
+    broker_id: string | null;
 }
 
 export interface UpdatePositionResponse {
@@ -70,10 +66,7 @@ export interface UpdatePositionResponse {
 }
 
 export function update(id: string, body: UpdatePositionRequest) {
-    return client.patch<UpdatePositionRequest, ApiRes<UpdatePositionResponse>>(
-        API_ROUTES.position.update(id),
-        body
-    );
+    return client.patch<UpdatePositionRequest, ApiRes<UpdatePositionResponse>>(API_ROUTES.position.update(id), body);
 }
 
 export function deletePosition(id: string) {
@@ -98,8 +91,7 @@ export interface PositionSearchFilters {
     charges_percentage_operator?: CompareOperator;
 }
 
-export interface PositionSearchRequest
-    extends SearchRequest<PositionSearchFilters> {}
+export interface PositionSearchRequest extends SearchRequest<PositionSearchFilters> {}
 export interface PositionSearchResponse extends SearchResponse<Position[]> {}
 
 export function search(body: PositionSearchRequest) {
@@ -130,15 +122,11 @@ export function importPositions(body: ImportPositionsRequest) {
     formData.append("risk_amount", body.risk_amount || "");
     formData.append("confirm", body.confirm === true ? "true" : "false");
 
-    return client.post<ImportPositionsRequest, ApiRes<ImportPositionsResponse>>(
-        API_ROUTES.position.import,
-        formData,
-        {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        }
-    );
+    return client.post<ImportPositionsRequest, ApiRes<ImportPositionsResponse>>(API_ROUTES.position.import, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
 }
 
 export interface GetPositionResponse {

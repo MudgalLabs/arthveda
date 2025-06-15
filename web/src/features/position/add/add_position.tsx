@@ -1,11 +1,7 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Decimal from "decimal.js";
-import {
-    ColumnDef,
-    getCoreRowModel,
-    useReactTable,
-} from "@tanstack/react-table";
+import { ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
 import {
     Button,
@@ -21,15 +17,13 @@ import {
     DialogTitle,
     DialogTrigger,
     DialogClose,
+    Checkbox,
 } from "@/s8ly";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
 import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
 import { IconCalendarRange, IconCross, IconPlus } from "@/components/icons";
-import {
-    getDataTableCellUpdateFn,
-    useDataTableEditableCell,
-} from "@/hooks/use_data_table_editable_cell";
+import { getDataTableCellUpdateFn, useDataTableEditableCell } from "@/hooks/use_data_table_editable_cell";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { formatDate, getElapsedTime, isSameDay } from "@/lib/utils";
 import { CurrencySelect } from "@/components/select/currency_select";
@@ -59,6 +53,7 @@ import {
 } from "@/features/position/position_store";
 import { OverviewCard } from "@/features/dashboard/widget/overview_card";
 import { ROUTES } from "@/routes_constants";
+import { BrokerSelect } from "@/components/select/broker_select";
 
 function AddPosition() {
     const isCreatingPosition = useIsCreatingPosition();
@@ -67,80 +62,89 @@ function AddPosition() {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
 
-    const { mutateAsync: create, isPending: isCreating } =
-        apiHooks.position.useCreate({
-            onSuccess: async (res) => {
-                const positionID = res.data.data.position.id;
-                toast.success("Position Created", {
-                    action: {
-                        label: "View",
-                        onClick: () => {
-                            navigate(ROUTES.viewPosition(positionID));
-                        },
+    const { mutateAsync: create, isPending: isCreating } = apiHooks.position.useCreate({
+        onSuccess: async (res) => {
+            const positionID = res.data.data.position.id;
+            toast.success("Position Created", {
+                action: {
+                    label: "View",
+                    onClick: () => {
+                        navigate(ROUTES.viewPosition(positionID));
                     },
-                });
+                },
+            });
 
-                discard();
-                queryClient.invalidateQueries({
-                    queryKey: ["useGetDashboard"],
-                });
-                queryClient.invalidateQueries({
-                    queryKey: ["usePositionsSearch"],
-                });
-            },
-            onError: apiErrorHandler,
-        });
+            discard();
+            queryClient.invalidateQueries({
+                queryKey: ["useGetDashboard"],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["usePositionsSearch"],
+            });
+        },
+        onError: apiErrorHandler,
+    });
 
-    const { mutateAsync: update, isPending: isUpdating } =
-        apiHooks.position.useUpdate({
-            onSuccess: async () => {
-                toast.success("Position Updated");
-                queryClient.invalidateQueries({
-                    queryKey: ["useGetDashboard"],
-                });
-                queryClient.invalidateQueries({
-                    queryKey: ["usePositionsSearch"],
-                });
-            },
-            onError: apiErrorHandler,
-        });
+    const { mutateAsync: update, isPending: isUpdating } = apiHooks.position.useUpdate({
+        onSuccess: async () => {
+            toast.success("Position Updated");
+            queryClient.invalidateQueries({
+                queryKey: ["useGetDashboard"],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["usePositionsSearch"],
+            });
+        },
+        onError: apiErrorHandler,
+    });
 
-    const { mutateAsync: deletePosition, isPending: isDeleting } =
-        apiHooks.position.useDelete({
-            onSuccess: async () => {
-                toast.success("Position Deleted");
-                queryClient.invalidateQueries({
-                    queryKey: ["useGetDashboard"],
-                });
-                queryClient.invalidateQueries({
-                    queryKey: ["usePositionsSearch"],
-                });
-                navigate(ROUTES.positionList);
-            },
-            onError: apiErrorHandler,
-        });
+    const { mutateAsync: deletePosition, isPending: isDeleting } = apiHooks.position.useDelete({
+        onSuccess: async () => {
+            toast.success("Position Deleted");
+            queryClient.invalidateQueries({
+                queryKey: ["useGetDashboard"],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["usePositionsSearch"],
+            });
+            navigate(ROUTES.positionList);
+        },
+        onError: apiErrorHandler,
+    });
 
-    const { mutateAsync: compute, isPending: isComputing } =
-        apiHooks.position.useCompute({
-            onSuccess: async (res) => {
-                const data = res.data.data as ComputePositionResponse;
-                updatePosition({
-                    ...data,
-                    opened_at: new Date(data.opened_at),
-                    closed_at: data.closed_at ? new Date(data.closed_at) : null,
-                });
-            },
-            onSettled: () => {
-                if (!isInitialized) {
-                    setIsInitialized(true);
-                }
-            },
-            onError: apiErrorHandler,
-        });
+    const setTrades = usePositionStore((s) => s.setTrades);
+
+    const { mutateAsync: compute, isPending: isComputing } = apiHooks.position.useCompute({
+        onSuccess: async (res) => {
+            const data = res.data.data as ComputePositionResponse;
+
+            const charges = data.trade_charges || [];
+
+            if (charges.length === position.trades?.length) {
+                setTrades((trades) =>
+                    trades.map((trade, index) => ({
+                        ...trade,
+                        charges_amount: charges[index] || "0",
+                    }))
+                );
+            }
+
+            updatePosition({
+                ...data,
+                opened_at: new Date(data.opened_at),
+                closed_at: data.closed_at ? new Date(data.closed_at) : null,
+            });
+        },
+        onSettled: () => {
+            if (!isInitialized) {
+                setIsInitialized(true);
+            }
+        },
+        onError: apiErrorHandler,
+    });
 
     const [isInitialized, setIsInitialized] = useState(false);
     const position = usePositionStore((s) => s.position);
-    const setTrades = usePositionStore((s) => s.setTrades);
     const insertNewTrade = usePositionStore((s) => s.insertNewTrade);
     const discard = usePositionStore((s) => s.discard);
     const updatePosition = usePositionStore((s) => s.updatePosition);
@@ -182,13 +186,15 @@ function AddPosition() {
         }
     };
 
+    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
+    const setEnabledAutoCharges = usePositionStore((s) => s.setEnableAutoCharges);
+
     // FIXME: For some reason, the compute is being called twice on mount.
     useEffect(() => {
         if (!isInitialized || shouldCompute) {
             setShouldCompute(false);
 
             compute({
-                risk_amount: position.risk_amount || "0",
                 trades: (position.trades || []).map((t) => {
                     const trade: CreateTrade = {
                         kind: t.kind,
@@ -200,6 +206,10 @@ function AddPosition() {
 
                     return trade;
                 }),
+                risk_amount: position.risk_amount || "0",
+                instrument: position.instrument,
+                enable_auto_charges: enableAutoCharges,
+                broker_id: position.broker_id,
             });
         }
     }, [compute, isInitialized, shouldCompute]);
@@ -216,9 +226,7 @@ function AddPosition() {
                 <OverviewCard
                     className="w-full sm:w-fit"
                     total_charges_amount={position.total_charges_amount}
-                    charges_as_percentage_of_net_pnl={
-                        position.charges_as_percentage_of_net_pnl
-                    }
+                    charges_as_percentage_of_net_pnl={position.charges_as_percentage_of_net_pnl}
                     currency={position.currency}
                     gross_pnl_amount={position.gross_pnl_amount}
                     net_pnl_amount={position.net_pnl_amount}
@@ -227,10 +235,7 @@ function AddPosition() {
 
                 <RFactorCard r_factor={position.r_factor} />
 
-                <DurationCard
-                    opened_at={position.opened_at}
-                    closed_at={position.closed_at}
-                />
+                <DurationCard opened_at={position.opened_at} closed_at={position.closed_at} />
 
                 <div className="flex items-end">
                     <div className="flex h-fit gap-x-2">
@@ -245,10 +250,7 @@ function AddPosition() {
                 </div>
 
                 <div className="ml-auto">
-                    <CurrencySelect
-                        classNames={{ trigger: "w-fit" }}
-                        defaultValue={position.currency}
-                    />
+                    <CurrencySelect classNames={{ trigger: "w-fit" }} defaultValue={position.currency} />
                 </div>
             </div>
 
@@ -310,6 +312,30 @@ function AddPosition() {
                         </WithLabel>
                     )}
                 </WithDebounce>
+
+                <WithLabel
+                    Label={
+                        <Label className="flex items-center gap-x-2">
+                            <Checkbox
+                                id="auto"
+                                checked={enableAutoCharges}
+                                onCheckedChange={() => setEnabledAutoCharges(!enableAutoCharges)}
+                            />
+                            <Label htmlFor="auto">Enable Auto Charges</Label>
+                        </Label>
+                    }
+                >
+                    {enableAutoCharges && (
+                        <BrokerSelect
+                            value={position.broker_id || ""}
+                            onValueChange={(v) =>
+                                updatePosition({
+                                    broker_id: v,
+                                })
+                            }
+                        />
+                    )}
+                </WithLabel>
             </div>
 
             <div className="h-15" />
@@ -323,10 +349,7 @@ function AddPosition() {
             <div className="h-2" />
 
             <div className="flex w-full justify-end">
-                <AddTradeButton
-                    tradesAreValid={tradesAreValid}
-                    insertNewTrade={insertNewTrade}
-                />
+                <AddTradeButton tradesAreValid={tradesAreValid} insertNewTrade={insertNewTrade} />
             </div>
 
             <div className="h-10" />
@@ -334,26 +357,17 @@ function AddPosition() {
             <div className="flex flex-col justify-between gap-x-12 gap-y-4 sm:flex-row">
                 <div className="flex flex-col justify-between gap-2 sm:flex-row">
                     {isEditingPosition && (
-                        <DeleteButton
-                            deletePosition={() => deletePosition(position.id)}
-                            isDeleting={isDeleting}
-                        />
+                        <DeleteButton deletePosition={() => deletePosition(position.id)} isDeleting={isDeleting} />
                     )}
                 </div>
 
                 <div className="flex flex-col justify-between gap-2 sm:flex-row">
-                    <DiscardButton
-                        hasSomethingToDiscard={hasPositionDataChanged}
-                        discard={discard}
-                    />
+                    <DiscardButton hasSomethingToDiscard={hasPositionDataChanged} discard={discard} />
 
                     <Button
                         onClick={handleClickSave}
                         loading={isCreating || isUpdating}
-                        disabled={
-                            (isEditingPosition && !hasPositionDataChanged) ||
-                            !canSave
-                        }
+                        disabled={(isEditingPosition && !hasPositionDataChanged) || !canSave}
                     >
                         Save
                     </Button>
@@ -368,28 +382,17 @@ export default AddPosition;
 const columns: ColumnDef<CreateTrade>[] = [
     {
         accessorKey: "kind",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Buy / Sell" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Buy / Sell" />,
         cell: (ctx) => {
-            const { value, syncWithValue } =
-                useDataTableEditableCell<TradeKind>(ctx);
-            return (
-                <OrderKindToggle
-                    value={value}
-                    onChange={(v) => v && syncWithValue(v)}
-                />
-            );
+            const { value, syncWithValue } = useDataTableEditableCell<TradeKind>(ctx);
+            return <OrderKindToggle value={value} onChange={(v) => v && syncWithValue(v)} />;
         },
     },
     {
         accessorKey: "time",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Time" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Time" />,
         cell: (ctx) => {
-            const { value, setValue, sync } =
-                useDataTableEditableCell<Date>(ctx);
+            const { value, setValue, sync } = useDataTableEditableCell<Date>(ctx);
             const trades = usePositionStore((s) => s.position.trades || []);
 
             // We are subtracting `2` from length because `1` will be the last one.
@@ -407,17 +410,14 @@ const columns: ColumnDef<CreateTrade>[] = [
                     onClose={sync}
                     config={{
                         dates: {
-                            minDate: applyDateTimeRestrictions
-                                ? secondLastTrade.time
-                                : undefined,
+                            minDate: applyDateTimeRestrictions ? secondLastTrade.time : undefined,
                             maxDate: now,
                         },
                         time: {
                             minTime:
                                 // We wanna apply time restrictions only if we are on different trade
                                 // and the date is not same as previous trade.
-                                applyDateTimeRestrictions &&
-                                isSameDay(value, secondLastTrade.time)
+                                applyDateTimeRestrictions && isSameDay(value, secondLastTrade.time)
                                     ? {
                                           h: secondLastTrade.time.getHours(),
                                           m: secondLastTrade.time.getMinutes(),
@@ -438,25 +438,17 @@ const columns: ColumnDef<CreateTrade>[] = [
     },
     {
         accessorKey: "quantity",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Quantity" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Quantity" />,
         cell: (ctx) => {
             const { syncWithValue } = useDataTableEditableCell<string>(ctx);
             const [error, setError] = useState(false);
 
             useEffect(() => {
-                setError(
-                    ctx.row.original.quantity === "" ||
-                        Number(ctx.row.original.quantity) < 0
-                );
+                setError(ctx.row.original.quantity === "" || Number(ctx.row.original.quantity) < 0);
             }, [ctx.row.original.quantity]);
 
             return (
-                <WithDebounce
-                    state={ctx.row.original.quantity}
-                    onDebounce={(v) => syncWithValue(v)}
-                >
+                <WithDebounce state={ctx.row.original.quantity} onDebounce={(v) => syncWithValue(v)}>
                     {(value, setValue) => (
                         <DecimalInput
                             kind="quantity"
@@ -471,26 +463,18 @@ const columns: ColumnDef<CreateTrade>[] = [
     },
     {
         accessorKey: "price",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Price" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Price" />,
         cell: (ctx) => {
             const state = usePositionStore((s) => s.position);
             const { syncWithValue } = useDataTableEditableCell<string>(ctx);
             const [error, setError] = useState(false);
 
             useEffect(() => {
-                setError(
-                    ctx.row.original.price === "" ||
-                        Number(ctx.row.original.price) < 0
-                );
+                setError(ctx.row.original.price === "" || Number(ctx.row.original.price) < 0);
             }, [ctx.row.original.price]);
 
             return (
-                <WithDebounce
-                    state={ctx.row.original.price}
-                    onDebounce={(v) => syncWithValue(v)}
-                >
+                <WithDebounce state={ctx.row.original.price} onDebounce={(v) => syncWithValue(v)}>
                     {(value, setValue) => (
                         <DecimalInput
                             kind="amount"
@@ -506,25 +490,24 @@ const columns: ColumnDef<CreateTrade>[] = [
     },
     {
         accessorKey: "charges_amount",
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Charges" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Charges" />,
         cell: (ctx) => {
             const state = usePositionStore((s) => s.position);
             const { syncWithValue } = useDataTableEditableCell<string>(ctx);
+            const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
 
             return (
-                <WithDebounce
-                    state={ctx.row.original.charges_amount}
-                    onDebounce={(v) => syncWithValue(v)}
-                >
+                <WithDebounce state={ctx.row.original.charges_amount} onDebounce={(v) => syncWithValue(v)}>
                     {(value, setValue) => (
-                        <DecimalInput
-                            kind="amount"
-                            currency={state.currency}
-                            value={value}
-                            onChange={(e) => setValue(e.target.value)}
-                        />
+                        <Tooltip content="Charges are being automatically calculated" disabled={!enableAutoCharges}>
+                            <DecimalInput
+                                kind="amount"
+                                currency={state.currency}
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                disabled={enableAutoCharges}
+                            />
+                        </Tooltip>
                     )}
                 </WithDebounce>
             );
@@ -543,12 +526,7 @@ const columns: ColumnDef<CreateTrade>[] = [
                     contentProps={{ side: "bottom" }}
                     disabled={!disableButton}
                 >
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeTrade(row.index)}
-                        disabled={disableButton}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => removeTrade(row.index)} disabled={disableButton}>
                         <IconCross className="text-red-foreground" size={18} />
                     </Button>
                 </Tooltip>
@@ -557,41 +535,24 @@ const columns: ColumnDef<CreateTrade>[] = [
     },
 ];
 
-const TradesTable = memo(
-    ({
-        trades,
-        setTrades,
-    }: {
-        trades: Trade[];
-        setTrades: Setter<Trade[]>;
-    }) => {
-        const updateFn = useMemo(
-            () => getDataTableCellUpdateFn<Trade>(setTrades),
-            []
-        );
+const TradesTable = memo(({ trades, setTrades }: { trades: Trade[]; setTrades: Setter<Trade[]> }) => {
+    const updateFn = useMemo(() => getDataTableCellUpdateFn<Trade>(setTrades), []);
 
-        const table = useReactTable({
-            columns,
-            data: trades,
-            getCoreRowModel: getCoreRowModel(),
-            enableSorting: false,
-            meta: {
-                updateFn,
-            },
-        });
+    const table = useReactTable({
+        columns,
+        data: trades,
+        getCoreRowModel: getCoreRowModel(),
+        enableSorting: false,
+        meta: {
+            updateFn,
+        },
+    });
 
-        return <DataTable table={table} />;
-    }
-);
+    return <DataTable table={table} />;
+});
 
 const AddTradeButton = memo(
-    ({
-        tradesAreValid,
-        insertNewTrade,
-    }: {
-        tradesAreValid: boolean;
-        insertNewTrade: () => void;
-    }) => {
+    ({ tradesAreValid, insertNewTrade }: { tradesAreValid: boolean; insertNewTrade: () => void }) => {
         return (
             <Tooltip
                 content={
@@ -602,11 +563,7 @@ const AddTradeButton = memo(
                 contentProps={{ side: "bottom" }}
                 disabled={tradesAreValid}
             >
-                <Button
-                    variant="secondary"
-                    disabled={!tradesAreValid}
-                    onClick={() => insertNewTrade()}
-                >
+                <Button variant="secondary" disabled={!tradesAreValid} onClick={() => insertNewTrade()}>
                     <IconPlus />
                     Trade
                 </Button>
@@ -619,10 +576,8 @@ const RFactorCard = memo(({ r_factor }: { r_factor: DecimalString }) => {
     const rFactor = new Decimal(r_factor);
     let textColor = "";
 
-    if (rFactor.isPositive() && !rFactor.isZero())
-        textColor = "text-foreground-green";
-    if (rFactor.isNegative() && !rFactor.isZero())
-        textColor = "text-foreground-red";
+    if (rFactor.isPositive() && !rFactor.isZero()) textColor = "text-foreground-green";
+    if (rFactor.isNegative() && !rFactor.isZero()) textColor = "text-foreground-red";
 
     return (
         <Card className="relative min-w-30">
@@ -634,56 +589,38 @@ const RFactorCard = memo(({ r_factor }: { r_factor: DecimalString }) => {
     );
 });
 
-const DurationCard = memo(
-    ({ opened_at, closed_at }: { opened_at: Date; closed_at: Date | null }) => {
-        const now = new Date();
+const DurationCard = memo(({ opened_at, closed_at }: { opened_at: Date; closed_at: Date | null }) => {
+    const now = new Date();
 
-        const { days, hours, minutes } = getElapsedTime(
-            opened_at,
-            closed_at ?? now
-        );
+    const { days, hours, minutes } = getElapsedTime(opened_at, closed_at ?? now);
 
-        return (
-            <Card className="realtive flex flex-col gap-y-2">
-                <CardTitle>Duration</CardTitle>
+    return (
+        <Card className="realtive flex flex-col gap-y-2">
+            <CardTitle>Duration</CardTitle>
 
-                <CardContent className="flex-center flex h-full flex-col gap-y-2">
-                    <p className="heading">
-                        {days} days {hours} hours {minutes} mins
-                    </p>
+            <CardContent className="flex-center flex h-full flex-col gap-y-2">
+                <p className="heading">
+                    {days} days {hours} hours {minutes} mins
+                </p>
 
-                    <div className="flex items-center gap-x-1 text-sm">
-                        <IconCalendarRange />
-                        <div className="space-x-2">
-                            <span>{formatDate(opened_at, { time: true })}</span>
-                            {closed_at && (
-                                <span>
-                                    - {formatDate(closed_at, { time: true })}
-                                </span>
-                            )}
-                        </div>
+                <div className="flex items-center gap-x-1 text-sm">
+                    <IconCalendarRange />
+                    <div className="space-x-2">
+                        <span>{formatDate(opened_at, { time: true })}</span>
+                        {closed_at && <span>- {formatDate(closed_at, { time: true })}</span>}
                     </div>
-                </CardContent>
-            </Card>
-        );
-    }
-);
+                </div>
+            </CardContent>
+        </Card>
+    );
+});
 
 const DiscardButton = memo(
-    ({
-        hasSomethingToDiscard,
-        discard,
-    }: {
-        hasSomethingToDiscard: boolean;
-        discard: () => void;
-    }) => {
+    ({ hasSomethingToDiscard, discard }: { hasSomethingToDiscard: boolean; discard: () => void }) => {
         return (
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button
-                        variant="secondary"
-                        disabled={!hasSomethingToDiscard}
-                    >
+                    <Button variant="secondary" disabled={!hasSomethingToDiscard}>
                         Discard
                     </Button>
                 </DialogTrigger>
@@ -691,18 +628,12 @@ const DiscardButton = memo(
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Discard</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to disacard this position?
-                        </DialogDescription>
+                        <DialogDescription>Are you sure you want to disacard this position?</DialogDescription>
                     </DialogHeader>
 
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                onClick={() => discard()}
-                            >
+                            <Button type="button" variant="destructive" onClick={() => discard()}>
                                 Discard
                             </Button>
                         </DialogClose>
@@ -714,13 +645,7 @@ const DiscardButton = memo(
 );
 
 const DeleteButton = memo(
-    ({
-        deletePosition,
-        isDeleting,
-    }: {
-        deletePosition: () => Promise<void>;
-        isDeleting?: boolean;
-    }) => {
+    ({ deletePosition, isDeleting }: { deletePosition: () => Promise<void>; isDeleting?: boolean }) => {
         const [open, setOpen] = useState(false);
 
         return (
@@ -732,9 +657,7 @@ const DeleteButton = memo(
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Delete</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete this position?
-                        </DialogDescription>
+                        <DialogDescription>Are you sure you want to delete this position?</DialogDescription>
                     </DialogHeader>
 
                     <DialogFooter>

@@ -91,18 +91,9 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 		return nil, true, err
 	}
 
-	trades := []*trade.Trade{}
-
-	for _, tradePayload := range payload.Trades {
-		// Attach the Position's ID.
-		tradePayload.PositionID = positionID
-
-		trade, err := trade.New(tradePayload)
-		if err != nil {
-			return nil, false, err
-		}
-
-		trades = append(trades, trade)
+	trades, err := createTradesFromCreatePayload(payload.Trades, positionID)
+	if err != nil {
+		return nil, false, fmt.Errorf("createTradesFromCreatePayload: %w", err)
 	}
 
 	position = &Position{
@@ -129,6 +120,24 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 	}
 
 	return position, false, nil
+}
+
+func createTradesFromCreatePayload(trades []trade.CreatePayload, positionID uuid.UUID) ([]*trade.Trade, error) {
+	newTrades := []*trade.Trade{}
+
+	for _, tradePayload := range trades {
+		// Attach the Position's ID.
+		tradePayload.PositionID = positionID
+
+		trade, err := trade.New(tradePayload)
+		if err != nil {
+			return nil, err
+		}
+
+		newTrades = append(newTrades, trade)
+	}
+
+	return newTrades, nil
 }
 
 func (originalPosition *Position) update(payload UpdatePayload) (position Position, userErr bool, err error) {

@@ -67,16 +67,6 @@ interface Position {
     trades: Trade[] | null;
 }
 
-export {
-    positionInstrumentToString,
-    positionDirectionToString,
-    positionStatusToString,
-};
+export { positionInstrumentToString, positionDirectionToString, positionStatusToString };
 
-export type {
-    CurrencyCode,
-    Position,
-    PositionDirection,
-    PositionInstrument,
-    PositionStatus,
-};
+export type { CurrencyCode, Position, PositionDirection, PositionInstrument, PositionStatus };

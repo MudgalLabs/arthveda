@@ -10,7 +10,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrument, brokerName broker.Name) (userError bool, err error) {
+func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrument, brokerName broker.Name) (charges []decimal.Decimal, userError bool, err error) {
+	charges = make([]decimal.Decimal, len(trades))
+
 	intraday := EquityTradeIntraday
 	delivery := EquityTradeDelivery
 
@@ -19,15 +21,23 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 
 	chargeContextByTradeId, userError, err := computeEquityTradeChargesContext(trades)
 	if err != nil {
-		return userError, err
+		return charges, userError, err
 	}
 
 	for i, trade := range trades {
 		var config computeChargesConfig
 
 		if instrument == InstrumentEquity {
+			chargeContext, exists := chargeContextByTradeId[trade.ID]
+			if !exists {
+				// If we don't have a charges context for the trade, we skip it.
+				charges[i] = decimal.Zero
+				trades[i].ChargesAmount = decimal.Zero
+				continue
+			}
+
 			// For equity trades, we will need to take care of intraday and delivery.
-			for _, split := range chargeContextByTradeId[trade.ID].ChargesSplits {
+			for _, split := range chargeContext.ChargesSplits {
 				switch split.EquityTradeKind {
 				case EquityTradeIntraday:
 					config = equityIntradayChargesConfig
@@ -41,7 +51,7 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 				// Calculate the total charges for the trade based on the split.
 				tradeValue := trade.Quantity.Mul(trade.Price)
 				totalCharges := getTotalChargesForTrade(tradeValue, config)
-
+				charges[i] = totalCharges
 				// Apply the charges to the trade.
 				trades[i].ChargesAmount = totalCharges
 			}
@@ -50,7 +60,7 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 		}
 	}
 
-	return false, nil
+	return charges, false, nil
 }
 
 // getTotalChargesForTrade computes the total charges for a trade based on the trade value and the configuration.

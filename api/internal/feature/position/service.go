@@ -37,15 +37,19 @@ func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWrite
 }
 
 type ComputePayload struct {
-	RiskAmount decimal.Decimal       `json:"risk_amount"`
 	Trades     []trade.CreatePayload `json:"trades"`
+	RiskAmount decimal.Decimal       `json:"risk_amount"`
+
+	// Data below is needed to calculate charges.
+	Instrument        Instrument `json:"instrument"`
+	EnableAutoCharges bool       `json:"enable_auto_charges"`
+	BrokerID          *uuid.UUID `json:"broker_id"`
 }
 
 type ComputeServiceResult struct {
 	computeResult
-	Trades []*trade.Trade `json:"trades_lol"`
 
-	// This order should match the order of trades in the ComputePayload.
+	// This order will match the order of trades in the ComputePayload.
 	TradeCharges []decimal.Decimal `json:"trade_charges"`
 }
 
@@ -57,28 +61,30 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 		return result, service.ErrBadRequest, err
 	}
 
-	position, userErr, err := new(uuid.Nil, CreatePayload{
-		ComputePayload: payload,
-	})
-	if err != nil {
-		if userErr {
-			return result, service.ErrBadRequest, err
-		} else {
-			return result, service.ErrInternalServerError, fmt.Errorf("new: %w", err)
-		}
-	}
-
-	userErr, err = CalculateAndApplyChargesToTrades(position.Trades, InstrumentEquity, broker.BrokerNameZerodha)
-	if err != nil {
-		if userErr {
-			return result, service.ErrBadRequest, err
-		} else {
-			return result, service.ErrInternalServerError, fmt.Errorf("new: %w", err)
-		}
-	}
-
 	result.computeResult = computeResult
-	result.Trades = position.Trades
+
+	if payload.EnableAutoCharges {
+		if payload.BrokerID == nil {
+			return result, service.ErrBadRequest, fmt.Errorf("Broker is required to calculate charges")
+		}
+
+		trades, err := createTradesFromCreatePayload(payload.Trades, uuid.Nil)
+		if err != nil {
+			return result, service.ErrInternalServerError, fmt.Errorf("create trades from create payload: %w", err)
+		}
+
+		charges, userErr, err := CalculateAndApplyChargesToTrades(trades, InstrumentEquity, broker.BrokerNameZerodha)
+		if err != nil {
+			if userErr {
+				return result, service.ErrBadRequest, err
+			} else {
+				return result, service.ErrInternalServerError, fmt.Errorf("new: %w", err)
+			}
+		}
+
+		result.TradeCharges = charges
+	}
+
 	return result, service.ErrNone, nil
 }
 

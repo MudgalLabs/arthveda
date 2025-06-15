@@ -3,12 +3,7 @@ import isEqual from "lodash/isEqual";
 
 import { Position } from "@/features/position/position";
 import { Trade, TradeKind } from "@/features/trade/trade";
-import {
-    generateId,
-    isFunction,
-    removeAtIndex,
-    roundToNearest15Minutes,
-} from "@/lib/utils";
+import { generateId, isFunction, removeAtIndex, roundToNearest15Minutes } from "@/lib/utils";
 import { Setter } from "@/lib/types";
 import { usePositionStore } from "./position_store_context";
 import { useDebounce } from "@/hooks/use_debounce";
@@ -17,12 +12,14 @@ import { useLocation } from "react-router-dom";
 import { ROUTES } from "@/routes_constants";
 
 interface State {
-    position: Position;
     initialPosition: Position | null;
+    position: Position;
+    enableAutoCharges: boolean;
 }
 
 interface Action {
     updatePosition: (newState: Partial<Position>) => void;
+    setEnableAutoCharges: (enable: boolean) => void;
     setTrades: Setter<Trade[]>;
     insertNewTrade: () => void;
     removeTrade: (index: number) => void;
@@ -58,6 +55,8 @@ const defaultState: State = {
         broker_id: null,
         trades: [],
     },
+
+    enableAutoCharges: false,
 };
 
 export const createPositionStore = (initProp?: Position) => {
@@ -72,6 +71,7 @@ export const createPositionStore = (initProp?: Position) => {
     return createStore<PositionStore>((set, get) => ({
         initialPosition,
         position,
+        enableAutoCharges: false,
 
         updatePosition: (newState) => {
             set((state) => {
@@ -84,6 +84,12 @@ export const createPositionStore = (initProp?: Position) => {
                     position: updatedPosition,
                 };
             });
+        },
+
+        setEnableAutoCharges: (enable) => {
+            set(() => ({
+                enableAutoCharges: enable,
+            }));
         },
 
         setTrades: (newTradesValueOrFn) => {
@@ -104,8 +110,7 @@ export const createPositionStore = (initProp?: Position) => {
         },
 
         insertNewTrade: () => {
-            const firstTradeBuyOrSell =
-                get().position.trades?.[0]?.kind ?? undefined;
+            const firstTradeBuyOrSell = get().position.trades?.[0]?.kind ?? undefined;
 
             // We are assuming that if the first trade was a BUY trade, then user
             // went LONG on this trade. That's why the subsequent trade are most
@@ -123,10 +128,7 @@ export const createPositionStore = (initProp?: Position) => {
                 ...state,
                 position: {
                     ...state.position,
-                    trades: [
-                        ...(state.position.trades ?? []),
-                        getEmptyTrade(newTradeKind),
-                    ],
+                    trades: [...(state.position.trades ?? []), getEmptyTrade(newTradeKind)],
                 },
             }));
         },
@@ -185,10 +187,7 @@ export function useHasPositionDataChanged(): boolean {
     const position = usePositionStore((s) => s.position);
     const initialPosition = usePositionStore((s) => s.initialPosition);
 
-    return useMemo(
-        () => !isEqual(position, initialPosition),
-        [position, initialPosition]
-    );
+    return useMemo(() => !isEqual(position, initialPosition), [position, initialPosition]);
 }
 
 export function usePositionTradesAreValid(): boolean {
@@ -201,13 +200,7 @@ export function usePositionTradesAreValid(): boolean {
 
 export function usePositionCanBeSaved(): boolean {
     const position = usePositionStore((s) => s.position);
-    return useMemo(
-        () =>
-            !!position.symbol &&
-            !!position.trades &&
-            validateTrades(position.trades),
-        [position]
-    );
+    return useMemo(() => !!position.symbol && !!position.trades && validateTrades(position.trades), [position]);
 }
 
 export function useIsCreatingPosition(): boolean {
@@ -224,10 +217,7 @@ export function useIsEditingPosition(): boolean {
 }
 
 function validateTrades(trades: Trade[] = []) {
-    return (
-        trades.length > 0 &&
-        trades.every((t) => Number(t.quantity) !== 0 && Number(t.price) !== 0)
-    );
+    return trades.length > 0 && trades.every((t) => Number(t.quantity) !== 0 && Number(t.price) !== 0);
 }
 
 function getEmptyTrade(orderKind: TradeKind): Trade {
