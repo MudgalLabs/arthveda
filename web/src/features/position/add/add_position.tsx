@@ -22,10 +22,10 @@ import {
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
 import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
-import { IconCalendarRange, IconCross, IconPlus } from "@/components/icons";
+import { IconCalendarRange, IconCross, IconInfo, IconPlus } from "@/components/icons";
 import { getDataTableCellUpdateFn, useDataTableEditableCell } from "@/hooks/use_data_table_editable_cell";
 import { Card, CardContent, CardTitle } from "@/components/card";
-import { formatDate, getElapsedTime, isSameDay } from "@/lib/utils";
+import { cn, formatDate, getElapsedTime, isSameDay } from "@/lib/utils";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { CreateTrade, Trade, TradeKind } from "@/features/trade/trade";
@@ -333,6 +333,9 @@ function AddPosition() {
                                 onCheckedChange={() => setEnabledAutoCharges(!enableAutoCharges)}
                             />
                             <Label htmlFor="auto">Enable Auto Charges</Label>
+                            <Tooltip content="Charges are calculated based on the trade and closely match actual charges">
+                                <IconInfo />
+                            </Tooltip>
                         </Label>
                     }
                 >
@@ -454,19 +457,31 @@ const columns: ColumnDef<CreateTrade>[] = [
         cell: (ctx) => {
             const { syncWithValue } = useDataTableEditableCell<string>(ctx);
             const [error, setError] = useState(false);
+            const [errorMsg, setErrorMsg] = useState("");
 
             useEffect(() => {
                 setError(ctx.row.original.quantity === "" || Number(ctx.row.original.quantity) < 0);
+                if (ctx.row.original.quantity === "") {
+                    setErrorMsg("Quantity is required");
+                } else if (Number(ctx.row.original.quantity) < 0) {
+                    setErrorMsg("Quantity must be >= 0");
+                } else {
+                    setErrorMsg("");
+                }
             }, [ctx.row.original.quantity]);
 
             return (
                 <WithDebounce state={ctx.row.original.quantity} onDebounce={(v) => syncWithValue(v)}>
                     {(value, setValue) => (
                         <DecimalInput
+                            className={cn({
+                                "mb-2": error, // The table row mushes the input with the error message, so we add some margin to the bottom.
+                            })}
                             kind="quantity"
                             variant={error ? "error" : "default"}
                             value={value}
                             onChange={(e) => setValue(e.target.value)}
+                            errorMsg={errorMsg}
                         />
                     )}
                 </WithDebounce>
@@ -480,20 +495,32 @@ const columns: ColumnDef<CreateTrade>[] = [
             const state = usePositionStore((s) => s.position);
             const { syncWithValue } = useDataTableEditableCell<string>(ctx);
             const [error, setError] = useState(false);
+            const [errorMsg, setErrorMsg] = useState("");
 
             useEffect(() => {
                 setError(ctx.row.original.price === "" || Number(ctx.row.original.price) < 0);
+                if (ctx.row.original.price === "") {
+                    setErrorMsg("Price is required");
+                } else if (Number(ctx.row.original.price) < 0) {
+                    setErrorMsg("Price must be >= 0");
+                } else {
+                    setErrorMsg("");
+                }
             }, [ctx.row.original.price]);
 
             return (
                 <WithDebounce state={ctx.row.original.price} onDebounce={(v) => syncWithValue(v)}>
                     {(value, setValue) => (
                         <DecimalInput
+                            className={cn({
+                                "mb-2": error, // The table row mushes the input with the error message, so we add some margin to the bottom.
+                            })}
                             kind="amount"
                             currency={state.currency}
                             variant={error ? "error" : "default"}
                             value={value}
                             onChange={(e) => setValue(e.target.value)}
+                            errorMsg={errorMsg}
                         />
                     )}
                 </WithDebounce>

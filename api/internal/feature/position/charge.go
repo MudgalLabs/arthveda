@@ -52,6 +52,15 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 					continue
 				}
 
+				// Log the context and split for debugging purposes.
+				logger.Get().Debugw("CalculateAndApplyChargesToTrades",
+					"trade_id", trade.ID,
+					"equity_trade_kind", split.EquityTradeKind,
+					"quantity", split.Quantity,
+					"price", trade.Price,
+					"config", config,
+				)
+
 				// Calculate the total charges for the trade based on the split.
 				tradeValue := split.Quantity.Mul(trade.Price)
 				charges := getTotalChargesForTrade(tradeValue, trade.Kind, config)
@@ -144,11 +153,11 @@ func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind trade.Kind, c
 	return totalCharges
 }
 
-type equityTrade = string
+type equityTradeKind = string
 
 const (
-	EquityTradeIntraday equityTrade = "intraday"
-	EquityTradeDelivery equityTrade = "delivery"
+	EquityTradeIntraday equityTradeKind = "intraday"
+	EquityTradeDelivery equityTradeKind = "delivery"
 )
 
 type equityTradeChargeSplit struct {
@@ -156,7 +165,7 @@ type equityTradeChargeSplit struct {
 	Quantity decimal.Decimal `json:"quantity"`
 
 	// EquityTradeKind of charge split.
-	EquityTradeKind equityTrade `json:"equity_trade_kind"`
+	EquityTradeKind equityTradeKind `json:"equity_trade_kind"`
 }
 
 type equityTradeChargesContext struct {
@@ -402,7 +411,7 @@ type computeChargesConfig struct {
 
 // TODO: We need to pass exchange as a parameter to this function
 // so that we can compute the charges based on the exchange.
-func getComputeTradeChargesConfig(brokerName broker.Name, instrument Instrument, etk *equityTrade) computeChargesConfig {
+func getComputeTradeChargesConfig(brokerName broker.Name, instrument Instrument, etk *equityTradeKind) computeChargesConfig {
 	const (
 		gstPercent         = 18
 		sebiChargesPercent = 0.0001
@@ -414,7 +423,7 @@ func getComputeTradeChargesConfig(brokerName broker.Name, instrument Instrument,
 		exchangeTransactionCharges:          getExchangeTransactionChargesConfig(instrument),
 		stampChargesPercent:                 getStampChargesPercent(instrument, etk),
 		sebiChargesPercent:                  sebiChargesPercent,
-		dpChargesAmount:                     getDpChargesAmount(brokerName),
+		dpChargesAmount:                     getDpChargesAmount(brokerName, etk),
 		nseInvestorProtectionFundPercentage: getNSEInvestorProtectionFundPercentage(instrument),
 		gstPercent:                          gstPercent,
 	}
@@ -422,7 +431,7 @@ func getComputeTradeChargesConfig(brokerName broker.Name, instrument Instrument,
 	return config
 }
 
-func getBrokerageConfig(brokerName broker.Name, instrument Instrument, etk *equityTrade) brokerageConfig {
+func getBrokerageConfig(brokerName broker.Name, instrument Instrument, etk *equityTradeKind) brokerageConfig {
 	config := brokerageConfig{}
 
 	if instrument == InstrumentEquity {
@@ -449,7 +458,7 @@ func getBrokerageConfig(brokerName broker.Name, instrument Instrument, etk *equi
 	return config
 }
 
-func getSttConfig(instrument Instrument, etk *equityTrade) sttConfig {
+func getSttConfig(instrument Instrument, etk *equityTradeKind) sttConfig {
 	const (
 		sttPercentOnSellIntraday = 0.025
 		sttPercentOnBuyDelivery  = 0.1
@@ -489,7 +498,7 @@ func getExchangeTransactionChargesConfig(instrument Instrument) exchangeTransact
 	return exchangeTransactionCharges
 }
 
-func getStampChargesPercent(instrument Instrument, etk *equityTrade) float64 {
+func getStampChargesPercent(instrument Instrument, etk *equityTradeKind) float64 {
 	const (
 		stampEquityDeliveryChargesPercentOnBuy = 0.015
 		stampEquityIntradayChargesPercentOnBuy = 0.003
@@ -511,7 +520,16 @@ func getStampChargesPercent(instrument Instrument, etk *equityTrade) float64 {
 	return stampChargesPercent
 }
 
-func getDpChargesAmount(b broker.Name) decimal.Decimal {
+func getDpChargesAmount(b broker.Name, etk *equityTradeKind) decimal.Decimal {
+	if etk == nil {
+		return decimal.Zero
+	}
+
+	// DP charges are not applicable for intraday trades.
+	if *etk == EquityTradeIntraday {
+		return decimal.Zero
+	}
+
 	switch b {
 	case broker.BrokerNameGroww:
 		return decimal.NewFromFloat(16.5)

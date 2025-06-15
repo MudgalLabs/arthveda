@@ -59,6 +59,7 @@ const Input: FC<InputProps> = (props) => {
                 onBlur={handleOnBlur}
                 {...rest}
             />
+
             {error && errorMsg && <InputErrorMessage errorMsg={errorMsg} />}
         </>
     );

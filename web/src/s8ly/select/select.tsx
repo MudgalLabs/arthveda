@@ -101,8 +101,9 @@ const Select: FC<SelectProps> = ({
                         </SelectPrimitive.Icon>
                     </>
                 )}
-                {error && errorMsg && <InputErrorMessage className="absolute -bottom-5 left-0" errorMsg={errorMsg} />}
             </SelectPrimitive.Trigger>
+
+            {error && errorMsg && <InputErrorMessage errorMsg={errorMsg} />}
 
             <SelectPrimitive.Portal container={container}>
                 <SelectPrimitive.Content

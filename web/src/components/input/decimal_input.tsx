@@ -122,9 +122,7 @@ export function DecimalInput(props: DecimalInputProps) {
             <PopoverTrigger asChild>
                 <div className="relative">
                     {isCurrency && (
-                        <span className="text-foreground-muted absolute top-1/2 left-3 -translate-y-1/2 select-none">
-                            {symbol}
-                        </span>
+                        <span className="text-foreground-muted absolute top-2.5 left-3 select-none">{symbol}</span>
                     )}
 
                     <Input
