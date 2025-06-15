@@ -9,8 +9,8 @@ import (
 type Name string
 
 const (
-	BrokerNameZerodha Name = "Zerodha"
 	BrokerNameGroww   Name = "Groww"
+	BrokerNameZerodha Name = "Zerodha"
 )
 
 type Broker struct {
