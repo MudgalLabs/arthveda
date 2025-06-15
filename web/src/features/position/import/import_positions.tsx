@@ -28,7 +28,7 @@ const INITIAL_STATE: State = {
     currency: "inr",
     riskAmount: "0",
     chargesCalculationMethod: "auto",
-    chargesAmount: "0",
+    manualChargeAmount: "0",
 };
 
 export const ImportPositions = () => {
@@ -43,7 +43,7 @@ export const ImportPositions = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    const { mutateAsync, isPending } = apiHooks.position.useImport({
+    const { mutateAsync: importAsync, isPending } = apiHooks.position.useImport({
         onError: (error) => {
             apiErrorHandler(error);
         },
@@ -53,11 +53,15 @@ export const ImportPositions = () => {
         if (!state.file || !state.brokerID) return;
 
         toast.promise(
-            mutateAsync({
+            importAsync({
                 file: state.file,
                 broker_id: state.brokerID,
                 currency: state.currency,
                 risk_amount: state.riskAmount,
+                instrument: state.instrument,
+                charges_calculation_method: state.chargesCalculationMethod,
+                manual_charge_amount: state.manualChargeAmount,
+                confirm: false,
             }),
             {
                 loading: "Parsing file",
@@ -86,11 +90,14 @@ export const ImportPositions = () => {
         if (!state.file || !state.brokerID || importPositionResData?.positions?.length === 0) return;
 
         toast.promise(
-            mutateAsync({
+            importAsync({
                 file: state.file,
                 broker_id: state.brokerID,
                 currency: state.currency,
                 risk_amount: state.riskAmount,
+                instrument: state.instrument,
+                charges_calculation_method: state.chargesCalculationMethod,
+                manual_charge_amount: state.manualChargeAmount,
                 confirm: true,
             }),
             {
@@ -174,32 +181,66 @@ export const ImportPositions = () => {
         };
     };
 
-    const getNextButtonLabel = useCallback((props: MultiStepProps): ReactNode => {
-        const { hasNext, currentStepId } = props;
+    const getPrevButtonLabel = useCallback((props: MultiStepProps): ReactNode => {
+        const { currentStepId } = props;
+
+        let labelText = "Back";
+
+        if (currentStepId === "broker-step") {
+            labelText = "";
+        }
+
+        if (currentStepId === "file-step") {
+            labelText = "Select Broker";
+        }
 
         if (currentStepId === "options-step") {
-            return (
-                <>
-                    Review
-                    <IconArrowRight />
-                </>
-            );
+            labelText = "Upload File";
         }
 
         if (currentStepId === "review-step") {
-            return "Finish";
+            labelText = "Customise Options";
         }
 
-        if (hasNext) {
-            return (
-                <>
-                    Continue
-                    <IconArrowRight />
-                </>
-            );
+        if (currentStepId === "import-step") {
+            labelText = "Review Import";
         }
 
-        return null;
+        return (
+            <>
+                <IconArrowLeft />
+                {labelText}
+            </>
+        );
+    }, []);
+
+    const getNextButtonLabel = useCallback((props: MultiStepProps): ReactNode => {
+        const { currentStepId } = props;
+
+        let labelText = "Next";
+
+        if (currentStepId === "broker-step") {
+            labelText = "Upload File";
+        }
+
+        if (currentStepId === "file-step") {
+            labelText = "Customise Options";
+        }
+
+        if (currentStepId === "options-step") {
+            labelText = "Review Import";
+        }
+
+        if (currentStepId === "review-step") {
+            labelText = "Start Import";
+        }
+
+        return (
+            <>
+                {labelText}
+                <IconArrowRight />
+            </>
+        );
     }, []);
 
     return (
@@ -251,19 +292,19 @@ export const ImportPositions = () => {
 
                 <div className="h-8" />
 
-                <div className="flex w-full justify-between gap-x-4 sm:justify-end">
+                <div className="flex w-full justify-between gap-x-4">
                     <MultiStep.PreviousStepButton>
-                        {({ prev, hasPrevious }) => (
+                        {(props) => (
                             <Button
                                 className={cn({
-                                    "opacity-0": !hasPrevious,
-                                    "opacity-100": hasPrevious,
+                                    "opacity-0": !props.hasPrevious,
+                                    "opacity-100": props.hasPrevious,
                                 })}
                                 variant="secondary"
-                                onClick={() => prev()}
+                                onClick={() => props.prev()}
                                 disabled={isPending}
                             >
-                                <IconArrowLeft /> Go back
+                                {getPrevButtonLabel(props)}
                             </Button>
                         )}
                     </MultiStep.PreviousStepButton>
@@ -292,8 +333,8 @@ interface State {
     riskAmount: DecimalString;
     // If "fixed", we use the risk amount provided by the user.
     // If "auto", we calculate it based on the trades done in the position's lifecycle.
-    chargesCalculationMethod: "fixed" | "auto";
-    chargesAmount: DecimalString;
+    chargesCalculationMethod: "manual" | "auto";
+    manualChargeAmount: DecimalString;
 }
 
 interface ImportStepProps {
@@ -501,7 +542,11 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
 
             <div className="h-8" />
 
-            <Input type="file" onChange={handleFileChange} />
+            <Input
+                type="file"
+                onChange={handleFileChange}
+                accept=".xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+            />
         </>
     );
 };
@@ -571,13 +616,14 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
                                 content={
                                     <div className="max-w-[300px]">
                                         <p>
-                                            If you choose Auto, we calculate a close approximate charge for every trade
-                                            in the position's lifecycle based on brokerage, taxes & other fees.
+                                            For Auto, we calculate a close approximate charge for every trade in the
+                                            position. Includes brokerage, taxes, and other charges like STT, DP Charges,
+                                            GST, etc.
                                         </p>
                                         <br />
                                         <p>
-                                            If you choose Fixed, you can set a fixed charge amount for every trade in
-                                            the position's lifecycle.
+                                            For Manual, you can set a charge amount that will be applied to every trade
+                                            in the position.
                                         </p>
                                     </div>
                                 }
@@ -593,29 +639,29 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
                             onValueChange={(v) =>
                                 setState((prev) => ({
                                     ...prev,
-                                    chargesCalculationMethod: v as "fixed" | "auto",
+                                    chargesCalculationMethod: v as "manual" | "auto",
                                 }))
                             }
                         >
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="auto" id="auto" />
-                                <Label htmlFor="auto">Auto calculate</Label>
+                                <Label htmlFor="auto">Auto</Label>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="fixed" id="fixed" />
-                                <Label htmlFor="fixed">Fixed</Label>
+                                <RadioGroupItem value="manual" id="manual" />
+                                <Label htmlFor="fixed">Manual</Label>
                             </div>
                         </RadioGroup>
 
-                        {state.chargesCalculationMethod === "fixed" && (
+                        {state.chargesCalculationMethod === "manual" && (
                             <DecimalInput
                                 kind="amount"
                                 currency={state.currency}
-                                value={state.chargesAmount}
+                                value={state.manualChargeAmount}
                                 onChange={(e) =>
                                     setState((prev) => ({
                                         ...prev,
-                                        chargesAmount: e.target.value,
+                                        manualChargeAmount: e.target.value,
                                     }))
                                 }
                             />

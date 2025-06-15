@@ -4,10 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Loading } from "@/components/loading";
-import {
-    Position,
-    positionInstrumentToString,
-} from "@/features/position/position";
+import { Position, positionInstrumentToString } from "@/features/position/position";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DirectionTag } from "@/features/position/components/direction_tag";
@@ -38,32 +35,19 @@ export interface PositionListTable {
 }
 
 export const PositionListTable: FC<PositionListTable> = memo(
-    ({
-        positions,
-        hideFilters = false,
-        totalItems,
-        state,
-        onStateChange,
-        isError,
-        isFetching,
-        isLoading,
-    }) => {
+    ({ positions, hideFilters = false, totalItems, state, onStateChange, isError, isFetching, isLoading }) => {
         const appliedFilters = useListPositionsStore((s) => s.appliedFilters);
         const resetFilters = useListPositionsStore((s) => s.resetFilters);
         const resetFilter = useListPositionsStore((s) => s.resetFilter);
 
         const activeFilters = Object.entries(appliedFilters).filter(
             ([key, value]) =>
-                value !==
-                    defaultPositionSearchFilters[
-                        key as keyof typeof defaultPositionSearchFilters
-                    ] && !key.includes("operator") // Don't show operator as a filter
+                value !== defaultPositionSearchFilters[key as keyof typeof defaultPositionSearchFilters] &&
+                !key.includes("operator") // Don't show operator as a filter
         );
 
         if (isError) {
-            return (
-                <p className="text-foreground-red">Failed to fetch positions</p>
-            );
+            return <p className="text-foreground-red">Failed to fetch positions</p>;
         }
 
         if (isLoading) {
@@ -76,11 +60,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                         {activeFilters.map(([key, value]) => (
                             <Tag key={key} variant="filter">
-                                {
-                                    positionSearchFiltersLabel[
-                                        key as keyof typeof appliedFilters
-                                    ]
-                                }{" "}
+                                {positionSearchFiltersLabel[key as keyof typeof appliedFilters]}{" "}
                                 {positionSearchFiltersValueFormatter[
                                     key as keyof typeof positionSearchFiltersValueFormatter
                                 ]?.(value, appliedFilters) ?? String(value)}
@@ -88,28 +68,18 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                     variant="link"
                                     size="small"
                                     className="text-foreground-muted hover:text-foreground p-0 hover:cursor-pointer"
-                                    onClick={() =>
-                                        resetFilter(
-                                            key as keyof typeof appliedFilters
-                                        )
-                                    }
+                                    onClick={() => resetFilter(key as keyof typeof appliedFilters)}
                                 >
                                     <IconCross size={20} />
                                 </Button>
                             </Tag>
                         ))}
-                        <Button
-                            size="small"
-                            variant="link"
-                            onClick={resetFilters}
-                        >
+                        <Button size="small" variant="link" onClick={resetFilters}>
                             Reset Filters
                         </Button>
                     </div>
                 ) : (
-                    <p className="text-foreground-muted text-base">
-                        No filters applied
-                    </p>
+                    <p className="text-foreground-muted text-base">No filters applied</p>
                 )}
             </div>
         );
@@ -128,11 +98,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                         {(table) => (
                             <div className="space-y-4">
                                 <div className="flex justify-end gap-x-2">
-                                    {!hideFilters && (
-                                        <PositionListFilters
-                                            isFetching={isFetching}
-                                        />
-                                    )}
+                                    {!hideFilters && <PositionListFilters isFetching={isFetching} />}
                                     <DataTableVisibility table={table} />
                                 </div>
 
@@ -140,10 +106,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
 
                                 <DataTable table={table} />
 
-                                <DataTablePagination
-                                    table={table}
-                                    total={totalItems}
-                                />
+                                <DataTablePagination table={table} total={totalItems} />
                             </div>
                         )}
                     </DataTableSmart>
@@ -176,14 +139,9 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "opened_at",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Opened At"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
+            <DataTableColumnHeader title="Opened At" column={column} disabled={table.options.meta?.isFetching} />
         ),
-        cell: ({ row }) =>
-            formatDate(new Date(row.original.opened_at), { time: true }),
+        cell: ({ row }) => formatDate(new Date(row.original.opened_at), { time: true }),
     },
     {
         id: "symbol",
@@ -192,11 +150,7 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "symbol",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Symbol"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
+            <DataTableColumnHeader title="Symbol" column={column} disabled={table.options.meta?.isFetching} />
         ),
     },
     {
@@ -206,15 +160,9 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "direction",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Direction"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
+            <DataTableColumnHeader title="Direction" column={column} disabled={table.options.meta?.isFetching} />
         ),
-        cell: ({ row }) => (
-            <DirectionTag className="w-16" direction={row.original.direction} />
-        ),
+        cell: ({ row }) => <DirectionTag className="w-16" direction={row.original.direction} />,
     },
     {
         id: "status",
@@ -223,18 +171,9 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "status",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Status"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
+            <DataTableColumnHeader title="Status" column={column} disabled={table.options.meta?.isFetching} />
         ),
-        cell: ({ row }) => (
-            <StatusTag
-                status={row.original.status}
-                currency={row.original.currency}
-            />
-        ),
+        cell: ({ row }) => <StatusTag status={row.original.status} currency={row.original.currency} />,
     },
     {
         id: "instrument",
@@ -243,11 +182,7 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "instrument",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Instrument"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
+            <DataTableColumnHeader title="Instrument" column={column} disabled={table.options.meta?.isFetching} />
         ),
         cell: ({ row }) => positionInstrumentToString(row.original.instrument),
     },
@@ -258,11 +193,7 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "r_factor",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="R Factor"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
+            <DataTableColumnHeader title="R Factor" column={column} disabled={table.options.meta?.isFetching} />
         ),
     },
     {
@@ -272,11 +203,7 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "gross_pnl_amount",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Gross PnL"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
+            <DataTableColumnHeader title="Gross PnL" column={column} disabled={table.options.meta?.isFetching} />
         ),
         cell: ({ row }) =>
             formatCurrency(row.original.gross_pnl_amount, {
@@ -290,16 +217,23 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "net_pnl_amount",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Net PnL"
-                column={column}
-                disabled={table.options.meta?.isFetching}
-            />
+            <DataTableColumnHeader title="Net PnL" column={column} disabled={table.options.meta?.isFetching} />
         ),
         cell: ({ row }) =>
             formatCurrency(row.original.net_pnl_amount, {
                 currency: row.original.currency,
             }),
+    },
+    {
+        id: "total_charges_amount",
+        meta: {
+            columnVisibilityHeader: "Charges",
+        },
+        accessorKey: "total_charges_amount",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Charges" disabled={table.options.meta?.isFetching} column={column} />
+        ),
+        cell: ({ row }) => `${Number(row.original.total_charges_amount).toFixed(2)}`,
     },
     {
         id: "charges_percentage",
@@ -308,14 +242,9 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "charges_as_percentage_of_net_pnl",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Charges %"
-                disabled={table.options.meta?.isFetching}
-                column={column}
-            />
+            <DataTableColumnHeader title="Charges %" disabled={table.options.meta?.isFetching} column={column} />
         ),
-        cell: ({ row }) =>
-            `${Number(row.original.charges_as_percentage_of_net_pnl).toFixed(2)}%`,
+        cell: ({ row }) => `${Number(row.original.charges_as_percentage_of_net_pnl).toFixed(2)}%`,
     },
     {
         id: "net_return_percentage",
@@ -324,13 +253,8 @@ const columns: ColumnDef<Position>[] = [
         },
         accessorKey: "net_return_percentage",
         header: ({ column, table }) => (
-            <DataTableColumnHeader
-                title="Net Return %"
-                disabled={table.options.meta?.isFetching}
-                column={column}
-            />
+            <DataTableColumnHeader title="Net Return %" disabled={table.options.meta?.isFetching} column={column} />
         ),
-        cell: ({ row }) =>
-            `${Number(row.original.net_return_percentage).toFixed(2)}%`,
+        cell: ({ row }) => `${Number(row.original.net_return_percentage).toFixed(2)}%`,
     },
 ];

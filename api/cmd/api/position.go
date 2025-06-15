@@ -207,6 +207,7 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 
 		riskAmount := decimal.Zero
 		riskAmountStr := r.FormValue("risk_amount")
+
 		if riskAmountStr != "" {
 			riskAmount, err = decimal.NewFromString(riskAmountStr)
 			if err != nil {
@@ -224,12 +225,48 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 			}
 		}
 
+		var instrument position.Instrument
+		instrumentStr := r.FormValue("instrument")
+
+		if instrumentStr != "" {
+			instrument = position.Instrument(instrumentStr)
+		}
+
+		var chargesCalculationMethod position.ChargesCalculationMethod
+		chargesCalculationMethodStr := r.FormValue("charges_calculation_method")
+
+		if chargesCalculationMethodStr != "" {
+			chargesCalculationMethod = position.ChargesCalculationMethod(chargesCalculationMethodStr)
+		}
+
+		var manualChargeAmount decimal.Decimal
+		manualChargeAmountStr := r.FormValue("manual_charge_amount")
+
+		if manualChargeAmountStr != "" {
+			manualChargeAmount, err = decimal.NewFromString(manualChargeAmountStr)
+			if err != nil {
+				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
+					apires.NewApiError("Invalid manual charge amount", "", "manual_charge_amount", manualChargeAmountStr),
+				))
+				return
+			}
+			if manualChargeAmount.IsNegative() {
+				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
+					apires.NewApiError("Manual charge amount cannot be negative", "", "manual_charge_amount", manualChargeAmountStr),
+				))
+				return
+			}
+		}
+
 		payload := position.ImportPayload{
-			File:       file,
-			BrokerID:   brokerID,
-			Currency:   currencyCode,
-			RiskAmount: riskAmount,
-			Confirm:    confirm,
+			File:                     file,
+			BrokerID:                 brokerID,
+			Currency:                 currencyCode,
+			RiskAmount:               riskAmount,
+			Instrument:               instrument,
+			ChargesCalculationMethod: chargesCalculationMethod,
+			ManualChargeAmount:       manualChargeAmount,
+			Confirm:                  confirm,
 		}
 
 		result, errKind, err := s.Import(ctx, userID, payload)

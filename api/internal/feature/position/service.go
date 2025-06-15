@@ -78,7 +78,7 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 			if userErr {
 				return result, service.ErrBadRequest, err
 			} else {
-				return result, service.ErrInternalServerError, fmt.Errorf("new: %w", err)
+				return result, service.ErrInternalServerError, fmt.Errorf("CalculateAndApplyChargesToTrades: %w", err)
 			}
 		}
 
@@ -145,6 +145,13 @@ func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchRes
 	return result, service.ErrNone, nil
 }
 
+type ChargesCalculationMethod string
+
+const (
+	ChargesCalculationMethodAuto   ChargesCalculationMethod = "auto"   // Automatically calculate charges based on broker and instrument.
+	ChargesCalculationMethodManual ChargesCalculationMethod = "manual" // Manually specify charges for each trade.
+)
+
 type ImportPayload struct {
 	// Broker ID is the ID of the broker from which the positions are being imported.
 	BrokerID uuid.UUID `form:"broker_id"`
@@ -158,6 +165,16 @@ type ImportPayload struct {
 
 	// RiskAmount is the risk amount that will be used to compute R-Factor.
 	RiskAmount decimal.Decimal `json:"risk_amount"`
+
+	// Instrument is the instrument type of the positions being imported.
+	Instrument Instrument `json:"instrument"`
+
+	ChargesCalculationMethod ChargesCalculationMethod `json:"charges_calculation_method"`
+
+	ManualChargeAmount decimal.Decimal `json:"manual_charge_amount"`
+
+	// Force is a boolean flag to indicate whether the import should overwrite existing positions.
+	Force bool `json:"force"`
 
 	// Confirm is a boolean flag to indicate whether the positions should be created in the database.
 	Confirm bool
@@ -461,6 +478,28 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	positionsImported := 0
 
 	for positionIdx, position := range finalizedPositions {
+
+		switch payload.ChargesCalculationMethod {
+		case ChargesCalculationMethodAuto:
+			_, userErr, err := CalculateAndApplyChargesToTrades(position.Trades, payload.Instrument, broker.Name)
+			if err != nil {
+				if userErr {
+					return nil, service.ErrBadRequest, err
+				} else {
+					return nil, service.ErrInternalServerError, fmt.Errorf("CalculateAndApplyChargesToTrades: %w", err)
+				}
+			}
+
+		case ChargesCalculationMethodManual:
+			for _, trade := range position.Trades {
+				trade.ChargesAmount = payload.ManualChargeAmount
+			}
+		}
+
+		// Add the position's total charges amount.
+		// This is calculated from the trades in the position.
+		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades)
+
 		var isDuplicate bool
 
 		for _, trade := range position.Trades {

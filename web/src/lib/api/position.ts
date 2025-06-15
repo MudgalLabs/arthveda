@@ -98,12 +98,17 @@ export function search(body: PositionSearchRequest) {
     return client.post(API_ROUTES.position.search, body);
 }
 
+export type ChargesCalculationMethod = "auto" | "manual";
+
 export interface ImportPositionsRequest {
     file: File;
     broker_id: string;
-    currency?: CurrencyCode;
-    risk_amount?: DecimalString;
-    confirm?: boolean;
+    currency: CurrencyCode;
+    risk_amount: DecimalString;
+    instrument: PositionInstrument;
+    charges_calculation_method: ChargesCalculationMethod;
+    manual_charge_amount: DecimalString;
+    confirm: boolean;
 }
 export interface ImportPositionsResponse {
     positions: Position[];
@@ -118,8 +123,11 @@ export function importPositions(body: ImportPositionsRequest) {
     const formData = new FormData();
     formData.append("file", body.file);
     formData.append("broker_id", body.broker_id);
-    formData.append("currency", body.currency || "");
-    formData.append("risk_amount", body.risk_amount || "");
+    formData.append("currency", body.currency);
+    formData.append("risk_amount", body.risk_amount);
+    formData.append("instrument", body.instrument);
+    formData.append("charges_calculation_method", body.charges_calculation_method);
+    formData.append("manual_charge_amount", body.manual_charge_amount);
     formData.append("confirm", body.confirm === true ? "true" : "false");
 
     return client.post<ImportPositionsRequest, ApiRes<ImportPositionsResponse>>(API_ROUTES.position.import, formData, {

@@ -1,9 +1,4 @@
-import {
-    useMutation,
-    AnyUseMutationOptions,
-    useQuery,
-    keepPreviousData,
-} from "@tanstack/react-query";
+import { useMutation, AnyUseMutationOptions, useQuery, keepPreviousData } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
 import {
@@ -21,12 +16,7 @@ import {
 } from "@/lib/api/position";
 
 export function useCompute(options: AnyUseMutationOptions = {}) {
-    return useMutation<
-        ApiRes<ComputePositionResponse>,
-        unknown,
-        ComputePositionRequest,
-        unknown
-    >({
+    return useMutation<ApiRes<ComputePositionResponse>, unknown, ComputePositionRequest, unknown>({
         mutationFn: (body: ComputePositionRequest) => {
             return api.position.compute(body);
         },
@@ -35,12 +25,7 @@ export function useCompute(options: AnyUseMutationOptions = {}) {
 }
 
 export function useCreate(options: AnyUseMutationOptions = {}) {
-    return useMutation<
-        ApiRes<CreatePositionResponse>,
-        unknown,
-        CreatePositionRequest,
-        unknown
-    >({
+    return useMutation<ApiRes<CreatePositionResponse>, unknown, CreatePositionRequest, unknown>({
         mutationFn: (body: CreatePositionRequest) => {
             return api.position.create(body);
         },
@@ -49,19 +34,8 @@ export function useCreate(options: AnyUseMutationOptions = {}) {
 }
 
 export function useUpdate(options: AnyUseMutationOptions = {}) {
-    return useMutation<
-        ApiRes<UpdatePositionResponse>,
-        unknown,
-        { id: string; body: UpdatePositionRequest },
-        unknown
-    >({
-        mutationFn: ({
-            id,
-            body,
-        }: {
-            id: string;
-            body: UpdatePositionRequest;
-        }) => {
+    return useMutation<ApiRes<UpdatePositionResponse>, unknown, { id: string; body: UpdatePositionRequest }, unknown>({
+        mutationFn: ({ id, body }: { id: string; body: UpdatePositionRequest }) => {
             return api.position.update(id, body);
         },
         ...options,
@@ -88,12 +62,7 @@ export function useSearch(body: PositionSearchRequest) {
 }
 
 export function useImport(options: AnyUseMutationOptions = {}) {
-    return useMutation<
-        ApiRes<ImportPositionsResponse>,
-        unknown,
-        ImportPositionsRequest,
-        unknown
-    >({
+    return useMutation<ApiRes<ImportPositionsResponse>, unknown, ImportPositionsRequest, unknown>({
         mutationFn: (body: ImportPositionsRequest) => {
             return api.position.importPositions(body);
         },

@@ -11,6 +11,18 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+func calculateTotalChargesAmountFromTrades(trades []*trade.Trade) decimal.Decimal {
+	totalCharges := decimal.Zero
+
+	for _, t := range trades {
+		if t.ChargesAmount.IsPositive() {
+			totalCharges = totalCharges.Add(t.ChargesAmount)
+		}
+	}
+
+	return totalCharges
+}
+
 func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrument, brokerName broker.Name) (charges []decimal.Decimal, userError bool, err error) {
 	charges = make([]decimal.Decimal, len(trades))
 
@@ -26,7 +38,6 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 	}
 
 	for i, trade := range trades {
-
 		if instrument == InstrumentEquity {
 			chargeContext, exists := chargeContextByTradeId[trade.ID]
 			if !exists {
@@ -68,6 +79,7 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 			}
 
 			charges[i] = finalCharges
+
 			// Apply the charges to the trade.
 			trades[i].ChargesAmount = finalCharges
 		} else {
