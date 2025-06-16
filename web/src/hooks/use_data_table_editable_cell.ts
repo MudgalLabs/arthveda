@@ -50,19 +50,32 @@ function useDataTableEditableCell<TCellValue>(ctx: CellContext<any, any>) {
 
 type DataTableCellUpdateFn = (rowIndex: number, columnId: string, value: unknown) => void;
 
+// function getDataTableCellUpdateFn<T = unknown>(setter: Setter<T[]>): DataTableCellUpdateFn {
+//     return (rowIndex, columnId, value) => {
+//         setter((old: T[]) =>
+//             old.map((row, index) => {
+//                 if (index === rowIndex) {
+//                     return {
+//                         ...old[rowIndex]!,
+//                         [columnId]: value,
+//                     };
+//                 }
+//                 return row;
+//             })
+//         );
+//     };
+// }
+
 function getDataTableCellUpdateFn<T = unknown>(setter: Setter<T[]>): DataTableCellUpdateFn {
     return (rowIndex, columnId, value) => {
-        setter((old: T[]) =>
-            old.map((row, index) => {
-                if (index === rowIndex) {
-                    return {
-                        ...old[rowIndex]!,
-                        [columnId]: value,
-                    };
-                }
-                return row;
-            })
-        );
+        setter((old: T[]) => {
+            if (!old[rowIndex]) return old;
+            const copy = Array.from(old);
+            // Only clone the row being updated
+            const row = { ...copy[rowIndex], [columnId]: value };
+            copy[rowIndex] = row;
+            return copy;
+        });
     };
 }
 

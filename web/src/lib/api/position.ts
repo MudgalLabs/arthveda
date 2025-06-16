@@ -37,8 +37,10 @@ export interface ComputePositionResponse {
     trade_charges: DecimalString[] | null;
 }
 
-export function compute(body: ComputePositionRequest) {
-    return client.post<ComputePositionRequest, ApiRes<ComputePositionResponse>>(API_ROUTES.position.compute, body);
+export function compute(body: ComputePositionRequest, signal?: AbortSignal) {
+    return client.post<ComputePositionRequest, ApiRes<ComputePositionResponse>>(API_ROUTES.position.compute, body, {
+        signal,
+    });
 }
 
 export interface CreatePositionRequest {

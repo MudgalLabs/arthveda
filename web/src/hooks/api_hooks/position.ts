@@ -15,10 +15,17 @@ import {
     UpdatePositionResponse,
 } from "@/lib/api/position";
 
+let computeAbortController: AbortController | null = null;
+
 export function useCompute(options: AnyUseMutationOptions = {}) {
     return useMutation<ApiRes<ComputePositionResponse>, unknown, ComputePositionRequest, unknown>({
         mutationFn: (body: ComputePositionRequest) => {
-            return api.position.compute(body);
+            // Cancel previous request if any
+            if (computeAbortController) {
+                computeAbortController.abort();
+            }
+            computeAbortController = new AbortController();
+            return api.position.compute(body, computeAbortController.signal);
         },
         ...options,
     });

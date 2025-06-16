@@ -21,6 +21,11 @@ export const api = {
 export function apiErrorHandler(err: any) {
     const _err = err as AxiosError<ApiRes>;
 
+    // Don't show toast for cancelled requests
+    if (_err.code === "ERR_CANCELED" || _err.name === "CanceledError") {
+        return;
+    }
+
     const DEFAULT_MESSAGE = "Something went wrong. Please try again.";
     let message = DEFAULT_MESSAGE;
 
