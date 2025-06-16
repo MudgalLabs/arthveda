@@ -117,14 +117,15 @@ func logRequestMiddleware(next http.Handler) http.Handler {
 				zap.String("ip", r.RemoteAddr),
 			)
 
-			if status >= 500 {
-				reqLogger.Error("served with error")
-			} else if status >= 400 {
-				reqLogger.Warn("served with warn")
-			} else {
-				reqLogger.Info("served with info")
+			if status >= 500 && status < 600 {
+				reqLogger.Errorf("[ %d SERVER ERROR ]", status)
+			} else if status >= 400 && status < 500 {
+				reqLogger.Infof("[ %d CLIENT ERROR ]", status)
+			} else if status >= 300 && status < 400 {
+				reqLogger.Infof("[ %d REDIRECTION ]", status)
+			} else if status >= 200 && status < 300 {
+				reqLogger.Infof("[ %d SUCCESS ]", status)
 			}
-
 		}()
 
 		next.ServeHTTP(ww, r)
