@@ -116,6 +116,8 @@ export interface ImportPositionsResponse {
     positions_count: number;
     duplicate_positions_count: number;
     positions_imported_count: number;
+    invalid_positions_count: number;
+    forced_positions_count: number;
     from_date: string;
     to_date: string;
 }

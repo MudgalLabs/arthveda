@@ -24,8 +24,7 @@ export const Tooltip: FC<TooltipProps> = ({
 }) => {
     const { contentProps = {} } = props;
 
-    const { className: contentPropsClassName = "", ...contentPropsRest } =
-        contentProps;
+    const { className: contentPropsClassName = "", ...contentPropsRest } = contentProps;
 
     // This props makes it simpler to toggle Tooltip instead of conditional wrapping.
     if (disabled) return children;
@@ -38,36 +37,25 @@ export const Tooltip: FC<TooltipProps> = ({
             delayDuration={delayDuration}
             disableHoverableContent={disableHoverableContent}
         >
-            <TooltipPrimitive.Trigger asChild>
-                {children}
-            </TooltipPrimitive.Trigger>
+            <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
 
             <TooltipPrimitive.Portal>
                 <TooltipPrimitive.Content
                     className={cn(
-                        "z-100 m-2 rounded-md border-1 px-3 py-2 text-sm font-medium",
+                        "z-100 m-2 max-w-96 rounded-md border-1 px-3 py-2 text-sm font-medium",
                         {
-                            "bg-muted border-border text-foreground":
-                                variant === "default",
-                            "bg-surface-bg border-surface-border text-surface-foreground":
-                                variant === "info",
-                            "bg-success-bg border-success-border text-success-foreground":
-                                variant === "success",
-                            "bg-warning-bg border-warning-border text-warning-foreground":
-                                variant === "warning",
-                            "bg-error-bg border-error-border text-error-foreground":
-                                variant === "error",
+                            "bg-muted border-border text-foreground": variant === "default",
+                            "bg-surface-bg border-surface-border text-surface-foreground": variant === "info",
+                            "bg-success-bg border-success-border text-success-foreground": variant === "success",
+                            "bg-warning-bg border-warning-border text-warning-foreground": variant === "warning",
+                            "bg-error-bg border-error-border text-error-foreground": variant === "error",
                         },
                         contentPropsClassName
                     )}
                     {...contentPropsRest}
                 >
                     {content}
-                    <TooltipPrimitive.Arrow
-                        width={11}
-                        height={5}
-                        fill="var(--color-accent)"
-                    />
+                    <TooltipPrimitive.Arrow width={11} height={5} fill="var(--color-accent)" />
                 </TooltipPrimitive.Content>
             </TooltipPrimitive.Portal>
         </TooltipPrimitive.Root>

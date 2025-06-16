@@ -285,12 +285,18 @@ export const ImportPositions = () => {
                     </MultiStep.Step>
 
                     <MultiStep.Step id="review-step">
-                        <ReviewStep
-                            state={state}
-                            setState={setState}
-                            positions={importPositionResData?.positions ?? []}
-                            duplicateCount={importPositionResData?.duplicate_positions_count ?? 0}
-                        />
+                        {importPositionResData !== null && (
+                            <ReviewStep
+                                state={state}
+                                setState={setState}
+                                positions={importPositionResData.positions}
+                                positionsCount={importPositionResData.positions_count}
+                                duplicateCount={importPositionResData.duplicate_positions_count}
+                                invalidPositionsCount={importPositionResData.invalid_positions_count}
+                                fromDate={importPositionResData.from_date}
+                                toDate={importPositionResData.from_date}
+                            />
+                        )}
                     </MultiStep.Step>
                 </MultiStep.Content>
 
@@ -585,7 +591,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
                             <Label>Risk per position</Label>
                             <Tooltip
                                 content={
-                                    <div className="max-w-[300px]">
+                                    <div>
                                         <p>
                                             Amount you risked on each position. This will be used to calculate R Factor
                                             for each position.
@@ -619,7 +625,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
                             <Label>Charges per trade</Label>
                             <Tooltip
                                 content={
-                                    <div className="max-w-[300px]">
+                                    <div>
                                         <p>
                                             For Auto, we calculate a close approximate charge for every trade in the
                                             position. Includes brokerage, taxes, and other charges like STT, DP Charges,
@@ -678,9 +684,20 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
     );
 };
 
-const ReviewStep: FC<ImportStepProps & { positions: Position[]; duplicateCount: number }> = ({
+interface ReviewStepProps extends ImportStepProps {
+    positions: Position[];
+    positionsCount: number;
+    duplicateCount: number;
+    invalidPositionsCount: number;
+    fromDate: string;
+    toDate: string;
+}
+
+const ReviewStep: FC<ReviewStepProps> = ({
     positions,
+    positionsCount,
     duplicateCount,
+    invalidPositionsCount,
     state,
     setState,
 }) => {
@@ -691,21 +708,60 @@ const ReviewStep: FC<ImportStepProps & { positions: Position[]; duplicateCount: 
 
             <div className="h-4" />
 
-            {duplicateCount && (
-                <div className="flex items-center gap-x-2">
+            <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-row sm:flex-wrap">
+                <div className="min-w-0 flex-1">
+                    <p className="label-muted">Total Positions</p>
+                    <p className="heading">{positionsCount}</p>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                    <div className="flex-x">
+                        <p className="label-muted">Duplicate Positions </p>
+                        <Tooltip content="These positions already exist in your account and will not be imported unless you enable 'Force Import'.">
+                            <IconInfo />
+                        </Tooltip>
+                    </div>
+                    <p className="heading">{duplicateCount}</p>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                    <div className="flex-x">
+                        <p className="label-muted">Invalid Positions </p>
+                        <Tooltip content="These positions have been ignored because they have incorrect data like selling/buying more quanity thank you have open.">
+                            <IconInfo />
+                        </Tooltip>
+                    </div>
+                    <p className="heading">{invalidPositionsCount}</p>
+                </div>
+
+                <div
+                    className={cn("min-w-0 flex-1", {
+                        "opacity-0": !duplicateCount,
+                        "opacity-100": duplicateCount > 0,
+                    })}
+                >
+                    <div className="flex-x">
+                        <Label className="label-muted" htmlFor="force">
+                            Force Import
+                        </Label>
+
+                        <Tooltip content="If enabled, duplicate positions will be imported as well. This can be slow for large files.">
+                            <IconInfo />
+                        </Tooltip>
+                    </div>
+
+                    {/* Adding h-1 margin to match the position with the rest of the row. */}
+                    <div className="h-1" />
+
                     <Checkbox
                         id="force"
                         checked={state.force}
                         onCheckedChange={() => setState((prev) => ({ ...prev, force: !prev.force }))}
                     />
-
-                    <Label htmlFor="force">Force Import</Label>
-
-                    <Tooltip content="If enabled, duplicate positions will be imported as well. This can be slow for large files.">
-                        <IconInfo />
-                    </Tooltip>
                 </div>
-            )}
+            </div>
+
+            <div className="h-4" />
 
             <PositionListTable positions={positions} hideFilters />
         </>
