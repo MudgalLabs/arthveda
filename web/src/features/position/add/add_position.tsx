@@ -26,7 +26,6 @@ import { IconCalendarRange, IconCross, IconInfo, IconPlus } from "@/components/i
 import { getDataTableCellUpdateFn, useDataTableEditableCell } from "@/hooks/use_data_table_editable_cell";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { cn, formatDate, getElapsedTime, isSameDay } from "@/lib/utils";
-import { CurrencySelect } from "@/components/select/currency_select";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { CreateTrade, Trade, TradeKind } from "@/features/trade/trade";
 import { apiHooks } from "@/hooks/api_hooks";
@@ -258,10 +257,6 @@ function AddPosition() {
                         />
                     </div>
                 </div>
-
-                <div className="ml-auto">
-                    <CurrencySelect classNames={{ trigger: "w-fit" }} defaultValue={position.currency} />
-                </div>
             </div>
 
             <div className="h-15" />
@@ -278,7 +273,6 @@ function AddPosition() {
                     {(value, setValue) => (
                         <WithLabel Label={<Label>Symbol</Label>}>
                             <SymbolInput
-                                autoFocus
                                 variant={value ? "default" : "error"}
                                 value={value}
                                 onChange={(_, v) => setValue(v)}
@@ -509,7 +503,7 @@ const columns: ColumnDef<CreateTrade>[] = [
             }, [ctx.row.original.price]);
 
             return (
-                <WithDebounce state={ctx.row.original.price} onDebounce={(v) => syncWithValue(v)}>
+                <WithDebounce debounceMs={500} state={ctx.row.original.price} onDebounce={(v) => syncWithValue(v)}>
                     {(value, setValue) => (
                         <DecimalInput
                             className={cn({
@@ -536,7 +530,11 @@ const columns: ColumnDef<CreateTrade>[] = [
             const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
 
             return (
-                <WithDebounce state={ctx.row.original.charges_amount} onDebounce={(v) => syncWithValue(v)}>
+                <WithDebounce
+                    debounceMs={500}
+                    state={ctx.row.original.charges_amount}
+                    onDebounce={(v) => syncWithValue(v)}
+                >
                     {(value, setValue) => (
                         <Tooltip content="Charges are being automatically calculated" disabled={!enableAutoCharges}>
                             <DecimalInput
@@ -565,8 +563,14 @@ const columns: ColumnDef<CreateTrade>[] = [
                     contentProps={{ side: "bottom" }}
                     disabled={!disableButton}
                 >
-                    <Button variant="ghost" size="icon" onClick={() => removeTrade(row.index)} disabled={disableButton}>
-                        <IconCross className="text-red-foreground" size={18} />
+                    <Button
+                        className="text-foreground-muted hover:text-foreground-red!"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeTrade(row.index)}
+                        disabled={disableButton}
+                    >
+                        <IconCross size={18} />
                     </Button>
                 </Tooltip>
             );

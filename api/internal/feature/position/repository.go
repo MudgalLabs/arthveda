@@ -47,6 +47,7 @@ const (
 	searchFieldNetReturnPercentage common.SearchField = "net_return_percentage"
 	searchFieldChargesPercentage   common.SearchField = "charges_percentage"
 	searchFieldBrokerID            common.SearchField = "broker_id"
+	searchFieldTotalCharges        common.SearchField = "total_charges_amount"
 )
 
 type SearchFilter struct {
@@ -86,6 +87,7 @@ var allowedSortFields = []common.SearchField{
 	searchFieldNetPnL,
 	searchFieldNetReturnPercentage,
 	searchFieldChargesPercentage,
+	searchFieldTotalCharges,
 }
 
 var searchFieldsSQLColumn = map[common.SearchField]string{
@@ -102,6 +104,7 @@ var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldNetReturnPercentage: "p.net_return_percentage",
 	searchFieldChargesPercentage:   "p.charges_as_percentage_of_net_pnl",
 	searchFieldBrokerID:            "p.broker_id",
+	searchFieldTotalCharges:        "p.total_charges_amount",
 }
 
 type positionRepository struct {

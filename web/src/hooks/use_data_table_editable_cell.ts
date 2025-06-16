@@ -48,15 +48,9 @@ function useDataTableEditableCell<TCellValue>(ctx: CellContext<any, any>) {
     };
 }
 
-type DataTableCellUpdateFn = (
-    rowIndex: number,
-    columnId: string,
-    value: unknown
-) => void;
+type DataTableCellUpdateFn = (rowIndex: number, columnId: string, value: unknown) => void;
 
-function getDataTableCellUpdateFn<T = unknown>(
-    setter: Setter<T[]>
-): DataTableCellUpdateFn {
+function getDataTableCellUpdateFn<T = unknown>(setter: Setter<T[]>): DataTableCellUpdateFn {
     return (rowIndex, columnId, value) => {
         setter((old: T[]) =>
             old.map((row, index) => {

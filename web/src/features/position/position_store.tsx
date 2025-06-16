@@ -71,7 +71,7 @@ export const createPositionStore = (initProp?: Position) => {
     return createStore<PositionStore>((set, get) => ({
         initialPosition,
         position,
-        enableAutoCharges: false,
+        enableAutoCharges: initialPosition.broker_id ? true : false,
 
         updatePosition: (newState) => {
             set((state) => {
