@@ -14,7 +14,7 @@ import (
 
 type Reader interface {
 	FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error)
-	GetAllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]struct{}, error)
+	GetAllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]uuid.UUID, error)
 }
 
 type Writer interface {
@@ -126,9 +126,9 @@ func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.
 	return trades, nil
 }
 
-func (r *tradeRepository) GetAllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]struct{}, error) {
+func (r *tradeRepository) GetAllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]uuid.UUID, error) {
 	baseSQL := `
-	SELECT trade.broker_trade_id
+	SELECT trade.broker_trade_id, trade.position_id
 	FROM trade
 	JOIN position ON position.id = trade.position_id `
 
@@ -153,16 +153,17 @@ func (r *tradeRepository) GetAllBrokerTradeIDs(ctx context.Context, userID, brok
 
 	defer rows.Close()
 
-	brokerTradeIDs := make(map[string]struct{})
+	brokerTradeIDs := make(map[string]uuid.UUID)
 	for rows.Next() {
 		var brokerTradeID *string
-		if err := rows.Scan(&brokerTradeID); err != nil {
+		var positionID uuid.UUID
+		if err := rows.Scan(&brokerTradeID, &positionID); err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
 
 		// Only add non-nil BrokerTradeIDs to the set
 		if brokerTradeID != nil {
-			brokerTradeIDs[*brokerTradeID] = struct{}{}
+			brokerTradeIDs[*brokerTradeID] = positionID
 		}
 	}
 

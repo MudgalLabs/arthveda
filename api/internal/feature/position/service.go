@@ -117,7 +117,7 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePa
 	trades, err := s.tradeRepository.CreateForPosition(ctx, position.Trades)
 	if err != nil {
 		logger.Errorw("failed to create trades after creating a position, so deleting the position that was created", "error", err, "position_id", position.ID)
-		s.positionRepository.Delete(ctx, position)
+		s.positionRepository.Delete(ctx, position.ID)
 		return nil, service.ErrInternalServerError, err
 	}
 
@@ -173,11 +173,11 @@ type ImportPayload struct {
 
 	ManualChargeAmount decimal.Decimal `json:"manual_charge_amount"`
 
-	// Force is a boolean flag to indicate whether the import should overwrite existing positions.
-	Force bool `json:"force"`
-
 	// Confirm is a boolean flag to indicate whether the positions should be created in the database.
 	Confirm bool
+
+	// Force is a boolean flag to indicate whether the import should overwrite existing positions.
+	Force bool `json:"force"`
 }
 
 type ImportResult struct {
@@ -186,6 +186,7 @@ type ImportResult struct {
 	DuplicatePositionsCount int         `json:"duplicate_positions_count"`
 	PositionsImportedCount  int         `json:"positions_imported_count"`
 	InvalidPositionsCount   int         `json:"invalid_positions_count"`
+	ForcedPositionsCount    int         `json:"forced_positions_count"`
 	FromDate                time.Time   `json:"from_date"`
 	ToDate                  time.Time   `json:"to_date"`
 }
@@ -476,9 +477,9 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 	duplicatePositionsCount := 0
 	positionsImported := 0
+	forcedPositionCount := 0
 
 	for positionIdx, position := range finalizedPositions {
-
 		switch payload.ChargesCalculationMethod {
 		case ChargesCalculationMethodAuto:
 			_, userErr, err := CalculateAndApplyChargesToTrades(position.Trades, payload.Instrument, broker.Name)
@@ -501,12 +502,15 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades)
 
 		var isDuplicate bool
+		// If we find a duplicate trade, we need to get it's position ID.
+		var positionIDForTheDuplicateOrderID uuid.UUID
 
 		for _, trade := range position.Trades {
 			orderID := trade.BrokerTradeID
 
 			if common.ExistsInSet(brokerTradeIDs, *orderID) {
 				isDuplicate = true
+				positionIDForTheDuplicateOrderID = brokerTradeIDs[*orderID]
 
 				// If we find a duplicate, we can break out of the loop early.
 				// Because if one trade in the position is a duplicate,
@@ -516,6 +520,34 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		}
 
 		if isDuplicate {
+			// If the force & confirm flags are true, we will have to delete the existing position and create a new position.
+			if payload.Force && payload.Confirm {
+				l.Debugw("force importing a duplicate position, deleting existing position", "symbol", position.Symbol, "opened_at", position.OpenedAt)
+
+				svcErr, err := s.Delete(ctx, userID, positionIDForTheDuplicateOrderID)
+				if err != nil {
+					return nil, svcErr, fmt.Errorf("failed to delete existing position: %w", err)
+				}
+
+				// Create the position in the database
+				err = s.positionRepository.Create(ctx, position)
+				if err != nil {
+					return nil, service.ErrInternalServerError, err
+				}
+
+				// Create the trades in the database
+				_, err = s.tradeRepository.CreateForPosition(ctx, position.Trades)
+				if err != nil {
+					// Delete the position if trades creation fails.
+					s.positionRepository.Delete(ctx, position.ID)
+					return nil, service.ErrInternalServerError, err
+				}
+
+				positionsImported += 1
+				forcedPositionCount += 1
+				continue
+			}
+
 			l.Debugw("skipping position because it is a duplicate", "symbol", position.Symbol, "opened_at", position.OpenedAt)
 			duplicatePositionsCount += 1
 			finalizedPositions[positionIdx].IsDuplicate = true
@@ -535,7 +567,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			_, err = s.tradeRepository.CreateForPosition(ctx, position.Trades)
 			if err != nil {
 				// Delete the position if trades creation fails.
-				s.positionRepository.Delete(ctx, position)
+				s.positionRepository.Delete(ctx, position.ID)
 				return nil, service.ErrInternalServerError, err
 			}
 
@@ -543,7 +575,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		}
 	}
 
-	l.Infof("Duplicate positions skipped: %d", duplicatePositionsCount)
+	l.Debugf("Duplicate positions skipped: %d", duplicatePositionsCount)
 
 	result := &ImportResult{
 		Positions:               finalizedPositions,
@@ -551,6 +583,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		DuplicatePositionsCount: duplicatePositionsCount,
 		PositionsImportedCount:  positionsImported,
 		InvalidPositionsCount:   len(invalidPositionsByPosID),
+		ForcedPositionsCount:    forcedPositionCount,
 		FromDate:                metadata.from,
 		ToDate:                  metadata.to,
 	}
@@ -664,7 +697,7 @@ func (s *Service) Delete(ctx context.Context, userID, positionID uuid.UUID) (ser
 	}
 
 	// Delete the position itself.
-	err = s.positionRepository.Delete(ctx, position)
+	err = s.positionRepository.Delete(ctx, position.ID)
 	if err != nil {
 		return service.ErrInternalServerError, fmt.Errorf("failed to delete position: %w", err)
 	}

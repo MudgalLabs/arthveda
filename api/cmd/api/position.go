@@ -179,19 +179,6 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 			return
 		}
 
-		confirm := false
-		confirmStr := r.FormValue("confirm")
-
-		if confirmStr != "" {
-			confirm, err = strconv.ParseBool(confirmStr)
-			if err != nil {
-				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
-					apires.NewApiError("", "Confirm must be a boolean", "confirm", confirmStr),
-				))
-				return
-			}
-		}
-
 		currencyCode := currency.CurrencyINR
 		currencyStr := r.FormValue("currency")
 
@@ -258,6 +245,32 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 			}
 		}
 
+		confirm := false
+		confirmStr := r.FormValue("confirm")
+
+		if confirmStr != "" {
+			confirm, err = strconv.ParseBool(confirmStr)
+			if err != nil {
+				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
+					apires.NewApiError("", "Confirm must be a boolean", "confirm", confirmStr),
+				))
+				return
+			}
+		}
+
+		force := false
+		forceStr := r.FormValue("force")
+
+		if forceStr != "" {
+			force, err = strconv.ParseBool(forceStr)
+			if err != nil {
+				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
+					apires.NewApiError("", "Force must be a boolean", "confirm", confirmStr),
+				))
+				return
+			}
+		}
+
 		payload := position.ImportPayload{
 			File:                     file,
 			BrokerID:                 brokerID,
@@ -267,6 +280,7 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 			ChargesCalculationMethod: chargesCalculationMethod,
 			ManualChargeAmount:       manualChargeAmount,
 			Confirm:                  confirm,
+			Force:                    force,
 		}
 
 		result, errKind, err := s.Import(ctx, userID, payload)

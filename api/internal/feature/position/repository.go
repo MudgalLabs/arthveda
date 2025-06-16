@@ -21,7 +21,7 @@ type Reader interface {
 type Writer interface {
 	Create(ctx context.Context, position *Position) error
 	Update(ctx context.Context, position *Position) error
-	Delete(ctx context.Context, position *Position) error
+	Delete(ctx context.Context, positionID uuid.UUID) error
 }
 
 type ReadWriter interface {
@@ -219,13 +219,13 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
 	return nil
 }
 
-func (r *positionRepository) Delete(ctx context.Context, position *Position) error {
+func (r *positionRepository) Delete(ctx context.Context, positionID uuid.UUID) error {
 	const sql = `
         DELETE FROM position
         WHERE id = @id
     `
 
-	_, err := r.db.Exec(ctx, sql, pgx.NamedArgs{"id": position.ID})
+	_, err := r.db.Exec(ctx, sql, pgx.NamedArgs{"id": positionID})
 	if err != nil {
 		return fmt.Errorf("sql exec: %w", err)
 	}

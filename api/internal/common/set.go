@@ -1,6 +1,6 @@
 package common
 
-func ExistsInSet(set map[string]struct{}, str string) bool {
-	_, ok := set[str]
+func ExistsInSet[K comparable, V any](set map[K]V, key K) bool {
+	_, ok := set[key]
 	return ok
 }

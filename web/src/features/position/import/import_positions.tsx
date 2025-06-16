@@ -7,7 +7,7 @@ import { toast } from "@/components/toast";
 import { WithLabel } from "@/components/with_label";
 import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
-import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem } from "@/s8ly";
+import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem, Checkbox } from "@/s8ly";
 import { PositionListTable } from "@/features/position/components/position_list_table";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
@@ -29,6 +29,7 @@ const INITIAL_STATE: State = {
     riskAmount: "0",
     chargesCalculationMethod: "auto",
     manualChargeAmount: "0",
+    force: false,
 };
 
 export const ImportPositions = () => {
@@ -49,7 +50,7 @@ export const ImportPositions = () => {
         },
     });
 
-    const handleStartImport = ({ onSuccess }: { onSuccess?: (data: ImportPositionsResponse) => void }) => {
+    const handleReviewImport = ({ onSuccess }: { onSuccess?: (data: ImportPositionsResponse) => void }) => {
         if (!state.file || !state.brokerID) return;
 
         toast.promise(
@@ -62,6 +63,7 @@ export const ImportPositions = () => {
                 charges_calculation_method: state.chargesCalculationMethod,
                 manual_charge_amount: state.manualChargeAmount,
                 confirm: false,
+                force: false,
             }),
             {
                 loading: "Parsing file",
@@ -86,7 +88,7 @@ export const ImportPositions = () => {
         );
     };
 
-    const handleFinishImport = ({ onSuccess }: { onSuccess?: (data: ImportPositionsResponse) => void }) => {
+    const handleStartImport = ({ onSuccess }: { onSuccess?: (data: ImportPositionsResponse) => void }) => {
         if (!state.file || !state.brokerID || importPositionResData?.positions?.length === 0) return;
 
         toast.promise(
@@ -99,6 +101,7 @@ export const ImportPositions = () => {
                 charges_calculation_method: state.chargesCalculationMethod,
                 manual_charge_amount: state.manualChargeAmount,
                 confirm: true,
+                force: state.force,
             }),
             {
                 loading: "Importing positions",
@@ -156,7 +159,7 @@ export const ImportPositions = () => {
 
         if (currentStepId === "options-step") {
             onClick = () => {
-                handleStartImport({
+                handleReviewImport({
                     onSuccess: () => {
                         next();
                     },
@@ -166,7 +169,7 @@ export const ImportPositions = () => {
 
         if (currentStepId === "review-step") {
             onClick = () => {
-                handleFinishImport({
+                handleStartImport({
                     onSuccess: () => {
                         goto(0);
                     },
@@ -286,6 +289,7 @@ export const ImportPositions = () => {
                             state={state}
                             setState={setState}
                             positions={importPositionResData?.positions ?? []}
+                            duplicateCount={importPositionResData?.duplicate_positions_count ?? 0}
                         />
                     </MultiStep.Step>
                 </MultiStep.Content>
@@ -335,6 +339,7 @@ interface State {
     // If "auto", we calculate it based on the trades done in the position's lifecycle.
     chargesCalculationMethod: "manual" | "auto";
     manualChargeAmount: DecimalString;
+    force: boolean;
 }
 
 interface ImportStepProps {
@@ -649,7 +654,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
                             </div>
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="manual" id="manual" />
-                                <Label htmlFor="fixed">Manual</Label>
+                                <Label htmlFor="manual">Manual</Label>
                             </div>
                         </RadioGroup>
 
@@ -673,11 +678,34 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
     );
 };
 
-const ReviewStep: FC<ImportStepProps & { positions: Position[] }> = ({ positions }) => {
+const ReviewStep: FC<ImportStepProps & { positions: Position[]; duplicateCount: number }> = ({
+    positions,
+    duplicateCount,
+    state,
+    setState,
+}) => {
     return (
         <>
             <h2 className="sub-heading">Review</h2>
             <p className="label-muted">Review the positions before importing</p>
+
+            <div className="h-4" />
+
+            {duplicateCount && (
+                <div className="flex items-center gap-x-2">
+                    <Checkbox
+                        id="force"
+                        checked={state.force}
+                        onCheckedChange={() => setState((prev) => ({ ...prev, force: !prev.force }))}
+                    />
+
+                    <Label htmlFor="force">Force Import</Label>
+
+                    <Tooltip content="If enabled, duplicate positions will be imported as well. This can be slow for large files.">
+                        <IconInfo />
+                    </Tooltip>
+                </div>
+            )}
 
             <PositionListTable positions={positions} hideFilters />
         </>

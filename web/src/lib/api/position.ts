@@ -109,6 +109,7 @@ export interface ImportPositionsRequest {
     charges_calculation_method: ChargesCalculationMethod;
     manual_charge_amount: DecimalString;
     confirm: boolean;
+    force: boolean;
 }
 export interface ImportPositionsResponse {
     positions: Position[];
@@ -129,6 +130,7 @@ export function importPositions(body: ImportPositionsRequest) {
     formData.append("charges_calculation_method", body.charges_calculation_method);
     formData.append("manual_charge_amount", body.manual_charge_amount);
     formData.append("confirm", body.confirm === true ? "true" : "false");
+    formData.append("force", body.force === true ? "true" : "false");
 
     return client.post<ImportPositionsRequest, ApiRes<ImportPositionsResponse>>(API_ROUTES.position.import, formData, {
         headers: {
