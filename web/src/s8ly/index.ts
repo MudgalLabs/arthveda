@@ -38,6 +38,8 @@ export * from "@/s8ly/seperator/seperator";
 export * from "@/s8ly/tag/tag";
 // Table
 export * from "@/s8ly/table/table";
+// Textarea
+export * from "@/s8ly/textarea/textarea";
 // Toggle
 export * from "@/s8ly/toggle/toggle";
 // ToggleGroup

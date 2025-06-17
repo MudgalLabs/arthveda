@@ -91,6 +91,7 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 type CreatePayload struct {
 	ComputePayload
 
+	Notes      string                `json:"notes"`
 	Symbol     string                `json:"symbol"`
 	Instrument Instrument            `json:"instrument"`
 	Currency   currency.CurrencyCode `json:"currency"`

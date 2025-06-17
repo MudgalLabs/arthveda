@@ -10,12 +10,7 @@ interface WithDebounceProps<T> {
     debounceMs?: number;
 }
 
-function WithDebounceInner<T>({
-    children,
-    state,
-    onDebounce,
-    debounceMs = 169,
-}: WithDebounceProps<T>) {
+function WithDebounceInner<T>({ children, state, onDebounce, debounceMs = 300 }: WithDebounceProps<T>) {
     const [value, setValue] = useWrappedState(state);
     const debouncedValue = useDebounce(value, debounceMs);
 
@@ -28,6 +23,4 @@ function WithDebounceInner<T>({
     return <>{children(value, setValue)}</>;
 }
 
-export const WithDebounce = memo(WithDebounceInner) as <T>(
-    props: WithDebounceProps<T>
-) => ReactNode;
+export const WithDebounce = memo(WithDebounceInner) as <T>(props: WithDebounceProps<T>) => ReactNode;

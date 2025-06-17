@@ -40,6 +40,7 @@ const defaultState: State = {
         instrument: "equity",
         currency: "inr",
         risk_amount: "",
+        notes: "",
         total_charges_amount: "0",
         opened_at: roundToNearest15Minutes(new Date()),
         closed_at: null,
@@ -152,7 +153,7 @@ export const createPositionStore = (initProp?: Position) => {
             });
         },
 
-        discard: () => set(() => ({ position: initialPosition })),
+        discard: () => set(() => ({ ...defaultState, ...initialPosition })),
     }));
 };
 

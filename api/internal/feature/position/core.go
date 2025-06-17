@@ -24,6 +24,7 @@ type Position struct {
 	Instrument         Instrument            `json:"instrument" db:"instrument"`
 	Currency           currency.CurrencyCode `json:"currency" db:"currency"`
 	RiskAmount         decimal.Decimal       `json:"risk_amount" db:"risk_amount"`
+	Notes              string                `json:"notes" db:"notes"`
 	TotalChargesAmount decimal.Decimal       `json:"total_charges_amount" db:"total_charges_amount"`
 
 	//
@@ -104,6 +105,7 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 		Instrument:                  payload.Instrument,
 		Currency:                    payload.Currency,
 		RiskAmount:                  payload.RiskAmount,
+		Notes:                       payload.Notes,
 		TotalChargesAmount:          computeResult.TotalChargesAmount,
 		Direction:                   computeResult.Direction,
 		Status:                      computeResult.Status,
@@ -173,6 +175,7 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 	updatedPosition.Currency = payload.Currency
 	updatedPosition.RiskAmount = payload.RiskAmount
 	updatedPosition.TotalChargesAmount = computeResult.TotalChargesAmount
+	updatedPosition.Notes = payload.Notes
 	updatedPosition.Direction = computeResult.Direction
 	updatedPosition.Status = computeResult.Status
 	updatedPosition.OpenedAt = computeResult.OpenedAt

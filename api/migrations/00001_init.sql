@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS position (
         instrument POSITION_INSTRUMENT NOT NULL,
         currency VARCHAR(3) NOT NULL,
         risk_amount NUMERIC(14, 2) NOT NULL,
+        notes TEXT NOT NULL DEFAULT '',
         total_charges_amount NUMERIC(14, 2) NOT NULL,
         direction POSITION_DIRECTION NOT NULL,
         status POSITION_STATUS NOT NULL,
@@ -55,6 +56,9 @@ CREATE TABLE IF NOT EXISTS position (
         open_quantity NUMERIC(20, 8) NOT NULL,
         open_average_price_amount NUMERIC(14, 2) NOT NULL,
         broker_id UUID REFERENCES broker(id)
+
+        -- Add a constraint to ensure notes length does not exceed 4096 characters
+        CONSTRAINT notes_len CHECK (char_length(notes) <= 4096)
 );
 
 CREATE TYPE TRADE_KIND AS ENUM('buy', 'sell');

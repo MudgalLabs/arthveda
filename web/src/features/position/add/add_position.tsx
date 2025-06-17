@@ -18,6 +18,7 @@ import {
     DialogTrigger,
     DialogClose,
     Checkbox,
+    Textarea,
 } from "@/s8ly";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
@@ -165,6 +166,7 @@ function AddPosition() {
             symbol: position.symbol,
             instrument: position.instrument,
             currency: position.currency,
+            notes: position.notes,
             trades: (position.trades || []).map((t) => {
                 // Removing fields that are not required by the API.
                 // We are removing these fields because the API will throw an error if we send them.
@@ -231,7 +233,7 @@ function AddPosition() {
         <>
             <PageHeading heading="Add Position" loading={isComputing} />
 
-            <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row">
+            <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:h-44 sm:flex-row">
                 <OverviewCard
                     className="w-full sm:w-fit"
                     total_charges_amount={position.total_charges_amount}
@@ -259,9 +261,9 @@ function AddPosition() {
                 </div>
             </div>
 
-            <div className="h-15" />
+            <div className="h-8" />
 
-            <div className="flex flex-col gap-x-8 gap-y-4 sm:flex-row">
+            <div className="flex flex-col gap-x-8 gap-y-4 sm:flex-row sm:justify-between">
                 <WithDebounce
                     state={position.symbol}
                     onDebounce={(v) => {
@@ -347,7 +349,35 @@ function AddPosition() {
                 </WithLabel>
             </div>
 
-            <div className="h-15" />
+            <div className="h-4" />
+
+            <WithDebounce
+                state={position.notes}
+                onDebounce={(v) => {
+                    updatePosition({
+                        notes: v,
+                    });
+                }}
+            >
+                {(value, setValue) => (
+                    <WithLabel
+                        Label={
+                            <Label className="flex w-full justify-between">
+                                <span>Notes </span> <span className="text-xs">{value.length} / 4096</span>
+                            </Label>
+                        }
+                    >
+                        <Textarea
+                            className="w-full whitespace-pre-wrap"
+                            maxLength={4096}
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
+                        />
+                    </WithLabel>
+                )}
+            </WithDebounce>
+
+            <div className="h-8" />
 
             <h2 className="sub-heading">Trades</h2>
 
@@ -638,7 +668,7 @@ const DurationCard = memo(({ opened_at, closed_at }: { opened_at: Date; closed_a
     const { days, hours, minutes } = getElapsedTime(opened_at, closed_at ?? now);
 
     return (
-        <Card className="realtive flex flex-col gap-y-2">
+        <Card className="realtive flex min-w-fit flex-col gap-y-2">
             <CardTitle>Duration</CardTitle>
 
             <CardContent className="flex-center flex h-full flex-col gap-y-2">
