@@ -72,17 +72,10 @@ export const ImportPositions = () => {
                     onSuccess?.(data);
 
                     if (data.positions.length > 0) {
-                        let message = `Found ${data.positions_count} positions`;
-
-                        if (data.duplicate_positions_count > 0) {
-                            message += ` and ${data.duplicate_positions_count} already exist`;
-                        }
-
                         setImportPositionResData(data);
-                        return message;
-                    } else {
-                        return "No positions found in the file";
                     }
+
+                    return `Found ${data.positions_count} positions`;
                 },
             }
         );
@@ -140,7 +133,7 @@ export const ImportPositions = () => {
         );
     };
 
-    const getNextButtonProps = ({ currentStepId, goto, next }: MultiStepProps) => {
+    const getNextButtonProps = ({ currentStepId, next }: MultiStepProps) => {
         let onClick = next;
         let loading = isPending;
         let disabled = false;
@@ -171,7 +164,7 @@ export const ImportPositions = () => {
             onClick = () => {
                 handleStartImport({
                     onSuccess: () => {
-                        goto(0);
+                        navigate(ROUTES.dashboard);
                     },
                 });
             };

@@ -11,7 +11,7 @@ export const Topbar = () => {
 
     return (
         <div className="border-b-accent-muted flex h-full w-full items-center justify-between border-b-1">
-            <div className="flex items-baseline">
+            <div className="mr-4 flex w-full items-baseline justify-between sm:justify-start">
                 <Tooltip
                     content={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
                     delayDuration={0}
