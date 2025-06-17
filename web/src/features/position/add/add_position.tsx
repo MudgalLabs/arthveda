@@ -94,6 +94,9 @@ function AddPosition() {
             queryClient.invalidateQueries({
                 queryKey: ["usePositionsSearch"],
             });
+            queryClient.invalidateQueries({
+                queryKey: ["useGetPosition", position.id],
+            });
         },
         onError: apiErrorHandler,
     });

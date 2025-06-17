@@ -115,12 +115,12 @@ select:-webkit-autofill:focus {
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--color-muted);
+    background-color: var(--color-accent-muted);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-accent-muted);
+    background-color: var(--color-accent);
 }
 
 ::-webkit-scrollbar-track {

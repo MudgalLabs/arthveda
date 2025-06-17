@@ -13,8 +13,8 @@ import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
 import { PositionListFilters } from "@/features/position/components/position_list_filters";
-import { Tag, Button } from "@/s8ly";
-import { IconArrowUpRight, IconCross } from "@/components/icons";
+import { Tag, Button, Popover, PopoverTrigger, PopoverContent, Tooltip } from "@/s8ly";
+import { IconArrowUpRight, IconCross, IconNotebookPen } from "@/components/icons";
 import {
     defaultPositionSearchFilters,
     positionSearchFiltersLabel,
@@ -123,11 +123,33 @@ const columns: ColumnDef<Position>[] = [
         id: "view_position",
         header: "",
         cell: ({ row }) => (
-            <Link to={`/position/${row.original.id}`}>
-                <Button variant="ghost" size="icon">
-                    <IconArrowUpRight size={20} />
-                </Button>
-            </Link>
+            <div className="flex-x">
+                <Link to={`/position/${row.original.id}`}>
+                    <Tooltip content="View Position" delayDuration={500}>
+                        <Button variant="outline" size="icon">
+                            <IconArrowUpRight className="text-link" size={20} />
+                        </Button>
+                    </Tooltip>
+                </Link>
+
+                <Popover>
+                    <Tooltip content="View Notes" delayDuration={500}>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" size="icon">
+                                <IconNotebookPen className="text-foreground-muted" size={18} />
+                            </Button>
+                        </PopoverTrigger>
+                    </Tooltip>
+
+                    <PopoverContent className="max-h-40 max-w-96 overflow-y-auto text-sm">
+                        {row.original.notes ? (
+                            <div className="whitespace-pre-wrap">{row.original.notes}</div>
+                        ) : (
+                            <span className="text-foreground-muted">No notes on this position</span>
+                        )}
+                    </PopoverContent>
+                </Popover>
+            </div>
         ),
         enableHiding: false,
         enableSorting: false,

@@ -22,7 +22,7 @@ const PopoverContent: FC<PopoverContentProps> = ({
     <PopoverPrimitive.Portal container={container}>
         <PopoverPrimitive.Content
             className={cn(
-                "bg-muted text-foreground border-border-muted z-60 rounded-md border-1 px-3 py-2 shadow-md outline-hidden",
+                "bg-muted text-foreground border-border z-60 rounded-md border-1 px-3 py-2 shadow-md outline-hidden",
                 className
             )}
             sideOffset={sideOffset}
