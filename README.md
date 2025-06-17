@@ -21,7 +21,7 @@ Why? Well there are already several tools out there that support brokers like In
 
 # Screenshots
 
-> The screenshots may be out of sync as the project is being actively developed. Last updated at 12th Jun, 2025.
+> The screenshots may be out of sync as the project is being actively developed. Last updated at 18th Jun, 2025.
 
 ### Dashboard
 
