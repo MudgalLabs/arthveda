@@ -15,9 +15,9 @@ import {
     UpdatePositionResponse,
 } from "@/lib/api/position";
 
-let computeAbortController: AbortController | null = null;
-
 export function useCompute(options: AnyUseMutationOptions = {}) {
+    let computeAbortController: AbortController | null = null;
+
     return useMutation<ApiRes<ComputePositionResponse>, unknown, ComputePositionRequest, unknown>({
         mutationFn: (body: ComputePositionRequest) => {
             // Cancel previous request if any
