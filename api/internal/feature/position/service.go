@@ -224,7 +224,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		}
 	}
 
-	importer, err := getBrokerImporter(broker)
+	importer, err := getImporer(broker)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get broker importer: %w", err)
 	}

@@ -201,8 +201,9 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 	}
 
 	// Hardcoded timezone for Asia/Kolkata (IST).
-	// TODO: Store `Exchange` in Trade and use that to determine the timezone.
-	loc, _ := time.LoadLocation(string(trade.AsiaKolkataTZ))
+	// TODO: Store `Exchange` in Trade and use that to determine the timezone?
+	tz, _ := trade.GetTimeZoneForExchange(trade.ExchangeNSE)
+	loc, _ := time.LoadLocation(string(tz))
 
 	// Convert trade.Time to IST timezone because trades are in UTC.
 	// If we don't convert the time, we will not be able to correctly determine

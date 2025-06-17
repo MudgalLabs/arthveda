@@ -54,7 +54,7 @@ type parseRowResult struct {
 	time       time.Time
 }
 
-type BrokerImporter interface {
+type Importer interface {
 	getMetadata(rows [][]string) (*importFileMetadata, error)
 	parseRow(row []string, metadata *importFileMetadata) (*parseRowResult, error)
 }
@@ -191,7 +191,13 @@ func (i ZerodhaImporter) parseRow(row []string, metadata *importFileMetadata) (*
 		return nil, fmt.Errorf("Invalid price in row: %s", priceStr)
 	}
 
-	tradeTime, err := time.Parse("2006-01-02T15:04:05", timeStr)
+	tz, _ := trade.GetTimeZoneForExchange(trade.ExchangeNSE)
+	ist, err := time.LoadLocation(string(tz))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
+	}
+
+	tradeTime, err := time.ParseInLocation("2006-01-02T15:04:05", timeStr, ist)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid time in row: %s", timeStr)
 	}
@@ -344,7 +350,13 @@ func (i *GrowwImporter) parseRow(row []string, metadata *importFileMetadata) (*p
 	// Round the price to match database precision
 	price = price.Round(2)
 
-	tradeTime, err := time.Parse("02-01-2006 03:04 PM", timeStr)
+	tz, _ := trade.GetTimeZoneForExchange(trade.ExchangeNSE)
+	ist, err := time.LoadLocation(string(tz))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
+	}
+
+	tradeTime, err := time.ParseInLocation("02-01-2006 03:04 PM", timeStr, ist)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid time at row : %s", timeStr)
 	}
@@ -363,7 +375,7 @@ func (i *GrowwImporter) parseRow(row []string, metadata *importFileMetadata) (*p
 }
 
 // getImporter returns an importer for the given broker.
-func getBrokerImporter(b *broker.Broker) (BrokerImporter, error) {
+func getImporer(b *broker.Broker) (Importer, error) {
 	switch b.Name {
 	case broker.BrokerNameZerodha:
 		return &ZerodhaImporter{}, nil

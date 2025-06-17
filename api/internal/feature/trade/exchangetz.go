@@ -17,3 +17,8 @@ var exchangeTZByExchange = map[Exchange]ExchangeTZ{
 	ExchangeBSE: AsiaKolkataTZ,
 	// add more as needed
 }
+
+func GetTimeZoneForExchange(exchange Exchange) (ExchangeTZ, bool) {
+	tz, exists := exchangeTZByExchange[exchange]
+	return tz, exists
+}
