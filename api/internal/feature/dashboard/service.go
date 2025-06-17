@@ -26,15 +26,21 @@ func NewService(dashboardRepository ReadWriter, positionRepository position.Read
 	}
 }
 
-type getDashboardReponse struct {
-	generalStats
-	CumulativePnL []CumulativePnLBucket `json:"cumulative_pnl"`
+type GetDashboardPayload struct {
+	DateRange *common.DateRangeFilter `json:"date_range"`
 }
 
-func (s *Service) Get(ctx context.Context, userID uuid.UUID) (*getDashboardReponse, service.Error, error) {
+type GetDashboardReponse struct {
+	generalStats
+	CumulativePnL  []CumulativePnLBucket `json:"cumulative_pnl"`
+	PositionsCount int                   `json:"positions_count"`
+}
+
+func (s *Service) Get(ctx context.Context, userID uuid.UUID, payload GetDashboardPayload) (*GetDashboardReponse, service.Error, error) {
 	searchPositionPayload := position.SearchPayload{
 		Filters: position.SearchFilter{
 			CreatedBy: &userID,
+			Opened:    payload.DateRange,
 		},
 		Sort: common.Sorting{
 			Field: "opened_at",
@@ -73,14 +79,15 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID) (*getDashboardRepon
 
 	cumulativePnL := getCumulativePnL(positions, common.BucketPeriodMonthly, start, end)
 
-	stats, err := s.dashboardRepository.GetGeneralStats(ctx, userID, positions)
+	stats, err := s.dashboardRepository.GetGeneralStats(ctx, userID, payload, positions)
 	if err != nil {
 		return nil, service.ErrInternalServerError, err
 	}
 
-	result := &getDashboardReponse{
-		generalStats:  *stats,
-		CumulativePnL: cumulativePnL,
+	result := &GetDashboardReponse{
+		generalStats:   *stats,
+		CumulativePnL:  cumulativePnL,
+		PositionsCount: len(positions),
 	}
 
 	return result, service.ErrNone, nil

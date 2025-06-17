@@ -1,6 +1,6 @@
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
-import { DecimalString } from "@/lib/types";
+import { DateRangeFilter, DecimalString } from "@/lib/types";
 
 interface GeneralStats {
     gross_pnl: DecimalString;
@@ -27,10 +27,15 @@ interface CumulativePnLDataItem {
     charges: DecimalString;
 }
 
-export interface GetDashboardResponse extends GeneralStats {
-    cumulative_pnl: CumulativePnLDataItem[];
+export interface GetDashboardRequest {
+    date_range?: DateRangeFilter;
 }
 
-export function get() {
-    return client.get(API_ROUTES.dashboard.get);
+export interface GetDashboardResponse extends GeneralStats {
+    cumulative_pnl: CumulativePnLDataItem[];
+    positions_count: number;
+}
+
+export function get(body: GetDashboardRequest) {
+    return client.post(API_ROUTES.dashboard.get, body);
 }

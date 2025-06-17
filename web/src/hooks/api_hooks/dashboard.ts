@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
-import { GetDashboardResponse } from "@/lib/api/dashboard";
+import { GetDashboardRequest, GetDashboardResponse } from "@/lib/api/dashboard";
 
-export function useGet() {
+export function useGet(body: GetDashboardRequest) {
     return useQuery({
-        queryKey: ["useGetDashboard"],
-        queryFn: () => api.dashboard.get(),
+        queryKey: ["useGetDashboard", body],
+        queryFn: () => api.dashboard.get(body),
         select: (res) => res.data.data as GetDashboardResponse,
         // We will manually invalidate this cache if user creates/updates/deletes any position(s).
         staleTime: Infinity,

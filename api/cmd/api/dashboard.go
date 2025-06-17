@@ -10,7 +10,13 @@ func getDashboardHandler(s *dashboard.Service) http.HandlerFunc {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
 
-		result, errKind, err := s.Get(ctx, userID)
+		var payload dashboard.GetDashboardPayload
+		if err := decodeJSONRequest(&payload, r); err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		result, errKind, err := s.Get(ctx, userID, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

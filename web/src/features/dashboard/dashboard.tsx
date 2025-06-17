@@ -15,6 +15,8 @@ import { OverviewCard } from "@/features/dashboard/widget/overview_card";
 import { WinningCard } from "@/features/dashboard/widget/winning_card";
 import { LosingCard } from "@/features/dashboard/widget/losing_card";
 import { IconChevronDownRight, IconGripVertical } from "@/components/icons";
+import { Button, DatePicker } from "@/s8ly";
+import { datesArrayToDateRangeFilter } from "@/lib/utils";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -104,8 +106,12 @@ export const Dashboard = () => {
         lg: lgLayout,
         sm: smLayout,
     });
+    const [dates, setDates] = useState<Date[]>([]);
+    const [appliedDates, setAppliedDates] = useState<Date[]>([]);
 
-    const { data, isLoading, isFetching, isError } = apiHooks.dashboard.useGet();
+    const { data, isFetching, isError } = apiHooks.dashboard.useGet({
+        date_range: datesArrayToDateRangeFilter(appliedDates),
+    });
 
     const cumulativePnLData = useMemo(() => {
         if (!data) return [];
@@ -120,28 +126,30 @@ export const Dashboard = () => {
 
     const ResponsiveGridLayout = useMemo(() => WidthProvider(Responsive), []);
 
-    if (isError) {
-        return <p className="text-foreground-red">Error loading dashboard data.</p>;
-    }
+    const applyFilters = () => {
+        setAppliedDates(dates);
+    };
 
-    if (isLoading) {
-        return <LoadingScreen />;
-    }
+    const content = useMemo(() => {
+        if (isError) {
+            return <p className="text-foreground-red">Error loading dashboard data.</p>;
+        }
 
-    if (!data) return null;
+        if (isFetching) {
+            return (
+                <div>
+                    <LoadingScreen className="mt-20" />
+                </div>
+            );
+        }
 
-    const grossPnL = data.gross_pnl;
-    const netPnL = data.net_pnl;
-    const winRate = data.win_rate;
+        if (!data) return null;
 
-    if (!!grossPnL && !!netPnL && !winRate) {
-        return <WelcomeMessageForNewUser />;
-    }
+        if (appliedDates.length === 0 && data?.positions_count === 0) {
+            return <WelcomeMessageForNewUser />;
+        }
 
-    return (
-        <div>
-            <PageHeading heading="Dashboard" loading={isFetching} />
-
+        return (
             <ResponsiveGridLayout
                 className="complex-interface-layout"
                 layouts={layouts}
@@ -216,7 +224,37 @@ export const Dashboard = () => {
                     </WidgetContainer>
                 </div>
             </ResponsiveGridLayout>
-        </div>
+        );
+    }, [data, isFetching, isError, layouts, cumulativePnLData, appliedDates.length]);
+
+    return (
+        <>
+            <PageHeading heading="Dashboard" />
+
+            <div className="flex-x justify-end">
+                <DatePicker
+                    className="w-full sm:w-fit"
+                    placeholder="Select date range"
+                    mode="range"
+                    dates={dates}
+                    onDatesChange={setDates}
+                    config={{
+                        dates: {
+                            toggle: true,
+                        },
+                    }}
+                    onClose={() => {}}
+                />
+
+                <Button loading={isFetching} onClick={() => applyFilters()}>
+                    Apply
+                </Button>
+            </div>
+
+            <div className="h-4" />
+
+            {content}
+        </>
     );
 };
 

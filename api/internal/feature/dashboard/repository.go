@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"arthveda/internal/dbx"
 	"arthveda/internal/feature/position"
 	"context"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 )
 
 type Reader interface {
-	GetGeneralStats(ctx context.Context, userID uuid.UUID, positions []*position.Position) (*generalStats, error)
+	GetGeneralStats(ctx context.Context, userID uuid.UUID, payload GetDashboardPayload, positions []*position.Position) (*generalStats, error)
 }
 
 type Writer interface{}
@@ -45,8 +46,8 @@ type generalStats struct {
 	AvgLossRFactor float64 `json:"avg_loss_r_factor"`
 }
 
-func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.UUID, positions []*position.Position) (*generalStats, error) {
-	pnlSQL := `
+func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.UUID, payload GetDashboardPayload, positions []*position.Position) (*generalStats, error) {
+	baseSQL := `
 		SELECT
 			-- Win Rate (%)
 			COALESCE(
@@ -87,16 +88,29 @@ func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.U
 
 		FROM
 			position
-		WHERE
-			created_by = $1;
 	`
+
+	b := dbx.NewSQLBuilder(baseSQL)
+
+	b.AddCompareFilter("created_by", "=", userID)
+
+	if payload.DateRange != nil {
+		if payload.DateRange.From != nil {
+			b.AddCompareFilter("opened_at", ">=", payload.DateRange.From)
+		}
+		if payload.DateRange.To != nil {
+			b.AddCompareFilter("opened_at", "<=", payload.DateRange.To)
+		}
+	}
+
+	sql, args := b.Build()
 
 	var grossPnL, netPnL, charges, avgWin, avgLoss, maxWin, maxLoss string
 	var winRate, avgRFactor, avgWinRFactor, avgLossRFactor float64
 
-	err := r.db.QueryRow(ctx, pnlSQL, userID).Scan(&winRate, &grossPnL, &netPnL, &charges, &avgRFactor, &avgWin, &avgLoss, &maxWin, &maxLoss, &avgWinRFactor, &avgLossRFactor)
+	err := r.db.QueryRow(ctx, sql, args...).Scan(&winRate, &grossPnL, &netPnL, &charges, &avgRFactor, &avgWin, &avgLoss, &maxWin, &maxLoss, &avgWinRFactor, &avgLossRFactor)
 	if err != nil {
-		return nil, fmt.Errorf("pnl sql scan: %w", err)
+		return nil, fmt.Errorf("get general stats sql scan: %w", err)
 	}
 
 	lossRate := 100.0 - winRate

@@ -15,13 +15,10 @@ export function isProd(): boolean {
 
 export type LocalStorageKey = string;
 
-export const LocalStorageKeyDashboardLayout: LocalStorageKey =
-    "dashboard_layout";
+export const LocalStorageKeyDashboardLayout: LocalStorageKey = "dashboard_layout";
 export const LocalStorageKeySidebarOpen: LocalStorageKey = "sidebar_open";
-export const LocalStorageKeyCumulativePnLShowGross: LocalStorageKey =
-    "cumulative_pnl_show_gross";
-export const LocalStorageKeyCumulativePnLShowCharges: LocalStorageKey =
-    "cumulative_pnl_show_charges";
+export const LocalStorageKeyCumulativePnLShowGross: LocalStorageKey = "cumulative_pnl_show_gross";
+export const LocalStorageKeyCumulativePnLShowCharges: LocalStorageKey = "cumulative_pnl_show_charges";
 
 export function saveToLocalStorage(key: LocalStorageKey, value: string) {
     localStorage.setItem(key, value);
@@ -49,20 +46,7 @@ interface formatDateOptions {
 }
 
 export function formatDate(date: Date, options: formatDateOptions = {}) {
-    const months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-    ];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     const day = date.getDate();
     const year = date.getFullYear();
@@ -134,9 +118,7 @@ interface TimeElapsed {
  */
 export function getElapsedTime(start: Date, end: Date): TimeElapsed {
     if (start > end) {
-        console.error(
-            "getElapsedTime: start date must be earlier than end date."
-        );
+        console.error("getElapsedTime: start date must be earlier than end date.");
         return { days: 0, hours: 0, minutes: 0 };
     }
 
@@ -152,10 +134,7 @@ export function getElapsedTime(start: Date, end: Date): TimeElapsed {
 
 type AnyObject = Record<string, any>;
 
-export function deepMerge<T extends AnyObject, U extends AnyObject>(
-    obj1: T,
-    obj2: U
-): T & U {
+export function deepMerge<T extends AnyObject, U extends AnyObject>(obj1: T, obj2: U): T & U {
     const result: AnyObject = { ...obj1 };
 
     for (const key in obj2) {
@@ -224,9 +203,7 @@ export function formatCurrency(
             formatted = _amount.toFixed(2); // Default formatting for smaller values
         }
 
-        return hideSymbol
-            ? formatted
-            : `${getCurrencySymbol(currency)}${formatted}`;
+        return hideSymbol ? formatted : `${getCurrencySymbol(currency)}${formatted}`;
     }
 
     const options = deepMerge(
@@ -248,10 +225,7 @@ export function removeFormatCurrency(formatted: string): string {
     return cleaned;
 }
 
-export function getCurrencySymbol(
-    currencyCode: CurrencyCode,
-    locale = "en"
-): string {
+export function getCurrencySymbol(currencyCode: CurrencyCode, locale = "en"): string {
     const formatted = new Intl.NumberFormat(locale, {
         style: "currency",
         currency: currencyCode,
@@ -276,9 +250,24 @@ export function isFunction(value: any): value is Function {
     return typeof value === "function";
 }
 
-export function dateRangeFilterToDatesArray(
-    filter: DateRangeFilter | undefined
-): Date[] {
+export function datesArrayToDateRangeFilter(dates: Date[]): DateRangeFilter {
+    if (!dates || dates.length === 0) return {};
+
+    const from = dates[0];
+    const to = dates[1];
+
+    if (from && to) {
+        return { from, to };
+    } else if (from) {
+        return { from };
+    } else if (to) {
+        return { to };
+    }
+
+    return {};
+}
+
+export function dateRangeFilterToDatesArray(filter: DateRangeFilter | undefined): Date[] {
     if (!filter) return [];
 
     const dates: Date[] = [];
@@ -293,31 +282,19 @@ export function dateRangeFilterToDatesArray(
     return dates;
 }
 
-export function loadFromURL<T>(
-    key: string,
-    defaultValue?: T,
-    customParsers?: LoadFromURLParser
-): T {
+export function loadFromURL<T>(key: string, defaultValue?: T, customParsers?: LoadFromURLParser): T {
     const raw = qs.parse(location.search, {
         ignoreQueryPrefix: true,
         allowDots: true,
     })[key] as T;
     const parsedQuery = deepParseObject<T>(raw, customParsers);
 
-    if (
-        raw === "" ||
-        raw === undefined ||
-        parsedQuery === "" ||
-        parsedQuery === undefined
-    ) {
+    if (raw === "" || raw === undefined || parsedQuery === "" || parsedQuery === undefined) {
         // No value in URL, return default value.
         return defaultValue as T;
     }
 
-    if (
-        Object.keys(parsedQuery as object).length === 0 &&
-        parsedQuery !== undefined
-    ) {
+    if (Object.keys(parsedQuery as object).length === 0 && parsedQuery !== undefined) {
         // We found a value in URL, but it's not an object (e.g., empty string).
         return parsedQuery as T;
     }
@@ -356,15 +333,9 @@ export type LoadFromURLParser = {
     [key: string]: (value: any) => any;
 };
 
-function deepParseObject<T>(
-    input: T,
-    customParsers?: LoadFromURLParser,
-    path: string = ""
-): T {
+function deepParseObject<T>(input: T, customParsers?: LoadFromURLParser, path: string = ""): T {
     if (Array.isArray(input)) {
-        return input.map((item, idx) =>
-            deepParseObject(item, customParsers, `${path}[${idx}]`)
-        ) as any;
+        return input.map((item, idx) => deepParseObject(item, customParsers, `${path}[${idx}]`)) as any;
     }
 
     if (input && typeof input === "object" && !(input instanceof Date)) {

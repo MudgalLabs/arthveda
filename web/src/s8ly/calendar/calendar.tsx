@@ -160,18 +160,10 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
                 )}
 
                 <span className="text-foreground flex-center gap-x-2">
-                    <Button
-                        variant="link"
-                        className="text-foreground p-0 font-normal"
-                        onClick={() => setView(View.Months)}
-                    >
+                    <Button variant="link" className="p-0 font-normal" onClick={() => setView(View.Months)}>
                         {calendar.month}
                     </Button>
-                    <Button
-                        variant="link"
-                        className="text-foreground p-0 font-normal"
-                        onClick={() => setView(View.Years)}
-                    >
+                    <Button variant="link" className="p-0 font-normal" onClick={() => setView(View.Years)}>
                         {calendar.year}
                     </Button>
                 </span>

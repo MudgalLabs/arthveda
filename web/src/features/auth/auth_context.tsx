@@ -1,20 +1,14 @@
-import {
-    createContext,
-    FC,
-    PropsWithChildren,
-    useContext,
-    useMemo,
-} from "react";
+import { createContext, FC, PropsWithChildren, useContext, useMemo } from "react";
 
 import { apiHooks } from "@/hooks/api_hooks";
-import { User } from "@/lib/api/user";
+import { UserMeResponse } from "@/lib/api/user";
 import { apiErrorHandler } from "@/lib/api";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 
 interface AuthenticationContextType {
     isLoading: boolean;
     isAuthenticated: boolean;
-    data: User | undefined;
+    data: UserMeResponse | undefined;
 }
 
 const AuthenticationContext = createContext<AuthenticationContextType>({
@@ -24,8 +18,7 @@ const AuthenticationContext = createContext<AuthenticationContextType>({
 });
 
 export const AuthenticationProvider: FC<PropsWithChildren> = ({ children }) => {
-    const { data, isSuccess, isLoading, isError, error } =
-        apiHooks.user.useMe();
+    const { data, isSuccess, isLoading, isError, error } = apiHooks.user.useMe();
 
     useEffectOnce(
         (deps) => {
@@ -48,20 +41,14 @@ export const AuthenticationProvider: FC<PropsWithChildren> = ({ children }) => {
         [isLoading, isSuccess, data]
     );
 
-    return (
-        <AuthenticationContext.Provider value={value}>
-            {children}
-        </AuthenticationContext.Provider>
-    );
+    return <AuthenticationContext.Provider value={value}>{children}</AuthenticationContext.Provider>;
 };
 
 export function useAuthentication(): AuthenticationContextType {
     const context = useContext(AuthenticationContext);
 
     if (!context) {
-        throw new Error(
-            "useAuthentication: did you forget to use AuthProvider?"
-        );
+        throw new Error("useAuthentication: did you forget to use AuthProvider?");
     }
 
     return context;

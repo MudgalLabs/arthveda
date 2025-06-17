@@ -10,6 +10,8 @@ export interface User {
     update_at: string;
 }
 
+export interface UserMeResponse extends User {}
+
 export function me() {
     return client.get(API_ROUTES.user.me);
 }

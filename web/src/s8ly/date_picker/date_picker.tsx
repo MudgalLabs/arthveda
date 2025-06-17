@@ -3,19 +3,13 @@ import { ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 import { useControlled } from "@/hooks/use_controlled";
 import { IconCalendarRange, IconCalendarSingle } from "@/components/icons";
 import { cn, formatDate } from "@/lib/utils";
-import {
-    Calendar,
-    CalendarProps,
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/s8ly";
+import { Calendar, CalendarProps, Popover, PopoverContent, PopoverTrigger } from "@/s8ly";
 
-interface DatePickerProps
-    extends Omit<CalendarProps, "dates" | "onDatesChange"> {
+interface DatePickerProps extends Omit<CalendarProps, "dates" | "onDatesChange"> {
     container?: HTMLElement | null;
     className?: string;
     dates?: Date[];
+    placeholder?: string;
     onDatesChange?(d: Date[]): void;
     onOpen?: () => void;
     onClose?: () => void;
@@ -25,6 +19,7 @@ function DatePicker({
     container,
     className,
     dates: datesProp,
+    placeholder: placeholderProp,
     onDatesChange: onDatesChangeProp,
     offsetDate: offsetDateProp,
     mode,
@@ -51,10 +46,8 @@ function DatePicker({
 
     const isDateSet = dates.length > 0;
     const isRange = mode === "range";
-    const unselectedText = isRange ? "Select range" : "Select date";
-    const selectedText = dates
-        .map((d) => formatDate(d, { time: time }))
-        .join(" - ");
+    const placeholder = placeholderProp || (isRange ? "Select range" : "Select date");
+    const selectedText = dates.map((d) => formatDate(d, { time: time })).join(" - ");
 
     let width = "w-[150px]";
     if (isRange) width = "w-[260px]";
@@ -78,24 +71,12 @@ function DatePicker({
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <DatePickerButton
-                    className={cn(width, className)}
-                    open={open}
-                    isDateSet={isDateSet}
-                >
-                    {isRange ? (
-                        <IconCalendarRange size={18} />
-                    ) : (
-                        <IconCalendarSingle size={18} />
-                    )}
-                    {isDateSet ? selectedText : unselectedText}
+                <DatePickerButton className={cn(width, className)} open={open} isDateSet={isDateSet}>
+                    {isRange ? <IconCalendarRange size={18} /> : <IconCalendarSingle size={18} />}
+                    {isDateSet ? selectedText : placeholder}
                 </DatePickerButton>
             </PopoverTrigger>
-            <PopoverContent
-                className="w-auto border-none p-0"
-                align="start"
-                container={container}
-            >
+            <PopoverContent className="w-auto border-none p-0" align="start" container={container}>
                 <Calendar
                     dates={dates}
                     onDatesChange={onDatesChangeProp ?? setDates}

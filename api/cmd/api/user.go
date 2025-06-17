@@ -10,7 +10,7 @@ func getMeHandler(s *user_profile.Service) http.HandlerFunc {
 		ctx := r.Context()
 		id := getUserIDFromContext(ctx)
 
-		userProfile, errKind, err := s.GetUserProfile(ctx, id)
+		userProfile, errKind, err := s.GetUserMe(ctx, id)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

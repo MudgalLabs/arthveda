@@ -19,7 +19,11 @@ func NewService(upr ReadWriter) *Service {
 	}
 }
 
-func (s *Service) GetUserProfile(ctx context.Context, id uuid.UUID) (*UserProfile, service.Error, error) {
+type GetUserMeResult struct {
+	UserProfile
+}
+
+func (s *Service) GetUserMe(ctx context.Context, id uuid.UUID) (*GetUserMeResult, service.Error, error) {
 	userProfile, err := s.userProfileRepository.FindUserProfileByUserID(ctx, id)
 	if err != nil {
 		if err == repository.ErrNotFound {
@@ -29,5 +33,9 @@ func (s *Service) GetUserProfile(ctx context.Context, id uuid.UUID) (*UserProfil
 		return nil, service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
 	}
 
-	return userProfile, service.ErrNone, nil
+	GetUserMeResult := &GetUserMeResult{
+		*userProfile,
+	}
+
+	return GetUserMeResult, service.ErrNone, nil
 }

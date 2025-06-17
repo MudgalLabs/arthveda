@@ -114,20 +114,22 @@ export const Sidebar = () => {
                 </div>
             </div>
 
-            <div
-                className={cn("flex flex-col gap-y-2 pb-2", {
-                    "items-center": !isOpen,
-                })}
-            >
-                <SidebarProfileMenu
-                    sidebarOpen={isOpen}
-                    setActiveRoute={setActiveRoute}
-                    email={data!.email}
-                    displayName={data?.name}
-                    profileImageURL={data?.avatar_url}
-                    isMobile={isMobile}
-                />
-            </div>
+            {data && (
+                <div
+                    className={cn("flex flex-col gap-y-2 pb-2", {
+                        "items-center": !isOpen,
+                    })}
+                >
+                    <SidebarProfileMenu
+                        sidebarOpen={isOpen}
+                        setActiveRoute={setActiveRoute}
+                        email={data.email}
+                        displayName={data.name}
+                        profileImageURL={data.avatar_url}
+                        isMobile={isMobile}
+                    />
+                </div>
+            )}
         </div>
     );
 };

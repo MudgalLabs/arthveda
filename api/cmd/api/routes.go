@@ -64,7 +64,7 @@ func initRouter(a *app) http.Handler {
 		r.Route("/dashboard", func(r chi.Router) {
 			r.Use(authMiddleware)
 
-			r.Get("/", getDashboardHandler(a.service.DashboardService))
+			r.Post("/", getDashboardHandler(a.service.DashboardService))
 			r.Get("/pnl-fluctuations", getDailyNetPnL(a.service.DashboardService))
 		})
 

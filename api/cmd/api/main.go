@@ -77,8 +77,8 @@ func main() {
 	brokerService := broker.NewService(brokerRepository)
 	currencyService := currency.NewService()
 	dashboardService := dashboard.NewService(dashboardRepository, positionRepository, tradeRepository)
-	userProfileService := user_profile.NewService(userProfileRepository)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
+	userProfileService := user_profile.NewService(userProfileRepository)
 	// tradeService := trade.NewService(tradeRepository)
 	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository)
 
