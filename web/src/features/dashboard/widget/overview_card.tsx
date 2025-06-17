@@ -48,35 +48,27 @@ export const OverviewCard = memo(
                 .toFixed(2);
         }
 
-        let progressValue =
-            100 - new Decimal(charges_as_percentage_of_net_pnl).toNumber();
+        let progressValue = 100 - new Decimal(charges_as_percentage_of_net_pnl).toNumber();
 
         if (grossPnL.isNegative()) {
             progressValue = 0;
         }
 
         return (
-            <Card
-                className={cn(
-                    "flex h-full w-full min-w-72 flex-col gap-y-2",
-                    className
-                )}
-            >
+            <Card className={cn("flex h-full w-full flex-col gap-y-2", className)}>
                 <CardTitle>Overview</CardTitle>
-                <CardContent className="flex h-full flex-col items-start">
-                    <span className="label-muted">Net</span>
-                    <div className={`flex items-end gap-x-2 ${textColor}`}>
-                        <p className="heading leading-none">
-                            {formatCurrency(net_pnl_amount, { currency })}
-                        </p>
-                        {net_return_percentage && (
-                            <p>{netReturnPercentage.toFixed(2).toString()}%</p>
-                        )}
-                        <p>{trendingIcon}</p>
+
+                <CardContent className="flex h-full flex-col justify-between">
+                    <div>
+                        <span className="label-muted">Net</span>
+                        <div className={`flex items-end gap-x-2 ${textColor}`}>
+                            <p className="heading leading-none">{formatCurrency(net_pnl_amount, { currency })}</p>
+                            {net_return_percentage && <p>{netReturnPercentage.toFixed(2).toString()}%</p>}
+                            <p>{trendingIcon}</p>
+                        </div>
                     </div>
 
                     <div className="w-full">
-                        <div className="h-4" />
                         <Tooltip
                             content={
                                 <p className="text-sm font-normal">
@@ -93,19 +85,17 @@ export const OverviewCard = memo(
                         >
                             <Progress value={progressValue} />
                         </Tooltip>
+                    </div>
 
-                        <div className="h-2" />
-
+                    <div className="w-full">
                         <div className="flex w-full justify-between gap-x-4">
                             <div>
                                 <span className="label-muted">Gross</span>
                                 <p className="paragraph">
                                     <span
                                         className={cn("font-semibold", {
-                                            "text-foreground-green":
-                                                grossPnL.isPositive(),
-                                            "text-foreground-red":
-                                                grossPnL.isNegative(),
+                                            "text-foreground-green": grossPnL.isPositive(),
+                                            "text-foreground-red": grossPnL.isNegative(),
                                         })}
                                     >
                                         {formatCurrency(gross_pnl_amount, {

@@ -238,7 +238,7 @@ function AddPosition() {
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:h-44 sm:flex-row">
                 <OverviewCard
-                    className="w-full sm:w-fit"
+                    className="min-w-72 sm:w-fit"
                     total_charges_amount={position.total_charges_amount}
                     charges_as_percentage_of_net_pnl={position.charges_as_percentage_of_net_pnl}
                     currency={position.currency}
@@ -371,7 +371,7 @@ function AddPosition() {
                         }
                     >
                         <Textarea
-                            className="w-full whitespace-pre-wrap"
+                            className="h-24 w-full resize-none whitespace-pre-wrap"
                             maxLength={4096}
                             value={value}
                             onChange={(e) => setValue(e.target.value)}
@@ -569,7 +569,7 @@ const columns: ColumnDef<CreateTrade>[] = [
                     onDebounce={(v) => syncWithValue(v)}
                 >
                     {(value, setValue) => (
-                        <Tooltip content="Charges are being automatically calculated" disabled={!enableAutoCharges}>
+                        <Tooltip content="Auto charges is enabled" disabled={!enableAutoCharges}>
                             <DecimalInput
                                 kind="amount"
                                 currency={state.currency}
@@ -597,8 +597,7 @@ const columns: ColumnDef<CreateTrade>[] = [
                     disabled={!disableButton}
                 >
                     <Button
-                        className="text-foreground-muted hover:text-foreground-red!"
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
                         onClick={() => removeTrade(row.index)}
                         disabled={disableButton}
@@ -659,7 +658,7 @@ const RFactorCard = memo(({ r_factor }: { r_factor: DecimalString }) => {
         <Card className="relative min-w-30">
             <CardTitle>R Factor</CardTitle>
             <CardContent className="absolute-center">
-                <p className={`big-heading ${textColor}`}>{r_factor}</p>
+                <p className={`heading ${textColor}`}>{r_factor}</p>
             </CardContent>
         </Card>
     );

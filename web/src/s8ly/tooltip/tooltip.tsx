@@ -8,6 +8,7 @@ interface TooltipProps extends TooltipPrimitive.TooltipProps {
     disabled?: boolean;
     contentProps?: TooltipPrimitive.TooltipContentProps;
     variant?: "default" | "info" | "warning" | "error" | "success";
+    arrow?: boolean;
 }
 
 export const Tooltip: FC<TooltipProps> = ({
@@ -15,6 +16,7 @@ export const Tooltip: FC<TooltipProps> = ({
     content,
     disabled,
     variant = "default",
+    arrow = false,
     open,
     defaultOpen,
     onOpenChange,
@@ -55,7 +57,7 @@ export const Tooltip: FC<TooltipProps> = ({
                     {...contentPropsRest}
                 >
                     {content}
-                    <TooltipPrimitive.Arrow width={11} height={5} fill="var(--color-accent)" />
+                    {arrow && <TooltipPrimitive.Arrow width={11} height={5} fill="var(--color-accent)" />}
                 </TooltipPrimitive.Content>
             </TooltipPrimitive.Portal>
         </TooltipPrimitive.Root>

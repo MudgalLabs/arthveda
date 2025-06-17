@@ -51,11 +51,11 @@
 
     --color-error-bg: hsl(357, 64%, 10%);
     --color-error-border: hsl(357, 62%, 21%);
-    --color-error-foreground: hsl(356, 56%, 77%);
+    --color-error-foreground: hsl(356, 100%, 80%);
 
     --color-success-bg: hsl(150, 90%, 6%);
     --color-success-border: hsl(150, 85%, 16%);
-    --color-success-foreground: hsl(145, 100%, 68%);
+    --color-success-foreground: hsl(145, 100%, 70%);
 
     --color-warning-bg: hsl(50, 100%, 8%);
     --color-warning-border: hsl(50, 100%, 15%);
@@ -110,17 +110,19 @@ select:-webkit-autofill:focus {
 
 /* Custom Scrollbar Styles */
 ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
     background-color: var(--color-accent-muted);
     border-radius: 4px;
+    cursor: auto;
 }
 
 ::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-accent);
+    cursor: auto;
 }
 
 ::-webkit-scrollbar-track {

@@ -153,7 +153,7 @@ export const createPositionStore = (initProp?: Position) => {
             });
         },
 
-        discard: () => set(() => ({ ...defaultState, ...initialPosition })),
+        discard: () => set(() => ({ position: initialPosition, enableAutoCharges: false })),
     }));
 };
 

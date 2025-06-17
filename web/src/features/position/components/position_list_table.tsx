@@ -4,11 +4,14 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Loading } from "@/components/loading";
-import { Position, positionInstrumentToString } from "@/features/position/position";
+import {
+    Position,
+    positionDirectionToString,
+    positionInstrumentToString,
+    positionStatusToString,
+} from "@/features/position/position";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
-import { DirectionTag } from "@/features/position/components/direction_tag";
-import { StatusTag } from "@/features/position/components/status_tag";
 import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
@@ -22,6 +25,7 @@ import {
 } from "@/features/position/utils";
 import { DataTableState } from "@/s8ly/data_table/data_table_state";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
+import Decimal from "decimal.js";
 
 export interface PositionListTable {
     positions: Position[];
@@ -184,7 +188,8 @@ const columns: ColumnDef<Position>[] = [
         header: ({ column, table }) => (
             <DataTableColumnHeader title="Direction" column={column} disabled={table.options.meta?.isFetching} />
         ),
-        cell: ({ row }) => <DirectionTag className="w-16" direction={row.original.direction} />,
+        // cell: ({ row }) => <DirectionTag className="w-16" direction={row.original.direction} />,
+        cell: ({ row }) => positionDirectionToString(row.original.direction),
     },
     {
         id: "status",
@@ -195,7 +200,8 @@ const columns: ColumnDef<Position>[] = [
         header: ({ column, table }) => (
             <DataTableColumnHeader title="Status" column={column} disabled={table.options.meta?.isFetching} />
         ),
-        cell: ({ row }) => <StatusTag status={row.original.status} currency={row.original.currency} />,
+        // cell: ({ row }) => <StatusTag status={row.original.status} currency={row.original.currency} />,
+        cell: ({ row }) => positionStatusToString(row.original.status),
     },
     {
         id: "instrument",
@@ -241,10 +247,19 @@ const columns: ColumnDef<Position>[] = [
         header: ({ column, table }) => (
             <DataTableColumnHeader title="Net PnL" column={column} disabled={table.options.meta?.isFetching} />
         ),
-        cell: ({ row }) =>
-            formatCurrency(row.original.net_pnl_amount, {
-                currency: row.original.currency,
-            }),
+        cell: ({ row }) => (
+            <span
+                className={
+                    new Decimal(row.original.net_pnl_amount).isNegative()
+                        ? "text-foreground-red"
+                        : "text-foreground-green"
+                }
+            >
+                {formatCurrency(row.original.net_pnl_amount, {
+                    currency: row.original.currency,
+                })}
+            </span>
+        ),
     },
     {
         id: "total_charges_amount",

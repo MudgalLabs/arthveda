@@ -13,7 +13,7 @@ const Textarea: FC<TextareaProps> = ({ className, error, errorMsg, ...props }) =
         <>
             <textarea
                 className={cn(
-                    "border-border placeholder:text-foreground-muted bg-background focus:border-accent flex field-sizing-content min-h-16 w-full rounded-md border p-3 text-base text-sm transition-[color] outline-none disabled:cursor-not-allowed disabled:opacity-69",
+                    "border-border placeholder:text-foreground-muted bg-muted focus:border-accent focus:bg-background flex field-sizing-content min-h-16 w-full rounded-md border p-3 text-sm transition-[color] outline-none disabled:cursor-not-allowed disabled:opacity-69",
                     {
                         "border-border-red!": error,
                     },

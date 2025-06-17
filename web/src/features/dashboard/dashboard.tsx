@@ -52,7 +52,7 @@ const lgLayout: Layout[] = [
         i: "cumulative_pnl_curve",
         x: 0,
         y: 5,
-        w: 6,
+        w: 12,
         h: 10,
         minW: 4,
         minH: 7,
@@ -100,15 +100,12 @@ const smLayout: Layout[] = [
 ];
 
 export const Dashboard = () => {
-    const [layouts, setLayouts] = useState<
-        Record<DashboardLayoutSize, Layout[]>
-    >({
+    const [layouts, setLayouts] = useState<Record<DashboardLayoutSize, Layout[]>>({
         lg: lgLayout,
         sm: smLayout,
     });
 
-    const { data, isLoading, isFetching, isError } =
-        apiHooks.dashboard.useGet();
+    const { data, isLoading, isFetching, isError } = apiHooks.dashboard.useGet();
 
     const cumulativePnLData = useMemo(() => {
         if (!data) return [];
@@ -124,9 +121,7 @@ export const Dashboard = () => {
     const ResponsiveGridLayout = useMemo(() => WidthProvider(Responsive), []);
 
     if (isError) {
-        return (
-            <p className="text-foreground-red">Error loading dashboard data.</p>
-        );
+        return <p className="text-foreground-red">Error loading dashboard data.</p>;
     }
 
     if (isLoading) {
@@ -160,9 +155,7 @@ export const Dashboard = () => {
                 }}
                 rowHeight={30}
                 width={1440}
-                onLayoutChange={(_, layouts) =>
-                    setLayouts(layouts as Record<DashboardLayoutSize, Layout[]>)
-                }
+                onLayoutChange={(_, layouts) => setLayouts(layouts as Record<DashboardLayoutSize, Layout[]>)}
                 containerPadding={[0, 0]}
                 margin={[16, 16]}
                 resizeHandles={["se"]}
@@ -219,10 +212,7 @@ export const Dashboard = () => {
 
                 <div key="cumulative_pnl_curve">
                     <WidgetContainer>
-                        <CumulativePnLCurve
-                            data={cumulativePnLData}
-                            isResizable
-                        />
+                        <CumulativePnLCurve data={cumulativePnLData} isResizable />
                     </WidgetContainer>
                 </div>
             </ResponsiveGridLayout>

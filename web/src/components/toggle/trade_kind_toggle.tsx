@@ -7,11 +7,7 @@ interface OrderKindToggleProps {
     onChange?: (v: TradeKind) => void;
 }
 
-function OrderKindToggle({
-    defaultValue,
-    value,
-    onChange,
-}: OrderKindToggleProps) {
+function OrderKindToggle({ defaultValue, value, onChange }: OrderKindToggleProps) {
     return (
         <ToggleGroup
             type="single"
@@ -24,11 +20,7 @@ function OrderKindToggle({
             <ToggleGroupItem variant="success" value="buy" aria-label="Buy">
                 Buy
             </ToggleGroupItem>
-            <ToggleGroupItem
-                variant="destructive"
-                value="sell"
-                aria-label="Sell"
-            >
+            <ToggleGroupItem variant="destructive" value="sell" aria-label="Sell">
                 Sell
             </ToggleGroupItem>
         </ToggleGroup>

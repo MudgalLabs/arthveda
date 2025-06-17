@@ -21,7 +21,7 @@ export const Topbar = () => {
                         // The 6 margin on the left comes from the Sidebar where the Icon
                         // is rendered at 6 margin from the left.
                         className="mr-8 ml-5"
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
                         type="button"
                         onClick={toggleSidebar}
@@ -31,7 +31,7 @@ export const Topbar = () => {
                 </Tooltip>
 
                 <Link to={ROUTES.dashboard} variant="unstyled">
-                    <Branding className="hidden sm:inline-flex" size="small" />
+                    <Branding size="small" />
                 </Link>
             </div>
         </div>

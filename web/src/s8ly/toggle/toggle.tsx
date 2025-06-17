@@ -11,10 +11,12 @@ const toggleVariants = cva(
                 default: "bg-muted text-muted-foreground",
                 outline:
                     "data-[state=off]:border border-border bg-transparent text-foreground-muted shadow-xs data-[state=off]:enabled:hover:bg-accent-muted data-[state=off]:enabled:hover:text-muted-foreground",
-                success:
-                    "data-[state=on]:bg-green-bg data-[state=on]:text-green-foreground",
-                destructive:
-                    "data-[state=on]:bg-red-bg data-[state=on]:text-red-foreground",
+                success: "data-[state=on]:bg-green-bg data-[state=on]:text-foreground",
+                destructive: "data-[state=on]:bg-red-bg data-[state=on]:text-foreground",
+                // success:
+                //     "data-[state=on]:bg-success-bg data-[state=on]:text-success-foreground data-[state=on]:border-success-border",
+                // destructive:
+                //     "data-[state=on]:bg-error-bg data-[state=on]:text-error-foreground data-[state=on]:border-error-border",
             },
             size: {
                 default: "",
@@ -28,16 +30,9 @@ const toggleVariants = cva(
     }
 );
 
-interface ToggleProps
-    extends TogglePrimitive.ToggleProps,
-        VariantProps<typeof toggleVariants> {}
+interface ToggleProps extends TogglePrimitive.ToggleProps, VariantProps<typeof toggleVariants> {}
 
-function Toggle({
-    className,
-    variant = "default",
-    size = "default",
-    ...props
-}: ToggleProps) {
+function Toggle({ className, variant = "default", size = "default", ...props }: ToggleProps) {
     return (
         <TogglePrimitive.Root
             data-slot="toggle"
