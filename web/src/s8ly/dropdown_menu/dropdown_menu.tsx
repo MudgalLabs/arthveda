@@ -2,36 +2,22 @@ import { FC, Ref } from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 
 import { cn } from "@/lib/utils";
-import {
-    IconCheck,
-    IconChevronRight,
-    IconCircleFilled,
-} from "@/components/icons";
+import { IconCheck, IconChevronRight, IconCircleFilled } from "@/components/icons";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
-const DropdownMenuTrigger: FC<
-    DropdownMenuPrimitive.DropdownMenuTriggerProps
-> = ({ className, ...props }) => (
-    <DropdownMenuPrimitive.Trigger
-        className={cn("outline-none", className)}
-        {...props}
-    />
+const DropdownMenuTrigger: FC<DropdownMenuPrimitive.DropdownMenuTriggerProps> = ({ className, ...props }) => (
+    <DropdownMenuPrimitive.Trigger className={cn("outline-none", className)} {...props} />
 );
 
 const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
 
-interface DropdownMenuContentProps
-    extends DropdownMenuPrimitive.DropdownMenuContentProps {
+interface DropdownMenuContentProps extends DropdownMenuPrimitive.DropdownMenuContentProps {
     ref?: Ref<HTMLDivElement>;
+    arrow?: boolean;
 }
 
-const DropdownMenuContent: FC<DropdownMenuContentProps> = ({
-    children,
-    ref,
-    className,
-    ...props
-}) => {
+const DropdownMenuContent: FC<DropdownMenuContentProps> = ({ children, ref, arrow, className, ...props }) => {
     return (
         <DropdownMenuPrimitive.Portal>
             <DropdownMenuPrimitive.Content
@@ -43,7 +29,7 @@ const DropdownMenuContent: FC<DropdownMenuContentProps> = ({
                 ref={ref}
             >
                 {children}
-                <DropdownMenuPrimitive.Arrow fill="var(--color-accent)" />
+                {arrow && <DropdownMenuPrimitive.Arrow fill="var(--color-accent)" />}
             </DropdownMenuPrimitive.Content>
         </DropdownMenuPrimitive.Portal>
     );
@@ -51,13 +37,10 @@ const DropdownMenuContent: FC<DropdownMenuContentProps> = ({
 
 const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 
-const DropdownMenuItem: FC<DropdownMenuPrimitive.DropdownMenuItemProps> = ({
-    className,
-    ...props
-}) => (
+const DropdownMenuItem: FC<DropdownMenuPrimitive.DropdownMenuItemProps> = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Item
         className={cn(
-            "hover:bg-muted text-foreground focus:bg-accent flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 text-sm outline-none",
+            "hover:bg-muted text-foreground focus:bg-accent flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 text-base outline-none",
             className
         )}
         {...props}
@@ -124,37 +107,18 @@ const DropdownMenuLabel = ({
     return (
         <DropdownMenuPrimitive.Label
             data-inset={inset}
-            className={cn(
-                "p-1 text-sm font-semibold data-[inset]:pl-8",
-                className
-            )}
+            className={cn("p-1 text-sm font-semibold data-[inset]:pl-8", className)}
             {...props}
         />
     );
 };
 
-const DropdownMenuSeparator: FC<
-    DropdownMenuPrimitive.DropdownMenuSeparatorProps
-> = ({ className, ...props }) => (
-    <DropdownMenuPrimitive.Separator
-        className={cn("bg-border my-1 h-px", className)}
-        {...props}
-    />
+const DropdownMenuSeparator: FC<DropdownMenuPrimitive.DropdownMenuSeparatorProps> = ({ className, ...props }) => (
+    <DropdownMenuPrimitive.Separator className={cn("bg-border my-1 h-px", className)} {...props} />
 );
 
-const DropdownMenuShortcut = ({
-    className,
-    ...props
-}: React.ComponentProps<"span">) => {
-    return (
-        <span
-            className={cn(
-                "text-muted-foreground ml-auto text-xs tracking-widest",
-                className
-            )}
-            {...props}
-        />
-    );
+const DropdownMenuShortcut = ({ className, ...props }: React.ComponentProps<"span">) => {
+    return <span className={cn("text-muted-foreground ml-auto text-xs tracking-widest", className)} {...props} />;
 };
 
 const DropdownMenuSub = DropdownMenuPrimitive.DropdownMenuSub;

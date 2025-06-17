@@ -46,6 +46,8 @@ type generalStats struct {
 	AvgLossRFactor float64 `json:"avg_loss_r_factor"`
 }
 
+// TODO: As we already fetch positions in the service layer, we can pass them directly to this method
+// and we won't have to run a SQL query to get the general stats.
 func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.UUID, payload GetDashboardPayload, positions []*position.Position) (*generalStats, error) {
 	baseSQL := `
 		SELECT
@@ -65,8 +67,8 @@ func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.U
 			COALESCE(SUM(net_pnl_amount), 0) AS net_pnl,
 			COALESCE(SUM(total_charges_amount), 0) AS charges,
 
-			-- Average R
-			COALESCE(ROUND(AVG(r_factor), 2), 0) AS avg_r_factor,
+			-- Average R (only where risk_amount > 0)
+			COALESCE(ROUND(AVG(CASE WHEN risk_amount > 0 THEN r_factor END), 2), 0) AS avg_r_factor,
 
 			-- Average Win
 			COALESCE(ROUND(AVG(CASE WHEN status = 'win' THEN net_pnl_amount END), 2), 0) AS avg_win,
@@ -80,11 +82,11 @@ func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.U
 			-- Max Loss
 			COALESCE(MIN(net_pnl_amount), 0) AS max_loss,
 
-			-- Average R for Wins
-			COALESCE(ROUND(AVG(CASE WHEN status IN ('win', 'breakeven') THEN r_factor END), 2), 0) AS avg_win_r_factor,
+			-- Average R for Wins (only where risk_amount > 0)
+			COALESCE(ROUND(AVG(CASE WHEN status IN ('win', 'breakeven') AND risk_amount > 0 THEN r_factor END), 2), 0) AS avg_win_r_factor,
 
-			-- Average R for Losses
-			COALESCE(ROUND(AVG(CASE WHEN status = 'loss' THEN r_factor END), 2), 0) AS avg_loss_r_factor
+			-- Average R for Losses (only where risk_amount > 0)
+			COALESCE(ROUND(AVG(CASE WHEN status = 'loss' AND risk_amount > 0 THEN r_factor END), 2), 0) AS avg_loss_r_factor
 
 		FROM
 			position

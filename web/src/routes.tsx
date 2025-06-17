@@ -10,7 +10,6 @@ import DashboardLazy from "@/features/dashboard/dashboard_lazy";
 import AddPositionLazy from "@/features/position/add/add_position_lazy";
 import ListPositionsLazy from "@/features/position/list/list_positions_lazy";
 import ImportPositionsLazy from "@/features/position/import/import_positions_lazy";
-import SettingsLazy from "@/features/settings/settings_lazy";
 import ViewPositionLazy from "@/features/position/view/view_position_lazy";
 
 export const routes: Array<RouteObject> = [
@@ -44,12 +43,12 @@ export const routes: Array<RouteObject> = [
         path: ROUTES.importPositions,
         element: <ImportPositionsLazy />,
     },
+    // {
+    //     path: ROUTES.settings,
+    //     element: <SettingsLazy />,
+    // },
     {
-        path: ROUTES.settings,
-        element: <SettingsLazy />,
-    },
-    {
-        path: ROUTES.positionList,
+        path: ROUTES.explorePositions,
         element: <ListPositionsLazy />,
     },
     {

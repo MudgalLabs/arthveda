@@ -5,8 +5,6 @@ import { PositionListTable } from "@/features/position/components/position_list_
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import { prepareFilters } from "@/features/position/utils";
 import { apiHooks } from "@/hooks/api_hooks";
-import { useEffectOnce } from "@/hooks/use_effect_once";
-import { apiErrorHandler } from "@/lib/api";
 
 export const ListPositions = () => {
     const tableState = useListPositionsStore((s) => s.tableState);
@@ -28,16 +26,6 @@ export const ListPositions = () => {
                 : undefined,
     });
 
-    useEffectOnce(
-        (deps) => {
-            if (deps.queryResult.isError) {
-                apiErrorHandler(queryResult.error);
-            }
-        },
-        { queryResult },
-        (deps) => deps.queryResult.isError
-    );
-
     const positions = useMemo(() => {
         if (queryResult.data?.data?.items) {
             return Array.from(queryResult.data?.data.items);
@@ -48,18 +36,13 @@ export const ListPositions = () => {
 
     return (
         <>
-            <PageHeading
-                heading="Positions"
-                loading={queryResult?.isFetching}
-            />
+            <PageHeading heading="Explore Positions" loading={queryResult?.isFetching} />
 
             {queryResult?.data && (
                 <>
                     <PositionListTable
                         positions={positions}
-                        totalItems={
-                            queryResult.data.data.pagination.total_items
-                        }
+                        totalItems={queryResult.data.data.pagination.total_items}
                         state={tableState}
                         onStateChange={setTableState}
                         isLoading={queryResult.isLoading}

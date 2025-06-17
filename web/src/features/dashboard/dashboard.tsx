@@ -14,7 +14,7 @@ import { CumulativePnLCurve } from "@/features/dashboard/widget/cumulative_pnl_g
 import { OverviewCard } from "@/features/dashboard/widget/overview_card";
 import { WinningCard } from "@/features/dashboard/widget/winning_card";
 import { LosingCard } from "@/features/dashboard/widget/losing_card";
-import { IconChevronDownRight, IconGripVertical } from "@/components/icons";
+import { IconChevronDownRight, IconGripVertical, IconSearch } from "@/components/icons";
 import { Button, DatePicker } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
@@ -130,6 +130,11 @@ export const Dashboard = () => {
         setAppliedDates(dates);
     };
 
+    const isNewUser = useMemo(() => {
+        // No filters applied and no positions count means it's a new user.
+        return appliedDates.length === 0 && data?.positions_count === 0;
+    }, [appliedDates.length, data?.positions_count]);
+
     const content = useMemo(() => {
         if (isError) {
             return <p className="text-foreground-red">Error loading dashboard data.</p>;
@@ -145,7 +150,7 @@ export const Dashboard = () => {
 
         if (!data) return null;
 
-        if (appliedDates.length === 0 && data?.positions_count === 0) {
+        if (isNewUser) {
             return <WelcomeMessageForNewUser />;
         }
 
@@ -190,6 +195,7 @@ export const Dashboard = () => {
                             gross_pnl_amount={data.gross_pnl}
                             net_pnl_amount={data.net_pnl}
                             total_charges_amount={data.charges}
+                            r_factor={data.avg_r_factor}
                         />
                     </WidgetContainer>
                 </div>
@@ -231,27 +237,36 @@ export const Dashboard = () => {
         <>
             <PageHeading heading="Dashboard" />
 
-            <div className="flex-x justify-end">
-                <DatePicker
-                    className="w-full sm:w-fit"
-                    placeholder="Select date range"
-                    mode="range"
-                    dates={dates}
-                    onDatesChange={setDates}
-                    config={{
-                        dates: {
-                            toggle: true,
-                        },
-                    }}
-                    onClose={() => {}}
-                />
+            {!isNewUser && (
+                <>
+                    <div className="flex-x justify-end">
+                        <DatePicker
+                            className="w-full sm:w-fit"
+                            placeholder="Select date range"
+                            mode="range"
+                            dates={dates}
+                            onDatesChange={setDates}
+                            config={{
+                                dates: {
+                                    toggle: true,
+                                    maxDate: new Date(),
+                                },
+                            }}
+                        />
 
-                <Button loading={isFetching} onClick={() => applyFilters()}>
-                    Apply
-                </Button>
-            </div>
+                        <Button
+                            className="size-10"
+                            variant="outline"
+                            loading={isFetching}
+                            onClick={() => applyFilters()}
+                        >
+                            <IconSearch size={18} />
+                        </Button>
+                    </div>
 
-            <div className="h-4" />
+                    <div className="h-4" />
+                </>
+            )}
 
             {content}
         </>
@@ -273,7 +288,7 @@ function WelcomeMessageForNewUser() {
                 <p>Hey {data.name},</p>
                 <p>
                     Looks like you are new here and have no{" "}
-                    <Link className="text-base!" to={ROUTES.positionList}>
+                    <Link className="text-base!" to={ROUTES.explorePositions}>
                         positions
                     </Link>{" "}
                     added yet.

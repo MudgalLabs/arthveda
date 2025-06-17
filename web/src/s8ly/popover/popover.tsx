@@ -8,11 +8,13 @@ const PopoverTrigger = PopoverPrimitive.Trigger;
 interface PopoverContentProps extends PopoverPrimitive.PopoverContentProps {
     ref?: Ref<HTMLDivElement>;
     container?: HTMLElement | null;
+    arrow?: boolean;
 }
 
 const PopoverContent: FC<PopoverContentProps> = ({
     ref,
     container,
+    arrow = false,
     children,
     className,
     align = "center",
@@ -31,7 +33,7 @@ const PopoverContent: FC<PopoverContentProps> = ({
             {...props}
         >
             {children}
-            <PopoverPrimitive.Arrow fill="var(--color-accent)" />
+            {arrow && <PopoverPrimitive.Arrow fill="var(--color-accent)" />}
         </PopoverPrimitive.Content>
     </PopoverPrimitive.Portal>
 );

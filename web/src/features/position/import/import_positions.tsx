@@ -7,8 +7,7 @@ import { toast } from "@/components/toast";
 import { WithLabel } from "@/components/with_label";
 import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
-import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem, Checkbox } from "@/s8ly";
-import { PositionListTable } from "@/features/position/components/position_list_table";
+import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem, Checkbox, DataTable } from "@/s8ly";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
 import { DecimalString, Setter } from "@/lib/types";
@@ -19,6 +18,23 @@ import { MultiStep } from "@/components/multi_step/multi_step";
 import { LoadingScreen } from "@/components/loading_screen";
 import { Broker, BrokerName } from "@/lib/api/broker";
 import { Card } from "@/components/card";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import {
+    Position,
+    positionDirectionToString,
+    PositionInstrument,
+    positionStatusToString,
+} from "@/features/position/position";
+import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
+import { MultiStepProps } from "@/components/multi_step/multi_step_context";
+import {
+    ColumnDef,
+    getCoreRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from "@tanstack/react-table";
+import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 
 const INITIAL_STATE: State = {
     brokerID: "",
@@ -118,7 +134,7 @@ export const ImportPositions = () => {
                             action: {
                                 label: "View Positions",
                                 onClick: () => {
-                                    navigate(ROUTES.positionList);
+                                    navigate(ROUTES.explorePositions);
                                 },
                             },
                         };
@@ -389,7 +405,7 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
                             <BrokerTile
                                 key={broker.id}
                                 className={cn({
-                                    "border-primary": isSelected,
+                                    "border-primary border-2": isSelected,
                                 })}
                                 name={broker.name as BrokerName}
                                 image={getBrokerLogo(broker.name as BrokerName)}
@@ -406,10 +422,8 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
 
 import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
 import GrowwLogo from "@/assets/brokers/groww.svg";
-import { cn } from "@/lib/utils";
-import { Position, PositionInstrument } from "../position";
-import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
-import { MultiStepProps } from "@/components/multi_step/multi_step_context";
+import Decimal from "decimal.js";
+import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 
 const getBrokerLogo = (name: BrokerName) => {
     switch (name) {
@@ -756,7 +770,147 @@ const ReviewStep: FC<ReviewStepProps> = ({
 
             <div className="h-4" />
 
-            <PositionListTable positions={positions} hideFilters />
+            <ImportPositionsTable positions={positions} />
+        </>
+    );
+};
+
+// TODO: A lot of copy paste here from PositionListTable.
+// Maybe refactor <DataTableSmart /> by adding 1 prop called `useReactTableProps` which will
+// make it easy to use the same columns def with DataTableSmart in both places? I'm not too sure.
+const columns: ColumnDef<Position>[] = [
+    {
+        id: "opened",
+        meta: {
+            columnVisibilityHeader: "Opened At",
+        },
+        accessorKey: "opened_at",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Opened At" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        cell: ({ row }) => formatDate(new Date(row.original.opened_at), { time: true }),
+        enableSorting: true,
+    },
+    {
+        id: "symbol",
+        meta: {
+            columnVisibilityHeader: "Symbol",
+        },
+        accessorKey: "symbol",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Symbol" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        enableSorting: false,
+    },
+    {
+        id: "direction",
+        meta: {
+            columnVisibilityHeader: "Direction",
+        },
+        accessorKey: "direction",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Direction" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        cell: ({ row }) => positionDirectionToString(row.original.direction),
+        enableSorting: false,
+    },
+    {
+        id: "status",
+        meta: {
+            columnVisibilityHeader: "Status",
+        },
+        accessorKey: "status",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Status" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        cell: ({ row }) => positionStatusToString(row.original.status),
+        enableSorting: false,
+    },
+    {
+        id: "r_factor",
+        meta: {
+            columnVisibilityHeader: "R Factor",
+        },
+        accessorKey: "r_factor",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="R Factor" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        enableSorting: false,
+    },
+    {
+        id: "gross_pnl",
+        meta: {
+            columnVisibilityHeader: "Gross PnL",
+        },
+        accessorKey: "gross_pnl_amount",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Gross PnL" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        cell: ({ row }) =>
+            formatCurrency(row.original.gross_pnl_amount, {
+                currency: row.original.currency,
+            }),
+        enableSorting: false,
+    },
+    {
+        id: "net_pnl",
+        meta: {
+            columnVisibilityHeader: "Net PnL",
+        },
+        accessorKey: "net_pnl_amount",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Net PnL" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        cell: ({ row }) => (
+            <span
+                className={
+                    new Decimal(row.original.net_pnl_amount).isNegative()
+                        ? "text-foreground-red"
+                        : "text-foreground-green"
+                }
+            >
+                {formatCurrency(row.original.net_pnl_amount, {
+                    currency: row.original.currency,
+                })}
+            </span>
+        ),
+        enableSorting: false,
+    },
+    {
+        id: "net_return_percentage",
+        meta: {
+            columnVisibilityHeader: "Net Return %",
+        },
+        accessorKey: "net_return_percentage",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Net Return %" disabled={table.options.meta?.isFetching} column={column} />
+        ),
+        cell: ({ row }) => `${Number(row.original.net_return_percentage).toFixed(2)}%`,
+        enableSorting: false,
+    },
+];
+
+const ImportPositionsTable = ({ positions }: { positions: Position[] }) => {
+    const table = useReactTable({
+        data: positions,
+        columns,
+        initialState: {
+            sorting: [{ id: "opened", desc: true }],
+        },
+        getCoreRowModel: getCoreRowModel(),
+        rowCount: positions.length,
+        getPaginationRowModel: getPaginationRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        enableSortingRemoval: false,
+    });
+
+    return (
+        <>
+            <DataTable table={table} />
+
+            <div className="h-4" />
+
+            <DataTablePagination table={table} total={positions.length} />
         </>
     );
 };

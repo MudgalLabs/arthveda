@@ -6,14 +6,14 @@ export const ROUTES = {
 
     // App routes that will be accessible if a user is signed in.
     dashboard: "/dashboard",
-    settings: "/settings",
     // All routes related to Position.
-    positionList: "/position/list",
+    explorePositions: "/position/explore",
     addPosition: "/position/add",
     importPositions: "/position/import",
     // Using a function so that we can pass the `":id"` only in rendering route.
     // But for ROUTES_PROTECTED and RouteHandler, we don't pass `id`.
     viewPosition: (id = "") => `/position/${id}`,
+    // settings: "/settings",
 };
 
 export const ROUTES_PUBLIC = [ROUTES.index, ROUTES.notFound, ROUTES.signIn];
@@ -21,8 +21,8 @@ export const ROUTES_PUBLIC = [ROUTES.index, ROUTES.notFound, ROUTES.signIn];
 export const ROUTES_PROTECTED = [
     ROUTES.addPosition,
     ROUTES.dashboard,
+    ROUTES.explorePositions,
     ROUTES.importPositions,
-    ROUTES.settings,
-    ROUTES.positionList,
     ROUTES.viewPosition(),
+    // ROUTES.settings,
 ];

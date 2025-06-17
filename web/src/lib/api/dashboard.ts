@@ -7,6 +7,7 @@ interface GeneralStats {
     net_pnl: DecimalString;
     charges: DecimalString;
     win_rate: number;
+    avg_r_factor: number;
     avg_win_r_factor: number;
     avg_win: DecimalString;
     max_win: DecimalString;

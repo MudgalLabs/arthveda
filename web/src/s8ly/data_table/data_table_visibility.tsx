@@ -1,21 +1,13 @@
 import { Table } from "@tanstack/react-table";
 
-import {
-    Button,
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-} from "@/s8ly";
+import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuContent } from "@/s8ly";
 import { IconColumns } from "@/components/icons";
 
 interface DataTableVisibilityProps<TData> {
     table: Table<TData>;
 }
 
-export function DataTableVisibility<TData>({
-    table,
-}: DataTableVisibilityProps<TData>) {
+export function DataTableVisibility<TData>({ table }: DataTableVisibilityProps<TData>) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -30,24 +22,17 @@ export function DataTableVisibility<TData>({
             <DropdownMenuContent align="end" className="min-w-[150px]">
                 {table
                     .getAllColumns()
-                    .filter(
-                        (column) =>
-                            typeof column.accessorFn !== "undefined" &&
-                            column.getCanHide()
-                    )
+                    .filter((column) => column.getCanHide())
                     .map((column) => {
                         return (
                             <DropdownMenuCheckboxItem
                                 key={column.id}
                                 className="capitalize"
                                 checked={column.getIsVisible()}
-                                onCheckedChange={(value) =>
-                                    column.toggleVisibility(!!value)
-                                }
+                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                 onSelect={(e) => e.preventDefault()}
                             >
-                                {column.columnDef.meta
-                                    ?.columnVisibilityHeader || column.id}
+                                {column.columnDef.meta?.columnVisibilityHeader || column.id}
                             </DropdownMenuCheckboxItem>
                         );
                     })}

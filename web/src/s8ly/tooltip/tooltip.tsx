@@ -46,7 +46,7 @@ export const Tooltip: FC<TooltipProps> = ({
                     className={cn(
                         "z-100 m-2 max-w-96 rounded-md border-1 px-3 py-2 text-sm font-medium",
                         {
-                            "bg-muted border-border text-foreground": variant === "default",
+                            "bg-muted border-border text-foreground-muted": variant === "default",
                             "bg-surface-bg border-surface-border text-surface-foreground": variant === "info",
                             "bg-success-bg border-success-border text-success-foreground": variant === "success",
                             "bg-warning-bg border-warning-border text-warning-foreground": variant === "warning",

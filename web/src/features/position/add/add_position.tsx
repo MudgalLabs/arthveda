@@ -1,6 +1,5 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Decimal from "decimal.js";
 import { ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
 import {
@@ -35,7 +34,7 @@ import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { PageHeading } from "@/components/page_heading";
 import { apiErrorHandler } from "@/lib/api";
-import { DecimalString, Setter } from "@/lib/types";
+import { Setter } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { WithDebounce } from "@/components/with_debounce";
@@ -110,7 +109,7 @@ function AddPosition() {
             queryClient.invalidateQueries({
                 queryKey: ["usePositionsSearch"],
             });
-            navigate(ROUTES.positionList);
+            navigate(ROUTES.explorePositions);
         },
         onError: apiErrorHandler,
     });
@@ -245,9 +244,8 @@ function AddPosition() {
                     gross_pnl_amount={position.gross_pnl_amount}
                     net_pnl_amount={position.net_pnl_amount}
                     net_return_percentage={position.net_return_percentage}
+                    r_factor={Number(position.r_factor)}
                 />
-
-                <RFactorCard r_factor={position.r_factor} />
 
                 <DurationCard opened_at={position.opened_at} closed_at={position.closed_at} />
 
@@ -646,23 +644,6 @@ const AddTradeButton = memo(
         );
     }
 );
-
-const RFactorCard = memo(({ r_factor }: { r_factor: DecimalString }) => {
-    const rFactor = new Decimal(r_factor);
-    let textColor = "";
-
-    if (rFactor.isPositive() && !rFactor.isZero()) textColor = "text-foreground-green";
-    if (rFactor.isNegative() && !rFactor.isZero()) textColor = "text-foreground-red";
-
-    return (
-        <Card className="relative min-w-30">
-            <CardTitle>R Factor</CardTitle>
-            <CardContent className="absolute-center">
-                <p className={`heading ${textColor}`}>{r_factor}</p>
-            </CardContent>
-        </Card>
-    );
-});
 
 const DurationCard = memo(({ opened_at, closed_at }: { opened_at: Date; closed_at: Date | null }) => {
     const now = new Date();

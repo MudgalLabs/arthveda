@@ -1,20 +1,8 @@
 import { create } from "zustand";
-import {
-    DEFAULT_DATA_TABLE_STATE,
-    DataTableState,
-    dataTableStateSaveFn,
-} from "@/s8ly/data_table/data_table_state";
+import { DEFAULT_DATA_TABLE_STATE, DataTableState, dataTableStateSaveFn } from "@/s8ly/data_table/data_table_state";
 import { ROUTES } from "@/routes_constants";
-import {
-    loadFromLocalStorage,
-    loadFromURL,
-    saveToLocalStorage,
-    saveToURL,
-} from "@/lib/utils";
-import {
-    defaultPositionSearchFilters,
-    URL_KEY_FILTERS,
-} from "@/features/position/utils";
+import { loadFromLocalStorage, loadFromURL, saveToLocalStorage, saveToURL } from "@/lib/utils";
+import { defaultPositionSearchFilters, URL_KEY_FILTERS } from "@/features/position/utils";
 import { PositionSearchFilters } from "@/lib/api/position";
 
 interface ListPositionsStore extends PositionSearchFilters {
@@ -22,10 +10,7 @@ interface ListPositionsStore extends PositionSearchFilters {
     appliedFilters: PositionSearchFilters;
 
     setTableState: (state: DataTableState) => void;
-    updateFilter: <K extends keyof PositionSearchFilters>(
-        key: K,
-        value: PositionSearchFilters[K]
-    ) => void;
+    updateFilter: <K extends keyof PositionSearchFilters>(key: K, value: PositionSearchFilters[K]) => void;
     resetFilter: <K extends keyof PositionSearchFilters>(key: K) => void;
     resetFilters: () => void;
     applyFilters: () => void;
@@ -36,16 +21,12 @@ const initial = loadFromURL(URL_KEY_FILTERS, defaultPositionSearchFilters);
 export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
     ...initial,
 
-    tableState:
-        loadFromLocalStorage(ROUTES.positionList) ?? DEFAULT_DATA_TABLE_STATE,
+    tableState: loadFromLocalStorage(ROUTES.explorePositions) ?? DEFAULT_DATA_TABLE_STATE,
 
     appliedFilters: { ...initial },
 
     setTableState: (state) => {
-        saveToLocalStorage(
-            ROUTES.positionList,
-            JSON.stringify(dataTableStateSaveFn(state))
-        );
+        saveToLocalStorage(ROUTES.explorePositions, JSON.stringify(dataTableStateSaveFn(state)));
         set({ tableState: state });
     },
 
@@ -65,9 +46,7 @@ export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
 
     resetFilters: () => {
         const resets = { ...defaultPositionSearchFilters };
-        const flatResets = Object.fromEntries(
-            Object.entries(resets)
-        ) as Partial<ListPositionsStore>;
+        const flatResets = Object.fromEntries(Object.entries(resets)) as Partial<ListPositionsStore>;
 
         set({
             ...flatResets,
@@ -78,10 +57,7 @@ export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
 
     applyFilters: () => {
         const applied: PositionSearchFilters = Object.fromEntries(
-            Object.keys(defaultPositionSearchFilters).map((key) => [
-                key,
-                get()[key as keyof PositionSearchFilters],
-            ])
+            Object.keys(defaultPositionSearchFilters).map((key) => [key, get()[key as keyof PositionSearchFilters]])
         ) as PositionSearchFilters;
 
         set({ appliedFilters: applied });

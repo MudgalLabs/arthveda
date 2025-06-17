@@ -10,7 +10,6 @@ import {
     IconImport,
     IconLogout,
     IconPlus,
-    IconSettings,
     IconTrades,
     IconType,
 } from "@/components/icons";
@@ -30,7 +29,7 @@ import { apiErrorHandler } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/routes_constants";
 
-const sidebarRoutes = [ROUTES.dashboard, ROUTES.positionList, ROUTES.addPosition, ROUTES.importPositions];
+const sidebarRoutes = [ROUTES.dashboard, ROUTES.explorePositions, ROUTES.addPosition, ROUTES.importPositions];
 
 export const Sidebar = () => {
     const { data } = useAuthentication();
@@ -82,13 +81,13 @@ export const Sidebar = () => {
                         />
                     </Link>
 
-                    <Link to={ROUTES.positionList} variant="unstyled">
+                    <Link to={ROUTES.explorePositions} variant="unstyled">
                         <SidebarNavItem
-                            label="Positions"
+                            label="Explore Positions"
                             Icon={IconTrades}
                             open={isOpen}
-                            isActive={activeRoute === ROUTES.positionList}
-                            onClick={() => handleClick(ROUTES.positionList)}
+                            isActive={activeRoute === ROUTES.explorePositions}
+                            onClick={() => handleClick(ROUTES.explorePositions)}
                         />
                     </Link>
 
@@ -195,6 +194,8 @@ interface SidebarProfileProps {
 const SidebarProfile: FC<SidebarProfileProps> = (props) => {
     const { expanded, menuOpen, email, profileImageURL, displayName, clickable, className } = props;
 
+    const [error, setError] = useState(false);
+
     return (
         <div
             className={cn(
@@ -207,8 +208,10 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
                 className
             )}
         >
-            {profileImageURL ? (
-                <img className="h-10 rounded-sm" src={profileImageURL} />
+            {/* Right now we are directly loading user's profile image from Google. On several fast reloads,
+            Google starts rate limiting us and return 429. So `error` state lets us deefault to */}
+            {profileImageURL && !error ? (
+                <img className="h-10 rounded-sm" src={profileImageURL} onError={() => setError(true)} />
             ) : (
                 <DefaultProfileAvatar height={40} />
             )}
@@ -237,7 +240,7 @@ interface SidebarProfileMenuProps {
 }
 
 const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
-    const { sidebarOpen, setActiveRoute, email, displayName = "", profileImageURL = "", isMobile } = props;
+    const { sidebarOpen, email, displayName = "", profileImageURL = "", isMobile } = props;
 
     const [menuOpened, setMenuOpened] = useState(false);
 
@@ -273,27 +276,31 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
                 align={isMobile ? "start" : "end"}
                 className="min-w-[240px]"
             >
-                <DropdownMenuItem className="cursor-default hover:bg-inherit" disabled>
-                    <SidebarProfile
-                        email={email}
-                        profileImageURL={profileImageURL}
-                        displayName={displayName}
-                        menuOpen={false}
-                        expanded
-                        clickable={false}
-                    />
-                </DropdownMenuItem>
+                {!sidebarOpen && (
+                    <>
+                        <DropdownMenuItem className="cursor-default hover:bg-inherit" disabled>
+                            <SidebarProfile
+                                email={email}
+                                profileImageURL={profileImageURL}
+                                displayName={displayName}
+                                menuOpen={false}
+                                expanded
+                                clickable={false}
+                            />
+                        </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
+                        <DropdownMenuSeparator />
+                    </>
+                )}
 
-                <Link to={ROUTES.settings} variant="unstyled">
+                {/* <Link to={ROUTES.settings} variant="unstyled">
                     <DropdownMenuItem onClick={() => setActiveRoute(ROUTES.settings)}>
                         <IconSettings size={18} />
                         Settings
                     </DropdownMenuItem>
                 </Link>
 
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator /> */}
 
                 <DropdownMenuItem
                     className={cn({
@@ -302,7 +309,7 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
                     onSelect={() => signout()}
                     disabled={isSignoutPending}
                 >
-                    <IconLogout size={18} />
+                    <IconLogout size={20} />
                     Sign out
                 </DropdownMenuItem>
             </DropdownMenuContent>

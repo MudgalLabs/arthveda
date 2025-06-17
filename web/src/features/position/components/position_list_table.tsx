@@ -30,8 +30,9 @@ import Decimal from "decimal.js";
 export interface PositionListTable {
     positions: Position[];
     hideFilters?: boolean;
+    hideColumnVisibility?: boolean;
     totalItems?: number;
-    state?: DataTableState;
+    state?: Partial<DataTableState>;
     onStateChange?: (newState: DataTableState) => void;
     isError?: boolean;
     isLoading?: boolean;
@@ -39,7 +40,17 @@ export interface PositionListTable {
 }
 
 export const PositionListTable: FC<PositionListTable> = memo(
-    ({ positions, hideFilters = false, totalItems, state, onStateChange, isError, isFetching, isLoading }) => {
+    ({
+        positions,
+        hideFilters = false,
+        hideColumnVisibility = false,
+        totalItems,
+        state,
+        onStateChange,
+        isError,
+        isFetching,
+        isLoading,
+    }) => {
         const appliedFilters = useListPositionsStore((s) => s.appliedFilters);
         const resetFilters = useListPositionsStore((s) => s.resetFilters);
         const resetFilter = useListPositionsStore((s) => s.resetFilter);
@@ -103,7 +114,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                             <div className="space-y-4">
                                 <div className="flex justify-end gap-x-2">
                                     {!hideFilters && <PositionListFilters isFetching={isFetching} />}
-                                    <DataTableVisibility table={table} />
+                                    {!hideColumnVisibility && <DataTableVisibility table={table} />}
                                 </div>
 
                                 {!hideFilters && activeFiltersRow}
@@ -124,8 +135,11 @@ export const PositionListTable: FC<PositionListTable> = memo(
 
 const columns: ColumnDef<Position>[] = [
     {
-        id: "view_position",
-        header: "",
+        id: "actions",
+        meta: {
+            columnVisibilityHeader: "Actions",
+        },
+        header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
         cell: ({ row }) => (
             <div className="flex-x">
                 <Link to={`/position/${row.original.id}`}>
@@ -139,8 +153,12 @@ const columns: ColumnDef<Position>[] = [
                 <Popover>
                     <Tooltip content="View Notes" delayDuration={500}>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" size="icon">
-                                <IconNotebookPen className="text-foreground-muted" size={18} />
+                            <Button
+                                className="text-foreground-muted hover:text-foreground"
+                                variant="outline"
+                                size="icon"
+                            >
+                                <IconNotebookPen size={18} />
                             </Button>
                         </PopoverTrigger>
                     </Tooltip>
@@ -155,7 +173,7 @@ const columns: ColumnDef<Position>[] = [
                 </Popover>
             </div>
         ),
-        enableHiding: false,
+        enableHiding: true,
         enableSorting: false,
     },
     {

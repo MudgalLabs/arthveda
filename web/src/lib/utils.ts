@@ -48,25 +48,11 @@ interface formatDateOptions {
 export function formatDate(date: Date, options: formatDateOptions = {}) {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    const day = date.getDate();
+    const day = String(date.getDate()).padStart(2, "0");
     const year = date.getFullYear();
     const month = months[date.getMonth()];
 
-    const getOrdinalSuffix = (n: number) => {
-        if (n >= 11 && n <= 13) return n + "th";
-        switch (n % 10) {
-            case 1:
-                return n + "st";
-            case 2:
-                return n + "nd";
-            case 3:
-                return n + "rd";
-            default:
-                return n + "th";
-        }
-    };
-
-    const formattedDate = `${month} ${getOrdinalSuffix(day)}, ${year}`;
+    const formattedDate = `${month} ${day}, ${year}`;
 
     if (options.time) {
         const hours = String(date.getHours()).padStart(2, "0");

@@ -2,8 +2,6 @@ import { createContext, FC, PropsWithChildren, useContext, useMemo } from "react
 
 import { apiHooks } from "@/hooks/api_hooks";
 import { UserMeResponse } from "@/lib/api/user";
-import { apiErrorHandler } from "@/lib/api";
-import { useEffectOnce } from "@/hooks/use_effect_once";
 
 interface AuthenticationContextType {
     isLoading: boolean;
@@ -18,19 +16,7 @@ const AuthenticationContext = createContext<AuthenticationContextType>({
 });
 
 export const AuthenticationProvider: FC<PropsWithChildren> = ({ children }) => {
-    const { data, isSuccess, isLoading, isError, error } = apiHooks.user.useMe();
-
-    useEffectOnce(
-        (deps) => {
-            if (deps.isError && deps.error) {
-                apiErrorHandler(error);
-            }
-        },
-        { isError, error },
-        (deps) => {
-            return deps.isError;
-        }
-    );
+    const { data, isSuccess, isLoading } = apiHooks.user.useMe();
 
     const value = useMemo(
         () => ({

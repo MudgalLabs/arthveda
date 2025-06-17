@@ -13,6 +13,7 @@ export const OverviewCard = memo(
         net_pnl_amount,
         gross_pnl_amount,
         total_charges_amount,
+        r_factor,
         charges_as_percentage_of_net_pnl,
         net_return_percentage = "",
         currency,
@@ -21,13 +22,14 @@ export const OverviewCard = memo(
         net_pnl_amount: DecimalString;
         gross_pnl_amount: DecimalString;
         total_charges_amount: DecimalString;
+        r_factor: number;
         charges_as_percentage_of_net_pnl?: DecimalString;
         net_return_percentage?: DecimalString;
         currency?: CurrencyCode;
         className?: string;
     }) => {
         let trendingIcon: ReactNode = null;
-        let textColor = "text-foreground";
+        let netPnLColor = "text-foreground";
         const netPnL = new Decimal(net_pnl_amount);
         const grossPnL = new Decimal(gross_pnl_amount);
         const charges = new Decimal(total_charges_amount);
@@ -35,10 +37,10 @@ export const OverviewCard = memo(
 
         if (!netPnL.isZero() && netPnL.isPositive()) {
             trendingIcon = <IconTrendingUp size={20} />;
-            textColor = "text-foreground-green";
+            netPnLColor = "text-foreground-green";
         } else if (netPnL.isNegative()) {
             trendingIcon = <IconTrendingDown />;
-            textColor = "text-foreground-red";
+            netPnLColor = "text-foreground-red";
         }
 
         if (!charges_as_percentage_of_net_pnl) {
@@ -54,17 +56,31 @@ export const OverviewCard = memo(
             progressValue = 0;
         }
 
+        const rFactor = new Decimal(r_factor);
+        let rFactorColor = "";
+
+        if (rFactor.isPositive() && !rFactor.isZero()) rFactorColor = "text-foreground-green";
+        if (rFactor.isNegative() && !rFactor.isZero()) rFactorColor = "text-foreground-red";
+
         return (
             <Card className={cn("flex h-full w-full flex-col gap-y-2", className)}>
                 <CardTitle>Overview</CardTitle>
 
-                <CardContent className="flex h-full flex-col justify-between">
-                    <div>
-                        <span className="label-muted">Net</span>
-                        <div className={`flex items-end gap-x-2 ${textColor}`}>
-                            <p className="heading leading-none">{formatCurrency(net_pnl_amount, { currency })}</p>
-                            {net_return_percentage && <p>{netReturnPercentage.toFixed(2).toString()}%</p>}
-                            <p>{trendingIcon}</p>
+                <CardContent className="flex-y h-full flex-col justify-between">
+                    <div className="flex-x justify-between gap-x-12">
+                        <div>
+                            <span className="label-muted">Net</span>
+                            <div className={`flex items-end gap-x-2 ${netPnLColor}`}>
+                                <p className="heading leading-none">{formatCurrency(net_pnl_amount, { currency })}</p>
+                                {net_return_percentage && <p>{netReturnPercentage.toFixed(2).toString()}%</p>}
+                                <p>{trendingIcon}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <span className="label-muted">R Factor</span>
+                            <div className={`flex items-end gap-x-2`}>
+                                <p className={`heading leading-none ${rFactorColor}`}>{r_factor}</p>
+                            </div>
                         </div>
                     </div>
 
