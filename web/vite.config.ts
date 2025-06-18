@@ -15,5 +15,7 @@ export default ({ mode }) => {
                 "@": "/src",
             },
         },
+        envPrefix: "ARTHVEDA_",
+        envDir: mode === "development" ? "../" : undefined,
     });
 };

@@ -1,16 +1,9 @@
-networks:
-    arthveda_network:
-        name: arthveda_network
-
 services:
     arthveda_web:
         container_name: arthveda_web
         image: ceoshikhar/arthveda_web
         build:
             dockerfile: web.dockerfile
-        environment:
-            VITE_API_URL: ${API_URL}
-            VITE_GOOGLE_OAUTH_URL: ${VITE_GOOGLE_OAUTH_URL}
         ports:
             - 6969:6969
         networks:
@@ -25,18 +18,20 @@ services:
         build:
             dockerfile: api.dockerfile
         environment:
-            API_ENV: production
-            API_LOG_LEVEL: ${API_LOG_LEVEL}
-            API_LOG_FILE: arthveda_api.log
-            DB_URL: ${DB_URL}
-            WEB_URL: ${WEB_URL}
-            GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL}
-            GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-            GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+            ARTHVEDA_API_ENV: production
+            ARTHVEDA_API_LOG_LEVEL: ${ARTHVEDA_API_LOG_LEVEL}
+            ARTHVEDA_API_LOG_FILE: ./logs/${ARTHVEDA_API_LOG_FILE}
+            ARTHVEDA_DB_URL: ${ARTHVEDA_DB_URL}
+            ARTHVEDA_WEB_URL: ${ARTHVEDA_WEB_URL}
+            ARTHVEDA_GOOGLE_REDIRECT_URL: ${ARTHVEDA_GOOGLE_REDIRECT_URL}
+            ARTHVEDA_GOOGLE_CLIENT_ID: ${ARTHVEDA_GOOGLE_CLIENT_ID}
+            ARTHVEDA_GOOGLE_CLIENT_SECRET: ${ARTHVEDA_GOOGLE_CLIENT_SECRET}
         ports:
             - 1337:1337
         networks:
             - arthveda_network
+        volumes:
+            - ./volumes/api_logs:/app/logs
         depends_on:
             arthveda_db:
                 condition: service_healthy
@@ -47,9 +42,9 @@ services:
         image: postgres:17.4
         environment:
             PGPORT: 42069
-            POSTGRES_DB: arthveda
-            POSTGRES_USER: ${DB_USER}
-            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${ARTHVEDA_DB_NAME}
+            POSTGRES_USER: ${ARTHVEDA_DB_USER}
+            POSTGRES_PASSWORD: ${ARTHVEDA_DB_PASSWORD}
         ports:
             - 42069:42069
         networks:
@@ -57,7 +52,15 @@ services:
         volumes:
             - ./volumes/db_data:/var/lib/postgresql/data
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d arthveda"]
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready -U ${ARTHVEDA_DB_USER} -d ${ARTHVEDA_DB_NAME}",
+                ]
             interval: 10s
             timeout: 5s
             retries: 5
+
+networks:
+    arthveda_network:
+        name: arthveda_network

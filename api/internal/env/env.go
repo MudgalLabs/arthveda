@@ -28,14 +28,14 @@ func Init() {
 	// This is because the .env file is in the root of the project.
 	err := godotenv.Load("../.env")
 
-	API_ENV = os.Getenv("API_ENV")
-	LOG_LEVEL = os.Getenv("API_LOG_LEVEL")
-	LOG_FILE = os.Getenv("API_LOG_FILE")
-	DB_URL = os.Getenv("DB_URL")
-	WEB_URL = os.Getenv("WEB_URL")
-	GOOGLE_REDIRECT_URL = os.Getenv("GOOGLE_REDIRECT_URL")
-	GOOGLE_CLIENT_ID = os.Getenv("GOOGLE_CLIENT_ID")
-	GOOGLE_CLIENT_SECRET = os.Getenv("GOOGLE_CLIENT_SECRET")
+	API_ENV = os.Getenv("ARTHVEDA_API_ENV")
+	LOG_LEVEL = os.Getenv("ARTHVEDA_API_LOG_LEVEL")
+	LOG_FILE = os.Getenv("ARTHVEDA_API_LOG_FILE")
+	DB_URL = os.Getenv("ARTHVEDA_DB_URL")
+	WEB_URL = os.Getenv("ARTHVEDA_WEB_URL")
+	GOOGLE_REDIRECT_URL = os.Getenv("ARTHVEDA_GOOGLE_REDIRECT_URL")
+	GOOGLE_CLIENT_ID = os.Getenv("ARTHVEDA_GOOGLE_CLIENT_ID")
+	GOOGLE_CLIENT_SECRET = os.Getenv("ARTHVEDA_GOOGLE_CLIENT_SECRET")
 
 	// TODO: We should validate the environment variables here to ensure they are set correctly.
 

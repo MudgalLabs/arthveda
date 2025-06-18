@@ -3,11 +3,11 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { isProd } from "@/lib/utils";
 import { ROUTES } from "@/routes_constants";
 
-let API_URL = import.meta.env.VITE_API_URL;
+let API_URL = import.meta.env.ARTHVEDA_API_URL;
 
 if (!API_URL) {
     if (isProd()) {
-        throw new Error("API URL is missing");
+        throw new Error("API's URL is not set");
     } else {
         API_URL = "http://localhost:1337";
     }

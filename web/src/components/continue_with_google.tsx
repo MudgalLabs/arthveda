@@ -9,7 +9,7 @@ interface ContinueWithGoogleProps extends ButtonProps {}
 export const ContinueWithGoogle: FC<ContinueWithGoogleProps> = (props) => {
     const { className, ...rest } = props;
 
-    let googleOAuthURL = import.meta.env.VITE_GOOGLE_OAUTH_URL;
+    let googleOAuthURL = import.meta.env.ARTHVEDA_GOOGLE_OAUTH_URL;
 
     if (!googleOAuthURL) {
         if (isProd()) {
