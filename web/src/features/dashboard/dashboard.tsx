@@ -14,7 +14,7 @@ import { CumulativePnLCurve } from "@/features/dashboard/widget/cumulative_pnl_g
 import { OverviewCard } from "@/features/dashboard/widget/overview_card";
 import { WinningCard } from "@/features/dashboard/widget/winning_card";
 import { LosingCard } from "@/features/dashboard/widget/losing_card";
-import { IconChevronDownRight, IconGripVertical, IconSearch } from "@/components/icons";
+import { IconSearch } from "@/components/icons";
 import { Button, DatePicker } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
@@ -31,6 +31,7 @@ const lgLayout: Layout[] = [
         h: 4,
         minW: 3,
         minH: 4,
+        static: true,
     },
     {
         i: "winning",
@@ -174,18 +175,20 @@ export const Dashboard = () => {
                 resizeHandles={["se"]}
                 // @ts-ignore - The types from react-grid-layout are not fully accurate with the current version.
                 resizeHandle={(handleAxis, ref) => {
-                    if (handleAxis === "se") {
-                        return (
-                            <div
-                                ref={ref}
-                                key="se"
-                                className="text-accent absolute right-0 bottom-0 cursor-se-resize rounded-sm"
-                            >
-                                <IconChevronDownRight size={18} />
-                            </div>
-                        );
-                    }
-                    return null;
+                    // Disabling the resize handle for now until we have better way to store the layout.
+                    return <div></div>;
+
+                    // if (handleAxis === "se") {
+                    //     return (
+                    //         <div
+                    //             ref={ref}
+                    //             key="se"
+                    //             className="text-accent absolute right-0 bottom-0 cursor-se-resize rounded-sm"
+                    //         >
+                    //             <IconChevronDownRight size={18} />
+                    //         </div>
+                    //     );
+                    // }
                 }}
                 draggableHandle=".custom-drag-handle"
             >
@@ -257,7 +260,7 @@ export const Dashboard = () => {
                         <Button
                             className="size-10"
                             variant="outline"
-                            loading={isFetching}
+                            disabled={isFetching}
                             onClick={() => applyFilters()}
                         >
                             <IconSearch size={18} />
@@ -313,13 +316,16 @@ interface WidgetContainerProps {
     children?: React.ReactNode;
 }
 
-const WidgetContainer: FC<WidgetContainerProps> = (props) => {
-    return (
-        <div className="relative h-full w-full">
-            {props.children}
-            <div className="custom-drag-handle text-accent absolute top-1 right-0 cursor-move">
-                <IconGripVertical size={16} />
-            </div>
-        </div>
-    );
+const WidgetContainer: FC<WidgetContainerProps> = ({ children }) => {
+    // Disabling the drag handle for now until we have better way to store the layout.
+    return children;
+
+    // return (
+    //     <div className="relative h-full w-full">
+    //         {children}
+    //         <div className="custom-drag-handle text-accent absolute top-1 right-0 cursor-move">
+    //             <IconGripVertical size={16} />
+    //         </div>
+    //     </div>
+    // );
 };
