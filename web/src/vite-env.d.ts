@@ -23,6 +23,11 @@ interface ImportMetaEnv {
      * If "true", enables password-based authentication.
      */
     readonly ARTHVEDA_ENABLE_SIGN_IN: string;
+
+    /**
+     * If "true", this shows the login credentials on the login screen for the demo account.
+     */
+    readonly ARTHVEDA_ENABLE_DEMO: string;
 }
 
 interface ImportMeta {

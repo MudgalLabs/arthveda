@@ -18,6 +18,7 @@ import { PasswordInput } from "@/components/input/password_input";
 export function SignIn() {
     const isPasswordAuthEnabled = import.meta.env.ARTHVEDA_ENABLE_SIGN_IN === "true";
     const isGoogleOauthEnabled = import.meta.env.ARTHVEDA_ENABLE_GOOGLE_OAUTH === "true";
+    const isDemo = import.meta.env.ARTHVEDA_ENABLE_DEMO === "true";
 
     const client = useQueryClient();
     const navigate = useNavigate();
@@ -57,6 +58,7 @@ export function SignIn() {
                 <Card className="bg-transparent px-6 py-4">
                     <CardContent className="flex flex-col items-center justify-center gap-y-4">
                         <h1 className="heading">Sign in to Arthveda</h1>
+                        {isDemo && <p>Email is "demo" and Password is "demo"</p>}
 
                         {isPasswordAuthEnabled && (
                             <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
