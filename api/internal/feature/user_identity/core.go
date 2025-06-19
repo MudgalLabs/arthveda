@@ -54,3 +54,9 @@ func new(email, password, oauthProvider string, verified bool) (*UserIdentity, e
 
 	return userIdentity, nil
 }
+
+// successfulSignin updates the user when they successfully sign in.
+func (ui *UserIdentity) successfulSignin() {
+	now := time.Now().UTC()
+	ui.LastLoginAt = &now
+}

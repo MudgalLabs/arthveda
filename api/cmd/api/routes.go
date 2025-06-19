@@ -45,12 +45,15 @@ func initRouter(a *app) http.Handler {
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
-			if env.ENABLE_PASSWORD_AUTH {
+			if env.ENABLE_SIGN_UP {
 				r.Post("/sign-up", signUpHandler(a.service.UserIdentityService))
+			}
+
+			if env.ENABLE_SIGN_IN {
 				r.Post("/sign-in", signInHandler(a.service.UserIdentityService))
 			}
 
-			if env.ENABLE_GOOGLE_OAUTH {
+			if env.ENABLE_OAUTH {
 				r.Get("/oauth/google", googleSignInHandler(a.service.UserIdentityService))
 				r.Get("/oauth/google/callback", googleCallbackHandler(a.service.UserIdentityService))
 			}

@@ -16,8 +16,8 @@ import { apiErrorHandler } from "@/lib/api";
 import { PasswordInput } from "@/components/input/password_input";
 
 export function SignIn() {
-    const isPasswordAuthEnabled = import.meta.env.ARTHVEDA_ENABLE_PASSWORD_AUTH === "true";
-    const isGoogleOauthEnabled = import.meta.env.ARTHVEDA_ENABLE_GOOGLE_OAUTH === "true";
+    const isPasswordAuthEnabled = import.meta.env.ARTHVEDA_ENABLE_SIGN_IN === "true";
+    const isGoogleOauthEnabled = import.meta.env.ARTHVEDA_ENABLE_OAUTH === "true";
 
     const client = useQueryClient();
     const navigate = useNavigate();

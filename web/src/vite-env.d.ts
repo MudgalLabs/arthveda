@@ -17,12 +17,12 @@ interface ImportMetaEnv {
     /**
      * If "true", enables Google OAuth for authentication.
      */
-    readonly ARTHVEDA_ENABLE_GOOGLE_OAUTH: string;
+    readonly ARTHVEDA_ENABLE_OAUTH: string;
 
     /**
      * If "true", enables password-based authentication.
      */
-    readonly ARTHVEDA_ENABLE_PASSWORD_AUTH: string;
+    readonly ARTHVEDA_ENABLE_SIGN_IN: string;
 }
 
 interface ImportMeta {
