@@ -34,7 +34,7 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 
 		if code == "" {
 			l.Error("Missing code parameter in OAuth callback")
-			http.Redirect(w, r, webURL+"/sign-in?oauth_error=true", http.StatusFound)
+			http.Redirect(w, r, webURL+"?oauth_error=true", http.StatusFound)
 			return
 		}
 
@@ -42,12 +42,12 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 
 		if err != nil {
 			l.Errorw("Error during OAuth Google callback", "error", err)
-			http.Redirect(w, r, webURL+"/sign-in?oauth_error=true", http.StatusFound)
+			http.Redirect(w, r, webURL+"?oauth_error=true", http.StatusFound)
 			return
 		}
 
 		session.Manager.Put(ctx, "user_id", userProfile.UserID.String())
-		http.Redirect(w, r, webURL, http.StatusFound)
+		http.Redirect(w, r, webURL+"?oauth_success=true", http.StatusFound)
 	}
 }
 

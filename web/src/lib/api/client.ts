@@ -28,7 +28,7 @@ client.interceptors.response.use(
         if (status === 401 || status === 403) {
             if (window.location.pathname !== ROUTES.signIn) {
                 // Redirect to sign-in page if the user is not authenticated.
-                window.location.assign(ROUTES.signIn);
+                window.history.pushState({}, "", ROUTES.signIn);
             }
         }
 

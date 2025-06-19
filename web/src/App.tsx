@@ -5,17 +5,47 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import "@/index.css";
 
 import { useAuthentication } from "@/features/auth/auth_context";
-import { ToastProvider } from "@/components/toast";
+import { toast, ToastProvider } from "@/components/toast";
 import { AuthenticationProvider } from "@/features/auth/auth_context";
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/routes_constants";
+import { useURLState } from "@/hooks/use_url_state";
+import { useEffectOnce } from "@/hooks/use_effect_once";
 
 const AppLayout = lazy(() => import("@/app_layout"));
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
-    const { isAuthenticated, isLoading } = useAuthentication();
+    const { isAuthenticated, isLoading, data } = useAuthentication();
     const { pathname } = useLocation();
+
+    const [isOAuthSuccess] = useURLState("oauth_success", false);
+    const [isOAuthError] = useURLState("oauth_error", false);
+
+    useEffectOnce(
+        (deps) => {
+            if (deps.isOAuthError) {
+                toast.error("Failed to Continue with Google");
+            }
+        },
+        { isOAuthError },
+        (deps) => !!deps.isOAuthError
+    );
+
+    useEffectOnce(
+        (deps) => {
+            let message = "Welcome to Arthveda";
+
+            const name = deps.data?.name;
+            if (name) {
+                message = `Welcome back, ${name}`;
+            }
+
+            toast.info(message, { icon: "😎" });
+        },
+        { isOAuthSuccess, data, isLoading },
+        (deps) => deps.isOAuthSuccess && !deps.isLoading
+    );
 
     if (isLoading) {
         return (

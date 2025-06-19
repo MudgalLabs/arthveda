@@ -250,7 +250,6 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
         onSuccess: async () => {
             // NOTE: Make sure to await otherwise the screen will flicker.
             await client.invalidateQueries();
-            window.location.assign("/");
             toast.info("Goodbye! Thank you for using Arthveda", {
                 icon: <p>👋</p>,
             });
