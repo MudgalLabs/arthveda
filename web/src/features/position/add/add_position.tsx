@@ -233,7 +233,7 @@ function AddPosition() {
 
     return (
         <>
-            <PageHeading heading={isCreatingPosition ? "Add Position" : "Position"} loading={isComputing} />
+            <PageHeading heading="Position" loading={isComputing} />
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:h-44 sm:flex-row">
                 <OverviewCard
@@ -409,7 +409,7 @@ function AddPosition() {
                         loading={isCreating || isUpdating}
                         disabled={(isEditingPosition && !hasPositionDataChanged) || !canSave}
                     >
-                        Save
+                        {isCreatingPosition ? "Create" : "Update"}
                     </Button>
                 </div>
             </div>
