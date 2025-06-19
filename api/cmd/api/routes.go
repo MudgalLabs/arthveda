@@ -53,7 +53,7 @@ func initRouter(a *app) http.Handler {
 				r.Post("/sign-in", signInHandler(a.service.UserIdentityService))
 			}
 
-			if env.ENABLE_OAUTH {
+			if env.ENABLE_GOOGLE_OAUTH {
 				r.Get("/oauth/google", googleSignInHandler(a.service.UserIdentityService))
 				r.Get("/oauth/google/callback", googleCallbackHandler(a.service.UserIdentityService))
 			}

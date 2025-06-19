@@ -17,7 +17,7 @@ interface ImportMetaEnv {
     /**
      * If "true", enables Google OAuth for authentication.
      */
-    readonly ARTHVEDA_ENABLE_OAUTH: string;
+    readonly ARTHVEDA_ENABLE_GOOGLE_OAUTH: string;
 
     /**
      * If "true", enables password-based authentication.
