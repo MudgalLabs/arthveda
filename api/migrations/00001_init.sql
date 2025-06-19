@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS user_identity (
         id UUID PRIMARY KEY,
         email VARCHAR(255) NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL DEFAULT '',
         verified BOOLEAN NOT NULL,
         oauth_provider VARCHAR(32) NOT NULL,
         last_login_at TIMESTAMPTZ,

@@ -1,58 +1,117 @@
+import { FormEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+
 import { ContinueWithGoogle } from "@/components/continue_with_google";
 import { Branding } from "@/components/branding";
-import { IconGithub } from "@/components/icons";
+import { IconArrowUpRight } from "@/components/icons";
 import { Card, CardContent } from "@/components/card";
+import { WithLabel } from "@/components/with_label";
+import { Button, Input, Label } from "@/s8ly";
+import { apiHooks } from "@/hooks/api_hooks";
+import { SigninResponse } from "@/lib/api/auth";
+import { toast } from "@/components/toast";
+import { ROUTES } from "@/routes_constants";
+import { apiErrorHandler } from "@/lib/api";
+import { PasswordInput } from "@/components/input/password_input";
 
 export function SignIn() {
+    const client = useQueryClient();
+    const navigate = useNavigate();
+
+    const { mutate: signin, isPending } = apiHooks.auth.useSignin({
+        onSuccess: async (res) => {
+            // NOTE: await otherwise there will be a time when the toast is
+            // shown as if we are signed in but we are still on sign in screen.
+            await client.invalidateQueries();
+            const data = res.data.data as SigninResponse;
+            toast.info(`Welcome back, ${data.name}!`, {
+                icon: <p>🚀</p>,
+            });
+            navigate(ROUTES.dashboard);
+        },
+        onError: apiErrorHandler,
+    });
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        signin({
+            email,
+            password,
+        });
+    };
+
     return (
         <div className="flex h-dvh w-full flex-col items-center justify-between overflow-auto px-4">
             <div />
 
-            <div className="w-full space-y-10 sm:max-w-[420px]">
-                <Branding className="flex justify-center pt-20" size="default" />
+            <div className="w-full space-y-10 sm:w-fit">
+                <Branding className="z-1 flex justify-center" size="default" />
 
-                <Card className="bg-transparent">
+                <Card className="bg-transparent px-6 py-4">
                     <CardContent className="flex flex-col items-center justify-center gap-y-4">
                         <h1 className="sub-heading">Sign in to start using Arthveda</h1>
-                        <ContinueWithGoogle />
+
+                        <div />
+
+                        <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
+                            <WithLabel Label={<Label>Email</Label>}>
+                                <Input
+                                    placeholder="Email"
+                                    name="email"
+                                    disabled={isPending}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </WithLabel>
+
+                            <WithLabel Label={<Label>Password</Label>}>
+                                <PasswordInput
+                                    placeholder="Password"
+                                    name="password"
+                                    type="password"
+                                    disabled={isPending}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                            </WithLabel>
+
+                            <Button
+                                className="mt-4 w-full"
+                                variant="primary"
+                                loading={isPending}
+                                disabled={!email || !password}
+                            >
+                                Sign in
+                            </Button>
+
+                            <p className="text-foreground-muted text-center text-xs">OR</p>
+
+                            <ContinueWithGoogle />
+                        </form>
                     </CardContent>
                 </Card>
             </div>
 
-            <div className="space-y-8">
-                <div className="small text-foreground-muted w-full space-y-2">
-                    <p className="sub-heading">Arthveda is in Beta !!</p>
-
-                    <p>That means things might occasionally act weird. Very rarely, some data might get lost/reset.</p>
-
-                    <p>
-                        You can report issues, give feedback or request features by creating an issue on our{" "}
-                        <a href="https://github.com/MudgalLabs/arthveda" target="_blank" rel="noopener noreferrer">
-                            GitHub repository
-                        </a>
-                        .
-                    </p>
-
-                    <p>Thanks for using Arthveda and helping us make it better.</p>
-                </div>
-
-                <div className="mb-3 flex w-full flex-row items-center justify-center gap-x-1 text-sm">
-                    <p className="text-sm">
-                        Dreamed at{" "}
-                        <a href="https://github.com/MudgalLabs" target="_blank" rel="noopener noreferrer">
-                            Mudgal Labs
-                        </a>{" "}
-                        in India and is{" "}
+            <div className="flex-center py-4">
+                <div className="space-y-2">
+                    <p className="text-foreground inline-block text-sm sm:text-base">
+                        <span className="text-foreground font-semibold">Arthveda </span>
+                        is designed and developed by{" "}
                         <a
-                            href="https://github.com/MudgalLabs/arthveda"
+                            href="https://github.com/MudgalLabs"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-x-1"
+                            className="inline-flex items-center text-sm font-medium! sm:text-base!"
                         >
-                            Open Source
-                            <IconGithub />
+                            Mudgal Labs <IconArrowUpRight size={18} />
                         </a>
                     </p>
+
+                    <p className="text-foreground-muted text-center text-sm">Thank you for being here 🤍</p>
                 </div>
             </div>
         </div>

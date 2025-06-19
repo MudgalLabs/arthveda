@@ -51,6 +51,47 @@ func googleCallbackHandler(s *user_identity.Service) http.HandlerFunc {
 	}
 }
 
+func signUpHandler(s *user_identity.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		var payload user_identity.SignUpPayload
+		if err := decodeJSONRequest(&payload, r); err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		userProfile, errKind, err := s.SignUp(ctx, payload)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusCreated, "Signup successful", userProfile)
+	}
+}
+
+func signInHandler(s *user_identity.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		var payload user_identity.SignInPayload
+		if err := decodeJSONRequest(&payload, r); err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		userProfile, errKind, err := s.SignIn(ctx, payload)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		session.Manager.Put(ctx, "user_id", userProfile.UserID.String())
+		successResponse(w, r, http.StatusOK, "Signin successful", userProfile)
+	}
+}
+
 func signOutHandler(_ *user_identity.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session.Manager.Destroy(r.Context())

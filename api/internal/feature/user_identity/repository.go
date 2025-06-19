@@ -98,7 +98,7 @@ func (r *userIdentityRepository) findUserIdentities(ctx context.Context, tx pgx.
 	}
 
 	sql := `
-	SELECT id, email, verified, last_login_at, created_at, updated_at 
+	SELECT id, email, password_hash, verified, last_login_at, created_at, updated_at 
 	FROM user_identity ` + repository.WhereSQL(where)
 
 	rows, err := tx.Query(ctx, sql, args)
@@ -111,7 +111,7 @@ func (r *userIdentityRepository) findUserIdentities(ctx context.Context, tx pgx.
 	for rows.Next() {
 		var ui UserIdentity
 
-		err := rows.Scan(&ui.ID, &ui.Email, &ui.Verified, &ui.LastLoginAt, &ui.CreatedAt, &ui.UpdatedAt)
+		err := rows.Scan(&ui.ID, &ui.Email, &ui.PasswordHash, &ui.Verified, &ui.LastLoginAt, &ui.CreatedAt, &ui.UpdatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
@@ -134,12 +134,13 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 	defer tx.Rollback(ctx)
 
 	identitySQL := `
-	INSERT INTO user_identity (id, email, verified, oauth_provider, last_login_at, created_at, updated_at)
-	VALUES (@id, @email, @verified, @oauth_provider, @last_login_at,  @created_at, @updated_at)
+	INSERT INTO user_identity (id, email, password_hash, verified, oauth_provider, last_login_at, created_at, updated_at)
+	VALUES (@id, @email, @password_hash, @verified, @oauth_provider, @last_login_at,  @created_at, @updated_at)
 	`
 	identitySQLArgs := pgx.NamedArgs{
 		"id":             userIdentity.ID,
 		"email":          userIdentity.Email,
+		"password_hash":  userIdentity.PasswordHash,
 		"verified":       userIdentity.Verified,
 		"oauth_provider": userIdentity.OAuthProvider,
 		"last_login_at":  userIdentity.LastLoginAt,

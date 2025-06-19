@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
+import { Tag, Tooltip } from "@/s8ly";
 
 interface BrandingProps {
     className?: string;
@@ -11,12 +12,7 @@ interface BrandingProps {
 }
 
 export const Branding: FC<BrandingProps> = (props) => {
-    const {
-        className,
-        size = "default",
-        hideLogo = false,
-        hideText = false,
-    } = props;
+    const { className, size = "default", hideLogo = false, hideText = false } = props;
 
     const classes = {
         small: {
@@ -34,18 +30,35 @@ export const Branding: FC<BrandingProps> = (props) => {
     };
 
     return (
-        <div
-            className={cn(
-                "font-logo text-primary inline-flex items-baseline gap-x-2 font-semibold select-none",
-                className
-            )}
+        <Tooltip
+            contentProps={{
+                sideOffset: 8,
+                align: "start",
+            }}
+            content={
+                <p onClick={(e) => e.stopPropagation()}>
+                    We are in Beta. Please help us make it better for you by reporting issues or suggesting features on{" "}
+                    <a href="https://github.com/MudgalLabs/arthveda" target="_blank" rel="noopener noreferrer">
+                        GitHub
+                    </a>
+                    .
+                </p>
+            }
         >
-            {!hideLogo && <Logo size={classes[size].logo} />}
-            {!hideText && (
-                <h1 className={cn("leading-0!", classes[size].text)}>
-                    arthveda
-                </h1>
-            )}
-        </div>
+            <div className="flex-center items-start gap-x-1">
+                <div
+                    className={cn(
+                        "font-logo text-primary inline-flex items-baseline gap-x-2 font-semibold select-none",
+                        className
+                    )}
+                >
+                    {!hideLogo && <Logo size={classes[size].logo} />}
+                    {!hideText && <h1 className={cn("leading-0!", classes[size].text)}>arthveda</h1>}
+                </div>
+                <Tag variant="primary" size="small">
+                    BETA
+                </Tag>
+            </div>
+        </Tooltip>
     );
 };
