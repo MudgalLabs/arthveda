@@ -13,6 +13,16 @@ interface ImportMetaEnv {
      * @example "https://api.arthveda.io/v1/auth/oauth/google"
      */
     readonly ARTHVEDA_GOOGLE_OAUTH_URL: string;
+
+    /**
+     * If "true", enables Google OAuth for authentication.
+     */
+    readonly ARTHVEDA_ENABLE_GOOGLE_OAUTH: string;
+
+    /**
+     * If "true", enables password-based authentication.
+     */
+    readonly ARTHVEDA_ENABLE_PASSWORD_AUTH: string;
 }
 
 interface ImportMeta {

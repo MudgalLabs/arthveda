@@ -16,6 +16,9 @@ import { apiErrorHandler } from "@/lib/api";
 import { PasswordInput } from "@/components/input/password_input";
 
 export function SignIn() {
+    const isPasswordAuthEnabled = import.meta.env.ARTHVEDA_ENABLE_PASSWORD_AUTH === "true";
+    const isGoogleOauthEnabled = import.meta.env.ARTHVEDA_ENABLE_GOOGLE_OAUTH === "true";
+
     const client = useQueryClient();
     const navigate = useNavigate();
 
@@ -53,45 +56,51 @@ export function SignIn() {
 
                 <Card className="bg-transparent px-6 py-4">
                     <CardContent className="flex flex-col items-center justify-center gap-y-4">
-                        <h1 className="sub-heading">Sign in to start using Arthveda</h1>
+                        <h1 className="heading">Sign in to Arthveda</h1>
 
-                        <div />
+                        {isPasswordAuthEnabled && (
+                            <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
+                                <WithLabel Label={<Label>Email</Label>}>
+                                    <Input
+                                        placeholder="Email"
+                                        name="email"
+                                        disabled={isPending}
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </WithLabel>
 
-                        <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
-                            <WithLabel Label={<Label>Email</Label>}>
-                                <Input
-                                    placeholder="Email"
-                                    name="email"
-                                    disabled={isPending}
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </WithLabel>
+                                <WithLabel Label={<Label>Password</Label>}>
+                                    <PasswordInput
+                                        placeholder="Password"
+                                        name="password"
+                                        type="password"
+                                        disabled={isPending}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                </WithLabel>
 
-                            <WithLabel Label={<Label>Password</Label>}>
-                                <PasswordInput
-                                    placeholder="Password"
-                                    name="password"
-                                    type="password"
-                                    disabled={isPending}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                            </WithLabel>
+                                <Button
+                                    className="mt-4 w-full"
+                                    variant="primary"
+                                    loading={isPending}
+                                    disabled={!email || !password}
+                                >
+                                    Sign in
+                                </Button>
+                            </form>
+                        )}
 
-                            <Button
-                                className="mt-4 w-full"
-                                variant="primary"
-                                loading={isPending}
-                                disabled={!email || !password}
-                            >
-                                Sign in
-                            </Button>
+                        {isGoogleOauthEnabled && (
+                            <>
+                                {isPasswordAuthEnabled && (
+                                    <p className="text-foreground-muted text-center text-xs">OR</p>
+                                )}
 
-                            <p className="text-foreground-muted text-center text-xs">OR</p>
-
-                            <ContinueWithGoogle />
-                        </form>
+                                <ContinueWithGoogle className="w-full" />
+                            </>
+                        )}
                     </CardContent>
                 </Card>
             </div>

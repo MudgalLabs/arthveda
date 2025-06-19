@@ -9,10 +9,11 @@ interface BrandingProps {
     size?: "small" | "default" | "large";
     hideText?: boolean;
     hideLogo?: boolean;
+    hideBetaTag?: boolean;
 }
 
 export const Branding: FC<BrandingProps> = (props) => {
-    const { className, size = "default", hideLogo = false, hideText = false } = props;
+    const { className, size = "default", hideLogo = false, hideText = false, hideBetaTag = false } = props;
 
     const classes = {
         small: {
@@ -31,9 +32,10 @@ export const Branding: FC<BrandingProps> = (props) => {
 
     return (
         <Tooltip
+            disabled={hideBetaTag}
             contentProps={{
                 sideOffset: 8,
-                align: "start",
+                align: "center",
             }}
             content={
                 <p onClick={(e) => e.stopPropagation()}>
@@ -53,11 +55,15 @@ export const Branding: FC<BrandingProps> = (props) => {
                     )}
                 >
                     {!hideLogo && <Logo size={classes[size].logo} />}
+
                     {!hideText && <h1 className={cn("leading-0!", classes[size].text)}>arthveda</h1>}
                 </div>
-                <Tag variant="primary" size="small">
-                    BETA
-                </Tag>
+
+                {!hideBetaTag && (
+                    <Tag variant="primary" size="small">
+                        BETA
+                    </Tag>
+                )}
             </div>
         </Tooltip>
     );
