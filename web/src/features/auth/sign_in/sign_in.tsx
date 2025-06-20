@@ -19,6 +19,13 @@ export function SignIn() {
     const isPasswordAuthEnabled = import.meta.env.ARTHVEDA_ENABLE_SIGN_IN === "true";
     const isGoogleOauthEnabled = import.meta.env.ARTHVEDA_ENABLE_GOOGLE_OAUTH === "true";
 
+    const isDemo = import.meta.env.ARTHVEDA_ENABLE_DEMO === "true";
+    const [emailToOpenDemo, setEmailToOpenDemo] = useState("");
+
+    const demoErrorToast = () => {
+        toast.error("Failed to start demo");
+    };
+
     const client = useQueryClient();
     const navigate = useNavigate();
 
@@ -33,19 +40,61 @@ export function SignIn() {
             });
             navigate(ROUTES.dashboard);
         },
-        onError: apiErrorHandler,
+        onError: isDemo ? demoErrorToast : apiErrorHandler,
+    });
+
+    const { mutateAsync: startDemo, isPending: isStartingDemo } = apiHooks.analytics.useStartDemo({
+        onSuccess: () => {
+            signin({
+                email: "demo",
+                password: "demo",
+            });
+        },
+        onError: demoErrorToast,
     });
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmitForSignIn = (e: FormEvent) => {
         e.preventDefault();
+
         signin({
             email,
             password,
         });
     };
+
+    const handleSubmitForDemo = (e: FormEvent) => {
+        e.preventDefault();
+
+        if (!emailToOpenDemo) {
+            toast.error("Please enter your email to open the demo.");
+            return;
+        }
+
+        startDemo({ email: emailToOpenDemo });
+    };
+
+    const demoForm = (
+        <div className="space-y-4">
+            <form className="flex justify-center gap-x-2" onSubmit={handleSubmitForDemo}>
+                <Input
+                    type="email"
+                    required
+                    placeholder="Enter your email"
+                    value={emailToOpenDemo}
+                    onChange={(e) => setEmailToOpenDemo(e.target.value)}
+                />
+
+                <Button loading={isPending || isStartingDemo}>Start Demo</Button>
+            </form>
+
+            <p className="text-foreground-muted inline-block text-base">
+                Your email helps us learn, improve, and connect if needed.
+            </p>
+        </div>
+    );
 
     return (
         <div className="flex h-dvh w-full flex-col items-center justify-between overflow-auto px-4">
@@ -54,55 +103,60 @@ export function SignIn() {
             <div className="w-full space-y-10 sm:w-fit">
                 <Branding className="z-1 flex justify-center" size="default" />
 
-                <Card className="bg-transparent px-6 py-4">
-                    <CardContent className="flex flex-col items-center justify-center gap-y-4">
-                        <h1 className="heading">Sign in to Arthveda</h1>
+                {isDemo ? (
+                    demoForm
+                ) : (
+                    <Card className="bg-transparent px-6 py-4">
+                        <CardContent className="flex flex-col items-center justify-center gap-y-4">
+                            <h1 className="heading">Sign in to Arthveda</h1>
+                            {isDemo && <p>Email is "demo" and Password is "demo"</p>}
 
-                        {isPasswordAuthEnabled && (
-                            <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
-                                <WithLabel Label={<Label>Email</Label>}>
-                                    <Input
-                                        placeholder="Email"
-                                        name="email"
-                                        disabled={isPending}
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                    />
-                                </WithLabel>
+                            {isPasswordAuthEnabled && (
+                                <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmitForSignIn}>
+                                    <WithLabel Label={<Label>Email</Label>}>
+                                        <Input
+                                            placeholder="Email"
+                                            name="email"
+                                            disabled={isPending}
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                    </WithLabel>
 
-                                <WithLabel Label={<Label>Password</Label>}>
-                                    <PasswordInput
-                                        placeholder="Password"
-                                        name="password"
-                                        type="password"
-                                        disabled={isPending}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
-                                </WithLabel>
+                                    <WithLabel Label={<Label>Password</Label>}>
+                                        <PasswordInput
+                                            placeholder="Password"
+                                            name="password"
+                                            type="password"
+                                            disabled={isPending}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
+                                    </WithLabel>
 
-                                <Button
-                                    className="mt-4 w-full"
-                                    variant="primary"
-                                    loading={isPending}
-                                    disabled={!email || !password}
-                                >
-                                    Sign in
-                                </Button>
-                            </form>
-                        )}
+                                    <Button
+                                        className="mt-4 w-full"
+                                        variant="primary"
+                                        loading={isPending}
+                                        disabled={!email || !password}
+                                    >
+                                        Sign in
+                                    </Button>
+                                </form>
+                            )}
 
-                        {isGoogleOauthEnabled && (
-                            <>
-                                {isPasswordAuthEnabled && (
-                                    <p className="text-foreground-muted text-center text-xs">OR</p>
-                                )}
+                            {isGoogleOauthEnabled && (
+                                <>
+                                    {isPasswordAuthEnabled && (
+                                        <p className="text-foreground-muted text-center text-xs">OR</p>
+                                    )}
 
-                                <ContinueWithGoogle className="w-full" />
-                            </>
-                        )}
-                    </CardContent>
-                </Card>
+                                    <ContinueWithGoogle className="w-full" />
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
             </div>
 
             <div className="flex-center py-4">

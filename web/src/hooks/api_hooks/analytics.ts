@@ -1,10 +1,11 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 
-import { analytics, StartDemoRequest, StartDemoResponse } from "@/lib/api/analytics";
+import { StartDemoRequest, StartDemoResponse } from "@/lib/api/analytics";
+import { api } from "@/lib/api";
 
-export const useStartDemo = (options?: UseMutationOptions<StartDemoResponse, Error, StartDemoRequest>) => {
+export const useStartDemo = (options: UseMutationOptions<StartDemoResponse, Error, StartDemoRequest> = {}) => {
     return useMutation({
-        mutationFn: analytics.startDemo,
+        mutationFn: api.analytics.startDemo,
         ...options,
     });
 };
