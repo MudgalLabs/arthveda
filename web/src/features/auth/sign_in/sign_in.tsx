@@ -43,11 +43,22 @@ export function SignIn() {
         onError: isDemo ? demoErrorToast : apiErrorHandler,
     });
 
+    const { mutateAsync: startDemo, isPending: isStartingDemo } = apiHooks.analytics.useStartDemo({
+        onSuccess: () => {
+            signin({
+                email: "demo",
+                password: "demo",
+            });
+        },
+        onError: demoErrorToast,
+    });
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const handleSubmitForSignIn = (e: FormEvent) => {
         e.preventDefault();
+
         signin({
             email,
             password,
@@ -62,12 +73,7 @@ export function SignIn() {
             return;
         }
 
-        // TODO: Save the email user provided for demo usage.
-
-        signin({
-            email: "demo",
-            password: "demo",
-        });
+        startDemo({ email: emailToOpenDemo });
     };
 
     const demoForm = (
@@ -81,7 +87,7 @@ export function SignIn() {
                     onChange={(e) => setEmailToOpenDemo(e.target.value)}
                 />
 
-                <Button loading={isPending}>Open Demo</Button>
+                <Button loading={isPending || isStartingDemo}>Open Demo</Button>
             </form>
 
             <p className="mt-4 inline-block">Your email helps us learn, improve, and connect if needed.</p>
