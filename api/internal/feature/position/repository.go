@@ -33,6 +33,14 @@ type ReadWriter interface {
 // PostgreSQL implementation
 //
 
+type positionRepository struct {
+	db *pgxpool.Pool
+}
+
+func NewRepository(db *pgxpool.Pool) *positionRepository {
+	return &positionRepository{db}
+}
+
 const (
 	searchFieldID                  common.SearchField = "id"
 	searchFieldCreatedBy           common.SearchField = "created_by"
@@ -105,14 +113,6 @@ var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldChargesPercentage:   "p.charges_as_percentage_of_net_pnl",
 	searchFieldBrokerID:            "p.broker_id",
 	searchFieldTotalCharges:        "p.total_charges_amount",
-}
-
-type positionRepository struct {
-	db *pgxpool.Pool
-}
-
-func NewRepository(db *pgxpool.Pool) *positionRepository {
-	return &positionRepository{db}
 }
 
 func (r *positionRepository) Create(ctx context.Context, position *Position) error {
