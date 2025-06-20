@@ -404,9 +404,6 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
                         <li key={broker.id}>
                             <BrokerTile
                                 key={broker.id}
-                                className={cn({
-                                    "border-primary border-2": isSelected,
-                                })}
                                 name={broker.name as BrokerName}
                                 image={getBrokerLogo(broker.name as BrokerName)}
                                 isSelected={isSelected}
@@ -451,7 +448,15 @@ const BrokerTile = ({
 }) => {
     return (
         <button onClick={onClick} className="w-full cursor-pointer sm:w-fit">
-            <Card className={cn(className, "flex-center relative gap-x-2 p-8")}>
+            <Card
+                className={cn(
+                    "flex-center relative gap-x-2 border-2 p-8 transition-all duration-300 ease-in-out",
+                    {
+                        "border-primary hover:border-primary": isSelected,
+                    },
+                    className
+                )}
+            >
                 <img src={image} alt={`${name} logo`} className="h-10" />
                 <p className="heading text-surface-foreground font-medium">{name}</p>
 
@@ -734,7 +739,7 @@ const ReviewStep: FC<ReviewStepProps> = ({
                 <div className="min-w-0 flex-1">
                     <div className="flex-x">
                         <p className="label-muted">Invalid Positions </p>
-                        <Tooltip content="These positions have been ignored because they have incorrect data like selling/buying more quanity thank you have open.">
+                        <Tooltip content="These positions have been ignored because they have incorrect data like selling/buying more quanity than you have open.">
                             <IconInfo />
                         </Tooltip>
                     </div>
