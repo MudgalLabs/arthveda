@@ -1,4 +1,7 @@
 export const API_ROUTES = {
+    analytics: {
+        startDemo: "/v1/analytics/start-demo",
+    },
     auth: {
         signin: "/v1/auth/sign-in",
         signup: "/v1/auth/sign-up",
