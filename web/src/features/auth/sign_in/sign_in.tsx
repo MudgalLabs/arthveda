@@ -159,7 +159,7 @@ export function SignIn() {
                 )}
             </div>
 
-            <div className="flex-center py-4">
+            {/* <div className="flex-center py-4">
                 <div className="space-y-2">
                     <p className="text-foreground inline-block text-sm sm:text-base">
                         <span className="text-foreground font-semibold">Arthveda </span>
@@ -175,6 +175,30 @@ export function SignIn() {
                     </p>
 
                     <p className="text-foreground-muted text-center text-sm">Thank you for being here 🤍</p>
+                </div>
+            </div> */}
+
+            <div className="flex-center py-6 md:py-10">
+                <div className="space-y-2 text-center">
+                    <p className="text-foreground inline-block text-sm sm:text-base">
+                        <span className="text-foreground font-semibold">Arthveda </span>
+                        is designed and developed by{" "}
+                        <a
+                            href="https://github.com/MudgalLabs"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-sm! sm:text-base!"
+                        >
+                            Mudgal Labs <IconArrowUpRight size={18} />
+                        </a>
+                    </p>
+
+                    <p className="text-sm sm:text-base">
+                        Give feedback, request a feature, report a bug or <br className="block sm:hidden" />
+                        just say hi on <span className="text-sm font-bold sm:text-base">hey@arthveda.io</span>
+                    </p>
+
+                    <p className="text-foreground-muted text-center text-xs sm:text-sm">Thank you for being here 🤍</p>
                 </div>
             </div>
         </div>
