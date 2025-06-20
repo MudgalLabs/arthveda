@@ -77,7 +77,7 @@ export function SignIn() {
     };
 
     const demoForm = (
-        <div>
+        <div className="space-y-4">
             <form className="flex justify-center gap-x-2" onSubmit={handleSubmitForDemo}>
                 <Input
                     type="email"
@@ -87,10 +87,12 @@ export function SignIn() {
                     onChange={(e) => setEmailToOpenDemo(e.target.value)}
                 />
 
-                <Button loading={isPending || isStartingDemo}>Open Demo</Button>
+                <Button loading={isPending || isStartingDemo}>Start Demo</Button>
             </form>
 
-            <p className="mt-4 inline-block">Your email helps us learn, improve, and connect if needed.</p>
+            <p className="text-foreground-muted inline-block text-base">
+                Your email helps us learn, improve, and connect if needed.
+            </p>
         </div>
     );
 
