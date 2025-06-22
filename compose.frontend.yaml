@@ -1,0 +1,15 @@
+services:
+    web:
+        container_name: arthveda_web
+        image: ceoshikhar/arthveda_web:beta
+        build:
+            dockerfile: web.dockerfile
+        ports:
+            - 6969:6969
+        networks:
+            - arthveda_network
+            - caddy_net
+        depends_on:
+            api:
+                condition: service_started
+                restart: true

@@ -51,10 +51,6 @@ func initRouter(a *app) http.Handler {
 	})
 
 	r.Route("/v1", func(r chi.Router) {
-		r.Route("/analytics", func(r chi.Router) {
-			r.Post("/start-demo", startDemoHandler(a.service.AnalyticsService))
-		})
-
 		r.Route("/auth", func(r chi.Router) {
 			if env.ENABLE_SIGN_UP {
 				r.Post("/sign-up", signUpHandler(a.service.UserIdentityService))

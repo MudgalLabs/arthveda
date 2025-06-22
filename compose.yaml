@@ -1,70 +1,74 @@
-services:
-    arthveda_web:
-        container_name: arthveda_web
-        image: ceoshikhar/arthveda_web
-        build:
-            dockerfile: web.dockerfile
-        ports:
-            - 6969:6969
-        networks:
-            - arthveda_network
-        depends_on:
-            arthveda_api:
-                condition: service_started
+# services:
+#     web:
+#         container_name: arthveda_web
+#         image: ceoshikhar/arthveda_web
+#         build:
+#             dockerfile: web.dockerfile
+#         ports:
+#             - 6969:6969
+#         networks:
+#             - arthveda_network
+#         depends_on:
+#             arthveda_api:
+#                 condition: service_started
 
-    arthveda_api:
-        container_name: arthveda_api
-        image: ceoshikhar/arthveda_api:dev
-        build:
-            dockerfile: api.dockerfile
-        environment:
-            ARTHVEDA_API_ENV: production
-            ARTHVEDA_API_ALLOWED_ORIGINS: ${ARTHVEDA_API_ALLOWED_ORIGINS}
-            ARTHVEDA_API_LOG_LEVEL: ${ARTHVEDA_API_LOG_LEVEL}
-            ARTHVEDA_API_LOG_FILE: ./logs/${ARTHVEDA_API_LOG_FILE}
-            ARTHVEDA_DB_URL: ${ARTHVEDA_DB_URL}
-            ARTHVEDA_WEB_URL: ${ARTHVEDA_WEB_URL}
-            ARTHVEDA_ENABLE_SIGN_UP: ${ARTHVEDA_ENABLE_SIGN_UP}
-            ARTHVEDA_ENABLE_SIGN_IN: ${ARTHVEDA_ENABLE_SIGN_IN}
-            ARTHVEDA_ENABLE_GOOGLE_OAUTH: ${ARTHVEDA_ENABLE_GOOGLE_OAUTH}
-            ARTHVEDA_GOOGLE_REDIRECT_URL: ${ARTHVEDA_GOOGLE_REDIRECT_URL}
-            ARTHVEDA_GOOGLE_CLIENT_ID: ${ARTHVEDA_GOOGLE_CLIENT_ID}
-            ARTHVEDA_GOOGLE_CLIENT_SECRET: ${ARTHVEDA_GOOGLE_CLIENT_SECRET}
-        ports:
-            - 1337:1337
-        networks:
-            - arthveda_network
-        volumes:
-            - ./volumes/api_logs:/app/logs
-        depends_on:
-            arthveda_db:
-                condition: service_healthy
-                restart: true
+#     api:
+#         container_name: arthveda_api
+#         image: ceoshikhar/arthveda_api:beta
+#         build:
+#             dockerfile: api.dockerfile
+#         environment:
+#             ARTHVEDA_API_ENV: production
+#             ARTHVEDA_API_ALLOWED_ORIGINS: ${ARTHVEDA_API_ALLOWED_ORIGINS}
+#             ARTHVEDA_API_LOG_LEVEL: ${ARTHVEDA_API_LOG_LEVEL}
+#             ARTHVEDA_API_LOG_FILE: ./logs/${ARTHVEDA_API_LOG_FILE}
+#             ARTHVEDA_DB_URL: ${ARTHVEDA_DB_URL}
+#             ARTHVEDA_WEB_URL: ${ARTHVEDA_WEB_URL}
+#             ARTHVEDA_ENABLE_SIGN_UP: ${ARTHVEDA_ENABLE_SIGN_UP}
+#             ARTHVEDA_ENABLE_SIGN_IN: ${ARTHVEDA_ENABLE_SIGN_IN}
+#             ARTHVEDA_ENABLE_GOOGLE_OAUTH: ${ARTHVEDA_ENABLE_GOOGLE_OAUTH}
+#             ARTHVEDA_GOOGLE_REDIRECT_URL: ${ARTHVEDA_GOOGLE_REDIRECT_URL}
+#             ARTHVEDA_GOOGLE_CLIENT_ID: ${ARTHVEDA_GOOGLE_CLIENT_ID}
+#             ARTHVEDA_GOOGLE_CLIENT_SECRET: ${ARTHVEDA_GOOGLE_CLIENT_SECRET}
+#         ports:
+#             - 1337:1337
+#         networks:
+#             - arthveda_network
+#         volumes:
+#             - ./volumes/api_logs:/app/logs
+#         depends_on:
+#             arthveda_db:
+#                 condition: service_healthy
+#                 restart: true
 
-    arthveda_db:
-        container_name: arthveda_db
-        image: postgres:17.4
-        environment:
-            PGPORT: 42069
-            POSTGRES_DB: ${ARTHVEDA_DB_NAME}
-            POSTGRES_USER: ${ARTHVEDA_DB_USER}
-            POSTGRES_PASSWORD: ${ARTHVEDA_DB_PASSWORD}
-        ports:
-            - 42069:42069
-        networks:
-            - arthveda_network
-        volumes:
-            - ./volumes/db_data:/var/lib/postgresql/data
-        healthcheck:
-            test:
-                [
-                    "CMD-SHELL",
-                    "pg_isready -U ${ARTHVEDA_DB_USER} -d ${ARTHVEDA_DB_NAME}",
-                ]
-            interval: 10s
-            timeout: 5s
-            retries: 5
+#     db:
+#         container_name: arthveda_db
+#         image: postgres:17.4
+#         environment:
+#             PGPORT: 42069
+#             POSTGRES_DB: ${ARTHVEDA_DB_NAME}
+#             POSTGRES_USER: ${ARTHVEDA_DB_USER}
+#             POSTGRES_PASSWORD: ${ARTHVEDA_DB_PASSWORD}
+#         ports:
+#             - 42069:42069
+#         networks:
+#             - arthveda_network
+#         volumes:
+#             - ./volumes/db_data:/var/lib/postgresql/data
+#         healthcheck:
+#             test:
+#                 [
+#                     "CMD-SHELL",
+#                     "pg_isready -U ${ARTHVEDA_DB_USER} -d ${ARTHVEDA_DB_NAME}",
+#                 ]
+#             interval: 10s
+#             timeout: 5s
+#             retries: 5
 
-networks:
-    arthveda_network:
-        name: arthveda_network
+# networks:
+#     arthveda_network:
+#         name: arthveda_network
+
+include:
+    - compose.backend.yaml
+    - compose.frontend.yaml

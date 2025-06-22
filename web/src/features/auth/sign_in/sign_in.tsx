@@ -47,16 +47,6 @@ export function SignIn() {
         onError: isDemo ? demoErrorToast : apiErrorHandler,
     });
 
-    const { mutateAsync: startDemo, isPending: isStartingDemo } = apiHooks.analytics.useStartDemo({
-        onSuccess: () => {
-            signin({
-                email: "demo",
-                password: "demo",
-            });
-        },
-        onError: demoErrorToast,
-    });
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -80,8 +70,6 @@ export function SignIn() {
         posthog?.capture("Clicked Start Demo", {
             email: emailToOpenDemo,
         });
-
-        startDemo({ email: emailToOpenDemo });
     };
 
     const demoForm = (
@@ -95,7 +83,7 @@ export function SignIn() {
                     onChange={(e) => setEmailToOpenDemo(e.target.value)}
                 />
 
-                <Button loading={isPending || isStartingDemo}>Start Demo</Button>
+                <Button loading={isPending}>Start Demo</Button>
             </form>
 
             <p className="text-foreground-muted inline-block text-base">

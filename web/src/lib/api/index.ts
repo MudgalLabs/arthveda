@@ -2,7 +2,6 @@ import { AxiosError } from "axios";
 
 import { ApiRes } from "@/lib/api/client";
 import { toast } from "@/components/toast";
-import * as analytics from "./analytics";
 import * as auth from "@/lib/api/auth";
 import * as broker from "@/lib/api/broker";
 import * as currency from "@/lib/api/currency";
@@ -11,7 +10,6 @@ import * as position from "@/lib/api/position";
 import * as user from "@/lib/api/user";
 
 export const api = {
-    analytics,
     auth,
     broker,
     currency,
