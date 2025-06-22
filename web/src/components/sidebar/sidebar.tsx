@@ -28,6 +28,7 @@ import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { apiErrorHandler } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/routes_constants";
+import { usePostHog } from "posthog-js/react";
 
 const sidebarRoutes = [ROUTES.dashboard, ROUTES.explorePositions, ROUTES.addPosition, ROUTES.importPositions];
 
@@ -240,6 +241,8 @@ interface SidebarProfileMenuProps {
 }
 
 const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
+    const posthog = usePostHog();
+
     const { sidebarOpen, email, displayName = "", profileImageURL = "", isMobile } = props;
 
     const [menuOpened, setMenuOpened] = useState(false);
@@ -248,6 +251,8 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
 
     const { mutate: signout, isPending: isSignoutPending } = apiHooks.auth.useSignout({
         onSuccess: async () => {
+            posthog?.capture("User Signed Out");
+            posthog?.reset();
             // NOTE: Make sure to await otherwise the screen will flicker.
             await client.invalidateQueries();
             toast.info("Goodbye! Thank you for using Arthveda", {
