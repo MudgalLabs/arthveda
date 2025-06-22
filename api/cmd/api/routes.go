@@ -21,7 +21,7 @@ func initRouter(a *app) http.Handler {
 	r.Use(logRequestMiddleware)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:6969", "https://arthveda.ceoshikhar.com", "https://demo.arthveda.ceoshikhar.com", "https://*.arthveda.pages.dev", "https://arthveda.pages.dev"},
+		AllowedOrigins:   []string{env.ALLOWED_ORIGINS},
 		AllowedMethods:   []string{"GET", "DELETE", "OPTIONS", "PATCH", "POST", "PUT"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"*"},
