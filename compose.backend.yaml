@@ -24,6 +24,7 @@ services:
             - caddy_net
         volumes:
             - ./volumes/api_logs:/app/logs
+        restart: unless-stopped
         depends_on:
             db:
                 condition: service_healthy
@@ -44,6 +45,7 @@ services:
             - caddy_net
         volumes:
             - ./volumes/db_data:/var/lib/postgresql/data
+        restart: unless-stopped
         healthcheck:
             test:
                 [

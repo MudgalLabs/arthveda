@@ -9,6 +9,7 @@ services:
         networks:
             - arthveda_network
             - caddy_net
+        restart: unless-stopped
         depends_on:
             api:
                 condition: service_started
