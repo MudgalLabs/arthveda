@@ -87,7 +87,7 @@ a {
 
 button {
     /* The default in TailwindCSS is making the button chunky. */
-    line-height: normal;
+    /* line-height: normal; */
 }
 
 /* Change Autocomplete styles in Chrome*/
@@ -169,6 +169,10 @@ select:-webkit-autofill:focus {
 
 @utility flex-y {
     @apply flex justify-center gap-y-2;
+}
+
+@utility smooth-colors {
+    @apply transition-colors duration-300 ease-in-out;
 }
 
 .react-resizable-handle react-resizable-handle-se::after {

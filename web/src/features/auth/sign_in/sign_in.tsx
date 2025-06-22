@@ -192,10 +192,12 @@ export function SignIn() {
                             Mudgal Labs <IconArrowUpRight size={18} />
                         </a>
                     </p>
-
                     <p className="text-sm sm:text-base">
                         Give feedback, request a feature, report a bug or <br className="block sm:hidden" />
-                        just say hi on <span className="text-sm font-bold sm:text-base">hey@arthveda.io</span>
+                        just say hi on{" "}
+                        <a href="mailto:hey@arthveda.app" className="text-sm! font-bold sm:text-base!">
+                            hey@arthveda.app
+                        </a>
                     </p>
 
                     <p className="text-foreground-muted text-center text-xs sm:text-sm">Thank you for being here 🤍</p>

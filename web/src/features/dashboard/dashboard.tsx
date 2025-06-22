@@ -14,9 +14,10 @@ import { CumulativePnLCurve } from "@/features/dashboard/widget/cumulative_pnl_g
 import { OverviewCard } from "@/features/dashboard/widget/overview_card";
 import { WinningCard } from "@/features/dashboard/widget/winning_card";
 import { LosingCard } from "@/features/dashboard/widget/losing_card";
-import { IconSearch } from "@/components/icons";
+import { IconImport, IconPlus, IconSearch } from "@/components/icons";
 import { Button, DatePicker } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
+import { Card, CardContent, CardTitle } from "@/components/card";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -286,27 +287,53 @@ function WelcomeMessageForNewUser() {
     }
 
     return (
-        <div className="jusify-center mt-20 flex flex-col items-center">
-            <div className="flex flex-col gap-y-4">
-                <p>Hey {data.name},</p>
-                <p>
-                    Looks like you are new here and have no{" "}
-                    <Link className="text-base!" to={ROUTES.explorePositions}>
-                        positions
-                    </Link>{" "}
-                    added yet.
-                </p>
-                <p>
-                    Start using Arthveda by{" "}
-                    <Link className="text-base!" to={ROUTES.addPosition}>
-                        adding
-                    </Link>{" "}
-                    a position or{" "}
-                    <Link className="text-base!" to={ROUTES.importPositions}>
-                        importing
-                    </Link>{" "}
-                    positions from your broker.
-                </p>
+        <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="mx-auto max-w-2xl text-center">
+                <div className="mb-8">
+                    <h1 className="text-foreground text-2xl font-bold sm:text-3xl">
+                        👋 Welcome to Arthveda<span className="hidden sm:inline">, {data.name}</span>
+                    </h1>
+                    <div className="h-2" />
+                    <p className="text-foreground-muted text-lg"></p>
+                </div>
+
+                <div className="h-8" />
+
+                {/* <div className="border-border bg-background-subtle mb-8 rounded-lg border p-6 text-left"> */}
+                <Card className="mx-auto w-full max-w-[500px] text-left">
+                    <CardTitle className="sub-heading">Get Started</CardTitle>
+                    <CardContent className="mt-4 text-base! text-pretty">
+                        <p>
+                            You haven’t added any{" "}
+                            <Link className="text-base!" to={ROUTES.explorePositions}>
+                                positions{" "}
+                            </Link>
+                            yet.
+                        </p>
+
+                        <div className="h-4" />
+
+                        <p>You can import positions from your broker or add a position.</p>
+
+                        <div className="h-8" />
+
+                        <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+                            <Link to={ROUTES.addPosition}>
+                                <Button variant="outline" className="w-full sm:w-fit">
+                                    <IconPlus />
+                                    Add Position Manually
+                                </Button>
+                            </Link>
+                            <Link to={ROUTES.importPositions}>
+                                <Button variant="primary" className="w-full sm:w-fit">
+                                    <IconImport />
+                                    Import from Broker
+                                </Button>
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+                {/* </div> */}
             </div>
         </div>
     );
