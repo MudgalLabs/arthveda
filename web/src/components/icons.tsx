@@ -47,3 +47,4 @@ export { LuGripVertical as IconGripVertical } from "react-icons/lu";
 export { LuCircle as IconCircle } from "react-icons/lu";
 export { LuNotebookText as IconNotebookPen } from "react-icons/lu";
 export { LuSearch as IconSearch } from "react-icons/lu";
+export { LuClock as IconClock } from "react-icons/lu";

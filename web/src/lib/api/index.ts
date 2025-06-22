@@ -41,6 +41,13 @@ export function apiErrorHandler(err: any) {
                 if (_err.response?.data.message) {
                     message = _err.response.data.message;
                 }
+
+                if (_err.status === 429) {
+                    toast.error("You’re going too fast!", {
+                        description: "Give it a sec and try again.",
+                    });
+                    return;
+                }
             }
         }
     }

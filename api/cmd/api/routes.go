@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 )
 
 func initRouter(a *app) http.Handler {
@@ -34,6 +35,12 @@ func initRouter(a *app) http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Use(session.Manager.LoadAndSave)
+
+	// This is just to prevent abuse of the API by limiting the number of requests
+	// from a single IP address. The limit is set to 100 requests per minute.
+	// We would never hit this limit in normal usage, but it is a good practice to have
+	// this in place to prevent abuse.
+	r.Use(httprate.LimitByIP(100, time.Minute))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		successResponse(w, r, http.StatusOK, "Hi, welcome to Arthveda API. Don't be naughty!!", nil)
