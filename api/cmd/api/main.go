@@ -4,7 +4,6 @@ import (
 	"arthveda/internal/dbx"
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/env"
-	"arthveda/internal/feature/analytics"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/dashboard"
 	"arthveda/internal/feature/position"
@@ -32,7 +31,6 @@ type app struct {
 
 // All the services.
 type services struct {
-	AnalyticsService    *analytics.Service
 	BrokerService       *broker.Service
 	CurrencyService     *currency.Service
 	DashboardService    *dashboard.Service
@@ -44,7 +42,6 @@ type services struct {
 // Access to all repositories for reading.
 // Write access only available to services.
 type repositories struct {
-	Analytics    analytics.Reader
 	Broker       broker.Reader
 	Dashboard    dashboard.Reader
 	Position     position.Reader
@@ -70,7 +67,6 @@ func main() {
 
 	oauth.InitGoogle()
 
-	analyticsRepository := analytics.NewRepository(db)
 	brokerRepository := broker.NewRepository(db)
 	dashboardRepository := dashboard.NewRepository(db)
 	userProfileRepository := user_profile.NewRepository(db)
@@ -78,7 +74,6 @@ func main() {
 	tradeRepository := trade.NewRepository(db)
 	positionRepository := position.NewRepository(db)
 
-	analyticsService := analytics.NewService(analyticsRepository)
 	brokerService := broker.NewService(brokerRepository)
 	currencyService := currency.NewService()
 	dashboardService := dashboard.NewService(dashboardRepository, positionRepository, tradeRepository)
@@ -88,7 +83,6 @@ func main() {
 	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository)
 
 	services := services{
-		AnalyticsService:    analyticsService,
 		BrokerService:       brokerService,
 		CurrencyService:     currencyService,
 		DashboardService:    dashboardService,
@@ -98,7 +92,6 @@ func main() {
 	}
 
 	repositories := repositories{
-		Analytics:    analyticsRepository,
 		Broker:       brokerRepository,
 		Dashboard:    dashboardRepository,
 		Position:     positionRepository,
