@@ -12,7 +12,6 @@ import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/routes_constants";
 import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
-import { PageViewTracker } from "@/pageview_tracker";
 
 const AppLayout = lazy(() => import("@/app_layout"));
 
@@ -87,7 +86,6 @@ export default function App() {
                 because putting it here gives Toasts access to react-router
                 hooks and state. */}
             <ToastProvider />
-            <PageViewTracker />
 
             <AuthenticationProvider>
                 <SidebarProvider>
