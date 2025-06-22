@@ -1,13 +1,16 @@
-import { Button, ButtonProps } from "@/s8ly";
-
-import { Google } from "@/components/google";
 import { FC } from "react";
+import { usePostHog } from "posthog-js/react";
+
+import { Button, ButtonProps } from "@/s8ly";
+import { Google } from "@/components/google";
 import { cn, isProd } from "@/lib/utils";
 
 interface ContinueWithGoogleProps extends ButtonProps {}
 
 export const ContinueWithGoogle: FC<ContinueWithGoogleProps> = (props) => {
     const { className, ...rest } = props;
+
+    const posthog = usePostHog();
 
     let googleOAuthURL = import.meta.env.ARTHVEDA_GOOGLE_OAUTH_URL;
 
@@ -25,6 +28,7 @@ export const ContinueWithGoogle: FC<ContinueWithGoogleProps> = (props) => {
             type="button"
             className={cn("", className)}
             onClick={() => {
+                posthog?.capture("Clicked Continue with Google");
                 window.location.assign(googleOAuthURL);
             }}
             {...rest}

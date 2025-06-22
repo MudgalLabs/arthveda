@@ -534,7 +534,7 @@ const columns: ColumnDef<CreateTrade>[] = [
             }, [ctx.row.original.price]);
 
             return (
-                <WithDebounce debounceMs={500} state={ctx.row.original.price} onDebounce={(v) => syncWithValue(v)}>
+                <WithDebounce state={ctx.row.original.price} onDebounce={(v) => syncWithValue(v)}>
                     {(value, setValue) => (
                         <DecimalInput
                             className={cn({
@@ -561,11 +561,7 @@ const columns: ColumnDef<CreateTrade>[] = [
             const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
 
             return (
-                <WithDebounce
-                    debounceMs={500}
-                    state={ctx.row.original.charges_amount}
-                    onDebounce={(v) => syncWithValue(v)}
-                >
+                <WithDebounce state={ctx.row.original.charges_amount} onDebounce={(v) => syncWithValue(v)}>
                     {(value, setValue) => (
                         <Tooltip content="Auto charges is enabled" disabled={!enableAutoCharges}>
                             <DecimalInput

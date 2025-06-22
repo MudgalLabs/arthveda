@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { usePostHog } from "posthog-js/react";
 
 import { ContinueWithGoogle } from "@/components/continue_with_google";
 import { Branding } from "@/components/branding";
@@ -16,6 +17,8 @@ import { apiErrorHandler } from "@/lib/api";
 import { PasswordInput } from "@/components/input/password_input";
 
 export function SignIn() {
+    const posthog = usePostHog();
+
     const isPasswordAuthEnabled = import.meta.env.ARTHVEDA_ENABLE_SIGN_IN === "true";
     const isGoogleOauthEnabled = import.meta.env.ARTHVEDA_ENABLE_GOOGLE_OAUTH === "true";
 
@@ -35,6 +38,7 @@ export function SignIn() {
             // shown as if we are signed in but we are still on sign in screen.
             await client.invalidateQueries();
             const data = res.data.data as SigninResponse;
+
             toast.info(`Welcome back, ${data.name}!`, {
                 icon: <p>🚀</p>,
             });
@@ -72,6 +76,10 @@ export function SignIn() {
             toast.error("Please enter your email to open the demo.");
             return;
         }
+
+        posthog?.capture("Clicked Start Demo", {
+            email: emailToOpenDemo,
+        });
 
         startDemo({ email: emailToOpenDemo });
     };

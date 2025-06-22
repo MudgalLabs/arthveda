@@ -35,6 +35,16 @@ interface ImportMetaEnv {
      * @example "https://demo-api.arthveda.io"
      */
     readonly ARTHVEDA_DEMO_API_URL: string;
+
+    /**
+     * The PostHog key.
+     */
+    readonly ARTHVEDA_POSTHOG_KEY: string;
+
+    /**
+     * The PostHog host URL.
+     */
+    readonly ARTHVEDA_POSTHOG_HOST: string;
 }
 
 interface ImportMeta {

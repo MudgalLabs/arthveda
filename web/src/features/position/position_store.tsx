@@ -159,7 +159,7 @@ export const createPositionStore = (initProp?: Position) => {
 
 export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
     const position = usePositionStore((s) => s.position);
-    const debouncedPosition = useDebounce(position, 500);
+    const debouncedPosition = useDebounce(position, 1000);
     const prevDebouncedPositionRef = useRef(debouncedPosition);
 
     const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);

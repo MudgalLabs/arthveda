@@ -2,7 +2,7 @@ import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
 
 export interface User {
-    user_id: number;
+    user_id: string;
     email: string;
     name: string;
     avatar_url: string;

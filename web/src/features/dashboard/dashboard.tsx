@@ -1,5 +1,6 @@
 import { FC, useMemo, useState } from "react";
 import { Responsive, WidthProvider, Layout } from "react-grid-layout";
+import { usePostHog } from "posthog-js/react";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -153,7 +154,7 @@ export const Dashboard = () => {
         if (!data) return null;
 
         if (isNewUser) {
-            return <WelcomeMessageForNewUser />;
+            return <GetStarted />;
         }
 
         return (
@@ -279,7 +280,9 @@ export const Dashboard = () => {
 
 export default Dashboard;
 
-function WelcomeMessageForNewUser() {
+function GetStarted() {
+    const posthog = usePostHog();
+
     const { data } = useAuthentication();
 
     if (!data) {
@@ -318,13 +321,19 @@ function WelcomeMessageForNewUser() {
                         <div className="h-8" />
 
                         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-                            <Link to={ROUTES.addPosition}>
+                            <Link
+                                to={ROUTES.addPosition}
+                                onClick={() => posthog?.capture("Clicked Add Position Manually On Dashboard")}
+                            >
                                 <Button variant="outline" className="w-full sm:w-fit">
                                     <IconPlus />
                                     Add Position Manually
                                 </Button>
                             </Link>
-                            <Link to={ROUTES.importPositions}>
+                            <Link
+                                to={ROUTES.importPositions}
+                                onClick={() => posthog?.capture("Clicked Import Positions From Broker On Dashboard")}
+                            >
                                 <Button variant="primary" className="w-full sm:w-fit">
                                     <IconImport />
                                     Import from Broker
