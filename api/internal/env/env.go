@@ -8,7 +8,6 @@ import (
 
 var (
 	API_ENV              string
-	ALLOWED_ORIGINS      string
 	LOG_LEVEL            string
 	LOG_FILE             string
 	DB_URL               string
@@ -33,7 +32,6 @@ func Init() {
 	err := godotenv.Load("../.env")
 
 	API_ENV = os.Getenv("ARTHVEDA_API_ENV")
-	ALLOWED_ORIGINS = os.Getenv("ARTHVEDA_API_ALLOWED_ORIGINS")
 	LOG_LEVEL = os.Getenv("ARTHVEDA_API_LOG_LEVEL")
 	LOG_FILE = os.Getenv("ARTHVEDA_API_LOG_FILE")
 	DB_URL = os.Getenv("ARTHVEDA_DB_URL")

@@ -21,7 +21,7 @@ func initRouter(a *app) http.Handler {
 	r.Use(logRequestMiddleware)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{env.ALLOWED_ORIGINS},
+		AllowedOrigins:   []string{env.WEB_URL},
 		AllowedMethods:   []string{"GET", "DELETE", "OPTIONS", "PATCH", "POST", "PUT"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"*"},
