@@ -6,7 +6,6 @@ services:
             dockerfile: api.dockerfile
         environment:
             ARTHVEDA_API_ENV: production
-            ARTHVEDA_API_ALLOWED_ORIGINS: ${ARTHVEDA_API_ALLOWED_ORIGINS}
             ARTHVEDA_API_LOG_LEVEL: ${ARTHVEDA_API_LOG_LEVEL}
             ARTHVEDA_API_LOG_FILE: ./logs/${ARTHVEDA_API_LOG_FILE}
             ARTHVEDA_DB_URL: ${ARTHVEDA_DB_URL}
