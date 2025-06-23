@@ -1,7 +1,7 @@
 .PHONY: up dev down logs db build build_web build_api
 
 up:
-	docker compose up -d arthveda_db
+	docker compose up -d db
 
 down:
 	docker compose down
@@ -10,7 +10,7 @@ logs:
 	docker compose logs -f
 
 db:
-	docker compose exec arthveda_db psql -U postgres -d postgres
+	docker compose exec db psql -U postgres -d postgres
 
 dev:
 	$(MAKE) up
