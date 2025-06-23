@@ -31,12 +31,6 @@ interface ImportMetaEnv {
     readonly ARTHVEDA_ENABLE_DEMO: string;
 
     /**
-     * Arthveda's DEMO API URL.
-     * @example "https://demo-api.arthveda.io"
-     */
-    readonly ARTHVEDA_DEMO_API_URL: string;
-
-    /**
      * The PostHog key.
      */
     readonly ARTHVEDA_POSTHOG_KEY: string;

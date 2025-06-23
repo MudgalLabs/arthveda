@@ -3,9 +3,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { isProd } from "@/lib/utils";
 import { ROUTES } from "@/routes_constants";
 
-const isDemo = import.meta.env.ARTHVEDA_ENABLE_DEMO === "true";
-
-let API_URL = isDemo ? import.meta.env.ARTHVEDA_DEMO_API_URL : import.meta.env.ARTHVEDA_API_URL;
+let API_URL = import.meta.env.ARTHVEDA_API_URL;
 
 if (!API_URL) {
     if (isProd()) {
