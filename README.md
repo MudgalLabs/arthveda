@@ -49,3 +49,9 @@ I aim to support as many brokers as I can but until then this screen will help y
 <img src="./.github/screenshots/position.png" alt="arthveda dashboard" />
 
 ### Instructions for self hosting or to run locally will be added soon
+
+## License
+
+Arthveda is licensed under the [Business Source License 1.1](./LICENSE).
+It's source-available: free for personal use and self-hosting.
+Commercial hosting is restricted for 36 months from release.
