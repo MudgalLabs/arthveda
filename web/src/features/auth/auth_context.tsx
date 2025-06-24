@@ -34,7 +34,7 @@ export const AuthenticationProvider: FC<PropsWithChildren> = ({ children }) => {
             });
             identifyCalledRef.current = true;
         }
-    }, []);
+    }, [isSuccess, isLoading, data, posthog]);
 
     const value = useMemo(
         () => ({

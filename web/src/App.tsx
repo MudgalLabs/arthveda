@@ -1,6 +1,7 @@
 import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
 import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { usePostHog } from "posthog-js/react";
 
 import "@/index.css";
 
@@ -16,6 +17,7 @@ import { useEffectOnce } from "@/hooks/use_effect_once";
 const AppLayout = lazy(() => import("@/app_layout"));
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
+    const posthog = usePostHog();
     const { isAuthenticated, isLoading, data } = useAuthentication();
     const { pathname } = useLocation();
 
@@ -41,6 +43,11 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
                 message = `Welcome back, ${name}`;
             }
 
+            posthog?.capture("User Signed In", {
+                user_id: deps.data?.user_id,
+                email: deps.data?.email,
+                name: deps.data?.name,
+            });
             toast.info(message, { icon: "😎" });
         },
         { isOAuthSuccess, data, isLoading },
