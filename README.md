@@ -1,54 +1,61 @@
-<div align="center">
-  <img src="./.github/screenshots/banner.png" alt="arthveda banner" />
-  <h1>arthveda</h1>
-  <p><strong>An open-source trading analytics dashboard that integrates with your broker to help you track, analyze, and improve your performance.</strong></p>
-</div>
+<p align="center">
+  <img src="./.github/screenshots/banner.png" height="64" alt="arthveda banner" />
+</p>
 
-# About Arthveda
+<p align="center">
+  <img src="./.github/screenshots/dashboard.png" alt="analytics dashboard" />
+<p>
 
-**Arthveda is still yet to reach Beta!**
+# Welcome to Arthveda
 
-Arthveda follows an India first approach.
-Why? Well there are already several tools out there that support brokers like Interactive Brokers, MetaTrader, Robinhood, Charles Schwab, etc. I am from India, I use Indian brokers and I want to provide support for my fellow traders based in India that lack tools with support for Indian brokers. With that being said, if possible with the help of community or I find time, I will definitely try to support as many brokers as I can.
+[Arthveda](http://arthveda.app) is a trading analytics platform with seamless broker integrations built exclusively for Indian traders.
 
-**Beta release will happen soon but for the first full release, the goals are :**
+**Arthveda is in open beta right now!**
 
--   To have a decent dashboard for analytics with filtering.
--   Be able to filter and sort your positions. Brokers like Zerodha, Groww, Upstox and mostly others as well provide no separation of different positions in the PnL statement. They end up aggregating all the trades you took for any given ticker.
--   Be able to add a position manually by using the Add Position page.
--   Be able to import historical positions from an Excel file provided by the supported brokers.
+## Goals for release
+
+-   To have a dashboard with core analytics - performance metrics (R Factor, Win Rate, etc), Cumulative PnL analytics from start till today and Net PnL analytics grouped by monthly/year at minimum.
+-   Be able to search and sort your positions. Brokers like Zerodha, Groww, Upstox and mostly others as well provide no separation of different positions in the PnL statement. They end up aggregating all the trades you took for any given ticker.
+-   Be able to import historical positions from an excel file of a supported brokers.
+-   Be able to add a position manually if import integration is missing for a certain broker.
 -   Be able to enable auto sync so that your positions are auto imported at the end of the day or run it manually. This feature will depend on if Brokers allow us a way to interact with their APIs.
 
-# Screenshots
+## ⭐ Features
 
 > The screenshots may be out of sync as the project is being actively developed. Last updated at 18th Jun, 2025.
 
-### Dashboard
+<h2 align="center">Analytics Dashboard</h3>
 
-Here you will be getting the analytics for your positions.
+All the analytics will be here, especially the visuals.
 
-<img src="./.github/screenshots/dashboard.png" alt="arthveda dashboard" />
+<p align="center">
+<img src="./.github/screenshots/dashboard.png" alt="analytics dashboard" />
+</p>
 
-### Explore Positions
+<h2 align="center">Import Positions</h3>
+
+Follow the simple import wizard to import positions from the supported brokers.
+
+<p align="center">
+<img src="./.github/screenshots/import_positions.png" alt="import positions" />
+</p>
+
+<h2 align="center">Explore Positions</h3>
 
 Explore all your positions quickly with filters & sorting.
 
-<img src="./.github/screenshots/explore_positions.png" alt="arthveda dashboard" />
+<p align="center">
+<img src="./.github/screenshots/explore_positions.png" alt="explore positions" />
+</p>
 
-### Import Positions
-
-Follow the simple import wizard to import historical positions data from the supported brokers.
-
-<img src="./.github/screenshots/import_positions.png" alt="arthveda dashboard" />
-
-### Add/View Position
+<h2 align="center">Know Your Position</h3>
 
 You can manually add positions too if your broker isn't supported.
 I aim to support as many brokers as I can but until then this screen will help you.
 
-<img src="./.github/screenshots/position.png" alt="arthveda dashboard" />
-
-### Instructions for self hosting or to run locally will be added soon
+<p align="center">
+<img src="./.github/screenshots/position.png" alt="position details" />
+</p>
 
 ## License
 
