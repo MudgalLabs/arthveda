@@ -624,6 +624,7 @@ type UpdatePayload struct {
 }
 
 // FIXME: We should figure out a way to use DB transactions.
+
 func (s *Service) Update(ctx context.Context, userID, positionID uuid.UUID, payload UpdatePayload) (*Position, service.Error, error) {
 	l := logger.FromCtx(ctx)
 
@@ -678,6 +679,7 @@ func (s *Service) Update(ctx context.Context, userID, positionID uuid.UUID, payl
 }
 
 // FIXME: We should figure out a way to use DB transactions.
+
 func (s *Service) Delete(ctx context.Context, userID, positionID uuid.UUID) (service.Error, error) {
 	position, err := s.positionRepository.GetByID(ctx, userID, positionID)
 	if err != nil || position == nil {
