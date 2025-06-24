@@ -1,0 +1,48 @@
+Business Source License 1.1 (BSL 1.1)
+
+# Parameters
+
+"Licensor" means **Shikhar Sharma**.
+
+"Licensed Work" means the software known as **“Arthveda – Trading Analytics Platform”** and any derivatives that the Licensor makes available under this License.
+
+"Change Date" means **31 July 2028** for the version of the Licensed Work released on or before 31 July 2025. Future versions will each carry a new Change Date set to 36 months after their public release date.
+
+"Additional Use Grant" means any right You receive under this license other than making the Licensed Work or a derivative work available to third parties as a Hosted Service (as defined below).
+
+# License Grant
+
+1. **Grant of Copyright License.** The Licensor hereby grants You the right to copy, modify, create derivative works, redistribute, and make non‑commercial use of the Licensed Work, subject to the limitations and conditions of this License.
+
+2. **Additional Use Grant.** The Licensor hereby grants You, under the Additional Use Grant, permission to use, copy, modify, and deploy the Licensed Work or derivative works **for Your personal use or for Your organisation’s internal business use**, provided that You do not make the Licensed Work or derivative works available to third parties as a Hosted Service.
+
+3. **Hosted Service Limitation.** "Hosted Service" means, without limitation, making the functionality of the Licensed Work or derivative works available to third parties over a network, whether for direct or indirect commercial advantage. You **may not** provide the Licensed Work or any derivative work as a Hosted Service to anyone other than You or Your organisation without the Licensor’s prior written permission.
+
+4. **Change Date.** On or after the applicable Change Date, the obligations of Section 3 (Hosted Service Limitation) shall no longer apply to that version, and that version of the Licensed Work will thereafter be licensed under the terms of the GNU Affero General Public License, version 3.0 or any later version.
+
+5. **Accepting this License.** Your exercise of any right granted under this License constitutes Your acceptance of all terms and conditions herein.
+
+6. **Derivative Works.** If You create derivative works of the Licensed Work, You must:
+   a. retain all copyright notices and this License text;
+   b. include prominent notice that the work is a derivative of the Licensed Work; and
+   c. distribute any derivative work only under this License or a later version of the Business Source License approved by the Licensor, unless the derivative work qualifies as an Independent Module (Section 7).
+
+7. **Independent Modules.** A work that merely interfaces or communicates with the Licensed Work via standard protocols or publicly documented APIs, without containing any portion of the Licensed Work’s source code, is an "Independent Module" and is not subject to the terms of this License.
+
+8. **Intellectual Property.** No patent rights or trademark rights are granted under this License. Trademark use requires separate permission.
+
+9. **Disclaimer of Warranty.** The Licensed Work is provided "AS IS" and without warranty of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, and non‑infringement. You bear the risk of using it.
+
+10. **Limitation of Liability.** In no event shall the Licensor be liable to You for any damages arising out of the use or inability to use the Licensed Work, even if advised of the possibility of such damages.
+
+11. **Termination.** If You violate the terms of this License, Your rights under it automatically terminate. Provisions that by their nature are intended to survive termination shall so survive.
+
+12. **Forward Compatibility.** The Licensor may release new versions of this License. Licensed Works originally licensed under this version may, at the option of the Licensor, also be made available under the new version.
+
+13. **Severability.** If any provision of this License is held unenforceable, the remainder of the License shall remain in effect.
+
+14. **Governing Law.** This License shall be governed by and construed in accordance with the laws of India, without regard to its conflict‑of‑laws provisions.
+
+---
+
+Copyright © 2024‑2025 Shikhar Sharma. All rights reserved.
