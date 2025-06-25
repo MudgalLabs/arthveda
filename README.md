@@ -6,7 +6,7 @@
   <img src="./.github/screenshots/dashboard.png" alt="analytics dashboard" />
 <p>
 
-# Welcome to Arthveda
+# Arthveda
 
 [Arthveda](http://arthveda.app) is a trading analytics platform with seamless broker integrations built exclusively for Indian traders.
 
