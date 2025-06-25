@@ -37,6 +37,7 @@ import {
 } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
+import { useBroker } from "@/features/broker/broker_context";
 
 const INITIAL_STATE: State = {
     brokerID: "",
@@ -366,12 +367,13 @@ interface ImportStepProps {
 
 const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
     const { data, isLoading } = apiHooks.broker.useList();
+    const brokers = data?.data || [];
+
+    const { getBrokerLogoByName } = useBroker();
 
     if (isLoading) {
         return <LoadingScreen />;
     }
-
-    const brokers = data?.data || [];
 
     const handleClick = (broker: Broker) => {
         setState((prev) => {
@@ -407,7 +409,7 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
                             <BrokerTile
                                 key={broker.id}
                                 name={broker.name as BrokerName}
-                                image={getBrokerLogo(broker.name as BrokerName)}
+                                image={getBrokerLogoByName(broker.name as BrokerName)}
                                 isSelected={isSelected}
                                 onClick={() => handleClick(broker)}
                             />
@@ -417,23 +419,6 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
             </ul>
         </>
     );
-};
-
-import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
-import GrowwLogo from "@/assets/brokers/groww.svg";
-import UpstoxLogo from "@/assets/brokers/upstox.svg";
-
-const getBrokerLogo = (name: BrokerName) => {
-    switch (name) {
-        case "Groww":
-            return GrowwLogo;
-        case "Upstox":
-            return UpstoxLogo;
-        case "Zerodha":
-            return ZerodhaLogo;
-        default:
-            return "";
-    }
 };
 
 const BrokerTile = ({
@@ -554,8 +539,11 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
         return <p className="text-foreground-red">You need to select a Broker first before performing this step.</p>;
     }
 
+    const { getBrokerLogoByName } = useBroker();
+
     const name = state.brokerName;
-    const logo = getBrokerLogo(state.brokerName);
+    // const logo = getBrokerLogo(state.brokerName);
+    const logo = getBrokerLogoByName(state.brokerName);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
