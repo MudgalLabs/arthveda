@@ -509,6 +509,9 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		// This is calculated from the trades in the position.
 		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades)
 
+		// Update the Net PnL amount based on the total charges amount.
+		position.NetPnLAmount = position.GrossPnLAmount.Sub(position.TotalChargesAmount)
+
 		var isDuplicate bool
 		// If we find a duplicate trade, we need to get it's position ID.
 		var positionIDForTheDuplicateOrderID uuid.UUID
