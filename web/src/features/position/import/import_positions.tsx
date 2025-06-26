@@ -39,6 +39,20 @@ import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { useBroker } from "@/features/broker/broker_context";
 
+interface State {
+    brokerID: string;
+    brokerName: BrokerName | null;
+    file: File | null;
+    instrument: PositionInstrument;
+    currency: CurrencyCode;
+    riskAmount: DecimalString;
+    // If "fixed", we use the risk amount provided by the user.
+    // If "auto", we calculate it based on the trades done in the position's lifecycle.
+    chargesCalculationMethod: "manual" | "auto";
+    manualChargeAmount: DecimalString;
+    force: boolean;
+}
+
 const INITIAL_STATE: State = {
     brokerID: "",
     brokerName: null,
@@ -346,20 +360,6 @@ export const ImportPositions = () => {
 
 export default ImportPositions;
 
-interface State {
-    brokerID: string;
-    brokerName: BrokerName | null;
-    file: File | null;
-    instrument: PositionInstrument;
-    currency: CurrencyCode;
-    riskAmount: DecimalString;
-    // If "fixed", we use the risk amount provided by the user.
-    // If "auto", we calculate it based on the trades done in the position's lifecycle.
-    chargesCalculationMethod: "manual" | "auto";
-    manualChargeAmount: DecimalString;
-    force: boolean;
-}
-
 interface ImportStepProps {
     state: State;
     setState: Setter<State>;
@@ -495,16 +495,15 @@ const UpstoxTradingHistoryDirections: FC = () => {
                 >
                     Reports
                 </a>
-                .
             </li>
             <li>
-                Scroll down and and select <strong>Trade</strong>
+                Scroll down and click on <strong>Trade</strong>
             </li>
             <li>
-                Select the necessary filters and click <strong>Get report</strong> button
+                Set appropriate filters and click <strong>Get report</strong> button
             </li>
             <li>
-                Click <strong>Download XLSX </strong> from download dropdown to download the Excel file
+                Click <strong>Download XLSX</strong> from download dropdown to download the Excel file
             </li>
             <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
         </ol>
@@ -605,7 +604,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
             <div className="h-8" />
 
             <div className="flex flex-col gap-x-16 gap-y-8 sm:flex-row">
-                <WithLabel Label={<Label>Instrument</Label>}>
+                <WithLabel Label={<Label>Instrument type</Label>}>
                     <InstrumentToggle
                         value={state.instrument}
                         onChange={(v) => {
@@ -630,8 +629,6 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
                                             Amount you risked on each position. This will be used to calculate R Factor
                                             for each position.
                                         </p>
-
-                                        <p>On the next step, you can set risk amount for each position.</p>
                                     </div>
                                 }
                             >
