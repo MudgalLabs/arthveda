@@ -54,7 +54,7 @@ services:
             POSTGRES_USER: ${ARTHVEDA_DB_USER}
             POSTGRES_PASSWORD: ${ARTHVEDA_DB_PASSWORD}
         ports:
-            - 42070:42069
+            - 42070:42070
         networks:
             - arthveda_demo_network
             - caddy_net
