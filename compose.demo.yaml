@@ -49,7 +49,7 @@ services:
         container_name: arthveda_demo_db
         image: postgres:17.4-alpine
         environment:
-            PGPORT: 42069
+            PGPORT: 42070
             POSTGRES_DB: ${ARTHVEDA_DB_NAME}
             POSTGRES_USER: ${ARTHVEDA_DB_USER}
             POSTGRES_PASSWORD: ${ARTHVEDA_DB_PASSWORD}
