@@ -1,6 +1,6 @@
 services:
     web:
-        container_name: arthveda_web
+        container_name: arthveda_demo_web
         image: ceoshikhar/arthveda_web:beta
         build:
             dockerfile: web.dockerfile
@@ -16,7 +16,7 @@ services:
                 restart: true
 
     api:
-        container_name: arthveda_api
+        container_name: arthveda_demo_api
         image: ceoshikhar/arthveda_api:beta
         build:
             dockerfile: api.dockerfile
@@ -46,7 +46,7 @@ services:
                 restart: true
 
     db:
-        container_name: arthveda_db
+        container_name: arthveda_demo_db
         image: postgres:17.4-alpine
         environment:
             PGPORT: 42069
