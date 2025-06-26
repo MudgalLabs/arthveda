@@ -7,7 +7,7 @@ services:
         ports:
             - 6970:6969
         networks:
-            - arthveda_network_demo
+            - arthveda_demo_network
             - caddy_net
         restart: unless-stopped
         depends_on:
@@ -35,7 +35,7 @@ services:
         ports:
             - 1338:1337
         networks:
-            - arthveda_network_demo
+            - arthveda_demo_network
             - caddy_net
         volumes:
             - ./volumes/api_logs:/app/logs
@@ -56,7 +56,7 @@ services:
         ports:
             - 42070:42069
         networks:
-            - arthveda_network_demo
+            - arthveda_demo_network
             - caddy_net
         volumes:
             - ./volumes/db_data:/var/lib/postgresql/data
@@ -72,7 +72,7 @@ services:
             retries: 5
 
 networks:
-    arthveda_network_demo:
+    arthveda_demo_network:
         name: arthveda_demo_network
     caddy_net:
         external: true
