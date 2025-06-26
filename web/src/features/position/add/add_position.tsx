@@ -40,7 +40,7 @@ import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { WithDebounce } from "@/components/with_debounce";
 import { SymbolInput } from "@/features/position/components/symbol_input";
 import { usePositionStore } from "../position_store_context";
-import { ComputePositionResponse, UpdatePositionRequest } from "@/lib/api/position";
+import { ComputePositionResponse } from "@/lib/api/position";
 import { LoadingScreen } from "@/components/loading_screen";
 import {
     usePositionCanBeSaved,
