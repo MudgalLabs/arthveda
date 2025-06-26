@@ -163,11 +163,11 @@ const columns: ColumnDef<Position>[] = [
                                 : "Not imported from any broker"
                         }
                     >
-                        <div className="size-6">
+                        <div className="size-4">
                             {row.original.broker_id ? (
                                 <img src={getBrokerLogoById(row.original.broker_id)} alt="broker logo" />
                             ) : (
-                                <Logo className="size-6" />
+                                <Logo className="size-4" />
                             )}
                         </div>
                     </Tooltip>
