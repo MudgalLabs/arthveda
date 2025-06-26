@@ -1,9 +1,78 @@
-include:
-    - compose.backend.yaml
-    - compose.frontend.yaml
+services:
+    web:
+        container_name: arthveda_web
+        image: ceoshikhar/arthveda_web:beta
+        build:
+            dockerfile: web.dockerfile
+        ports:
+            - 6970:6969
+        networks:
+            - arthveda_network_demo
+            - caddy_net
+        restart: unless-stopped
+        depends_on:
+            api:
+                condition: service_started
+                restart: true
+
+    api:
+        container_name: arthveda_api
+        image: ceoshikhar/arthveda_api:beta
+        build:
+            dockerfile: api.dockerfile
+        environment:
+            ARTHVEDA_API_ENV: production
+            ARTHVEDA_API_LOG_LEVEL: ${ARTHVEDA_API_LOG_LEVEL}
+            ARTHVEDA_API_LOG_FILE: ./logs/${ARTHVEDA_API_LOG_FILE}
+            ARTHVEDA_DB_URL: ${ARTHVEDA_DB_URL}
+            ARTHVEDA_WEB_URL: ${ARTHVEDA_WEB_URL}
+            ARTHVEDA_ENABLE_SIGN_UP: ${ARTHVEDA_ENABLE_SIGN_UP}
+            ARTHVEDA_ENABLE_SIGN_IN: ${ARTHVEDA_ENABLE_SIGN_IN}
+            ARTHVEDA_ENABLE_GOOGLE_OAUTH: ${ARTHVEDA_ENABLE_GOOGLE_OAUTH}
+            ARTHVEDA_GOOGLE_REDIRECT_URL: ${ARTHVEDA_GOOGLE_REDIRECT_URL}
+            ARTHVEDA_GOOGLE_CLIENT_ID: ${ARTHVEDA_GOOGLE_CLIENT_ID}
+            ARTHVEDA_GOOGLE_CLIENT_SECRET: ${ARTHVEDA_GOOGLE_CLIENT_SECRET}
+        ports:
+            - 1338:1337
+        networks:
+            - arthveda_network_demo
+            - caddy_net
+        volumes:
+            - ./volumes/api_logs:/app/logs
+        restart: unless-stopped
+        depends_on:
+            db:
+                condition: service_healthy
+                restart: true
+
+    db:
+        container_name: arthveda_db
+        image: postgres:17.4-alpine
+        environment:
+            PGPORT: 42069
+            POSTGRES_DB: ${ARTHVEDA_DB_NAME}
+            POSTGRES_USER: ${ARTHVEDA_DB_USER}
+            POSTGRES_PASSWORD: ${ARTHVEDA_DB_PASSWORD}
+        ports:
+            - 42070:42069
+        networks:
+            - arthveda_network_demo
+            - caddy_net
+        volumes:
+            - ./volumes/db_data:/var/lib/postgresql/data
+        restart: unless-stopped
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready -U ${ARTHVEDA_DB_USER} -d ${ARTHVEDA_DB_NAME}",
+                ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
 networks:
-    arthveda_network:
+    arthveda_network_demo:
         name: arthveda_demo_network
     caddy_net:
         external: true
