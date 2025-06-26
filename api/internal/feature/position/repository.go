@@ -335,6 +335,14 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload)
 		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldChargesPercentage], *p.Filters.ChargesPercentageOperator, *p.Filters.ChargesPercentage)
 	}
 
+	if p.Sort.Field == "" {
+		p.Sort.Field = searchFieldOpened
+	}
+
+	if p.Sort.Order == "" {
+		p.Sort.Order = common.SortOrderDESC
+	}
+
 	b.AddSorting(searchFieldsSQLColumn[p.Sort.Field], p.Sort.Order)
 	b.AddPagination(p.Pagination.Limit, p.Pagination.Offset())
 
