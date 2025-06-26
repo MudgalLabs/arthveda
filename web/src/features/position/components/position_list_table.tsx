@@ -138,10 +138,6 @@ export const PositionListTable: FC<PositionListTable> = memo(
 const columns: ColumnDef<Position>[] = [
     {
         id: "actions",
-        meta: {
-            columnVisibilityHeader: "Actions",
-        },
-        header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
         cell: ({ row }) => {
             const { getBrokerNameByBrokerId, getBrokerLogoById } = useBroker();
 
@@ -197,7 +193,7 @@ const columns: ColumnDef<Position>[] = [
                 </div>
             );
         },
-        enableHiding: true,
+        enableHiding: false,
         enableSorting: false,
     },
     {
