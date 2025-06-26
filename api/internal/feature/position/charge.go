@@ -11,18 +11,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func calculateTotalChargesAmountFromTrades(trades []*trade.Trade) decimal.Decimal {
-	totalCharges := decimal.Zero
-
-	for _, t := range trades {
-		if t.ChargesAmount.IsPositive() {
-			totalCharges = totalCharges.Add(t.ChargesAmount)
-		}
-	}
-
-	return totalCharges
-}
-
 func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrument, brokerName broker.Name) (charges []decimal.Decimal, userError bool, err error) {
 	charges = make([]decimal.Decimal, len(trades))
 
@@ -32,14 +20,14 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 	equityIntradayChargesConfig := getComputeTradeChargesConfig(brokerName, instrument, &intraday)
 	equityDeliveryChargesConfig := getComputeTradeChargesConfig(brokerName, instrument, &delivery)
 
-	chargeContextByTradeId, userError, err := computeEquityTradeChargesContext(trades)
+	chargeContextByTradeID, userError, err := computeEquityTradeChargesContext(trades)
 	if err != nil {
 		return charges, userError, err
 	}
 
 	for i, trade := range trades {
 		if instrument == InstrumentEquity {
-			chargeContext, exists := chargeContextByTradeId[trade.ID]
+			chargeContext, exists := chargeContextByTradeID[trade.ID]
 			if !exists {
 				// If we don't have a charges context for the trade, we skip it.
 				charges[i] = decimal.Zero
@@ -84,10 +72,23 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 			trades[i].ChargesAmount = finalCharges
 		} else {
 			// TODO: Handle other instruments if needed.
+			return charges, false, nil
 		}
 	}
 
 	return charges, false, nil
+}
+
+func calculateTotalChargesAmountFromTrades(trades []*trade.Trade) decimal.Decimal {
+	totalCharges := decimal.Zero
+
+	for _, t := range trades {
+		if t.ChargesAmount.IsPositive() {
+			totalCharges = totalCharges.Add(t.ChargesAmount)
+		}
+	}
+
+	return totalCharges
 }
 
 // getTotalChargesForTrade computes the total charges for a trade based on the trade value and the configuration.
@@ -191,13 +192,13 @@ type computeEquityTradeChargesContextResult = map[uuid.UUID]*equityTradeChargesC
 // computeEquityTradeChargesContext computes the charges context for all the trades of a EQUITY position only.
 // The context allows us to later compute the charges for each trade based on the splits.
 // Each split tells us how much quantity of a trade is applicable for a particular charge kind (intraday or delivery).
-func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTradeId computeEquityTradeChargesContextResult, userError bool, err error) {
+func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTradeID computeEquityTradeChargesContextResult, userError bool, err error) {
 	// We will keep track of the charges context for each trade.
-	chargeContextByTradeId = make(map[uuid.UUID]*equityTradeChargesContext)
+	chargeContextByTradeID = make(map[uuid.UUID]*equityTradeChargesContext)
 
 	// Safety check
 	if len(trades) == 0 {
-		return chargeContextByTradeId, false, nil
+		return chargeContextByTradeID, false, nil
 	}
 
 	// Hardcoded timezone for Asia/Kolkata (IST).
@@ -263,7 +264,7 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 						EquityTradeKind: EquityTradeDelivery,
 					}
 
-					chargeContextByTradeId[currTrade.ID] = &equityTradeChargesContext{
+					chargeContextByTradeID[currTrade.ID] = &equityTradeChargesContext{
 						TradeID:       currTrade.ID,
 						ChargesSplits: []equityTradeChargeSplit{split},
 					}
@@ -282,24 +283,24 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 					// Also mark this trade as a intraday.
 
 					if prevTradeRemainingQty, exists := otherKindTradesWithRemainingQty[prevTrade.ID]; exists {
-						prevTradeChargesContext, exists := chargeContextByTradeId[prevTrade.ID]
+						prevTradeChargesContext, exists := chargeContextByTradeID[prevTrade.ID]
 						if !exists {
 							// If we don't have a context for the previous trade, we create one.
 							prevTradeChargesContext = &equityTradeChargesContext{
 								TradeID:       prevTrade.ID,
 								ChargesSplits: []equityTradeChargeSplit{},
 							}
-							chargeContextByTradeId[prevTrade.ID] = prevTradeChargesContext
+							chargeContextByTradeID[prevTrade.ID] = prevTradeChargesContext
 						}
 
-						currTradeChargesContext, exists := chargeContextByTradeId[currTrade.ID]
+						currTradeChargesContext, exists := chargeContextByTradeID[currTrade.ID]
 						if !exists {
 							// If we don't have a context for the current trade, we create one.
 							currTradeChargesContext = &equityTradeChargesContext{
 								TradeID:       currTrade.ID,
 								ChargesSplits: []equityTradeChargeSplit{},
 							}
-							chargeContextByTradeId[currTrade.ID] = currTradeChargesContext
+							chargeContextByTradeID[currTrade.ID] = currTradeChargesContext
 						}
 
 						var newPrevRemainingQty, newCurrTradeQty, qtyReduced decimal.Decimal
@@ -335,8 +336,8 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 						// Update the current trade quantity remaining.
 						currTradeQtyRemaining = newCurrTradeQty
 
-						chargeContextByTradeId[prevTrade.ID] = prevTradeChargesContext
-						chargeContextByTradeId[currTrade.ID] = currTradeChargesContext
+						chargeContextByTradeID[prevTrade.ID] = prevTradeChargesContext
+						chargeContextByTradeID[currTrade.ID] = currTradeChargesContext
 
 						// If we consume all the previous trade remaining quantity,
 						// we need to make sure we haven't reached the start of the trades.
@@ -346,10 +347,10 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 						if j == 0 && newCurrTradeQty.GreaterThan(decimal.Zero) {
 							if openTrade.Kind == trade.TradeKindBuy {
 								// If the open trade is a buy, it means we have sold more quantity than we had bought.
-								return chargeContextByTradeId, true, fmt.Errorf("You cannot sell more quantity than you have open")
+								return chargeContextByTradeID, true, fmt.Errorf("You cannot sell more quantity than you have open")
 							} else {
 								// If the open trade is a sell, it means we have bought more quantity than we had sold.
-								return chargeContextByTradeId, true, fmt.Errorf("You cannot buy more quantity than you have open")
+								return chargeContextByTradeID, true, fmt.Errorf("You cannot buy more quantity than you have open")
 							}
 						}
 
@@ -370,14 +371,14 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 	// We will mark these trades as delivery for the remaining quantity.
 	for tradeID, qty := range otherKindTradesWithRemainingQty {
 		if qty.IsPositive() {
-			context, exists := chargeContextByTradeId[tradeID]
+			context, exists := chargeContextByTradeID[tradeID]
 			if !exists {
 				// If we don't have a context for the trade, we create one.
 				context = &equityTradeChargesContext{
 					TradeID:       tradeID,
 					ChargesSplits: []equityTradeChargeSplit{},
 				}
-				chargeContextByTradeId[tradeID] = context
+				chargeContextByTradeID[tradeID] = context
 			}
 
 			split := equityTradeChargeSplit{
@@ -387,11 +388,11 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 
 			// Add the charge split for the trade as delivery for the remaining quantity.
 			context.ChargesSplits = append(context.ChargesSplits, split)
-			chargeContextByTradeId[tradeID] = context
+			chargeContextByTradeID[tradeID] = context
 		}
 	}
 
-	return chargeContextByTradeId, false, nil
+	return chargeContextByTradeID, false, nil
 }
 
 type brokerageConfig struct {
@@ -460,12 +461,22 @@ func getBrokerageConfig(brokerName broker.Name, instrument Instrument, etk *equi
 			config.percent = 0.1
 			config.max = 20
 			config.min = 5
+		case broker.BrokerNameUpstox:
+			if etk != nil && *etk == EquityTradeIntraday {
+				config.percent = 0.1
+				config.max = 20
+				config.min = 0
+			} else {
+				// Flat 20 for delivery trades.
+				config.min = 20
+			}
 		default:
 			logger.Get().Errorw("getBrokerageChargesConfig: unknown broker for equity trade charges config", "broker", brokerName)
 		}
 	} else {
 		// For other instruments, we can define different configs if needed.
 		// Right now, we are not handling other instruments.
+		return config
 	}
 
 	return config
@@ -548,6 +559,8 @@ func getDpChargesAmount(b broker.Name, etk *equityTradeKind) decimal.Decimal {
 		return decimal.NewFromFloat(16.5)
 	case broker.BrokerNameZerodha:
 		return decimal.NewFromFloat(15.34)
+	case broker.BrokerNameUpstox:
+		return decimal.NewFromFloat(20.0)
 	default:
 		logger.Get().Errorw("getDpChargesAmount: unknown broker for dp charges", "broker", b)
 		return decimal.Zero

@@ -13,12 +13,14 @@ import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/routes_constants";
 import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
+import { BrokerProvider, useBroker } from "./features/broker/broker_context";
 
 const AppLayout = lazy(() => import("@/app_layout"));
 
 const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const posthog = usePostHog();
     const { isAuthenticated, isLoading, data } = useAuthentication();
+    const { isLoading: isLoadingBrokerContext } = useBroker();
     const { pathname } = useLocation();
 
     const [isOAuthSuccess] = useURLState("oauth_success", false);
@@ -54,7 +56,7 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
         (deps) => deps.isOAuthSuccess && !deps.isLoading
     );
 
-    if (isLoading) {
+    if (isLoading || isLoadingBrokerContext) {
         return (
             <div className="h-screen w-screen">
                 <LoadingScreen />
@@ -95,21 +97,23 @@ export default function App() {
             <ToastProvider />
 
             <AuthenticationProvider>
-                <SidebarProvider>
-                    <TooltipPrimitive.TooltipProvider>
-                        <Suspense
-                            fallback={
-                                <div className="h-screen w-screen">
-                                    <LoadingScreen />
-                                </div>
-                            }
-                        >
-                            <RouteHandler>
-                                <Outlet />
-                            </RouteHandler>
-                        </Suspense>
-                    </TooltipPrimitive.TooltipProvider>
-                </SidebarProvider>
+                <BrokerProvider>
+                    <SidebarProvider>
+                        <TooltipPrimitive.TooltipProvider>
+                            <Suspense
+                                fallback={
+                                    <div className="h-screen w-screen">
+                                        <LoadingScreen />
+                                    </div>
+                                }
+                            >
+                                <RouteHandler>
+                                    <Outlet />
+                                </RouteHandler>
+                            </Suspense>
+                        </TooltipPrimitive.TooltipProvider>
+                    </SidebarProvider>
+                </BrokerProvider>
             </AuthenticationProvider>
             <ScrollRestoration />
         </Fragment>

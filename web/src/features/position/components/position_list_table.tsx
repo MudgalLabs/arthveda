@@ -26,6 +26,8 @@ import {
 import { DataTableState } from "@/s8ly/data_table/data_table_state";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import Decimal from "decimal.js";
+import { useBroker } from "@/features/broker/broker_context";
+import { Logo } from "@/components/logo";
 
 export interface PositionListTable {
     positions: Position[];
@@ -136,44 +138,62 @@ export const PositionListTable: FC<PositionListTable> = memo(
 const columns: ColumnDef<Position>[] = [
     {
         id: "actions",
-        meta: {
-            columnVisibilityHeader: "Actions",
-        },
-        header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
-        cell: ({ row }) => (
-            <div className="flex-x">
-                <Link to={`/position/${row.original.id}`}>
-                    <Tooltip content="View Position" delayDuration={500}>
-                        <Button variant="outline" size="icon">
-                            <IconArrowUpRight className="text-link" size={20} />
-                        </Button>
-                    </Tooltip>
-                </Link>
+        cell: ({ row }) => {
+            const { getBrokerNameByBrokerId, getBrokerLogoById } = useBroker();
 
-                <Popover>
-                    <Tooltip content="View Notes" delayDuration={500}>
-                        <PopoverTrigger asChild>
-                            <Button
-                                className="text-foreground-muted hover:text-foreground"
-                                variant="outline"
-                                size="icon"
-                            >
-                                <IconNotebookPen size={18} />
+            return (
+                <div className="flex-x">
+                    <Link to={`/position/${row.original.id}`}>
+                        <Tooltip content="View Position" delayDuration={300}>
+                            <Button variant="ghost" size="icon">
+                                <IconArrowUpRight className="text-link" size={20} />
                             </Button>
-                        </PopoverTrigger>
+                        </Tooltip>
+                    </Link>
+
+                    <Tooltip
+                        delayDuration={300}
+                        content={
+                            row.original.broker_id
+                                ? `Imported from ${getBrokerNameByBrokerId(row.original.broker_id)}`
+                                : "Not imported from any broker"
+                        }
+                    >
+                        <div className="size-4">
+                            {row.original.broker_id ? (
+                                <img src={getBrokerLogoById(row.original.broker_id)} alt="broker logo" />
+                            ) : (
+                                <Logo className="size-4" />
+                            )}
+                        </div>
                     </Tooltip>
 
-                    <PopoverContent className="max-h-40 max-w-96 overflow-y-auto text-sm">
-                        {row.original.notes ? (
-                            <div className="whitespace-pre-wrap">{row.original.notes}</div>
-                        ) : (
-                            <span className="text-foreground-muted">No notes on this position</span>
-                        )}
-                    </PopoverContent>
-                </Popover>
-            </div>
-        ),
-        enableHiding: true,
+                    {row.original.notes && (
+                        <Popover>
+                            <Tooltip content="View Notes" delayDuration={300}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        className="text-foreground-muted hover:text-foreground size-9"
+                                        variant="ghost"
+                                    >
+                                        <IconNotebookPen size={18} />
+                                    </Button>
+                                </PopoverTrigger>
+                            </Tooltip>
+
+                            <PopoverContent className="max-h-40 max-w-96 overflow-y-auto text-sm">
+                                {row.original.notes ? (
+                                    <div className="whitespace-pre-wrap">{row.original.notes}</div>
+                                ) : (
+                                    <span className="text-foreground-muted">No notes on this position</span>
+                                )}
+                            </PopoverContent>
+                        </Popover>
+                    )}
+                </div>
+            );
+        },
+        enableHiding: false,
         enableSorting: false,
     },
     {

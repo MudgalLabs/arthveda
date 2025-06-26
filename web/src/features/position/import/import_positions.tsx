@@ -1,6 +1,7 @@
 import { FC, ReactNode, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import Decimal from "decimal.js";
 
 import { PageHeading } from "@/components/page_heading";
 import { toast } from "@/components/toast";
@@ -35,6 +36,8 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
+import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
+import { useBroker } from "@/features/broker/broker_context";
 
 const INITIAL_STATE: State = {
     brokerID: "",
@@ -364,12 +367,13 @@ interface ImportStepProps {
 
 const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
     const { data, isLoading } = apiHooks.broker.useList();
+    const brokers = data?.data || [];
+
+    const { getBrokerLogoByName } = useBroker();
 
     if (isLoading) {
         return <LoadingScreen />;
     }
-
-    const brokers = data?.data || [];
 
     const handleClick = (broker: Broker) => {
         setState((prev) => {
@@ -405,7 +409,7 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
                             <BrokerTile
                                 key={broker.id}
                                 name={broker.name as BrokerName}
-                                image={getBrokerLogo(broker.name as BrokerName)}
+                                image={getBrokerLogoByName(broker.name as BrokerName)}
                                 isSelected={isSelected}
                                 onClick={() => handleClick(broker)}
                             />
@@ -415,22 +419,6 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
             </ul>
         </>
     );
-};
-
-import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
-import GrowwLogo from "@/assets/brokers/groww.svg";
-import Decimal from "decimal.js";
-import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
-
-const getBrokerLogo = (name: BrokerName) => {
-    switch (name) {
-        case "Zerodha":
-            return ZerodhaLogo;
-        case "Groww":
-            return GrowwLogo;
-        default:
-            return "";
-    }
 };
 
 const BrokerTile = ({
@@ -476,6 +464,53 @@ const BrokerTile = ({
     );
 };
 
+const GrowwTradingHistoryDirections: FC = () => {
+    return (
+        <ol className="list-decimal pl-8">
+            <li>Go to your profile</li>
+            <li>
+                Select the <strong>Reports</strong> option
+            </li>
+            <li>
+                Under <strong>Transactions</strong>, choose <strong>Stock Order History</strong>
+            </li>
+            <li>
+                Select the time frame and click <strong>Download</strong>
+            </li>
+            <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
+        </ol>
+    );
+};
+
+const UpstoxTradingHistoryDirections: FC = () => {
+    return (
+        <ol className="list-decimal pl-8">
+            <li>
+                Login to your Upstox account and go to{" "}
+                <a
+                    className="text-base!"
+                    href="https://account.upstox.com/reports"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Reports
+                </a>
+                .
+            </li>
+            <li>
+                Scroll down and and select <strong>Trade</strong>
+            </li>
+            <li>
+                Select the necessary filters and click <strong>Get report</strong> button
+            </li>
+            <li>
+                Click <strong>Download XLSX </strong> from download dropdown to download the Excel file
+            </li>
+            <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
+        </ol>
+    );
+};
+
 const ZerodhaTradingHistoryDirections: FC = () => {
     return (
         <ol className="list-decimal pl-8">
@@ -498,32 +533,17 @@ const ZerodhaTradingHistoryDirections: FC = () => {
     );
 };
 
-const GrowwTradingHistoryDirections: FC = () => {
-    return (
-        <ol className="list-decimal pl-8">
-            <li>Go to your profile</li>
-            <li>
-                Select the <strong>Reports</strong> option
-            </li>
-            <li>
-                Under <strong>Transactions</strong>, choose <strong>Stock Order History</strong>
-            </li>
-            <li>
-                Select the time frame and click <strong>Download</strong>
-            </li>
-            <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
-        </ol>
-    );
-};
-
 const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
     // If broker is not selected, we don't show the file upload step.
     if (state.brokerName === null || state.brokerID === "") {
         return <p className="text-foreground-red">You need to select a Broker first before performing this step.</p>;
     }
 
+    const { getBrokerLogoByName } = useBroker();
+
     const name = state.brokerName;
-    const logo = getBrokerLogo(state.brokerName);
+    // const logo = getBrokerLogo(state.brokerName);
+    const logo = getBrokerLogoByName(state.brokerName);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
@@ -555,10 +575,12 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
 
             <div className="h-2" />
 
-            {name === "Zerodha" ? (
-                <ZerodhaTradingHistoryDirections />
-            ) : name === "Groww" ? (
+            {name === "Groww" ? (
                 <GrowwTradingHistoryDirections />
+            ) : name === "Upstox" ? (
+                <UpstoxTradingHistoryDirections />
+            ) : name === "Zerodha" ? (
+                <ZerodhaTradingHistoryDirections />
             ) : (
                 <p className="text-foreground-red">Unsupported broker for file import</p>
             )}
@@ -739,7 +761,7 @@ const ReviewStep: FC<ReviewStepProps> = ({
                 <div className="min-w-0 flex-1">
                     <div className="flex-x">
                         <p className="label-muted">Invalid Positions </p>
-                        <Tooltip content="These positions have been ignored because they have incorrect data like selling/buying more quanity than you have open.">
+                        <Tooltip content="These positions have been ignored because they have incorrect data like selling/buying more quanity than you have open. It could have be that some trades are missing for the position.">
                             <IconInfo />
                         </Tooltip>
                     </div>
@@ -879,6 +901,21 @@ const columns: ColumnDef<Position>[] = [
                 })}
             </span>
         ),
+        enableSorting: false,
+    },
+    {
+        id: "total_charges_amount",
+        meta: {
+            columnVisibilityHeader: "Charges",
+        },
+        accessorKey: "total_charges_amount",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Charges" disabled={table.options.meta?.isFetching} column={column} />
+        ),
+        cell: ({ row }) =>
+            formatCurrency(row.original.total_charges_amount, {
+                currency: row.original.currency,
+            }),
         enableSorting: false,
     },
     {

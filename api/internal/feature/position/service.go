@@ -220,8 +220,10 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	broker, err := s.brokerRepository.GetByID(ctx, payload.BrokerID)
 	if err != nil {
 		if err == repository.ErrNotFound {
-			return nil, service.ErrNotFound, fmt.Errorf("Broker not found with ID: %s", payload.BrokerID)
+			return nil, service.ErrBadRequest, fmt.Errorf("Broker provided is invalid or does not exist")
 		}
+
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get broker by ID: %w", err)
 	}
 
 	importer, err := getImporer(broker)
@@ -284,19 +286,24 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	for rowIdx, row := range rows[headerRowIdx+1:] {
 		l.Debugf("Processing row %d: %v\n", rowIdx+headerRowIdx+1, row)
 
+		if len(row) == 0 {
+			l.Debugf("Found an empty row. We will stop processing further rows assuming we have reached the end.")
+			break
+		}
+
 		parseRowResult, err := importer.parseRow(row, metadata)
 		if err != nil {
 			return nil, service.ErrBadRequest, fmt.Errorf("failed to parse row %d: %w", rowIdx+headerRowIdx+1, err)
 		}
 
 		// Aggregate trades by orderID
-		if existing, found := aggregatedTrades[parseRowResult.orderId]; found {
+		if existing, found := aggregatedTrades[parseRowResult.orderID]; found {
 			existing.Quantity = existing.Quantity.Add(parseRowResult.quantity)
 			existing.TotalPrice = existing.TotalPrice.Add(parseRowResult.price.Mul(parseRowResult.quantity))
 			existing.Time = parseRowResult.time
-			aggregatedTrades[parseRowResult.orderId] = existing
+			aggregatedTrades[parseRowResult.orderID] = existing
 		} else {
-			aggregatedTrades[parseRowResult.orderId] = struct {
+			aggregatedTrades[parseRowResult.orderID] = struct {
 				TradeKind  trade.Kind
 				Time       time.Time
 				Quantity   decimal.Decimal
@@ -307,12 +314,12 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				Time:       parseRowResult.time,
 				Quantity:   parseRowResult.quantity,
 				TotalPrice: parseRowResult.price.Mul(parseRowResult.quantity),
-				Charges:    decimal.NewFromInt(20), // Assuming a fixed charge of 20 for simplicity, this can be adjusted based on the broker's fee structure.
+				Charges:    decimal.NewFromInt(0),
 			}
 		}
 
-		orderIDToSymbolMap[parseRowResult.orderId] = parseRowResult.symbol
-		orderIDToInstrumentMap[parseRowResult.orderId] = parseRowResult.instrument
+		orderIDToSymbolMap[parseRowResult.orderID] = parseRowResult.symbol
+		orderIDToInstrumentMap[parseRowResult.orderID] = parseRowResult.instrument
 	}
 
 	// Convert aggregated trades to tradesWithOrderIDs
@@ -502,6 +509,9 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		// This is calculated from the trades in the position.
 		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades)
 
+		// Update the Net PnL amount based on the total charges amount.
+		position.NetPnLAmount = position.GrossPnLAmount.Sub(position.TotalChargesAmount)
+
 		var isDuplicate bool
 		// If we find a duplicate trade, we need to get it's position ID.
 		var positionIDForTheDuplicateOrderID uuid.UUID
@@ -585,8 +595,6 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		PositionsImportedCount:  positionsImported,
 		InvalidPositionsCount:   len(invalidPositionsByPosID),
 		ForcedPositionsCount:    forcedPositionCount,
-		FromDate:                metadata.from,
-		ToDate:                  metadata.to,
 	}
 
 	return result, service.ErrNone, nil

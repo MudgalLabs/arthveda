@@ -65,7 +65,9 @@ func main() {
 
 	defer db.Close()
 
-	oauth.InitGoogle()
+	if env.ENABLE_GOOGLE_OAUTH {
+		oauth.InitGoogle()
+	}
 
 	brokerRepository := broker.NewRepository(db)
 	dashboardRepository := dashboard.NewRepository(db)
