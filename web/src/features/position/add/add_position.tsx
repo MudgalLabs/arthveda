@@ -40,7 +40,7 @@ import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { WithDebounce } from "@/components/with_debounce";
 import { SymbolInput } from "@/features/position/components/symbol_input";
 import { usePositionStore } from "../position_store_context";
-import { ComputePositionResponse } from "@/lib/api/position";
+import { ComputePositionResponse, UpdatePositionRequest } from "@/lib/api/position";
 import { LoadingScreen } from "@/components/loading_screen";
 import {
     usePositionCanBeSaved,
@@ -178,6 +178,7 @@ function AddPosition() {
                     quantity: t.quantity || "0",
                     price: t.price || "0",
                     charges_amount: t.charges_amount || "0",
+                    broker_trade_id: t.broker_trade_id,
                 };
             }),
         };
@@ -215,6 +216,7 @@ function AddPosition() {
                         quantity: t.quantity || "0",
                         price: t.price || "0",
                         charges_amount: t.charges_amount || "0",
+                        broker_trade_id: t.broker_trade_id || null,
                     };
 
                     return trade;

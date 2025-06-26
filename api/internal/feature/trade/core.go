@@ -34,6 +34,7 @@ type CreatePayload struct {
 	Quantity      decimal.Decimal `json:"quantity"`
 	Price         decimal.Decimal `json:"price"`
 	ChargesAmount decimal.Decimal `json:"charges_amount"`
+	BrokerTradeID *string         `json:"broker_trade_id"`
 }
 
 func New(payload CreatePayload) (*Trade, error) {
@@ -53,6 +54,7 @@ func New(payload CreatePayload) (*Trade, error) {
 		Quantity:      payload.Quantity,
 		Price:         payload.Price,
 		ChargesAmount: payload.ChargesAmount,
+		BrokerTradeID: payload.BrokerTradeID,
 	}
 
 	return trade, nil

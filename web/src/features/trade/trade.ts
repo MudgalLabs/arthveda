@@ -8,6 +8,7 @@ interface CreateTrade {
     quantity: DecimalString;
     price: DecimalString;
     charges_amount: DecimalString;
+    broker_trade_id: string | null;
 }
 
 interface Trade extends CreateTrade {
