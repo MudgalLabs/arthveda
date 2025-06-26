@@ -4,6 +4,6 @@ include:
 
 networks:
     arthveda_network:
-        name: arthveda_network
+        name: arthveda_demo_network
     caddy_net:
         external: true

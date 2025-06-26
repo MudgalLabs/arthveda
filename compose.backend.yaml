@@ -54,9 +54,3 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
-
-networks:
-    arthveda_network:
-        name: arthveda_network
-    caddy_net:
-        external: true
