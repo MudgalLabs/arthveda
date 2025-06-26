@@ -70,6 +70,8 @@ export function SignIn() {
         posthog?.capture("Clicked Start Demo", {
             email: emailToOpenDemo,
         });
+
+        signin({ email: "demo", password: "demo" });
     };
 
     const demoForm = (
