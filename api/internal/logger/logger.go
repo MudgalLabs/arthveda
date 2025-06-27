@@ -42,13 +42,11 @@ func Get() *zap.SugaredLogger {
 
 		logLevel := zap.NewAtomicLevelAt(level)
 
-		developmentCfg := zap.NewDevelopmentEncoderConfig()
-		developmentCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
-		consoleEncoder := zapcore.NewConsoleEncoder(developmentCfg)
-
 		productionCfg := zap.NewProductionEncoderConfig()
 		productionCfg.TimeKey = "timestamp"
 		productionCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+
+		stdoutEncoder := zapcore.NewJSONEncoder(productionCfg)
 
 		fileEncoder := zapcore.NewJSONEncoder(productionCfg)
 
@@ -66,15 +64,19 @@ func Get() *zap.SugaredLogger {
 
 		file := zapcore.AddSync(&lumberjack.Logger{
 			Filename:   env.LOG_FILE,
-			MaxSize:    10, // megabytes
-			MaxBackups: 3,
-			MaxAge:     7, // days
+			MaxSize:    256, // megabytes
+			MaxBackups: 4,   // Maximum number of old log files to keep
+			MaxAge:     7,   // days
 		})
 
-		// log to multiple destinations (console and file)
+		// log to multiple destinations (stdout and file)
 		// extra fields are added to the JSON output alone
 		core := zapcore.NewTee(
-			zapcore.NewCore(consoleEncoder, stdout, logLevel),
+			zapcore.NewCore(stdoutEncoder, stdout, logLevel).With(
+				[]zapcore.Field{
+					zap.String("git_revision", gitRevision),
+				},
+			),
 			zapcore.NewCore(fileEncoder, file, logLevel).
 				With(
 					[]zapcore.Field{
