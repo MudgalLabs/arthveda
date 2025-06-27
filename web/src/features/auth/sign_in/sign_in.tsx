@@ -157,30 +157,10 @@ export function SignIn() {
                 )}
             </div>
 
-            {/* <div className="flex-center py-4">
-                <div className="space-y-2">
-                    <p className="text-foreground inline-block text-sm sm:text-base">
-                        <span className="text-foreground font-semibold">Arthveda </span>
-                        is designed and developed by{" "}
-                        <a
-                            href="https://github.com/MudgalLabs"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center text-sm font-medium! sm:text-base!"
-                        >
-                            Mudgal Labs <IconArrowUpRight size={18} />
-                        </a>
-                    </p>
-
-                    <p className="text-foreground-muted text-center text-sm">Thank you for being here 🤍</p>
-                </div>
-            </div> */}
-
             <div className="flex-center py-6 md:py-10">
                 <div className="space-y-2 text-center">
                     <p className="text-foreground inline-block text-sm sm:text-base">
-                        <span className="text-foreground font-semibold">Arthveda </span>
-                        is designed and developed by{" "}
+                        Built with 🤍️ by{" "}
                         <a
                             href="https://github.com/MudgalLabs"
                             target="_blank"
@@ -190,6 +170,7 @@ export function SignIn() {
                             Mudgal Labs <IconArrowUpRight size={18} />
                         </a>
                     </p>
+
                     <p className="text-sm sm:text-base">
                         Give feedback, request a feature, report a bug or <br className="block sm:hidden" />
                         just say hi on{" "}
@@ -197,8 +178,6 @@ export function SignIn() {
                             hey@arthveda.app
                         </a>
                     </p>
-
-                    <p className="text-foreground-muted text-center text-xs sm:text-sm">Thank you for being here 🤍</p>
                 </div>
             </div>
         </div>
