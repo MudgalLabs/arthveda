@@ -2,6 +2,15 @@ services:
     api:
         container_name: arthveda_api
         image: ceoshikhar/arthveda_api:beta
+        logging:
+          driver: loki
+          options:
+            loki-url: "https://${LOKI_USER}:${LOKI_PASSWORD}@loki.thor.ceoshikhar.com/loki/api/v1/push"
+            loki-retries: 2
+            loki-max-backoff: 800ms
+            loki-timeout: 1s
+            keep-file: "true"
+            mode: "non-blocking"
         build:
             dockerfile: api.dockerfile
         environment:
