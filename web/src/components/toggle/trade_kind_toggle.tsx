@@ -17,10 +17,10 @@ function OrderKindToggle({ defaultValue, value, onChange }: OrderKindToggleProps
             onValueChange={onChange}
             size="small"
         >
-            <ToggleGroupItem variant="success" value="buy" aria-label="Buy">
+            <ToggleGroupItem variant="default" value="buy" aria-label="Buy">
                 Buy
             </ToggleGroupItem>
-            <ToggleGroupItem variant="destructive" value="sell" aria-label="Sell">
+            <ToggleGroupItem variant="default" value="sell" aria-label="Sell">
                 Sell
             </ToggleGroupItem>
         </ToggleGroup>

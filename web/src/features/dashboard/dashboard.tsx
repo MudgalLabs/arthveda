@@ -261,7 +261,7 @@ export const Dashboard = () => {
 
                         <Button
                             className="size-10"
-                            variant="outline"
+                            variant="secondary"
                             disabled={isFetching}
                             onClick={() => applyFilters()}
                         >
@@ -309,8 +309,8 @@ function GetStarted() {
                         <p>
                             You haven’t added any{" "}
                             <Link className="text-base!" to={ROUTES.explorePositions}>
-                                positions{" "}
-                            </Link>
+                                positions
+                            </Link>{" "}
                             yet.
                         </p>
 
@@ -325,7 +325,7 @@ function GetStarted() {
                                 to={ROUTES.addPosition}
                                 onClick={() => posthog?.capture("Clicked Add Position Manually On Dashboard")}
                             >
-                                <Button variant="outline" className="w-full sm:w-fit">
+                                <Button variant="secondary" className="w-full sm:w-fit">
                                     <IconPlus />
                                     Add Position Manually
                                 </Button>

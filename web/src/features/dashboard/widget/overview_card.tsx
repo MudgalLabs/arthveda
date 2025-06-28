@@ -56,12 +56,6 @@ export const OverviewCard = memo(
             progressValue = 0;
         }
 
-        const rFactor = new Decimal(r_factor);
-        let rFactorColor = "";
-
-        if (rFactor.isPositive() && !rFactor.isZero()) rFactorColor = "text-foreground-green";
-        if (rFactor.isNegative() && !rFactor.isZero()) rFactorColor = "text-foreground-red";
-
         return (
             <Card className={cn("flex h-full w-full flex-col gap-y-2", className)}>
                 <CardTitle>Overview</CardTitle>
@@ -71,7 +65,9 @@ export const OverviewCard = memo(
                         <div>
                             <span className="label-muted">Net</span>
                             <div className={`flex items-end gap-x-2 ${netPnLColor}`}>
-                                <p className="heading leading-none">{formatCurrency(net_pnl_amount, { currency })}</p>
+                                <p className={`heading leading-none ${netPnLColor}`}>
+                                    {formatCurrency(net_pnl_amount, { currency })}
+                                </p>
                                 {net_return_percentage && <p>{netReturnPercentage.toFixed(2).toString()}%</p>}
                                 <p>{trendingIcon}</p>
                             </div>
@@ -79,7 +75,7 @@ export const OverviewCard = memo(
                         <div>
                             <span className="label-muted">R Factor</span>
                             <div className={`flex items-end gap-x-2`}>
-                                <p className={`heading leading-none ${rFactorColor}`}>{r_factor}</p>
+                                <p className="heading leading-none">{r_factor}</p>
                             </div>
                         </div>
                     </div>
@@ -89,7 +85,7 @@ export const OverviewCard = memo(
                             content={
                                 <p className="text-sm font-normal">
                                     Charges are{" "}
-                                    <span className="text-foreground-red font-semibold">
+                                    <span className="text-foreground font-semibold">
                                         {charges_as_percentage_of_net_pnl}%
                                     </span>{" "}
                                     of gross
@@ -110,8 +106,8 @@ export const OverviewCard = memo(
                                 <p className="paragraph">
                                     <span
                                         className={cn("font-semibold", {
-                                            "text-foreground-green": grossPnL.isPositive(),
-                                            "text-foreground-red": grossPnL.isNegative(),
+                                            // "text-foreground-green": grossPnL.isPositive(),
+                                            // "text-foreground-red": grossPnL.isNegative(),
                                         })}
                                     >
                                         {formatCurrency(gross_pnl_amount, {
@@ -124,7 +120,7 @@ export const OverviewCard = memo(
                             <div>
                                 <span className="label-muted">Charges</span>
                                 <p className="paragraph">
-                                    <span className="text-foreground-red font-semibold">
+                                    <span className="font-semibold">
                                         {formatCurrency(total_charges_amount, {
                                             currency,
                                         })}

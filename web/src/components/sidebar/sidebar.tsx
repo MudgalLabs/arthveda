@@ -61,7 +61,7 @@ export const Sidebar = () => {
     return (
         <div
             className={cn(
-                "bg-background border-r-accent-muted relative flex h-full flex-col justify-between border-r-1 px-3",
+                "bg-background border-r-border relative flex h-full flex-col justify-between border-r-1 px-3",
                 {
                     "min-w-[280px]!": isOpen,
                     "min-w-fit": !isOpen,

@@ -5,14 +5,15 @@ import { cn } from "@/lib/utils";
 import { Loading } from "@/components/loading";
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center rounded-md font-heading font-content font-medium smooth-colors disabled:opacity-69 disabled:cursor-not-allowed enabled:active:scale-[0.98] cursor-pointer border-1 border-transparent",
+    "inline-flex items-center justify-center rounded-md font-heading font-content font-medium transition-colors disabled:opacity-69 disabled:cursor-not-allowed enabled:active:scale-[0.98] cursor-pointer border-1 border-transparent",
 
     {
         variants: {
             variant: {
                 primary:
                     "bg-primary text-foreground enabled:hover:bg-primary/90 enabled:active:bg-primary focus-visible:ring-foreground!",
-                secondary: "bg-secondary text-foreground enabled:hover:bg-secondary/80 enabled:active:bg-secondary",
+                secondary:
+                    "bg-btn-bg-secondary text-btn-text-secondary border-btn-border-secondary enabled:hover:bg-btn-hover-secondary enabled:active:bg-secondary",
                 outline: "bg-transparent text-foreground border-accent-muted enabled:hover:bg-accent-muted",
                 destructive: "bg-red-bg text-foreground enabled:hover:bg-red-bg/90 focus-visible:ring-foreground!",
                 success: "bg-green-bg text-foreground enabled:hover:bg-green-bg/90 focus-visible:ring-foreground!",

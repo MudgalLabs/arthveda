@@ -101,9 +101,9 @@ function DatePickerButton({
     return (
         <button
             className={cn(
-                "border-border text-foreground-muted bg-mutedj bg-muted flex h-10 items-center justify-start gap-x-2 rounded-md border-1 p-2 text-left text-sm font-normal enabled:hover:cursor-pointer",
+                "border-input-border text-input-placeholder bg-input-bg flex h-10 items-center justify-start gap-x-2 rounded-md border-1 p-2 text-left text-sm font-normal enabled:hover:cursor-pointer",
                 {
-                    "bg-background border-accent": open,
+                    "active-focus": open,
                     "text-foreground": isDateSet,
                 },
                 className

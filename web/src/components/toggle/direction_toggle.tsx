@@ -7,11 +7,7 @@ interface DirectionToggleProps {
     onChange?: (v: PositionDirection | "") => void;
 }
 
-export function DirectionToggle({
-    defaultValue,
-    value,
-    onChange,
-}: DirectionToggleProps) {
+export function DirectionToggle({ defaultValue, value, onChange }: DirectionToggleProps) {
     return (
         <ToggleGroup
             type="single"
@@ -21,18 +17,10 @@ export function DirectionToggle({
             onValueChange={onChange}
             size="small"
         >
-            <ToggleGroupItem
-                variant="success"
-                value="long"
-                aria-label="Toggle long direction"
-            >
+            <ToggleGroupItem value="long" aria-label="Toggle long direction">
                 Long
             </ToggleGroupItem>
-            <ToggleGroupItem
-                variant="destructive"
-                value="short"
-                aria-label="Toggle short direction"
-            >
+            <ToggleGroupItem value="short" aria-label="Toggle short direction">
                 Short
             </ToggleGroupItem>
         </ToggleGroup>

@@ -1,14 +1,5 @@
 import { FC, useMemo } from "react";
-import {
-    AreaChart,
-    Area,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    ReferenceLine,
-} from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 
 import {
     formatCurrency,
@@ -18,15 +9,7 @@ import {
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { Card, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";
-import {
-    ChartConfig,
-    ChartContainer,
-    ChartTooltipContent,
-    tooltipCursor,
-    axisDefaults,
-    Checkbox,
-    Label,
-} from "@/s8ly";
+import { ChartConfig, ChartContainer, ChartTooltipContent, tooltipCursor, axisDefaults, Checkbox, Label } from "@/s8ly";
 import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 
 interface DataItem {
@@ -73,19 +56,9 @@ const chartConfig: ChartConfig = {
     },
 };
 
-export const CumulativePnLCurve: FC<Props> = ({
-    data,
-    isLoading,
-    isResizable,
-}) => {
-    const [showGross, setShowGross] = useLocalStorageState(
-        LocalStorageKeyCumulativePnLShowGross,
-        false
-    );
-    const [showCharges, setShowCharges] = useLocalStorageState(
-        LocalStorageKeyCumulativePnLShowCharges,
-        false
-    );
+export const CumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizable }) => {
+    const [showGross, setShowGross] = useLocalStorageState(LocalStorageKeyCumulativePnLShowGross, false);
+    const [showCharges, setShowCharges] = useLocalStorageState(LocalStorageKeyCumulativePnLShowCharges, false);
 
     const isMobile = useIsMobile();
     const off = useMemo(() => gradientOffset(data), [data]);
@@ -100,12 +73,10 @@ export const CumulativePnLCurve: FC<Props> = ({
 
             <div className="flex w-full justify-center gap-x-4 [&>div]:flex [&>div]:items-center [&>div]:gap-x-1">
                 <div>
-                    <Checkbox
-                        id="gross"
-                        checked={showGross}
-                        onCheckedChange={() => setShowGross((prev) => !prev)}
-                    />
-                    <Label htmlFor="gross">Gross</Label>
+                    <Checkbox id="gross" checked={showGross} onCheckedChange={() => setShowGross((prev) => !prev)} />
+                    <Label className="label-muted" htmlFor="gross">
+                        Gross
+                    </Label>
                 </div>
 
                 <div>
@@ -114,7 +85,9 @@ export const CumulativePnLCurve: FC<Props> = ({
                         checked={showCharges}
                         onCheckedChange={() => setShowCharges((prev) => !prev)}
                     />
-                    <Label htmlFor="charges">Charges</Label>
+                    <Label className="label-muted" htmlFor="charges">
+                        Charges
+                    </Label>
                 </div>
             </div>
 
@@ -131,11 +104,7 @@ export const CumulativePnLCurve: FC<Props> = ({
                             left: isMobile ? -10 : 0,
                         }}
                     >
-                        <CartesianGrid
-                            stroke="var(--color-primary)"
-                            strokeOpacity={0.3}
-                            vertical={false}
-                        />
+                        <CartesianGrid stroke="var(--color-primary)" strokeOpacity={0.3} vertical={false} />
 
                         <XAxis {...axisDefaults(isMobile)} dataKey="label" />
 
@@ -143,12 +112,8 @@ export const CumulativePnLCurve: FC<Props> = ({
                             {...axisDefaults(isMobile)}
                             // Adding some buffer to the Y-axis
                             domain={[
-                                (dataMin: number) =>
-                                    Math.floor(
-                                        Math.min(0, dataMin * 1.15) / 1000
-                                    ) * 1000,
-                                (dataMax: number) =>
-                                    Math.ceil((dataMax * 1.05) / 1000) * 1000,
+                                (dataMin: number) => Math.floor(Math.min(0, dataMin * 1.15) / 1000) * 1000,
+                                (dataMax: number) => Math.ceil((dataMax * 1.05) / 1000) * 1000,
                             ]}
                             tickFormatter={(value: number) =>
                                 formatCurrency(value, {
@@ -163,36 +128,20 @@ export const CumulativePnLCurve: FC<Props> = ({
                             content={
                                 <ChartTooltipContent
                                     indicator="line"
-                                    formatter={(value) =>
-                                        formatCurrency(value as string)
-                                    }
+                                    formatter={(value) => formatCurrency(value as string)}
                                 />
                             }
                         />
 
                         <defs>
-                            <linearGradient
-                                id="splitColor"
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
-                            >
+                            <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
                                 <stop
                                     offset={Math.min(0, off - 0.1)}
                                     stopColor="var(--color-primary)"
                                     stopOpacity={0.2}
                                 />
-                                <stop
-                                    offset={off}
-                                    stopColor="var(--color-primary)"
-                                    stopOpacity={0}
-                                />
-                                <stop
-                                    offset={off}
-                                    stopColor="var(--color-primary)"
-                                    stopOpacity={0}
-                                />
+                                <stop offset={off} stopColor="var(--color-primary)" stopOpacity={0} />
+                                <stop offset={off} stopColor="var(--color-primary)" stopOpacity={0} />
                                 <stop
                                     offset={Math.min(1, off + 0.1)}
                                     stopColor="var(--color-primary)"

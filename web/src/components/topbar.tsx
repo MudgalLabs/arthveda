@@ -10,7 +10,7 @@ export const Topbar = () => {
     const { isOpen, toggleSidebar } = useSidebar();
 
     return (
-        <div className="border-b-accent-muted flex h-full w-full items-center justify-between border-b-1">
+        <div className="border-b-border flex h-full w-full items-center justify-between border-b-1">
             <div className="mr-4 flex w-full items-baseline justify-between sm:justify-start">
                 <Tooltip
                     content={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
@@ -21,7 +21,7 @@ export const Topbar = () => {
                         // The 6 margin on the left comes from the Sidebar where the Icon
                         // is rendered at 6 margin from the left.
                         className="mr-8 ml-5"
-                        variant="outline"
+                        variant="secondary"
                         size="icon"
                         type="button"
                         onClick={toggleSidebar}

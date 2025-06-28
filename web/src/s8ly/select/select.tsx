@@ -73,12 +73,11 @@ const Select: FC<SelectProps> = ({
             <SelectPrimitive.Trigger
                 ref={ref}
                 className={cn(
-                    "bg-muted text-foreground border-border flex h-10 w-full items-center justify-between gap-x-4 rounded-md border-1 p-3 enabled:cursor-pointer sm:w-[240px]",
-                    "focus:outline-accent text-sm focus:outline-1 focus:outline-offset-0",
+                    "bg-input-bg text-foreground border-input-border flex h-10 w-full items-center justify-between gap-x-4 rounded-md border-1 p-3 text-sm enabled:cursor-pointer sm:w-[240px]",
                     {
-                        "text-foreground-muted": !value,
+                        "text-input-placeholder": !value,
                         "opacity-60 disabled:cursor-not-allowed": disabled || loading,
-                        "border-border-red relative": error,
+                        "border-b-border-red": error,
                     },
                     classNames?.trigger
                 )}

@@ -282,8 +282,8 @@ function AddPosition() {
                                 value={value}
                                 onChange={(_, v) => setValue(v)}
                                 aria-invalid={!value}
-                                aria-describedby="first-name-error"
                                 errorMsg="Symbol is required"
+                                placeholder="HDFCBANK"
                             />
                         </WithLabel>
                     )}
@@ -318,6 +318,7 @@ function AddPosition() {
                                 onChange={(e) => {
                                     setValue(e.target.value);
                                 }}
+                                placeholder="1,000"
                             />
                         </WithLabel>
                     )}
@@ -375,6 +376,7 @@ function AddPosition() {
                             maxLength={4096}
                             value={value}
                             onChange={(e) => setValue(e.target.value)}
+                            placeholder="Add notes about this position"
                         />
                     </WithLabel>
                 )}
@@ -593,7 +595,7 @@ const columns: ColumnDef<CreateTrade>[] = [
                     disabled={!disableButton}
                 >
                     <Button
-                        variant="outline"
+                        variant="secondary"
                         size="icon"
                         onClick={() => removeTrade(row.index)}
                         disabled={disableButton}

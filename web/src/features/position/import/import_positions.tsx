@@ -438,7 +438,7 @@ const BrokerTile = ({
         <button onClick={onClick} className="w-full cursor-pointer sm:w-fit">
             <Card
                 className={cn(
-                    "flex-center relative gap-x-2 border-2 p-8 transition-all duration-300 ease-in-out",
+                    "flex-center relative gap-x-2 border-1 p-8 transition-all duration-300 ease-in-out",
                     {
                         "border-primary hover:border-primary": isSelected,
                     },
