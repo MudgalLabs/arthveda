@@ -13,12 +13,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Primary: Story = {
-    args: { children: "Breakeven", variant: "primary" },
-};
-
-export const Muted: Story = {
-    args: { children: "Open", variant: "muted" },
+export const Default: Story = {
+    args: { children: "Breakeven", variant: "default" },
 };
 
 export const Green: Story = {
@@ -27,4 +23,8 @@ export const Green: Story = {
 
 export const Red: Story = {
     args: { children: "Loss", variant: "destructive" },
+};
+
+export const Filter: Story = {
+    args: { children: "Status: Win", variant: "filter" },
 };
