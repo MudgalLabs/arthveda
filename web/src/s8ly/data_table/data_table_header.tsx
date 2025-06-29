@@ -25,7 +25,6 @@ export function DataTableColumnHeader<TData, TValue>({
         <div className={cn("flex items-center space-x-2", className)}>
             <Button
                 variant={column.getIsSorted() ? "secondary" : "ghost"}
-                size="small"
                 className={cn("mx-1 h-8 w-full justify-start", {
                     "text-foreground font-semibold": column.getIsSorted(),
                 })}

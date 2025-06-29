@@ -92,7 +92,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                 </Button>
                             </Tag>
                         ))}
-                        <Button size="small" variant="link" onClick={resetFilters}>
+                        <Button variant="link" onClick={resetFilters}>
                             Reset Filters
                         </Button>
                     </div>
