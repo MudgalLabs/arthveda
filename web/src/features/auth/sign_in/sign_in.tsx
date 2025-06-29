@@ -75,7 +75,7 @@ export function SignIn() {
     };
 
     const demoForm = (
-        <div className="space-y-4">
+        <div>
             <form className="flex justify-center gap-x-2" onSubmit={handleSubmitForDemo}>
                 <Input
                     type="email"
@@ -88,7 +88,7 @@ export function SignIn() {
                 <Button loading={isPending}>Start Demo</Button>
             </form>
 
-            <p className="text-foreground-muted inline-block text-base">
+            <p className="text-foreground-muted mt-4 inline-block w-full text-center text-sm text-balance">
                 Your email helps us learn, improve, and connect if needed.
             </p>
         </div>
@@ -98,13 +98,15 @@ export function SignIn() {
         <div className="flex h-dvh w-full flex-col items-center justify-between overflow-auto px-4">
             <div />
 
-            <div className="w-full space-y-10 sm:w-fit">
+            <div className="w-full">
                 <Branding className="z-1 flex justify-center" size="default" />
+
+                <div className="h-16" />
 
                 {isDemo ? (
                     demoForm
                 ) : (
-                    <Card className="bg-transparent px-6 py-4">
+                    <Card className="mx-auto w-full bg-transparent px-6 py-4 sm:w-fit">
                         <CardContent className="flex flex-col items-center justify-center gap-y-4">
                             <h1 className="heading">Sign in to Arthveda</h1>
                             {isDemo && <p>Email is "demo" and Password is "demo"</p>}
@@ -154,6 +156,24 @@ export function SignIn() {
                             )}
                         </CardContent>
                     </Card>
+                )}
+
+                {!isDemo && (
+                    <>
+                        <div className="h-4" />
+
+                        <p className="text-muted-foreground w-full text-center text-sm text-balance">
+                            By signing in, you agree to our{" "}
+                            <a href="https://arthveda.app/terms" target="_blank" rel="noopener noreferrer">
+                                Terms of Service
+                            </a>{" "}
+                            and{" "}
+                            <a href="https://arthveda.app/privacy" target="_blank" rel="noopener noreferrer">
+                                Privacy Policy
+                            </a>
+                            .
+                        </p>
+                    </>
                 )}
             </div>
 
