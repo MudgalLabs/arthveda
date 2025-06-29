@@ -13,8 +13,7 @@ export function DataTableVisibility<TData>({ table }: DataTableVisibilityProps<T
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="secondary"
-                    size="small"
-                    className="data-[state=open]:bg-accent-muted data-[state=open]:text-foreground w-full text-sm sm:w-fit"
+                    className="data-[state=open]:bg-primary data-[state=open]:text-foreground w-full text-sm sm:w-fit"
                 >
                     <IconColumns size={20} />
                     Columns

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Loading } from "@/components/loading";
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center rounded-md font-heading font-content font-medium transition-colors disabled:opacity-69 disabled:cursor-not-allowed enabled:active:scale-[0.98] cursor-pointer border-1 border-transparent",
+    "inline-flex items-center justify-center rounded-md font-heading font-content transition-colors disabled:opacity-69 disabled:cursor-not-allowed enabled:active:scale-[0.98] cursor-pointer border-1 border-transparent",
 
     {
         variants: {
@@ -21,8 +21,9 @@ const buttonVariants = cva(
                 link: "text-link underline-offset-4 hover:underline",
             },
             size: {
-                default: "text-base px-4 py-2 max-h-10",
-                small: "text-sm px-3 py-1.5 font-normal",
+                default: "text-sm px-4 h-9",
+                small: "text-xs px-3 font-normal h-8",
+                large: "text-base px-5 h-11 font-medium",
                 icon: "size-9",
             },
         },

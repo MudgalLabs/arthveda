@@ -26,6 +26,7 @@ export const ContinueWithGoogle: FC<ContinueWithGoogleProps> = (props) => {
         <Button
             variant="secondary"
             type="button"
+            size="large"
             className={cn("", className)}
             onClick={() => {
                 posthog?.capture("Clicked Continue with Google");

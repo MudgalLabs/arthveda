@@ -33,9 +33,8 @@ export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: 
             <Drawer.Trigger asChild>
                 <Button
                     variant="secondary"
-                    size="small"
                     className={cn("w-full sm:w-fit", {
-                        "bg-accent-muted": open,
+                        "bg-primary": open,
                     })}
                 >
                     <IconListFilter className="text-foreground" /> Filters
