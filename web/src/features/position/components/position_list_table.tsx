@@ -84,7 +84,8 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                 ]?.(value, appliedFilters) ?? String(value)}
                                 <Button
                                     variant="ghost"
-                                    className="text-input-placeholder hover:text-foreground p-1 hover:cursor-pointer"
+                                    size="small"
+                                    className="text-input-placeholder hover:text-foreground h-6 p-1 hover:cursor-pointer"
                                     onClick={() => resetFilter(key as keyof typeof appliedFilters)}
                                 >
                                     <IconCross size={14} />

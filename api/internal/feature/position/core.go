@@ -435,6 +435,8 @@ func ConvertTradesToCreatePayload(trades []*trade.Trade) []trade.CreatePayload {
 			Quantity:      t.Quantity,
 			Price:         t.Price,
 			ChargesAmount: t.ChargesAmount,
+			PositionID:    t.PositionID,
+			BrokerTradeID: t.BrokerTradeID,
 		}
 	}
 	return createPayloads

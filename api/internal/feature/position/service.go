@@ -509,8 +509,22 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		// This is calculated from the trades in the position.
 		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades)
 
-		// Update the Net PnL amount based on the total charges amount.
-		position.NetPnLAmount = position.GrossPnLAmount.Sub(position.TotalChargesAmount)
+		// As we have updated the trades with charges, we need to recompute the position.
+		computePayload := ComputePayload{
+			RiskAmount: payload.RiskAmount,
+			Trades:     ConvertTradesToCreatePayload(position.Trades),
+		}
+
+		computeResult, err := Compute(computePayload)
+		if err != nil {
+			invalidPositionsByPosID[position.ID] = true
+			continue
+		}
+
+		position.NetPnLAmount = computeResult.NetPnLAmount
+		position.NetReturnPercentage = computeResult.NetReturnPercentage
+		position.RFactor = computeResult.RFactor
+		position.Status = computeResult.Status
 
 		var isDuplicate bool
 		// If we find a duplicate trade, we need to get it's position ID.
