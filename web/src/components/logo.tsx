@@ -12,7 +12,7 @@ export const Logo: FC<LogoProps> = (props) => {
     let colorClass = "fill-current ";
 
     if (color === "") {
-        colorClass += "text-muted-foreground";
+        colorClass += "text-logo";
     }
 
     // Aspect ratio of the logo (width / height)

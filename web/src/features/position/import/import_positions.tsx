@@ -446,7 +446,13 @@ const BrokerTile = ({
                 )}
             >
                 <img src={image} alt={`${name} logo`} className="h-10" />
-                <p className="heading text-surface-foreground font-medium">{name}</p>
+                <p
+                    className={cn("heading text-surface-foreground font-medium", {
+                        "text-foreground": isSelected,
+                    })}
+                >
+                    {name}
+                </p>
 
                 <div
                     className={cn(

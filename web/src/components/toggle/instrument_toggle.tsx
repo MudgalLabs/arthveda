@@ -17,7 +17,7 @@ export function InstrumentToggle({ defaultValue, value, onChange, error, errorMs
             <ToggleGroup
                 type="single"
                 className={cn("[&_*]:h-8", {
-                    "border-border-red!": error,
+                    "border-b-border-red": error,
                 })}
                 defaultValue={defaultValue}
                 value={value}

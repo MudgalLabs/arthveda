@@ -56,7 +56,7 @@ export const Branding: FC<BrandingProps> = (props) => {
             <div className="flex-center items-start gap-x-1">
                 <div
                     className={cn(
-                        "font-logo text-muted-foreground inline-flex items-baseline gap-x-2 font-semibold select-none",
+                        "font-logo text-logo inline-flex items-baseline gap-x-2 font-semibold select-none",
                         className
                     )}
                 >
@@ -65,11 +65,7 @@ export const Branding: FC<BrandingProps> = (props) => {
                     {!hideText && <h1 className={cn("leading-0!", classes[size].text)}>arthveda</h1>}
                 </div>
 
-                {!hideBetaTag && (
-                    <Tag variant="primary" size="small">
-                        BETA
-                    </Tag>
-                )}
+                {!hideBetaTag && <Tag size="small">BETA</Tag>}
             </div>
         </Tooltip>
     );

@@ -1,10 +1,7 @@
 import { FC, memo } from "react";
 
 import { Tag } from "@/s8ly";
-import {
-    PositionDirection,
-    positionDirectionToString,
-} from "@/features/position/position";
+import { PositionDirection, positionDirectionToString } from "@/features/position/position";
 
 interface DirectionTagProps {
     direction: PositionDirection;
@@ -19,7 +16,7 @@ const DirectionTag: FC<DirectionTagProps> = memo(({ direction, className }) => {
     return (
         <Tag
             className={className}
-            variant={direction === "long" ? "success" : "destructive"}
+            // variant={direction === "long" ? "success" : "destructive"}
         >
             {positionDirectionToString(direction)}
         </Tag>

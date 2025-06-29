@@ -77,17 +77,17 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                         {activeFilters.map(([key, value]) => (
                             <Tag key={key} variant="filter">
-                                {positionSearchFiltersLabel[key as keyof typeof appliedFilters]}{" "}
+                                {positionSearchFiltersLabel[key as keyof typeof appliedFilters]}
+                                {": "}
                                 {positionSearchFiltersValueFormatter[
                                     key as keyof typeof positionSearchFiltersValueFormatter
                                 ]?.(value, appliedFilters) ?? String(value)}
                                 <Button
-                                    variant="link"
-                                    size="small"
-                                    className="text-foreground-muted hover:text-foreground p-0 hover:cursor-pointer"
+                                    variant="ghost"
+                                    className="text-input-placeholder hover:text-foreground p-1 hover:cursor-pointer"
                                     onClick={() => resetFilter(key as keyof typeof appliedFilters)}
                                 >
-                                    <IconCross size={20} />
+                                    <IconCross size={14} />
                                 </Button>
                             </Tag>
                         ))}

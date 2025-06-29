@@ -13,7 +13,7 @@ const PageHeading: FC<PageHeadingProps> = memo(({ heading, loading }) => {
             <div className="h-4" />
 
             <div className="flex items-center gap-x-2">
-                <h1 className="heading leading-none">{heading}</h1>
+                <h1 className="heading text-foreground leading-none">{heading}</h1>
                 <div>{loading && <Loading />}</div>
             </div>
 

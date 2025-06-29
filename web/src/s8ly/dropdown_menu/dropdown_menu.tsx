@@ -22,7 +22,7 @@ const DropdownMenuContent: FC<DropdownMenuContentProps> = ({ children, ref, arro
         <DropdownMenuPrimitive.Portal>
             <DropdownMenuPrimitive.Content
                 className={cn(
-                    "bg-muted border-border rounded-md border-1 p-1 font-medium focus-visible:ring-transparent!",
+                    "bg-muted border-border rounded-md border-1 p-1 font-normal focus-visible:ring-transparent!",
                     className
                 )}
                 {...props}
@@ -40,7 +40,7 @@ const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 const DropdownMenuItem: FC<DropdownMenuPrimitive.DropdownMenuItemProps> = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Item
         className={cn(
-            "hover:bg-muted text-foreground focus:bg-accent flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 text-base outline-none",
+            "hover:bg-muted text-foreground focus:bg-accent flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 text-sm outline-none",
             className
         )}
         {...props}

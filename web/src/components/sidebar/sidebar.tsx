@@ -148,7 +148,7 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
     const content = (
         <div
             className={cn(
-                "bg-background text-foreground-muted w-full rounded-md border-l-[3px] border-transparent p-3",
+                "bg-background text-muted-foreground w-full rounded-md border-l-[3px] border-transparent p-3",
                 {
                     "bg-accent-muted text-foreground border-l-primary border-l-[3px]": isActive,
                     "hover:bg-muted hover:text-muted-foreground hover:cursor-pointer": !isActive,
@@ -220,8 +220,8 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
             {expanded && (
                 <div className="flex w-full items-center justify-between">
                     <div>
-                        <p>{displayName}</p>
-                        <p className="text-sm font-normal">{email}</p>
+                        <p className="text-sm font-medium">{displayName}</p>
+                        <p className="text-xs font-normal">{email}</p>
                     </div>
 
                     {clickable && <IconExpandUpDown size={18} className="" />}
@@ -313,7 +313,7 @@ const SidebarProfileMenu: FC<SidebarProfileMenuProps> = (props) => {
                     onSelect={() => signout()}
                     disabled={isSignoutPending}
                 >
-                    <IconLogout size={20} />
+                    <IconLogout size={18} />
                     Sign out
                 </DropdownMenuItem>
             </DropdownMenuContent>

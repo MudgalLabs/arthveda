@@ -707,7 +707,7 @@ const DeleteButton = memo(
         return (
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="destructive">Delete</Button>
+                    <Button variant="secondary">Delete</Button>
                 </DialogTrigger>
 
                 <DialogContent>

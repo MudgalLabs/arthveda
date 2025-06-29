@@ -106,7 +106,7 @@ export function SignIn() {
                 ) : (
                     <Card className="bg-transparent px-6 py-4">
                         <CardContent className="flex flex-col items-center justify-center gap-y-4">
-                            <h1 className="heading text-foreground">Sign in to Arthveda</h1>
+                            <h1 className="heading">Sign in to Arthveda</h1>
                             {isDemo && <p>Email is "demo" and Password is "demo"</p>}
 
                             {isPasswordAuthEnabled && (

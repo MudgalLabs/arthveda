@@ -152,10 +152,10 @@ export const CumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizable }) 
 
                         <ReferenceLine
                             y={0}
-                            stroke="var(--color-border-red)"
+                            stroke="var(--color-primary)"
                             strokeDasharray="3 3"
                             strokeWidth={2}
-                            strokeOpacity={1}
+                            strokeOpacity={0.5}
                         />
 
                         <Area

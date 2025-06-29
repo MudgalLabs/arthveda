@@ -1,12 +1,7 @@
 import { Table } from "@tanstack/react-table";
 
 import { Button } from "@/s8ly";
-import {
-    IconChevronLeft,
-    IconChevronRight,
-    IconChevronsLeft,
-    IconChevronsRight,
-} from "@/components/icons";
+import { IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 interface DataTablePaginationProps<TData> {
@@ -17,26 +12,19 @@ interface DataTablePaginationProps<TData> {
 
 const pageSizes = [10, 25, 50];
 
-export function DataTablePagination<TData>({
-    table,
-    total,
-}: DataTablePaginationProps<TData>) {
+export function DataTablePagination<TData>({ table, total }: DataTablePaginationProps<TData>) {
     const pageInfo = (
         <>
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
+            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
         </>
     );
 
     const rowsInfo = (
         <>
-            {table.getState().pagination.pageIndex *
-                table.getState().pagination.pageSize +
-                1}
+            {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
             {" - "}
             {Math.min(
-                (table.getState().pagination.pageIndex + 1) *
-                    table.getState().pagination.pageSize,
+                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
                 table.getFilteredRowModel().rows.length
             )}
             {" of "}
@@ -46,8 +34,7 @@ export function DataTablePagination<TData>({
 
     const selectedRowsInfo = (
         <div>
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} selected
+            {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} selected
         </div>
     );
 
@@ -55,48 +42,37 @@ export function DataTablePagination<TData>({
         <>
             <div className="flex items-center justify-between px-2">
                 <div
-                    className={cn(
-                        "text-muted-foreground hidden text-sm opacity-0 sm:inline-block",
-                        {
-                            "opacity-100":
-                                table.getFilteredSelectedRowModel().rows
-                                    .length > 0,
-                        }
-                    )}
+                    className={cn("text-muted-foreground hidden text-sm opacity-0 sm:inline-block", {
+                        "opacity-100": table.getFilteredSelectedRowModel().rows.length > 0,
+                    })}
                 >
                     {selectedRowsInfo}
                 </div>
 
                 <div className="flex flex-col">
                     <div className="flex gap-x-4">
-                        <div className="flex items-center justify-center text-sm font-medium">
-                            {pageInfo}
-                        </div>
+                        <div className="flex items-center justify-center text-sm">{pageInfo}</div>
                         <div className="flex items-center space-x-2">
                             <Button
-                                variant="outline"
+                                variant="secondary"
                                 className="hidden h-8 w-8 p-0 sm:flex"
                                 onClick={() => table.setPageIndex(0)}
                                 disabled={!table.getCanPreviousPage()}
                             >
-                                <span className="sr-only">
-                                    Go to first page
-                                </span>
+                                <span className="sr-only">Go to first page</span>
                                 <IconChevronsLeft />
                             </Button>
                             <Button
-                                variant="outline"
+                                variant="secondary"
                                 className="h-8 w-8 p-0"
                                 onClick={() => table.previousPage()}
                                 disabled={!table.getCanPreviousPage()}
                             >
-                                <span className="sr-only">
-                                    Go to previous page
-                                </span>
+                                <span className="sr-only">Go to previous page</span>
                                 <IconChevronLeft />
                             </Button>
                             <Button
-                                variant="outline"
+                                variant="secondary"
                                 className="h-8 w-8 p-0"
                                 onClick={() => table.nextPage()}
                                 disabled={!table.getCanNextPage()}
@@ -105,20 +81,16 @@ export function DataTablePagination<TData>({
                                 <IconChevronRight />
                             </Button>
                             <Button
-                                variant="outline"
+                                variant="secondary"
                                 className="hidden h-8 w-8 p-0 sm:flex"
-                                onClick={() =>
-                                    table.setPageIndex(table.getPageCount() - 1)
-                                }
+                                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                                 disabled={!table.getCanNextPage()}
                             >
                                 <span className="sr-only">Go to last page</span>
                                 <IconChevronsRight />
                             </Button>
                         </div>
-                        <div className="hidden items-center justify-center text-sm font-medium sm:flex">
-                            {rowsInfo}
-                        </div>
+                        <div className="hidden items-center justify-center text-sm sm:flex">{rowsInfo}</div>
                     </div>
                 </div>
 
@@ -127,21 +99,11 @@ export function DataTablePagination<TData>({
                         {pageSizes.map((pageSize) => (
                             <Button
                                 key={pageSize}
-                                variant={
-                                    table.getState().pagination.pageSize ===
-                                    pageSize
-                                        ? "outline"
-                                        : "ghost"
-                                }
+                                variant="secondary"
                                 size="small"
-                                className={cn(
-                                    "text-foreground-muted h-8 font-normal",
-                                    {
-                                        "text-primary-foreground font-semibold":
-                                            table.getState().pagination
-                                                .pageSize === pageSize,
-                                    }
-                                )}
+                                className={cn("text-foreground-muted", {
+                                    "text-foreground font-semibold": table.getState().pagination.pageSize === pageSize,
+                                })}
                                 onClick={() => table.setPageSize(pageSize)}
                             >
                                 {pageSize}
@@ -152,13 +114,9 @@ export function DataTablePagination<TData>({
             </div>
 
             <div
-                className={cn(
-                    "text-muted-foreground text-sm opacity-0 sm:hidden",
-                    {
-                        "opacity-100":
-                            table.getFilteredSelectedRowModel().rows.length > 0,
-                    }
-                )}
+                className={cn("text-muted-foreground text-sm opacity-0 sm:hidden", {
+                    "opacity-100": table.getFilteredSelectedRowModel().rows.length > 0,
+                })}
             >
                 {selectedRowsInfo}
             </div>

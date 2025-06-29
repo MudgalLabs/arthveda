@@ -30,7 +30,7 @@ interface CardTitleProps {
 
 function CardTitle({ children, className }: CardTitleProps) {
     return (
-        <div data-slow="card-title" className={cn("text-muted-foreground font-medium", className)}>
+        <div data-slow="card-title" className={cn("text-foreground font-medium", className)}>
             {children}
         </div>
     );
@@ -38,7 +38,7 @@ function CardTitle({ children, className }: CardTitleProps) {
 
 function CardContent({ children, className }: CardProps) {
     return (
-        <div data-slot="card-content" className={cn("text-foreground text-sm", className)}>
+        <div data-slot="card-content" className={cn("text-muted-foreground text-sm", className)}>
             {children}
         </div>
     );

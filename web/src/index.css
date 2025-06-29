@@ -33,7 +33,7 @@
     --color-foreground: hsl(210, 40%, 98%);
     --color-foreground-muted: hsl(219, 18%, 65%);
     --color-foreground-red: hsl(4, 73%, 65%);
-    --color-foreground-green: hsl(158, 64%, 65%);
+    --color-foreground-green: hsl(158, 64%, 50%);
 
     --color-border: hsl(240, 4%, 16%);
     --color-border-muted: hsl(222, 40%, 30%);
@@ -67,7 +67,10 @@
     --font-content: Inter;
 
     /* === Base Backgrounds & Foregrounds === */
+    /* Very dark background */
     --color-background: hsl(222, 83%, 2%);
+    /* Less dark background */
+    --color-background: hsl(220, 39%, 5%);
     --color-foreground: hsl(210, 40%, 98%);
     --color-muted: hsl(220, 60%, 8%);
     --color-muted-foreground: hsl(213, 41%, 70%);
@@ -99,9 +102,10 @@
     --color-btn-text-primary: var(--color-primary-foreground);
 
     --color-btn-bg-secondary: var(--color-secondary);
-    --color-btn-hover-secondary: hsl(218, 60%, 13%);
+    --color-btn-hover-secondary: hsl(218, 60%, 17%);
     --color-btn-border-secondary: var(--color-border);
     --color-btn-text-secondary: var(--color-secondary-foreground);
+    --color-btn-text-secondary: var(--color-foreground);
 
     /* === Inputs === */
     --color-input-bg: hsl(220, 60%, 6%);
@@ -119,7 +123,7 @@
     --color-chart-muted: var(--color-muted-foreground);
 
     /* === Misc === */
-    --color-logo: hsl(199, 89%, 48%);
+    --color-logo: #88b0ff;
 
     --font-logo: Museo Sans;
     --font-heading: Inter;
@@ -202,7 +206,7 @@ select:-webkit-autofill:focus {
     @apply text-foreground text-sm font-medium;
 }
 @utility label-muted {
-    @apply text-foreground-muted text-sm font-normal;
+    @apply text-muted-foreground text-sm font-normal;
 }
 @utility small {
     @apply text-foreground font-content text-[14px] font-normal;
