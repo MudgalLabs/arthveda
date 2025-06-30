@@ -8,6 +8,17 @@ import { Card, CardContent, CardTitle } from "@/components/card";
 import { cn, formatCurrency } from "@/lib/utils";
 import { DecimalString } from "@/lib/types";
 
+interface Props {
+    net_pnl_amount: DecimalString;
+    gross_pnl_amount: DecimalString;
+    total_charges_amount: DecimalString;
+    r_factor: number;
+    charges_as_percentage_of_net_pnl?: DecimalString;
+    net_return_percentage?: DecimalString;
+    currency?: CurrencyCode;
+    className?: string;
+}
+
 export const OverviewCard = memo(
     ({
         net_pnl_amount,
@@ -18,16 +29,7 @@ export const OverviewCard = memo(
         net_return_percentage = "",
         currency,
         className,
-    }: {
-        net_pnl_amount: DecimalString;
-        gross_pnl_amount: DecimalString;
-        total_charges_amount: DecimalString;
-        r_factor: number;
-        charges_as_percentage_of_net_pnl?: DecimalString;
-        net_return_percentage?: DecimalString;
-        currency?: CurrencyCode;
-        className?: string;
-    }) => {
+    }: Props) => {
         let trendingIcon: ReactNode = null;
         let netPnLColor = "text-foreground";
         const netPnL = new Decimal(net_pnl_amount);
@@ -61,7 +63,7 @@ export const OverviewCard = memo(
                 <CardTitle>Overview</CardTitle>
 
                 <CardContent className="flex-y h-full flex-col justify-between">
-                    <div className="flex-x justify-between gap-x-12">
+                    <div className="flex w-full justify-between">
                         <div>
                             <span className="label-muted">Net</span>
                             <div className={`flex items-end gap-x-2 ${netPnLColor}`}>
@@ -72,10 +74,11 @@ export const OverviewCard = memo(
                                 <p>{trendingIcon}</p>
                             </div>
                         </div>
+
                         <div>
                             <span className="label-muted">R Factor</span>
                             <div className={`flex items-end gap-x-2`}>
-                                <p className="heading leading-none">{r_factor}</p>
+                                <p className="sub-heading leading-none">{r_factor}</p>
                             </div>
                         </div>
                     </div>
@@ -100,10 +103,10 @@ export const OverviewCard = memo(
                     </div>
 
                     <div className="w-full">
-                        <div className="flex w-full justify-between gap-x-4">
+                        <div className="flex w-full justify-between">
                             <div>
                                 <span className="label-muted">Gross</span>
-                                <p className="paragraph">
+                                <p className="sub-heading">
                                     <span
                                         className={cn("font-semibold", {
                                             // "text-foreground-green": grossPnL.isPositive(),
@@ -119,7 +122,7 @@ export const OverviewCard = memo(
 
                             <div>
                                 <span className="label-muted">Charges</span>
-                                <p className="paragraph">
+                                <p className="sub-heading">
                                     <span className="font-semibold">
                                         {formatCurrency(total_charges_amount, {
                                             currency,

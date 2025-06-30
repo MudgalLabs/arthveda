@@ -50,7 +50,7 @@ import {
     useIsCreatingPosition,
     useIsEditingPosition,
 } from "@/features/position/position_store";
-import { OverviewCard } from "@/features/dashboard/widget/overview_card";
+import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { ROUTES } from "@/routes_constants";
 import { BrokerSelect } from "@/components/select/broker_select";
 

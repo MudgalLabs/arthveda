@@ -1,13 +1,12 @@
 package dashboard
 
 import (
-	"arthveda/internal/dbx"
 	"arthveda/internal/feature/position"
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shopspring/decimal"
 )
 
 type Reader interface {
@@ -46,92 +45,88 @@ type generalStats struct {
 	AvgLossRFactor float64 `json:"avg_loss_r_factor"`
 }
 
-// TODO: As we already fetch positions in the service layer, we can pass them directly to this method
-// and we won't have to run a SQL query to get the general stats.
 func (r *dashboardRepository) GetGeneralStats(ctx context.Context, userID uuid.UUID, payload GetDashboardPayload, positions []*position.Position) (*generalStats, error) {
-	baseSQL := `
-		SELECT
-			-- Win Rate (%)
-			COALESCE(
-				ROUND(
-					100.0 * 
-					SUM(CASE WHEN status IN ('win', 'breakeven', 'open') THEN 1 ELSE 0 END) 
-					/ NULLIF(COUNT(*), 0),
-					2
-				), 
-				0
-			) AS win_rate,
+	var winRate float64
 
-			-- PnL
-			COALESCE(SUM(gross_pnl_amount), 0) AS gross_pnl,
-			COALESCE(SUM(net_pnl_amount), 0) AS net_pnl,
-			COALESCE(SUM(total_charges_amount), 0) AS charges,
+	var grossPnL, netPnL, charges, avgRFactor, avgWinRFactor, avgLossRFactor, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
 
-			-- Average R (only where risk_amount > 0)
-			COALESCE(ROUND(AVG(CASE WHEN risk_amount > 0 THEN r_factor END), 2), 0) AS avg_r_factor,
+	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount int
 
-			-- Average Win
-			COALESCE(ROUND(AVG(CASE WHEN status = 'win' THEN net_pnl_amount END), 2), 0) AS avg_win,
-
-			-- Average Loss
-			COALESCE(ROUND(AVG(CASE WHEN status = 'loss' THEN net_pnl_amount END), 2), 0) AS avg_loss,
-
-			-- Max Win
-			COALESCE(MAX(net_pnl_amount), 0) AS max_win,
-
-			-- Max Loss
-			COALESCE(MIN(net_pnl_amount), 0) AS max_loss,
-
-			-- Average R for Wins (only where risk_amount > 0)
-			COALESCE(ROUND(AVG(CASE WHEN status IN ('win', 'breakeven') AND risk_amount > 0 THEN r_factor END), 2), 0) AS avg_win_r_factor,
-
-			-- Average R for Losses (only where risk_amount > 0)
-			COALESCE(ROUND(AVG(CASE WHEN status = 'loss' AND risk_amount > 0 THEN r_factor END), 2), 0) AS avg_loss_r_factor
-
-		FROM
-			position
-	`
-
-	b := dbx.NewSQLBuilder(baseSQL)
-
-	b.AddCompareFilter("created_by", "=", userID)
-
-	if payload.DateRange != nil {
-		if payload.DateRange.From != nil {
-			b.AddCompareFilter("opened_at", ">=", payload.DateRange.From)
+	for _, p := range positions {
+		// Calculate open trades count.
+		// Will be used to calculate win rate.
+		if p.Status == position.StatusOpen {
+			openTradesCount++
 		}
-		if payload.DateRange.To != nil {
-			b.AddCompareFilter("opened_at", "<=", payload.DateRange.To)
+
+		// "Win" and "Breakeven" trades are considered winning trades
+		// for the purpose of calculating win rate.
+		if p.Status == position.StatusWin || p.Status == position.StatusBreakeven {
+			winTradesCount++
+		}
+
+		grossPnL = grossPnL.Add(p.GrossPnLAmount)
+		netPnL = netPnL.Add(p.NetPnLAmount)
+		charges = charges.Add(p.TotalChargesAmount)
+
+		if p.RiskAmount.GreaterThan(decimal.Zero) {
+			avgRFactor = avgRFactor.Add(p.RFactor)
+
+			switch p.Status {
+			case position.StatusWin, position.StatusBreakeven:
+				avgWinRFactor = avgWinRFactor.Add(p.RFactor)
+			case position.StatusLoss:
+				avgLossRFactor = avgLossRFactor.Add(p.RFactor)
+			}
+		}
+
+		if p.Status == position.StatusWin {
+			avgWin = avgWin.Add(p.NetPnLAmount)
+
+			if p.NetPnLAmount.GreaterThan(maxWin) {
+				maxWin = p.NetPnLAmount
+			}
+		}
+
+		if p.Status == position.StatusLoss {
+			avgLoss = avgLoss.Add(p.NetPnLAmount)
+
+			if p.NetPnLAmount.LessThan(maxLoss) {
+				maxLoss = p.NetPnLAmount
+			}
 		}
 	}
 
-	sql, args := b.Build()
+	// Trades that are not open are considered settled.
+	settledTradesCount = len(positions) - openTradesCount
+	// Trades that are settled and not winning are considered losing.
+	lossTradesCount = settledTradesCount - winTradesCount
 
-	var grossPnL, netPnL, charges, avgWin, avgLoss, maxWin, maxLoss string
-	var winRate, avgRFactor, avgWinRFactor, avgLossRFactor float64
-
-	err := r.db.QueryRow(ctx, sql, args...).Scan(&winRate, &grossPnL, &netPnL, &charges, &avgRFactor, &avgWin, &avgLoss, &maxWin, &maxLoss, &avgWinRFactor, &avgLossRFactor)
-	if err != nil {
-		return nil, fmt.Errorf("get general stats sql scan: %w", err)
-	}
-
+	winRate = (float64(winTradesCount) / float64(settledTradesCount)) * 100.0
 	lossRate := 100.0 - winRate
+
+	avgWin = avgWin.Div(decimal.NewFromInt(int64(winTradesCount)))
+	avgLoss = avgLoss.Div(decimal.NewFromInt(int64(lossTradesCount)))
+
+	avgRFactor = avgRFactor.Div(decimal.NewFromInt(int64(settledTradesCount)))
+	avgWinRFactor = avgWinRFactor.Div(decimal.NewFromInt(int64(winTradesCount)))
+	avgLossRFactor = avgLossRFactor.Div(decimal.NewFromInt(int64(lossTradesCount)))
 
 	streaksData := getWinAndLossStreaks(positions)
 
 	result := &generalStats{
 		WinRate:        winRate,
 		LossRate:       lossRate,
-		GrossPnL:       grossPnL,
-		NetPnL:         netPnL,
-		Charges:        charges,
-		AvgRFactor:     avgRFactor,
-		AvgWin:         avgWin,
-		AvgLoss:        avgLoss,
-		MaxWin:         maxWin,
-		MaxLoss:        maxLoss,
-		AvgWinRFactor:  avgWinRFactor,
-		AvgLossRFactor: avgLossRFactor,
+		GrossPnL:       grossPnL.String(),
+		NetPnL:         netPnL.String(),
+		Charges:        charges.String(),
+		AvgRFactor:     avgRFactor.Round(2).InexactFloat64(),
+		AvgWin:         avgWin.String(),
+		AvgLoss:        avgLoss.String(),
+		MaxWin:         maxWin.String(),
+		MaxLoss:        maxLoss.String(),
+		AvgWinRFactor:  avgWinRFactor.Round(2).InexactFloat64(),
+		AvgLossRFactor: avgLossRFactor.Round(2).InexactFloat64(),
 
 		streaks: streaks{
 			WinStreak:  streaksData.WinStreak,

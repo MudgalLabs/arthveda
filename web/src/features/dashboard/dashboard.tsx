@@ -11,10 +11,9 @@ import { Link } from "@/components/link";
 import { ROUTES } from "@/routes_constants";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
-import { CumulativePnLCurve } from "@/features/dashboard/widget/cumulative_pnl_graph";
-import { OverviewCard } from "@/features/dashboard/widget/overview_card";
-import { WinningCard } from "@/features/dashboard/widget/winning_card";
-import { LosingCard } from "@/features/dashboard/widget/losing_card";
+import { WidgetCumulativePnLCurve } from "@/features/dashboard/widget/widget_cumulative_pnl_graph";
+import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
+import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
 import { IconImport, IconPlus, IconSearch } from "@/components/icons";
 import { Button, DatePicker } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
@@ -207,31 +206,33 @@ export const Dashboard = () => {
 
                 <div key="winning">
                     <WidgetContainer>
-                        <WinningCard
-                            winRate={data.win_rate}
-                            winRFactor={data.avg_win_r_factor}
-                            maxWin={data.max_win}
-                            avgWin={data.avg_win}
-                            winStreak={data.win_streak}
+                        <WidgetGeneralStats
+                            isWinning
+                            rate={data.win_rate}
+                            rFactor={data.avg_win_r_factor}
+                            max={data.max_win}
+                            avg={data.avg_win}
+                            streak={data.win_streak}
                         />
                     </WidgetContainer>
                 </div>
 
                 <div key="losing">
                     <WidgetContainer>
-                        <LosingCard
-                            lossRate={data.loss_rate}
-                            lossRFactor={data.avg_loss_r_factor}
-                            maxLoss={data.max_loss}
-                            avgLoss={data.avg_loss}
-                            lossStreak={data.loss_streak}
+                        <WidgetGeneralStats
+                            isWinning={false}
+                            rate={data.loss_rate}
+                            rFactor={data.avg_loss_r_factor}
+                            max={data.max_loss}
+                            avg={data.avg_loss}
+                            streak={data.loss_streak}
                         />
                     </WidgetContainer>
                 </div>
 
                 <div key="cumulative_pnl_curve">
                     <WidgetContainer>
-                        <CumulativePnLCurve data={cumulativePnLData} isResizable />
+                        <WidgetCumulativePnLCurve data={cumulativePnLData} isResizable />
                     </WidgetContainer>
                 </div>
             </ResponsiveGridLayout>

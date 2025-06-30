@@ -56,7 +56,7 @@ const chartConfig: ChartConfig = {
     },
 };
 
-export const CumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizable }) => {
+export const WidgetCumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizable }) => {
     const [showGross, setShowGross] = useLocalStorageState(LocalStorageKeyCumulativePnLShowGross, false);
     const [showCharges, setShowCharges] = useLocalStorageState(LocalStorageKeyCumulativePnLShowCharges, false);
 
@@ -196,4 +196,4 @@ export const CumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizable }) 
     );
 };
 
-export default CumulativePnLCurve;
+export default WidgetCumulativePnLCurve;
