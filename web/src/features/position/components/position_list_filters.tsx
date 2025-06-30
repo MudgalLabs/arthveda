@@ -128,6 +128,9 @@ const OpenedFilter = memo(({ container }: { container: HTMLElement | null }) => 
                 config={{ dates: { toggle: true } }}
                 dates={dateRangeFilterToDatesArray(opened)}
                 onDatesChange={(v: Date[]) => updateFilter("opened", { from: v[0], to: v[1] })}
+                popoverContentProps={{
+                    align: "start",
+                }}
             />
         </WithLabel>
     );

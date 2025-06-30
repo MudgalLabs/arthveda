@@ -258,6 +258,7 @@ export const Dashboard = () => {
                                     maxDate: new Date(),
                                 },
                             }}
+                            popoverContentProps={{ align: "end" }}
                         />
 
                         <Button

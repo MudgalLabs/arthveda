@@ -39,3 +39,4 @@ const PopoverContent: FC<PopoverContentProps> = ({
 );
 
 export { Popover, PopoverTrigger, PopoverContent };
+export type { PopoverContentProps };

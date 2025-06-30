@@ -3,9 +3,10 @@ import { ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 import { useControlled } from "@/hooks/use_controlled";
 import { IconCalendarRange, IconCalendarSingle } from "@/components/icons";
 import { cn, formatDate } from "@/lib/utils";
-import { Calendar, CalendarProps, Popover, PopoverContent, PopoverTrigger } from "@/s8ly";
+import { Calendar, CalendarProps, Popover, PopoverContent, PopoverTrigger, PopoverContentProps } from "@/s8ly";
 
 interface DatePickerProps extends Omit<CalendarProps, "dates" | "onDatesChange"> {
+    popoverContentProps?: PopoverContentProps;
     container?: HTMLElement | null;
     className?: string;
     dates?: Date[];
@@ -17,6 +18,7 @@ interface DatePickerProps extends Omit<CalendarProps, "dates" | "onDatesChange">
 
 function DatePicker({
     container,
+    popoverContentProps = {},
     className,
     dates: datesProp,
     placeholder: placeholderProp,
@@ -54,6 +56,8 @@ function DatePicker({
     if (time && !isRange) width = "w-[190px]";
     if (time && isRange) width = "w-[330px]";
 
+    const { className: popoverContentClassname, ...restPopoverContentProps } = popoverContentProps;
+
     // To allow the consumer of `DatePicker` be able to do something
     // when the popover opens or closes.
     useEffect(() => {
@@ -76,7 +80,12 @@ function DatePicker({
                     {isDateSet ? selectedText : placeholder}
                 </DatePickerButton>
             </PopoverTrigger>
-            <PopoverContent className="w-auto border-none p-0" align="start" container={container}>
+            <PopoverContent
+                className={cn("w-auto border-none p-0", popoverContentClassname)}
+                align="start"
+                container={container}
+                {...restPopoverContentProps}
+            >
                 <Calendar
                     dates={dates}
                     onDatesChange={onDatesChangeProp ?? setDates}

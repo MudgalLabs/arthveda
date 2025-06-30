@@ -106,7 +106,7 @@ export const OverviewCard = memo(
                         <div className="flex w-full justify-between">
                             <div>
                                 <span className="label-muted">Gross</span>
-                                <p className="sub-heading">
+                                <p className="text-foreground text-base">
                                     <span
                                         className={cn("font-semibold", {
                                             // "text-foreground-green": grossPnL.isPositive(),
@@ -122,7 +122,7 @@ export const OverviewCard = memo(
 
                             <div>
                                 <span className="label-muted">Charges</span>
-                                <p className="sub-heading">
+                                <p className="text-foreground text-base">
                                     <span className="font-semibold">
                                         {formatCurrency(total_charges_amount, {
                                             currency,
