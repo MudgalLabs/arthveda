@@ -20,7 +20,7 @@ export const Topbar = () => {
                     <Button
                         // The 6 margin on the left comes from the Sidebar where the Icon
                         // is rendered at 6 margin from the left.
-                        className="mr-8 ml-5"
+                        className="mr-8 ml-6"
                         variant="secondary"
                         size="icon"
                         type="button"

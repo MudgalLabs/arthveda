@@ -66,6 +66,18 @@
     --font-heading: Inter;
     --font-content: Inter;
 
+    --color-azure-50: #f2f7fc;
+    --color-azure-100: #e1ecf8;
+    --color-azure-200: #c9def4;
+    --color-azure-300: #a4caec;
+    --color-azure-400: #79aee1;
+    --color-azure-500: #5990d8;
+    --color-azure-600: #4577cb;
+    --color-azure-700: #375dae;
+    --color-azure-800: #355298;
+    --color-azure-900: #2f4679;
+    --color-azure-950: #212c4a;
+
     /* === Base Backgrounds & Foregrounds === */
     /* Very dark background */
     --color-background: hsl(222, 83%, 2%);
@@ -78,11 +90,12 @@
     --color-border-muted: hsl(0, 0%, 100%);
 
     /* === Brand / Accent System === */
-    --color-primary: hsl(221, 52%, 45%);
+    --color-primary: var(--color-azure-700);
     --color-primary-foreground: hsl(210, 40%, 98%);
     --color-secondary: hsl(218, 60%, 11%);
     --color-secondary-foreground: hsl(225, 56%, 88%);
     --color-link: hsl(221, 82%, 67%);
+    --color-link: var(--color-azure-500);
 
     /* === State Variants === */
     --color-success-bg: hsl(150, 90%, 6%);
@@ -123,7 +136,7 @@
     --color-chart-muted: var(--color-muted-foreground);
 
     /* === Misc === */
-    --color-logo: #189ef3;
+    --color-logo: var(--color-azure-500);
 
     --font-logo: Museo Sans;
     --font-heading: Inter;

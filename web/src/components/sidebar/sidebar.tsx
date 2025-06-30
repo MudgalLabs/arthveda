@@ -148,10 +148,10 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
     const content = (
         <div
             className={cn(
-                "bg-background text-muted-foreground w-full rounded-md border-l-[3px] border-transparent p-3",
+                "text-muted-foreground w-full rounded-md border-l-[4px] border-transparent bg-transparent p-3",
                 {
-                    "bg-accent-muted text-foreground border-l-primary border-l-[3px]": isActive,
-                    "hover:bg-muted hover:text-muted-foreground hover:cursor-pointer": !isActive,
+                    "bg-accent-muted text-foreground border-l-primary border-l-[4px]": isActive,
+                    "hover:bg-accent-muted hover:text-muted-foreground hover:cursor-pointer": !isActive,
                     "flex items-center gap-3 text-base": open,
                 }
             )}
@@ -202,7 +202,7 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
             className={cn(
                 "text-foreground flex gap-x-2 rounded-md text-left transition-colors",
                 {
-                    "bg-muted text-foreground px-2 py-2": clickable,
+                    "border-border text-foreground border-1 px-2 py-2": clickable,
                     "hover:bg-accent-muted hover:text-foreground hover:cursor-pointer": clickable,
                     "bg-accent text-foreground": menuOpen,
                 },
@@ -211,11 +211,12 @@ const SidebarProfile: FC<SidebarProfileProps> = (props) => {
         >
             {/* Right now we are directly loading user's profile image from Google. On several fast reloads,
             Google starts rate limiting us and return 429. So `error` state lets us deefault to */}
-            {profileImageURL && !error ? (
-                <img className="h-10 rounded-sm" src={profileImageURL} onError={() => setError(true)} />
-            ) : (
-                <DefaultProfileAvatar height={40} />
-            )}
+            {clickable &&
+                (profileImageURL && !error ? (
+                    <img className="h-10 rounded-sm" src={profileImageURL} onError={() => setError(true)} />
+                ) : (
+                    <DefaultProfileAvatar height={40} />
+                ))}
 
             {expanded && (
                 <div className="flex w-full items-center justify-between">
