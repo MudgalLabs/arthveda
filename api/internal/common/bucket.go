@@ -51,6 +51,8 @@ func GenerateBuckets(period BucketPeriod, start, end time.Time) []Bucket {
 	if period == BucketPeriodMonthly {
 		start = time.Date(start.Year(), start.Month(), 1, 0, 0, 0, 0, start.Location())
 		end = time.Date(end.Year(), end.Month(), 1, 0, 0, 0, 0, end.Location()).AddDate(0, 1, 0)
+	} else {
+		end = end.AddDate(0, 0, 1) // include the final day
 	}
 
 	current := start
