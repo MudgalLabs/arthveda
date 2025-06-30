@@ -19,7 +19,7 @@ interface GeneralStats {
     loss_streak: number;
 }
 
-interface CumulativePnLDataItem {
+interface PnLBucket {
     label: string;
     start: string;
     end: string;
@@ -33,8 +33,9 @@ export interface GetDashboardRequest {
 }
 
 export interface GetDashboardResponse extends GeneralStats {
-    cumulative_pnl: CumulativePnLDataItem[];
     positions_count: number;
+    cumulative_pnl_buckets: PnLBucket[];
+    pnl_buckets: PnLBucket[];
 }
 
 export function get(body: GetDashboardRequest) {

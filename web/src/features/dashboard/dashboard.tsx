@@ -118,13 +118,13 @@ export const Dashboard = () => {
     const cumulativePnLData = useMemo(() => {
         if (!data) return [];
 
-        return data.cumulative_pnl.map((d) => ({
+        return data.cumulative_pnl_buckets.map((d) => ({
             ...d,
             net_pnl: parseFloat(d.net_pnl),
             gross_pnl: parseFloat(d.gross_pnl),
             charges: parseFloat(d.charges),
         }));
-    }, [data?.cumulative_pnl]);
+    }, [data?.cumulative_pnl_buckets]);
 
     const ResponsiveGridLayout = useMemo(() => WidthProvider(Responsive), []);
 

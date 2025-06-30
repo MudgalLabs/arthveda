@@ -468,6 +468,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			// Skip invalid positions
 			continue
 		}
+
 		finalizedPositions = append(finalizedPositions, openPosition)
 	}
 

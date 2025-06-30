@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 type Service struct {
@@ -32,8 +31,9 @@ type GetDashboardPayload struct {
 
 type GetDashboardReponse struct {
 	generalStats
-	CumulativePnL  []CumulativePnLBucket `json:"cumulative_pnl"`
-	PositionsCount int                   `json:"positions_count"`
+	PositionsCount       int         `json:"positions_count"`
+	CumulativePnLBuckets []pnlBucket `json:"cumulative_pnl_buckets"`
+	PnLBuckets           []pnlBucket `json:"pnl_buckets"`
 }
 
 func (s *Service) Get(ctx context.Context, userID uuid.UUID, payload GetDashboardPayload) (*GetDashboardReponse, service.Error, error) {
@@ -77,28 +77,16 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, payload GetDashboar
 	// Extend the end time to include the full bucket
 	end = end.AddDate(0, 0, 1)
 
-	cumulativePnL := getCumulativePnL(positions, common.BucketPeriodMonthly, start, end)
-
-	stats, err := s.dashboardRepository.GetGeneralStats(ctx, userID, payload, positions)
-	if err != nil {
-		return nil, service.ErrInternalServerError, err
-	}
+	generalStats := getGeneralStats(positions)
+	cumulativePnLBuckets := getCumulativePnLBuckets(positions, common.BucketPeriodMonthly, start, end)
+	pnlBuckets := getPnLBuckets(positions, common.BucketPeriodMonthly, start, end)
 
 	result := &GetDashboardReponse{
-		generalStats:   *stats,
-		CumulativePnL:  cumulativePnL,
-		PositionsCount: len(positions),
+		generalStats:         generalStats,
+		PositionsCount:       len(positions),
+		CumulativePnLBuckets: cumulativePnLBuckets,
+		PnLBuckets:           pnlBuckets,
 	}
 
 	return result, service.ErrNone, nil
-}
-
-type DailyNetPnL struct {
-	Date   time.Time       `json:"start"`
-	Label  string          `json:"label"`
-	NetPnL decimal.Decimal `json:"net_pnl"`
-}
-
-func (s *Service) GetDailyNetPnL(ctx context.Context, userID uuid.UUID) ([]*DailyNetPnL, service.Error, error) {
-	return nil, service.ErrNone, nil
 }
