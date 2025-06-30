@@ -56,7 +56,7 @@ const chartConfig: ChartConfig = {
     },
 };
 
-export const WidgetCumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizable }) => {
+export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
     const [showGross, setShowGross] = useLocalStorageState(LocalStorageKeyCumulativePnLShowGross, false);
     const [showCharges, setShowCharges] = useLocalStorageState(LocalStorageKeyCumulativePnLShowCharges, false);
 
@@ -67,7 +67,7 @@ export const WidgetCumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizab
         <Card className="relative h-full w-full overflow-hidden">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
-            <CardTitle>Cumulative PnL Curve</CardTitle>
+            <CardTitle>Cumulative PnL</CardTitle>
 
             <div className="h-2" />
 
@@ -150,14 +150,6 @@ export const WidgetCumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizab
                             </linearGradient>
                         </defs>
 
-                        <ReferenceLine
-                            y={0}
-                            stroke="var(--color-primary)"
-                            strokeDasharray="3 3"
-                            strokeWidth={2}
-                            strokeOpacity={0.5}
-                        />
-
                         <Area
                             type="monotone"
                             dataKey="net_pnl"
@@ -173,8 +165,8 @@ export const WidgetCumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizab
                                 type="monotone"
                                 dataKey="gross_pnl"
                                 stroke="var(--color-success-foreground)"
-                                strokeWidth={1}
-                                strokeOpacity={1}
+                                strokeWidth={1.5}
+                                strokeOpacity={0.6}
                                 fillOpacity={0}
                             />
                         )}
@@ -184,11 +176,19 @@ export const WidgetCumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizab
                                 type="monotone"
                                 dataKey="charges"
                                 stroke="var(--color-error-foreground)"
-                                strokeWidth={1}
-                                strokeOpacity={1}
+                                strokeWidth={1.5}
+                                strokeOpacity={0.6}
                                 fillOpacity={0}
                             />
                         )}
+
+                        <ReferenceLine
+                            y={0}
+                            stroke="var(--color-muted-foreground)"
+                            strokeDasharray="3 3"
+                            strokeWidth={1.2}
+                            strokeOpacity={1}
+                        />
                     </AreaChart>
                 </ResponsiveContainer>
             </ChartContainer>
@@ -196,4 +196,4 @@ export const WidgetCumulativePnLCurve: FC<Props> = ({ data, isLoading, isResizab
     );
 };
 
-export default WidgetCumulativePnLCurve;
+export default WidgetCumulativePnLGraph;

@@ -11,13 +11,14 @@ import { Link } from "@/components/link";
 import { ROUTES } from "@/routes_constants";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
-import { WidgetCumulativePnLCurve } from "@/features/dashboard/widget/widget_cumulative_pnl_graph";
+import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cumulative_pnl_graph";
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
 import { IconImport, IconPlus, IconSearch } from "@/components/icons";
 import { Button, DatePicker } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
+import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -53,10 +54,19 @@ const lgLayout: Layout[] = [
         minH: 4,
     },
     {
-        i: "cumulative_pnl_curve",
+        i: "cumulative_pnl_graph",
         x: 0,
         y: 5,
-        w: 12,
+        w: 6,
+        h: 10,
+        minW: 4,
+        minH: 7,
+    },
+    {
+        i: "pnl_graph",
+        x: 6,
+        y: 5,
+        w: 6,
         h: 10,
         minW: 4,
         minH: 7,
@@ -92,7 +102,7 @@ const smLayout: Layout[] = [
         minH: 4,
     },
     {
-        i: "cumulative_pnl_curve",
+        i: "cumulative_pnl_graph",
         x: 0,
         y: 15,
         w: 3,
@@ -125,6 +135,17 @@ export const Dashboard = () => {
             charges: parseFloat(d.charges),
         }));
     }, [data?.cumulative_pnl_buckets]);
+
+    const pnlData = useMemo(() => {
+        if (!data) return [];
+
+        return data.pnl_buckets.map((d) => ({
+            ...d,
+            net_pnl: parseFloat(d.net_pnl),
+            gross_pnl: parseFloat(d.gross_pnl),
+            charges: parseFloat(d.charges),
+        }));
+    }, [data?.pnl_buckets]);
 
     const ResponsiveGridLayout = useMemo(() => WidthProvider(Responsive), []);
 
@@ -230,9 +251,15 @@ export const Dashboard = () => {
                     </WidgetContainer>
                 </div>
 
-                <div key="cumulative_pnl_curve">
+                <div key="cumulative_pnl_graph">
                     <WidgetContainer>
-                        <WidgetCumulativePnLCurve data={cumulativePnLData} isResizable />
+                        <WidgetCumulativePnLGraph data={cumulativePnLData} isResizable />
+                    </WidgetContainer>
+                </div>
+
+                <div key="pnl_graph">
+                    <WidgetContainer>
+                        <WidgetPnLGraph data={pnlData} isResizable />
                     </WidgetContainer>
                 </div>
             </ResponsiveGridLayout>
