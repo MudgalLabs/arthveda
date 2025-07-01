@@ -68,12 +68,20 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 			return result, service.ErrBadRequest, fmt.Errorf("Broker is required to calculate charges")
 		}
 
+		broker, err := s.brokerRepository.GetByID(ctx, *payload.BrokerID)
+		if err != nil {
+			if err == repository.ErrNotFound {
+				return result, service.ErrBadRequest, fmt.Errorf("Broker provided is invalid or does not exist")
+			}
+			return result, service.ErrInternalServerError, fmt.Errorf("failed to get broker by ID: %w", err)
+		}
+
 		trades, err := createTradesFromCreatePayload(payload.Trades, uuid.Nil)
 		if err != nil {
 			return result, service.ErrInternalServerError, fmt.Errorf("create trades from create payload: %w", err)
 		}
 
-		charges, userErr, err := CalculateAndApplyChargesToTrades(trades, InstrumentEquity, broker.BrokerNameZerodha)
+		charges, userErr, err := CalculateAndApplyChargesToTrades(trades, payload.Instrument, broker.Name)
 		if err != nil {
 			if userErr {
 				return result, service.ErrBadRequest, err
@@ -82,6 +90,8 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 			}
 		}
 
+		// Update the position's total charges amount.
+		computeResult.TotalChargesAmount = calculateTotalChargesAmountFromTrades(trades).Round(2)
 		result.TradeCharges = charges
 	}
 
@@ -508,7 +518,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 		// Add the position's total charges amount.
 		// This is calculated from the trades in the position.
-		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades)
+		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades).Round(2)
 
 		// As we have updated the trades with charges, we need to recompute the position.
 		computePayload := ComputePayload{
