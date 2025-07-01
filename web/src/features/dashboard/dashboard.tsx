@@ -111,6 +111,16 @@ const smLayout: Layout[] = [
         maxW: 4,
         minH: 7,
     },
+    {
+        i: "pnl_graph",
+        x: 0,
+        y: 23,
+        w: 3,
+        h: 7,
+        minW: 4,
+        maxW: 4,
+        minH: 7,
+    },
 ];
 
 export const Dashboard = () => {
