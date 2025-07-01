@@ -254,13 +254,13 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		return nil, service.ErrBadRequest, fmt.Errorf("Excel file is empty")
 	}
 
-	// Map to store the symbol for each Order ID.
-	orderIDToSymbolMap := make(map[string]string)
-	// Map to store the instrument for each Order ID.
-	orderIDToInstrumentMap := make(map[string]Instrument)
+	// Map to store parsed rows by Order ID.
+	// This makes it easy to access the parsed row data by Order ID later.
+	parsedRowByOrderID := make(map[string]*parseRowResult, len(rows))
 
 	// Map to track open positions by Symbol
 	openPositions := make(map[string]*Position)
+
 	// Array to store all finalized positions
 	finalizedPositions := []*Position{}
 
@@ -273,16 +273,18 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	// Slice to store trades with their Order IDs
 	tradesWithOrderIDs := []TradeWithOrderID{}
 
-	// Map to aggregate trades by Order ID.
-	// This will help in calculating the weighted average price for trades with the same Order ID.
-	// When a user places a trade, the execution can happen in multiple parts leading to multiple trades with the same Order ID.
-	aggregatedTrades := make(map[string]struct {
+	type aggregatedTrade struct {
 		TradeKind  trade.Kind
 		Time       time.Time
 		Quantity   decimal.Decimal
 		TotalPrice decimal.Decimal
 		Charges    decimal.Decimal
-	})
+	}
+
+	// Map to aggregate trades by Order ID.
+	// This will help in calculating the weighted average price for trades with the same Order ID.
+	// When a user places a trade, the execution can happen in multiple parts leading to multiple trades with the same Order ID.
+	aggregatedTrades := make(map[string]aggregatedTrade)
 
 	metadata, err := importer.getMetadata(rows)
 	if err != nil {
@@ -306,20 +308,16 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			return nil, service.ErrBadRequest, fmt.Errorf("failed to parse row %d: %w", rowIdx+headerRowIdx+1, err)
 		}
 
-		// Aggregate trades by orderID
+		parsedRowByOrderID[parseRowResult.orderID] = parseRowResult
+
+		// Aggregate trades by Order ID if the order was split into multiple executed exchange trades.
 		if existing, found := aggregatedTrades[parseRowResult.orderID]; found {
 			existing.Quantity = existing.Quantity.Add(parseRowResult.quantity)
 			existing.TotalPrice = existing.TotalPrice.Add(parseRowResult.price.Mul(parseRowResult.quantity))
 			existing.Time = parseRowResult.time
 			aggregatedTrades[parseRowResult.orderID] = existing
 		} else {
-			aggregatedTrades[parseRowResult.orderID] = struct {
-				TradeKind  trade.Kind
-				Time       time.Time
-				Quantity   decimal.Decimal
-				TotalPrice decimal.Decimal
-				Charges    decimal.Decimal
-			}{
+			aggregatedTrades[parseRowResult.orderID] = aggregatedTrade{
 				TradeKind:  parseRowResult.tradeKind,
 				Time:       parseRowResult.time,
 				Quantity:   parseRowResult.quantity,
@@ -327,9 +325,6 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				Charges:    decimal.NewFromInt(0),
 			}
 		}
-
-		orderIDToSymbolMap[parseRowResult.orderID] = parseRowResult.symbol
-		orderIDToInstrumentMap[parseRowResult.orderID] = parseRowResult.instrument
 	}
 
 	// Convert aggregated trades to tradesWithOrderIDs
@@ -369,10 +364,12 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	for _, tradeWithOrderID := range tradesWithOrderIDs {
 		orderID := tradeWithOrderID.OrderID
 		tradePayload := tradeWithOrderID.Payload
-		symbol, exists := orderIDToSymbolMap[orderID]
+		parsedRow, exists := parsedRowByOrderID[orderID]
 		if !exists {
-			return nil, service.ErrInternalServerError, fmt.Errorf("Order ID %s not found in symbol map", orderID)
+			return nil, service.ErrInternalServerError, fmt.Errorf("ParsedRow not found for Order ID %s", orderID)
 		}
+
+		symbol := parsedRow.symbol
 
 		newTrade, err := trade.New(tradePayload)
 		if err != nil {
@@ -394,6 +391,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 			computeResult, err := Compute(computePayload)
 			if err != nil {
+				l.Debugw("failed to compute position that already exists and marking it as invalid", "error", err, "position_id", openPosition.ID, "symbol", openPosition.Symbol)
 				invalidPositionsByPosID[openPosition.ID] = true
 				continue
 			}
@@ -420,10 +418,12 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			}
 		} else {
 			// If no open position exists, create a new one
-			instrument, exists := orderIDToInstrumentMap[orderID]
+			parsedRow, exists := parsedRowByOrderID[orderID]
 			if !exists {
-				return nil, service.ErrInternalServerError, fmt.Errorf("Order ID %s not found in instrument map", orderID)
+				return nil, service.ErrInternalServerError, fmt.Errorf("ParsedRow not found for Order ID %s", orderID)
 			}
+
+			instrument := parsedRow.instrument
 
 			// Initialize the position with the first trade
 			computePayload := ComputePayload{
@@ -433,6 +433,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 			computeResult, err := Compute(computePayload)
 			if err != nil {
+				l.Debugw("failed to compute position after creating a new position and marking it as invalid", "error", err, "position_id", openPosition.ID, "symbol", openPosition.Symbol)
 				invalidPositionsByPosID[openPosition.ID] = true
 				continue
 			}
@@ -528,6 +529,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 		computeResult, err := Compute(computePayload)
 		if err != nil {
+			l.Debugw("failed to compute position after charges and marking it as invalid", "error", err, "position_id", position.ID, "symbol", position.Symbol)
 			invalidPositionsByPosID[position.ID] = true
 			continue
 		}

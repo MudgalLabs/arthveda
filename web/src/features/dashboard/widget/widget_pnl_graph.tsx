@@ -78,7 +78,7 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
                             y={0}
                             stroke="var(--color-muted-foreground)"
                             strokeDasharray="3 3"
-                            strokeWidth={1.2}
+                            strokeWidth={1}
                             strokeOpacity={1}
                         />
                     </BarChart>

@@ -229,24 +229,19 @@ func Compute(payload ComputePayload) (computeResult, error) {
 	totalCharges := decimal.NewFromFloat(0)
 	netQty := decimal.NewFromFloat(0)
 
-	// If there is only one trade, we know the trade is the opening trade.
-	if len(payload.Trades) == 1 {
-		result.OpenedAt = payload.Trades[0].Time
-		result.Status = StatusOpen
-
-		if payload.Trades[0].Kind == trade.TradeKindBuy {
-			result.Direction = DirectionLong
-		} else {
-			result.Direction = DirectionShort
-		}
-
-		return result, nil
-	}
-
 	if payload.Trades[0].Kind == trade.TradeKindBuy {
 		direction = DirectionLong
 	} else {
 		direction = DirectionShort
+	}
+
+	// If there is only one trade, we know the trade is the opening trade.
+	if len(payload.Trades) == 1 {
+		result.OpenedAt = payload.Trades[0].Time
+		result.Status = StatusOpen
+		result.Direction = direction
+
+		return result, nil
 	}
 
 	for _, t := range payload.Trades {
@@ -397,8 +392,8 @@ func ApplyTradeToPosition(
 	} else {
 		pnlPerUnit = currentAvgPrice.Sub(tradePrice) // Buy below avg = profit
 	}
-	realizedPnL = pnlPerUnit.Mul(closeQty)
 
+	realizedPnL = pnlPerUnit.Mul(closeQty)
 	// Round realized PnL to match database precision (NUMERIC(14,2))
 	realizedPnL = realizedPnL.Round(2)
 
@@ -417,8 +412,9 @@ func ApplyTradeToPosition(
 
 	// Flip
 	netQty := tradeQty.Sub(currentQty) // Excess becomes new position
-	newDirection = DirectionShort
-	if isBuy {
+	if isLong {
+		newDirection = DirectionShort
+	} else {
 		newDirection = DirectionLong
 	}
 

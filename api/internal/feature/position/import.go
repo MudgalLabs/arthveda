@@ -437,6 +437,19 @@ func (i *UpstoxImporter) parseRow(row []string, metadata *importFileMetadata) (*
 
 	instrument := InstrumentEquity
 
+	// We will create our own order ID based on the first 3 characters of the order ID and the date.
+	// We need date because using just the first 3 characters of the order ID can lead to collisions.
+	// Adding date ensure that there are no collisions, unless my assumption about the first 3 characters is wrong.
+	// Upstox does not provide a unique order ID for each trade, but they have a pattern to identify
+	// which trades belong to the same order.
+	// The first 3 characters of the order ID are the same for all trades that belong to the same order.
+	// So we will create a custom order ID by combining the first 3 characters of the order ID with the trade's date.
+	// Create a custom order ID by combining the first 3 characters of the order ID with the date.
+	// NOTE: Well, I found a collision when using only prefix + date, so I added the symbol as well.
+	orderIDPrefix := orderID[:3]
+	dateStr = tradeTime.Format("20060102")
+	orderID = orderIDPrefix + dateStr + symbol
+
 	return &parseRowResult{
 		symbol:     symbol,
 		instrument: instrument,
