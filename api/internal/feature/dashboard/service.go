@@ -48,17 +48,9 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, payload GetDashboar
 		},
 	}
 
-	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload)
+	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload, true)
 	if err != nil {
 		return nil, service.ErrInternalServerError, err
-	}
-
-	for _, position := range positions {
-		trades, err := s.tradeRepository.FindByPositionID(ctx, position.ID)
-		if err != nil {
-			return nil, service.ErrInternalServerError, err
-		}
-		position.Trades = trades
 	}
 
 	// Find the earliest and latest trade times
@@ -73,9 +65,6 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, payload GetDashboar
 			}
 		}
 	}
-
-	// Extend the end time to include the full bucket
-	end = end.AddDate(0, 0, 1)
 
 	generalStats := getGeneralStats(positions)
 	cumulativePnLBuckets := getCumulativePnLBuckets(positions, common.BucketPeriodMonthly, start, end)

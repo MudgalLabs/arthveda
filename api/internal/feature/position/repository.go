@@ -3,6 +3,7 @@ package position
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/dbx"
+	"arthveda/internal/feature/trade"
 	"arthveda/internal/repository"
 	"context"
 	"fmt"
@@ -15,7 +16,7 @@ import (
 
 type Reader interface {
 	GetByID(ctx context.Context, createdBy, positionID uuid.UUID) (*Position, error)
-	Search(ctx context.Context, payload SearchPayload) ([]*Position, int, error)
+	Search(ctx context.Context, payload SearchPayload, attachTrades bool) ([]*Position, int, error)
 	SearchSymbols(ctx context.Context, userID uuid.UUID, query string) ([]string, error)
 }
 
@@ -240,10 +241,9 @@ func (r *positionRepository) Delete(ctx context.Context, positionID uuid.UUID) e
 	return nil
 }
 
-// TODO: Add a flag argument like `attach_trades` and if true, we should loop through
-// the position(s) and fetch theit trade(s) and append it so `Postiion.Trades`.
-func (r *positionRepository) Search(ctx context.Context, p SearchPayload) ([]*Position, int, error) {
-	return r.findPositions(ctx, p)
+// Add a flag argument like `attachTrades` and if true, join trade and attach trades to positions.
+func (r *positionRepository) Search(ctx context.Context, p SearchPayload, attachTrades bool) ([]*Position, int, error) {
+	return r.findPositions(ctx, p, attachTrades)
 }
 
 func (r *positionRepository) GetByID(ctx context.Context, createdBy, positionID uuid.UUID) (*Position, error) {
@@ -255,7 +255,7 @@ func (r *positionRepository) GetByID(ctx context.Context, createdBy, positionID 
 		Pagination: common.Pagination{Limit: 1},
 	}
 
-	positions, _, err := r.findPositions(ctx, payload)
+	positions, _, err := r.findPositions(ctx, payload, true)
 	if err != nil {
 		return nil, err
 	}
@@ -267,19 +267,34 @@ func (r *positionRepository) GetByID(ctx context.Context, createdBy, positionID 
 	return positions[0], nil
 }
 
-// TODO: Pass a flag argument like `attach_trades` and if true, we fetch the trades in the same query
-// append it to the `Position.Trades` slice.
-func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload) ([]*Position, int, error) {
-	baseSQL := `
-		SELECT
-            p.id, p.created_by, p.created_at, p.updated_at,
-            p.symbol, p.instrument, p.currency, p.risk_amount, p.notes, p.total_charges_amount,
-            p.direction, p.status, p.opened_at, p.closed_at,
-            p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
-            p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
-            p.broker_id
-        FROM
-			position p`
+// findPositions fetches positions and, if attachTrades is true, joins and attaches trades for each position.
+func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload, attachTrades bool) ([]*Position, int, error) {
+	var baseSQL string
+	if attachTrades {
+		baseSQL = `
+			SELECT
+				p.id, p.created_by, p.created_at, p.updated_at,
+				p.symbol, p.instrument, p.currency, p.risk_amount, p.notes, p.total_charges_amount,
+				p.direction, p.status, p.opened_at, p.closed_at,
+				p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
+				p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
+				p.broker_id,
+				t.id, t.position_id, t.created_at, t.updated_at, t.kind, t.time, t.quantity, t.price, t.charges_amount
+			FROM
+				position p
+			LEFT JOIN trade t ON t.position_id = p.id`
+	} else {
+		baseSQL = `
+			SELECT
+				p.id, p.created_by, p.created_at, p.updated_at,
+				p.symbol, p.instrument, p.currency, p.risk_amount, p.notes, p.total_charges_amount,
+				p.direction, p.status, p.opened_at, p.closed_at,
+				p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
+				p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
+				p.broker_id
+			FROM
+				position p`
+	}
 
 	b := dbx.NewSQLBuilder(baseSQL)
 
@@ -356,34 +371,75 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload)
 
 	defer rows.Close()
 
-	positions := []*Position{}
+	var (
+		positions   []*Position
+		positionMap = map[uuid.UUID]*Position{}
+	)
 
-	for rows.Next() {
-		var pos Position
+	if attachTrades {
+		for rows.Next() {
+			var pos Position
+			var trade trade.Trade
+			var tradeID *uuid.UUID // to check if trade is null (no trade)
 
-		err := rows.Scan(
-			&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
-			&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
-			&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
-			&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
-			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
-			&pos.BrokerID,
-		)
+			// Scan all position fields + trade fields (LEFT JOIN)
+			err := rows.Scan(
+				&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
+				&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
+				&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
+				&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
+				&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
+				&pos.BrokerID,
+				&tradeID, &trade.PositionID, &trade.CreatedAt, &trade.UpdatedAt, &trade.Kind, &trade.Time, &trade.Quantity, &trade.Price, &trade.ChargesAmount,
+			)
 
-		if err != nil {
-			return nil, 0, fmt.Errorf("scan: %w", err)
+			if err != nil {
+				return nil, 0, fmt.Errorf("scan: %w", err)
+			}
+
+			// Only add position once
+			if _, exists := positionMap[pos.ID]; !exists {
+				positionMap[pos.ID] = &pos
+				positions = append(positions, &pos)
+			}
+
+			// If tradeID is not null, append trade
+			if tradeID != nil {
+				trade.ID = *tradeID
+				positionMap[pos.ID].Trades = append(positionMap[pos.ID].Trades, &trade)
+			}
 		}
-
-		positions = append(positions, &pos)
+		// Ensure that the Trades slice is set for each position in the positions array
+		for i := range positions {
+			if pm, ok := positionMap[positions[i].ID]; ok {
+				positions[i].Trades = pm.Trades
+			}
+		}
+	} else {
+		for rows.Next() {
+			var pos Position
+			err := rows.Scan(
+				&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
+				&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
+				&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
+				&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
+				&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
+				&pos.BrokerID,
+			)
+			if err != nil {
+				return nil, 0, fmt.Errorf("scan: %w", err)
+			}
+			positions = append(positions, &pos)
+		}
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, 0, fmt.Errorf("rows err: %w", err)
 	}
 
-	var total int
+	// Use b.Count() directly for the count query.
 	countSQL, countArgs := b.Count()
-
+	var total int
 	err = r.db.QueryRow(ctx, countSQL, countArgs...).Scan(&total)
 	if err != nil {
 		return nil, 0, err

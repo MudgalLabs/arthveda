@@ -121,7 +121,7 @@ export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
                             className
                         )}
                     >
-                        <div className="font-content px-2 py-2 text-sm">{option}</div>
+                        <span className="py-1! text-sm!">{option}</span>
                     </li>
                 );
             }}

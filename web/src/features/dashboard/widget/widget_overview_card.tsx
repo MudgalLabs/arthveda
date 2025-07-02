@@ -63,7 +63,7 @@ export const OverviewCard = memo(
                 <CardTitle>Overview</CardTitle>
 
                 <CardContent className="flex-y h-full flex-col justify-between">
-                    <div className="flex w-full justify-between">
+                    <div className="flex w-full justify-between gap-x-4">
                         <div>
                             <span className="label-muted">Net</span>
                             <div className={`flex items-end gap-x-2 ${netPnLColor}`}>

@@ -146,7 +146,7 @@ func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchRes
 		return nil, service.ErrInvalidInput, err
 	}
 
-	positions, totalItems, err := s.positionRepository.Search(ctx, payload)
+	positions, totalItems, err := s.positionRepository.Search(ctx, payload, false)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("position repository list: %w", err)
 	}
@@ -359,6 +359,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	// Number of positions that are invalid in the import file.
 	// This is used to track how many positions were invalid and skipped during the import.
 	invalidPositionsByPosID := map[uuid.UUID]bool{}
+	invalidPositions := []*Position{}
 
 	// Process the sorted trades
 	for _, tradeWithOrderID := range tradesWithOrderIDs {
@@ -476,6 +477,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	for _, openPosition := range openPositions {
 		if invalid, exists := invalidPositionsByPosID[openPosition.ID]; exists && invalid {
 			l.Debugw("skipping invalid position", "position_id", openPosition.ID, "symbol", openPosition.Symbol)
+			invalidPositions = append(invalidPositions, openPosition)
 			// Skip invalid positions
 			continue
 		}
@@ -530,7 +532,6 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		computeResult, err := Compute(computePayload)
 		if err != nil {
 			l.Debugw("failed to compute position after charges and marking it as invalid", "error", err, "position_id", position.ID, "symbol", position.Symbol)
-			invalidPositionsByPosID[position.ID] = true
 			continue
 		}
 
@@ -623,6 +624,15 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		InvalidPositionsCount:   len(invalidPositionsByPosID),
 		ForcedPositionsCount:    forcedPositionCount,
 	}
+
+	// Helpful for debugging invalid positions when importing.
+
+	// for _, position := range invalidPositions {
+	// 	fmt.Println("Invalid position found:", position.ID, "Symbol:", position.Symbol, "Opened At:", position.OpenedAt, "Status:", position.Status, "Direction:", position.Direction, "Net PnL:", position.NetPnLAmount, "R-Factor:", position.RFactor, "Net Return %:", position.NetReturnPercentage, "Total Charges Amount:", position.TotalChargesAmount, "Currency:", position.Currency, "Instrument:", position.Instrument, "Created By:", position.CreatedBy, "Created At:", position.CreatedAt, "Broker ID:", position.BrokerID, "Trades Count:", len(position.Trades))
+	// 	for _, trade := range position.Trades {
+	// 		fmt.Println("  Trade ID:", trade.ID, "Time:", trade.Time, "Kin:", trade.Kind, "Quantity:", trade.Quantity, "Price:", trade.Price, "Charges:", trade.ChargesAmount)
+	// 	}
+	// }
 
 	return result, service.ErrNone, nil
 }
