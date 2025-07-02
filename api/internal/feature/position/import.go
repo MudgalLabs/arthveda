@@ -1,6 +1,7 @@
 package position
 
 import (
+	"arthveda/internal/domain/symbol"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/trade"
 	"fmt"
@@ -17,6 +18,11 @@ type importFileMetadata struct {
 
 	// The symbol column index.
 	symbolColumnIdx int
+
+	// The scrip code column index.
+	// Scrip code is also known as exchange token.
+	// This is only used for Upstox.
+	scripCodeIdx int
 
 	// The segment column index.
 	segmentColumnIdx int
@@ -309,7 +315,7 @@ type UpstoxImporter struct{}
 
 func (i *UpstoxImporter) getMetadata(rows [][]string) (*importFileMetadata, error) {
 	var headerRowIdx int
-	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, timeColumnIdx, dateColumnIdx int
+	var symbolColumnIdx, scripCodeColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, timeColumnIdx, dateColumnIdx int
 
 	for rowIdx, row := range rows {
 		for columnIdx, colCell := range row {
@@ -318,6 +324,10 @@ func (i *UpstoxImporter) getMetadata(rows [][]string) (*importFileMetadata, erro
 				// If we found "Symbol" in the header, we can assume this is the header row.
 				headerRowIdx = rowIdx
 				symbolColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Scrip Code") {
+				scripCodeColumnIdx = columnIdx
 			}
 
 			if strings.Contains(colCell, "Segment") {
@@ -358,6 +368,7 @@ func (i *UpstoxImporter) getMetadata(rows [][]string) (*importFileMetadata, erro
 	return &importFileMetadata{
 		headerRowIdx:       headerRowIdx,
 		symbolColumnIdx:    symbolColumnIdx,
+		scripCodeIdx:       scripCodeColumnIdx,
 		segmentColumnIdx:   segmentColumnIdx,
 		tradeTypeColumnIdx: tradeTypeColumnIdx,
 		quantityColumnIdx:  quantityColumnIdx,
@@ -370,6 +381,7 @@ func (i *UpstoxImporter) getMetadata(rows [][]string) (*importFileMetadata, erro
 
 func (i *UpstoxImporter) parseRow(row []string, metadata *importFileMetadata) (*parseRowResult, error) {
 	symbolColumnIdx := metadata.symbolColumnIdx
+	scripCodeColumnIdx := metadata.scripCodeIdx
 	segmentColumnIdx := metadata.segmentColumnIdx
 	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
 	quantityColumnIdx := metadata.quantityColumnIdx
@@ -378,10 +390,25 @@ func (i *UpstoxImporter) parseRow(row []string, metadata *importFileMetadata) (*
 	dateColumnIdx := metadata.dateColumnIdx
 	timeColumnIdx := metadata.timeColumnIdx
 
-	symbol := row[symbolColumnIdx]
-	if symbol == "" {
+	symbolStr := row[symbolColumnIdx]
+	if symbolStr == "" {
 		return nil, fmt.Errorf("Symbol is empty in row")
 	}
+
+	// In Upstox, the symbol is actually the company name, so we need to use teh "exchange_token" to get the actual symbol.
+	scripCode := row[scripCodeColumnIdx]
+
+	if scripCode != "" {
+		// If we have a scrip code, we will use it to get the actual symbol.
+		symbol, exists := symbol.GetSymbolFromCode(scripCode)
+
+		// If we do have a symbol, we will use it.
+		if exists {
+			symbolStr = symbol
+		}
+	}
+
+	// We can use the scrip code to get the actual symbol from the exchange.
 
 	segment := row[segmentColumnIdx]
 	if segment == "" {
@@ -448,10 +475,10 @@ func (i *UpstoxImporter) parseRow(row []string, metadata *importFileMetadata) (*
 	// NOTE: Well, I found a collision when using only prefix + date, so I added the symbol as well.
 	orderIDPrefix := orderID[:3]
 	dateStr = tradeTime.Format("20060102")
-	orderID = orderIDPrefix + dateStr + symbol
+	orderID = orderIDPrefix + dateStr + symbolStr
 
 	return &parseRowResult{
-		symbol:     symbol,
+		symbol:     symbolStr,
 		instrument: instrument,
 		tradeKind:  tradeKind,
 		quantity:   decimal.NewFromFloat(quantity),
