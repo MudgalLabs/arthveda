@@ -63,7 +63,7 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
                             }
                         />
                         <Tooltip
-                            cursor={{ fill: "var(--color-accent-muted)", fillOpacity: 0.5 }}
+                            cursor={{ fill: "var(--color-accent-muted)", fillOpacity: 1 }}
                             content={
                                 <ChartTooltipContent
                                     indicator="line"
