@@ -5,6 +5,7 @@ import {
     formatCurrency,
     LocalStorageKeyCumulativePnLShowCharges,
     LocalStorageKeyCumulativePnLShowGross,
+    LocalStorageKeyCumulativePnLShowNet,
 } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { Card, CardTitle } from "@/components/card";
@@ -30,19 +31,20 @@ interface Props {
 const chartConfig: ChartConfig = {
     net_pnl: {
         label: "Net",
-        color: "var(--color-primary)",
+        color: "var(--color-net-pnl)",
     },
     gross_pnl: {
         label: "Gross",
-        color: "#8B5CF6",
+        color: "var(--color-gross-pnl)",
     },
     charges: {
         label: "Charges",
-        color: "#F43F5E",
+        color: "var(--color-charges)",
     },
 };
 
 export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
+    const [showNet, setShowNet] = useLocalStorageState(LocalStorageKeyCumulativePnLShowNet, true);
     const [showGross, setShowGross] = useLocalStorageState(LocalStorageKeyCumulativePnLShowGross, false);
     const [showCharges, setShowCharges] = useLocalStorageState(LocalStorageKeyCumulativePnLShowCharges, false);
 
@@ -57,19 +59,34 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
 
             <div className="flex w-full justify-center gap-x-4 [&>div]:flex [&>div]:items-center [&>div]:gap-x-1">
                 <div>
-                    <Checkbox id="gross" checked={showGross} onCheckedChange={() => setShowGross((prev) => !prev)} />
-                    <Label className="label-muted" htmlFor="gross">
+                    <Checkbox
+                        id="cumulative-pnl-graph-net"
+                        checked={showNet}
+                        onCheckedChange={() => setShowNet((prev) => !prev)}
+                    />
+                    <Label className="label-muted" htmlFor="cumulative-pnl-graph-net">
+                        Net
+                    </Label>
+                </div>
+
+                <div>
+                    <Checkbox
+                        id="cumulative-pnl-graph-gross"
+                        checked={showGross}
+                        onCheckedChange={() => setShowGross((prev) => !prev)}
+                    />
+                    <Label className="label-muted" htmlFor="cumulative-pnl-graph-gross">
                         Gross
                     </Label>
                 </div>
 
                 <div>
                     <Checkbox
-                        id="charges"
+                        id="cumulative-pnl-graph-charges"
                         checked={showCharges}
                         onCheckedChange={() => setShowCharges((prev) => !prev)}
                     />
-                    <Label className="label-muted" htmlFor="charges">
+                    <Label className="label-muted" htmlFor="cumulative-pnl-graph-charges">
                         Charges
                     </Label>
                 </div>
@@ -115,34 +132,36 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                         />
 
                         <defs>
-                            <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.25" />
-                                <stop offset="40%" stopColor="var(--color-primary)" stopOpacity="0.05" />
-                                <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
+                            <linearGradient id="splitColorNet" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="var(--color-net-pnl)" stopOpacity="0.25" />
+                                <stop offset="40%" stopColor="var(--color-net-pnl)" stopOpacity="0.05" />
+                                <stop offset="100%" stopColor="var(--color-net-pnl)" stopOpacity="0" />
                             </linearGradient>
                         </defs>
+                        {showNet && (
+                            <Area
+                                type="monotone"
+                                dataKey="net_pnl"
+                                stroke="var(--color-net-pnl)"
+                                strokeWidth={2}
+                                strokeOpacity={1}
+                                fillOpacity={1}
+                                fill="url(#splitColorNet)"
+                            />
+                        )}
 
-                        <Area
-                            type="monotone"
-                            dataKey="net_pnl"
-                            stroke="var(--color-primary)"
-                            strokeWidth={2}
-                            strokeOpacity={1}
-                            fillOpacity={1}
-                            fill="url(#splitColor)"
-                        />
                         <defs>
                             <linearGradient id="splitColorGross" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
-                                <stop offset="40%" stopColor="#8B5CF6" stopOpacity="0.05" />
-                                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+                                <stop offset="0%" stopColor="var(--color-gross-pnl)" stopOpacity="0.25" />
+                                <stop offset="40%" stopColor="var(--color-gross-pnl)" stopOpacity="0.05" />
+                                <stop offset="100%" stopColor="var(--color-gross-pnl)" stopOpacity="0" />
                             </linearGradient>
                         </defs>
                         {showGross && (
                             <Area
                                 type="monotone"
                                 dataKey="gross_pnl"
-                                stroke="#8B5CF6"
+                                stroke="var(--color-gross-pnl)"
                                 strokeWidth={1.5}
                                 strokeOpacity={0.7}
                                 fillOpacity={1}
@@ -152,16 +171,16 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
 
                         <defs>
                             <linearGradient id="splitColorCharges" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#F43F5E" stopOpacity="0.25" />
-                                <stop offset="40%" stopColor="#F43F5E" stopOpacity="0.05" />
-                                <stop offset="100%" stopColor="#F43F5E" stopOpacity="0" />
+                                <stop offset="0%" stopColor="var(--color-charges)" stopOpacity="0.25" />
+                                <stop offset="40%" stopColor="var(--color-charges)" stopOpacity="0.05" />
+                                <stop offset="100%" stopColor="var(--color-charges)" stopOpacity="0" />
                             </linearGradient>
                         </defs>
                         {showCharges && (
                             <Area
                                 type="monotone"
                                 dataKey="charges"
-                                stroke="#F43F5E"
+                                stroke="var(--color-charges)"
                                 strokeWidth={1.5}
                                 strokeOpacity={0.7}
                                 fillOpacity={1}

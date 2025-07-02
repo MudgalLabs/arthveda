@@ -17,8 +17,14 @@ export type LocalStorageKey = string;
 
 export const LocalStorageKeyDashboardLayout: LocalStorageKey = "dashboard_layout";
 export const LocalStorageKeySidebarOpen: LocalStorageKey = "sidebar_open";
+
+export const LocalStorageKeyCumulativePnLShowNet: LocalStorageKey = "cumulative_pnl_show_net";
 export const LocalStorageKeyCumulativePnLShowGross: LocalStorageKey = "cumulative_pnl_show_gross";
 export const LocalStorageKeyCumulativePnLShowCharges: LocalStorageKey = "cumulative_pnl_show_charges";
+
+export const LocalStorageKeyPnLShowNet: LocalStorageKey = "pnl_show_net";
+export const LocalStorageKeyPnLShowGross: LocalStorageKey = "pnl_show_gross";
+export const LocalStorageKeyPnLShowCharges: LocalStorageKey = "pnl_show_charges";
 
 export function saveToLocalStorage(key: LocalStorageKey, value: string) {
     localStorage.setItem(key, value);

@@ -135,6 +135,10 @@
     --color-chart-primary: var(--color-primary);
     --color-chart-muted: var(--color-muted-foreground);
 
+    --color-gross-pnl: #8b5cf6;
+    --color-net-pnl: var(--color-primary);
+    --color-charges: #f43f5e;
+
     /* === Misc === */
     --color-logo: var(--color-azure-500);
 
