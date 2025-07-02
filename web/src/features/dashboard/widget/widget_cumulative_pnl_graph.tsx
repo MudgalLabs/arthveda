@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 
 import {
@@ -27,20 +27,6 @@ interface Props {
     isResizable?: boolean;
 }
 
-const gradientOffset = (data: Data) => {
-    const dataMax = Math.max(...data.map((i) => i.net_pnl));
-    const dataMin = Math.min(...data.map((i) => i.net_pnl));
-
-    if (dataMax <= 0) {
-        return 0;
-    }
-    if (dataMin >= 0) {
-        return 1;
-    }
-
-    return dataMax / (dataMax - dataMin);
-};
-
 const chartConfig: ChartConfig = {
     net_pnl: {
         label: "Net",
@@ -48,11 +34,11 @@ const chartConfig: ChartConfig = {
     },
     gross_pnl: {
         label: "Gross",
-        color: "var(--color-primary)",
+        color: "#8B5CF6",
     },
     charges: {
         label: "Charges",
-        color: "var(--color-error-foreground)",
+        color: "#F43F5E",
     },
 };
 
@@ -61,8 +47,6 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
     const [showCharges, setShowCharges] = useLocalStorageState(LocalStorageKeyCumulativePnLShowCharges, false);
 
     const isMobile = useIsMobile();
-    const off = useMemo(() => gradientOffset(data), [data]);
-
     return (
         <Card className="relative h-full w-full overflow-hidden">
             {isLoading && <LoadingScreen className="absolute-center" />}
@@ -105,9 +89,7 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                         }}
                     >
                         <CartesianGrid stroke="var(--color-primary)" strokeOpacity={0.3} vertical={false} />
-
                         <XAxis {...axisDefaults(isMobile)} dataKey="label" />
-
                         <YAxis
                             {...axisDefaults(isMobile)}
                             // Adding some buffer to the Y-axis
@@ -122,7 +104,6 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                                 })
                             }
                         />
-
                         <Tooltip
                             cursor={tooltipCursor}
                             content={
@@ -135,18 +116,9 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
 
                         <defs>
                             <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-                                <stop
-                                    offset={Math.min(0, off - 0.1)}
-                                    stopColor="var(--color-primary)"
-                                    stopOpacity={0.2}
-                                />
-                                <stop offset={off} stopColor="var(--color-primary)" stopOpacity={0} />
-                                <stop offset={off} stopColor="var(--color-primary)" stopOpacity={0} />
-                                <stop
-                                    offset={Math.min(1, off + 0.1)}
-                                    stopColor="var(--color-primary)"
-                                    stopOpacity={0.2}
-                                />
+                                <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.25" />
+                                <stop offset="40%" stopColor="var(--color-primary)" stopOpacity="0.05" />
+                                <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
                             </linearGradient>
                         </defs>
 
@@ -154,34 +126,48 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                             type="monotone"
                             dataKey="net_pnl"
                             stroke="var(--color-primary)"
-                            strokeWidth={1.5}
+                            strokeWidth={2}
                             strokeOpacity={1}
                             fillOpacity={1}
                             fill="url(#splitColor)"
                         />
-
+                        <defs>
+                            <linearGradient id="splitColorGross" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
+                                <stop offset="40%" stopColor="#8B5CF6" stopOpacity="0.05" />
+                                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+                            </linearGradient>
+                        </defs>
                         {showGross && (
                             <Area
                                 type="monotone"
                                 dataKey="gross_pnl"
-                                stroke="var(--color-success-foreground)"
+                                stroke="#8B5CF6"
                                 strokeWidth={1.5}
-                                strokeOpacity={0.6}
-                                fillOpacity={0}
+                                strokeOpacity={0.7}
+                                fillOpacity={1}
+                                fill="url(#splitColorGross)"
                             />
                         )}
 
+                        <defs>
+                            <linearGradient id="splitColorCharges" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#F43F5E" stopOpacity="0.25" />
+                                <stop offset="40%" stopColor="#F43F5E" stopOpacity="0.05" />
+                                <stop offset="100%" stopColor="#F43F5E" stopOpacity="0" />
+                            </linearGradient>
+                        </defs>
                         {showCharges && (
                             <Area
                                 type="monotone"
                                 dataKey="charges"
-                                stroke="var(--color-error-foreground)"
+                                stroke="#F43F5E"
                                 strokeWidth={1.5}
-                                strokeOpacity={0.6}
-                                fillOpacity={0}
+                                strokeOpacity={0.7}
+                                fillOpacity={1}
+                                fill="url(#splitColorCharges)"
                             />
                         )}
-
                         <ReferenceLine
                             y={0}
                             stroke="var(--color-muted-foreground)"
