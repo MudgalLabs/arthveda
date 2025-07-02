@@ -94,7 +94,7 @@
     --color-primary-foreground: hsl(210, 40%, 98%);
     --color-secondary: hsl(218, 60%, 11%);
     --color-secondary-foreground: hsl(225, 56%, 88%);
-    --color-link: hsl(221, 82%, 67%);
+    /* --color-link: hsl(221, 82%, 67%); */
     --color-link: var(--color-azure-500);
 
     /* === State Variants === */

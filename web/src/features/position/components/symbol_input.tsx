@@ -1,14 +1,33 @@
-import { useControlled } from "@/hooks/use_controlled";
+import { FC, memo, useEffect, useMemo, useState } from "react";
+import Autocomplete from "@mui/material/Autocomplete";
+
 import { Input, InputProps } from "@/s8ly";
-import { FC, memo } from "react";
+import { useControlled } from "@/hooks/use_controlled";
+import { apiHooks } from "@/hooks/api_hooks";
+import { useDebounce } from "@/hooks/use_debounce";
+import { IconSearch } from "@/components/icons";
+import { Loading } from "@/components/loading";
+import { cn } from "@/lib/utils";
 
 interface SymbolInputProps extends Omit<InputProps, "value" | "onChange"> {
     value?: string;
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>, value: string) => void;
+    onChange?: (value: string) => void;
 }
 
 export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
-    const { value: valueProp, onChange: onChangeProp, ...rest } = props;
+    const { value: valueProp, onChange: onChangeProp } = props;
+
+    const [inputValue, setInputValue] = useState("");
+    const debouncedInputValue = useDebounce(inputValue, 500);
+
+    const { data, isLoading } = apiHooks.symbol.useSearch({
+        query: debouncedInputValue,
+    });
+
+    const options = useMemo(() => {
+        if (!data || !data.data) return [];
+        return data.data;
+    }, [data]);
 
     const [value, setValue] = useControlled<string>({
         controlled: valueProp,
@@ -16,11 +35,96 @@ export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
         name: "value",
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.toUpperCase();
-        setValue(value);
-        onChangeProp?.(e, value);
+    const handleChange = (newValue: string) => {
+        setValue(newValue);
+        onChangeProp?.(newValue);
     };
 
-    return <Input value={value} onChange={handleChange} {...rest} />;
+    const [focus, setFocus] = useState(false);
+    const [open, setOpen] = useState(false);
+
+    const handleFocus = () => {
+        setFocus(true);
+        if (!open) {
+            setOpen(true);
+        }
+    };
+
+    const handleBlur = () => {
+        setFocus(false);
+        setOpen(false);
+    };
+
+    useEffect(() => {
+        if (options.length === 0) {
+            setOpen(false);
+        } else {
+            if (focus) {
+                setOpen(true);
+            }
+        }
+    }, [options]);
+
+    return (
+        <Autocomplete
+            inputValue={inputValue}
+            onInputChange={(_, newInputValue) => {
+                setInputValue(newInputValue.toUpperCase());
+                handleChange(newInputValue);
+            }}
+            value={value}
+            onChange={(_, newValue) => handleChange(newValue ?? "")}
+            freeSolo
+            disablePortal
+            open={open}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            options={options}
+            filterOptions={(options) => options}
+            slotProps={{
+                listbox: {
+                    className: "bg-surface-bg text-surface-foreground border-1 border-border",
+                },
+                paper: {
+                    className: "bg-surface-bg! border-1 border-border",
+                },
+            }}
+            renderInput={(params) => {
+                const { type, ...rest } = params.inputProps;
+                return (
+                    <div ref={params.InputProps.ref} className="relative">
+                        <span className="text-foreground-muted absolute top-3 left-3 text-base select-none">
+                            <IconSearch />
+                        </span>
+
+                        <Input {...rest} className="text-foreground pl-8" type="text" />
+
+                        {isLoading && (
+                            <span className="absolute top-1.5 right-3 text-base select-none">
+                                <Loading size="18" />
+                            </span>
+                        )}
+                    </div>
+                );
+            }}
+            renderOption={(props, option) => {
+                const { key, className, ...optionProps } = props;
+                return (
+                    <li
+                        key={key}
+                        {...optionProps}
+                        className={cn(
+                            "bg-surface-bg border-border text-foreground hover:bg-primary hover:text-foreground",
+                            "[&.Mui-focused]:bg-accent-muted!",
+                            "[&:focus]:bg-accent-muted!",
+                            "[&[aria-selected='true']]:bg-accent-muted!",
+                            className
+                        )}
+                    >
+                        <div className="font-content px-2 py-2 text-sm">{option}</div>
+                    </li>
+                );
+            }}
+        />
+    );
 });

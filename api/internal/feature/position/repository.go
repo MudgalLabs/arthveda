@@ -14,8 +14,9 @@ import (
 )
 
 type Reader interface {
-	Search(ctx context.Context, payload SearchPayload) ([]*Position, int, error)
 	GetByID(ctx context.Context, createdBy, positionID uuid.UUID) (*Position, error)
+	Search(ctx context.Context, payload SearchPayload) ([]*Position, int, error)
+	SearchSymbols(ctx context.Context, userID uuid.UUID, query string) ([]string, error)
 }
 
 type Writer interface {
@@ -102,7 +103,7 @@ var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldID:                  "p.id",
 	searchFieldCreatedBy:           "p.created_by",
 	searchFieldOpened:              "p.opened_at",
-	searchFieldSymbol:              "UPPER(p.symbol)", // Make sure to do `strings.ToUpper` when passing the symbol filter value.
+	searchFieldSymbol:              "p.symbol", // Make sure to do `strings.ToUpper` when passing the symbol filter value.
 	searchFieldInstrument:          "p.instrument",
 	searchFieldDirection:           "p.direction",
 	searchFieldStatus:              "p.status",
@@ -291,7 +292,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload)
 	}
 
 	if p.Filters.Symbol != nil && *p.Filters.Symbol != "" {
-		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldSymbol], "=", strings.ToUpper(*p.Filters.Symbol))
+		b.AddStartsWithFilter(searchFieldsSQLColumn[searchFieldSymbol], strings.ToUpper(*p.Filters.Symbol), false)
 	}
 
 	if p.Filters.Opened != nil {
@@ -389,4 +390,45 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload)
 	}
 
 	return positions, total, nil
+}
+
+func (r *positionRepository) SearchSymbols(ctx context.Context, userID uuid.UUID, query string) ([]string, error) {
+	symbols := []string{}
+	baseSQL := `
+	SELECT DISTINCT UPPER(position.symbol)
+	FROM position
+	JOIN user_profile ON user_profile.user_id = position.created_by
+	`
+
+	b := dbx.NewSQLBuilder(baseSQL)
+
+	b.AddCompareFilter("position.created_by", "=", userID)
+
+	if query != "" {
+		b.AddStartsWithFilter("UPPER(position.symbol)", query, false)
+	}
+
+	// Return only 20 symbols at a time.
+	// TODO: Allow client to specify the limit.
+	b.AddPagination(20, 0)
+
+	b.AddSorting("UPPER(position.symbol)", common.SortOrderASC)
+
+	sql, args := b.Build()
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		return symbols, fmt.Errorf("query: %w", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var symbol string
+		if err := rows.Scan(&symbol); err != nil {
+			return symbols, fmt.Errorf("scan: %w", err)
+		}
+		symbols = append(symbols, symbol)
+	}
+
+	return symbols, nil
 }

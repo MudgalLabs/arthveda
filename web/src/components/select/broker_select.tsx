@@ -14,9 +14,12 @@ function BrokerSelect(props: Omit<SelectProps, "options">) {
     options.push({
         value: "-1",
         label: (
-            <>
-                <p>Don't see your broker here? We are working on supporting more brokers!</p>
-            </>
+            <div className="text-xs">
+                Don't see your broker here? Tell us what you need{" "}
+                <a className="text-xs!" href="mailto:hey@arthveda.app">
+                    hey@arthveda.app
+                </a>
+            </div>
         ),
         disabled: true,
     });

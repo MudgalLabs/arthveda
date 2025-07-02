@@ -127,6 +127,46 @@ func (b *SQLBuilder) AddArrayFilter(column string, values []any) {
 	b.args = append(b.args, values)
 }
 
+// addLikeFilter adds a LIKE condition with custom pattern (private helper)
+func (b *SQLBuilder) addLikeFilter(column string, pattern string, caseSensitive bool) {
+	if column == "" || pattern == "" {
+		return
+	}
+
+	operator := "LIKE"
+	if !caseSensitive {
+		operator = "ILIKE"
+	}
+
+	condition := fmt.Sprintf("%s %s $%d", column, operator, b.nextArg())
+	b.where = append(b.where, condition)
+	b.args = append(b.args, pattern)
+}
+
+// AddStartsWithFilter adds a LIKE condition for prefix matching ("value%")
+func (b *SQLBuilder) AddStartsWithFilter(column string, value string, caseSensitive bool) {
+	if column == "" || value == "" {
+		return
+	}
+	b.addLikeFilter(column, value+"%", caseSensitive)
+}
+
+// AddEndsWithFilter adds a LIKE condition for suffix matching ("%value")
+func (b *SQLBuilder) AddEndsWithFilter(column string, value string, caseSensitive bool) {
+	if column == "" || value == "" {
+		return
+	}
+	b.addLikeFilter(column, "%"+value, caseSensitive)
+}
+
+// AddContainsFilter adds a LIKE condition for substring matching ("%value%")
+func (b *SQLBuilder) AddContainsFilter(column string, value string, caseSensitive bool) {
+	if column == "" || value == "" {
+		return
+	}
+	b.addLikeFilter(column, "%"+value+"%", caseSensitive)
+}
+
 func (b *SQLBuilder) AddGroupBy(columns ...string) {
 	b.groupBy = append(b.groupBy, columns...)
 }

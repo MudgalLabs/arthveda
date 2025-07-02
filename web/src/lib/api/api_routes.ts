@@ -22,6 +22,9 @@ export const API_ROUTES = {
         import: "/v1/positions/import",
         search: "/v1/positions/search",
     },
+    symbol: {
+        search: "/v1/symbols/search",
+    },
     user: {
         me: "/v1/users/me",
     },

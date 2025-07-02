@@ -99,6 +99,12 @@ func initRouter(a *app) http.Handler {
 			r.Post("/import", handleImportTrades(a.service.PositionService))
 		})
 
+		r.Route("/symbols", func(r chi.Router) {
+			r.Use(authMiddleware)
+
+			r.Post("/search", searchSymbolsHandler(a.service.SymbolService))
+		})
+
 		r.Route("/users", func(r chi.Router) {
 			r.Use(authMiddleware)
 

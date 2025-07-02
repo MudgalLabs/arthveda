@@ -142,7 +142,7 @@ const SymbolInputField = memo(() => {
 
     return (
         <WithLabel Label={<Label>{positionSearchFiltersLabel.symbol}</Label>}>
-            <SymbolInput value={symbol} onChange={(_, v: string) => updateFilter("symbol", v)} />
+            <SymbolInput value={symbol} onChange={(v) => updateFilter("symbol", v)} />
         </WithLabel>
     );
 });

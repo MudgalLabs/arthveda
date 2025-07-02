@@ -280,7 +280,7 @@ function AddPosition() {
                             <SymbolInput
                                 variant={value ? "default" : "error"}
                                 value={value}
-                                onChange={(_, v) => setValue(v)}
+                                onChange={(v) => setValue(v)}
                                 aria-invalid={!value}
                                 errorMsg="Symbol is required"
                                 placeholder="HDFCBANK"

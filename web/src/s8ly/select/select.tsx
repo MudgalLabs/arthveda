@@ -108,7 +108,7 @@ const Select: FC<SelectProps> = ({
                 <SelectPrimitive.Content
                     position="popper"
                     className={cn(
-                        "border-border bg-background z-100 mt-1 w-[240px] rounded-md border-1 text-sm",
+                        "border-border bg-surface-bg z-100 mt-1 w-[240px] rounded-md border-1 text-sm",
                         classNames?.content
                     )}
                 >
@@ -148,7 +148,7 @@ const SelectItem: FC<SelectItemProps> = ({ ref, children, className, disabled, .
             ref={ref}
             data-disabled={disabled}
             className={cn(
-                "enabled:hover:bg-muted focus:bg-muted data-[disabled=true]:text-foreground-muted m-1 flex h-fit items-center justify-between rounded-md px-2 py-3 hover:cursor-pointer focus:outline-none data-[disabled=true]:hover:cursor-not-allowed",
+                "enabled:hover:bg-accent-muted focus:bg-accent-muted data-[disabled=true]:text-foreground-muted m-1 flex h-fit items-center justify-between rounded-md px-2 py-3 hover:cursor-pointer focus:outline-none data-[disabled=true]:hover:cursor-not-allowed",
                 className
             )}
             disabled={disabled}
