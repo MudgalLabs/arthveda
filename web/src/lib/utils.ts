@@ -365,3 +365,9 @@ function deepParseObject<T>(input: T, customParsers?: LoadFromURLParser, path: s
 
     return input;
 }
+
+export const BROWSER_TIMEZONE = getUserTimezone();
+
+export function getUserTimezone(): string {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone; // e.g. "Asia/Kolkata"
+}

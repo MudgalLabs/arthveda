@@ -625,15 +625,6 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		ForcedPositionsCount:    forcedPositionCount,
 	}
 
-	// Helpful for debugging invalid positions when importing.
-
-	// for _, position := range invalidPositions {
-	// 	fmt.Println("Invalid position found:", position.ID, "Symbol:", position.Symbol, "Opened At:", position.OpenedAt, "Status:", position.Status, "Direction:", position.Direction, "Net PnL:", position.NetPnLAmount, "R-Factor:", position.RFactor, "Net Return %:", position.NetReturnPercentage, "Total Charges Amount:", position.TotalChargesAmount, "Currency:", position.Currency, "Instrument:", position.Instrument, "Created By:", position.CreatedBy, "Created At:", position.CreatedAt, "Broker ID:", position.BrokerID, "Trades Count:", len(position.Trades))
-	// 	for _, trade := range position.Trades {
-	// 		fmt.Println("  Trade ID:", trade.ID, "Time:", trade.Time, "Kin:", trade.Kind, "Quantity:", trade.Quantity, "Price:", trade.Price, "Charges:", trade.ChargesAmount)
-	// 	}
-	// }
-
 	return result, service.ErrNone, nil
 }
 

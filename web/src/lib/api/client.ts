@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 
-import { isProd } from "@/lib/utils";
+import { BROWSER_TIMEZONE, isProd } from "@/lib/utils";
 import { ROUTES } from "@/routes_constants";
 
 let API_URL = import.meta.env.ARTHVEDA_API_URL;
@@ -17,6 +17,9 @@ function createAPIClient(baseURL: string) {
     const client = axios.create({
         baseURL,
         withCredentials: true,
+        headers: {
+            "X-Timezone": BROWSER_TIMEZONE,
+        },
     });
 
     client.interceptors.response.use(

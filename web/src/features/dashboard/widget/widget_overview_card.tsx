@@ -32,9 +32,9 @@ export const OverviewCard = memo(
     }: Props) => {
         let trendingIcon: ReactNode = null;
         let netPnLColor = "text-foreground";
-        const netPnL = new Decimal(net_pnl_amount);
-        const grossPnL = new Decimal(gross_pnl_amount);
-        const charges = new Decimal(total_charges_amount);
+        const netPnL = new Decimal(net_pnl_amount || "0");
+        const grossPnL = new Decimal(gross_pnl_amount || "0");
+        const charges = new Decimal(total_charges_amount || "0");
         const netReturnPercentage = new Decimal(net_return_percentage || "0");
 
         if (!netPnL.isZero() && netPnL.isPositive()) {

@@ -58,6 +58,13 @@ const (
 	searchFieldChargesPercentage   common.SearchField = "charges_percentage"
 	searchFieldBrokerID            common.SearchField = "broker_id"
 	searchFieldTotalCharges        common.SearchField = "total_charges_amount"
+
+	// We can use this field to search for positions based on their trade time.
+	// Meaning if we pass April 1 to April 30, it will return all positions
+	// that have trades executed in that time range.
+	// Very helpful when we are looking for positions that were active during a specific time period.
+	// To calculate many things like PnL, cumulative PnL in buckets, etc.
+	searchFieldTradeTime common.SearchField = "trade_time"
 )
 
 type SearchFilter struct {
@@ -84,6 +91,8 @@ type SearchFilter struct {
 	NetReturnPercentageOperator *dbx.Operator           `json:"net_return_percentage_operator"`
 	ChargesPercentage           *string                 `json:"charges_percentage"`
 	ChargesPercentageOperator   *dbx.Operator           `json:"charges_percentage_operator"`
+
+	TradeTime *common.DateRangeFilter `json:"trade_time"`
 }
 
 var allowedSortFields = []common.SearchField{
@@ -98,13 +107,14 @@ var allowedSortFields = []common.SearchField{
 	searchFieldNetReturnPercentage,
 	searchFieldChargesPercentage,
 	searchFieldTotalCharges,
+	searchFieldTradeTime,
 }
 
 var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldID:                  "p.id",
 	searchFieldCreatedBy:           "p.created_by",
 	searchFieldOpened:              "p.opened_at",
-	searchFieldSymbol:              "p.symbol", // Make sure to do `strings.ToUpper` when passing the symbol filter value.
+	searchFieldSymbol:              "p.symbol",
 	searchFieldInstrument:          "p.instrument",
 	searchFieldDirection:           "p.direction",
 	searchFieldStatus:              "p.status",
@@ -115,6 +125,7 @@ var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldChargesPercentage:   "p.charges_as_percentage_of_net_pnl",
 	searchFieldBrokerID:            "p.broker_id",
 	searchFieldTotalCharges:        "p.total_charges_amount",
+	searchFieldTradeTime:           "t.time", // This is used when we want to filter positions based on their trades' time.
 }
 
 func (r *positionRepository) Create(ctx context.Context, position *Position) error {
@@ -297,6 +308,25 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 	}
 
 	b := dbx.NewSQLBuilder(baseSQL)
+
+	// If TradeTime filter is present, filter positions by those having at least one trade in the range.
+	if p.Filters.TradeTime != nil && (p.Filters.TradeTime.From != nil || p.Filters.TradeTime.To != nil) {
+		subQuery := "SELECT DISTINCT position_id FROM trade WHERE 1=1"
+		var subArgs []any
+		argIdx := b.ArgNum() // get the current argument index from the builder
+		if p.Filters.TradeTime.From != nil {
+			subQuery += fmt.Sprintf(" AND time >= $%d", argIdx)
+			subArgs = append(subArgs, p.Filters.TradeTime.From)
+			argIdx++
+		}
+		if p.Filters.TradeTime.To != nil {
+			subQuery += fmt.Sprintf(" AND time < $%d", argIdx)
+			subArgs = append(subArgs, p.Filters.TradeTime.To)
+			argIdx++
+		}
+		// Manually add the filter to the builder
+		b.AppendWhere(fmt.Sprintf("p.id IN (%s)", subQuery), subArgs...)
+	}
 
 	if p.Filters.ID != nil {
 		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldID], "=", p.Filters.ID)

@@ -221,7 +221,7 @@ func (b *SQLBuilder) Build() (string, []any) {
 	return final.String(), b.args
 }
 
-// CountSQL builds a SQL query for counting number of rows with filters (no order/limit/offset).
+// Count builds a SQL query for counting number of rows with filters (no order/limit/offset).
 func (b *SQLBuilder) Count() (string, []any) {
 	var sb strings.Builder
 	sb.WriteString("SELECT COUNT(*) FROM (")
@@ -247,6 +247,18 @@ func (b *SQLBuilder) Count() (string, []any) {
 	sb.WriteString(") AS count_alias")
 
 	return sb.String(), b.args
+}
+
+// ArgNum returns the next argument number (for manual filter building).
+func (b *SQLBuilder) ArgNum() int {
+	return b.argNum
+}
+
+// AppendWhere allows adding a custom WHERE clause with arguments.
+func (b *SQLBuilder) AppendWhere(condition string, args ...any) {
+	b.where = append(b.where, condition)
+	b.args = append(b.args, args...)
+	b.argNum += len(args)
 }
 
 func (b *SQLBuilder) nextArg() int {

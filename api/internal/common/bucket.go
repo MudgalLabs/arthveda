@@ -19,20 +19,20 @@ type Bucket struct {
 	Period BucketPeriod
 }
 
-// Label returns a human-readable label for the bucket based on its period.
-func (b Bucket) Label() string {
+// Label returns a human-readable label for the bucket based on its period and timezone.
+func (b Bucket) Label(loc *time.Location) string {
+	localStart := b.Start.In(loc)
+
 	switch b.Period {
 	case BucketPeriodDaily:
-		return b.Start.Format("02 Jan 2006") // 31 May 2025
+		return localStart.Format("02 Jan 2006")
 	case BucketPeriodWeekly:
-		return fmt.Sprintf("%s - %s",
-			b.Start.Format("02 Jan"),
-			b.End.AddDate(0, 0, -1).Format("02 Jan"), // 31 May - 06 Jun
-		)
+		localEnd := b.End.In(loc).AddDate(0, 0, -1)
+		return fmt.Sprintf("%s - %s", localStart.Format("02 Jan"), localEnd.Format("02 Jan"))
 	case BucketPeriodMonthly:
-		return b.Start.Format("Jan 2006") // May 2025
+		return localStart.Format("Jan 2006")
 	default:
-		return b.Start.Format("02 Jan")
+		return localStart.Format("02 Jan")
 	}
 }
 
@@ -40,26 +40,25 @@ func (b Bucket) Label() string {
 // - daily: 1-day buckets
 // - weekly: 7-day buckets (starting from `start`)
 // - monthly: calendar month buckets
-func GenerateBuckets(period BucketPeriod, start, end time.Time) []Bucket {
+func GenerateBuckets(period BucketPeriod, start, end time.Time, loc *time.Location) []Bucket {
 	buckets := []Bucket{}
 
-	// Normalize to midnight UTC or local, depending on input
-	start = start.Truncate(24 * time.Hour)
-	end = end.Truncate(24 * time.Hour)
+	// Normalize to midnight in user's timezone
+	userStart := time.Date(start.In(loc).Year(), start.In(loc).Month(), start.In(loc).Day(), 0, 0, 0, 0, loc)
+	userEnd := time.Date(end.In(loc).Year(), end.In(loc).Month(), end.In(loc).Day(), 0, 0, 0, 0, loc)
 
-	// For monthly, align start to first of month and end to first of next month
-	if period == BucketPeriodMonthly {
-		start = time.Date(start.Year(), start.Month(), 1, 0, 0, 0, 0, start.Location())
-		end = time.Date(end.Year(), end.Month(), 1, 0, 0, 0, 0, end.Location()).AddDate(0, 1, 0)
-	} else {
-		end = end.AddDate(0, 0, 1) // include the final day
+	var rangeStart, rangeEnd time.Time
+	switch period {
+	case BucketPeriodMonthly:
+		rangeStart = time.Date(userStart.Year(), userStart.Month(), 1, 0, 0, 0, 0, loc)
+		rangeEnd = time.Date(userEnd.Year(), userEnd.Month(), 1, 0, 0, 0, 0, loc)
+	default:
+		rangeStart = userStart
+		rangeEnd = userEnd
 	}
 
-	current := start
-
-	for current.Before(end) {
+	for current := rangeStart; current.Before(rangeEnd); {
 		var next time.Time
-
 		switch period {
 		case BucketPeriodDaily:
 			next = current.AddDate(0, 0, 1)
@@ -67,20 +66,19 @@ func GenerateBuckets(period BucketPeriod, start, end time.Time) []Bucket {
 			next = current.AddDate(0, 0, 7)
 		case BucketPeriodMonthly:
 			next = current.AddDate(0, 1, 0)
-		default:
-			next = current.AddDate(0, 0, 1)
 		}
 
+		bucketStart := current
 		bucketEnd := next
-		if bucketEnd.After(end) {
-			bucketEnd = end
+
+		if bucketEnd.After(userEnd) {
+			bucketEnd = userEnd
 		}
 
-		// Only add bucket if it has a valid time range
-		if bucketEnd.After(current) {
+		if bucketStart.Before(bucketEnd) {
 			buckets = append(buckets, Bucket{
-				Start:  current,
-				End:    bucketEnd,
+				Start:  bucketStart.UTC(),
+				End:    bucketEnd.UTC(),
 				Period: period,
 			})
 		}

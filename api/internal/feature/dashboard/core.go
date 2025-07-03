@@ -160,119 +160,8 @@ type pnlBucket struct {
 // - Trades are assumed to be in UTC.
 // - Charges are considered in this calculation to compute NetPnL.
 // - Uses `position.ApplyTradeToPosition` to calculate realized PnL from partial or full exits.
-func getCumulativePnLBuckets(positions []*position.Position, period common.BucketPeriod, start, end time.Time) []pnlBucket {
-	if len(positions) == 0 {
-		return []pnlBucket{}
-	}
-
-	// Generate buckets
-	buckets := common.GenerateBuckets(period, start, end)
-	results := make([]pnlBucket, len(buckets))
-	for i, b := range buckets {
-		results[i] = pnlBucket{
-			Start:    b.Start,
-			End:      b.End,
-			Label:    b.Label(),
-			NetPnL:   decimal.Zero,
-			GrossPnL: decimal.Zero,
-			Charges:  decimal.Zero,
-		}
-	}
-
-	// Collect all trades and sort them by time
-	var allTrades []struct {
-		Trade    *trade.Trade
-		Position *position.Position
-	}
-	for _, pos := range positions {
-		for _, t := range pos.Trades {
-			allTrades = append(allTrades, struct {
-				Trade    *trade.Trade
-				Position *position.Position
-			}{Trade: t, Position: pos})
-		}
-	}
-	sort.Slice(allTrades, func(i, j int) bool {
-		return allTrades[i].Trade.Time.Before(allTrades[j].Trade.Time)
-	})
-
-	type state struct {
-		AvgPrice     decimal.Decimal
-		Quantity     decimal.Decimal
-		TotalCost    decimal.Decimal
-		TotalCharges decimal.Decimal
-		Direction    position.Direction
-	}
-
-	// Process trades in time order
-	// Track state of each position
-	stateByPositionIDMap := make(map[uuid.UUID]state)
-
-	for _, entry := range allTrades {
-		t := entry.Trade
-		pos := entry.Position
-
-		// Find the active bucket for this trade
-		var activeBucket *pnlBucket
-		for i := range results {
-			if !t.Time.Before(results[i].Start) && t.Time.Before(results[i].End) {
-				activeBucket = &results[i]
-				break
-			}
-		}
-
-		if activeBucket == nil {
-			continue // Skip trades outside the bucket range
-		}
-
-		// Get or initialize the position s
-		s, exists := stateByPositionIDMap[pos.ID]
-		if !exists {
-			s = state{
-				AvgPrice:     decimal.Zero,
-				Quantity:     decimal.Zero,
-				TotalCost:    decimal.Zero,
-				TotalCharges: decimal.Zero,
-				Direction:    position.DirectionLong, // Default to long
-			}
-			stateByPositionIDMap[pos.ID] = s
-		}
-
-		// Apply the trade to the position and compute PnL
-		newAvgPrice, newQty, newDirection, realizedPnL, newTotalCost, newTotalCharges := position.ApplyTradeToPosition(
-			s.AvgPrice,
-			s.Quantity,
-			s.TotalCost,
-			s.TotalCharges,
-			s.Direction,
-			t.Quantity,
-			t.Price,
-			t.ChargesAmount,
-			t.Kind,
-		)
-
-		// Update the position state
-		stateByPositionIDMap[pos.ID] = state{
-			AvgPrice:     newAvgPrice,
-			Quantity:     newQty,
-			TotalCost:    newTotalCost,
-			TotalCharges: newTotalCharges,
-			Direction:    newDirection,
-		}
-
-		// Subtract trade charges from realizedPnL to calculate NetPnL
-		netPnL := realizedPnL.Sub(t.ChargesAmount)
-
-		// Round to match database precision (NUMERIC(14,2))
-		netPnL = netPnL.Round(2)
-		realizedPnL = realizedPnL.Round(2)         // Round GrossPnL for consistency
-		t.ChargesAmount = t.ChargesAmount.Round(2) // Round charges for consistency
-
-		// Add PnL and charges to the bucket (this is bucket-specific, not cumulative yet)
-		activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
-		activeBucket.GrossPnL = activeBucket.GrossPnL.Add(realizedPnL)
-		activeBucket.Charges = activeBucket.Charges.Add(t.ChargesAmount)
-	}
+func getCumulativePnLBuckets(positions []*position.Position, period common.BucketPeriod, start, end time.Time, loc *time.Location) []pnlBucket {
+	results := getPnLBuckets(positions, period, start, end, loc)
 
 	// Convert bucket PnL and charges to cumulative values with rounding
 	for i := range results {
@@ -290,19 +179,19 @@ func getCumulativePnLBuckets(positions []*position.Position, period common.Bucke
 	return results
 }
 
-func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, start, end time.Time) []pnlBucket {
+func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, start, end time.Time, loc *time.Location) []pnlBucket {
 	if len(positions) == 0 {
 		return []pnlBucket{}
 	}
 
 	// Generate buckets
-	buckets := common.GenerateBuckets(period, start, end)
+	buckets := common.GenerateBuckets(period, start, end, loc)
 	results := make([]pnlBucket, len(buckets))
 	for i, b := range buckets {
 		results[i] = pnlBucket{
 			Start:    b.Start,
 			End:      b.End,
-			Label:    b.Label(),
+			Label:    b.Label(loc),
 			NetPnL:   decimal.Zero,
 			GrossPnL: decimal.Zero,
 			Charges:  decimal.Zero,
