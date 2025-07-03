@@ -397,6 +397,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				continue
 			}
 
+			// TODO: Use ApplyComputeResultToPosition here.
 			// Update the position with the compute result
 			openPosition.Direction = computeResult.Direction
 			openPosition.Status = computeResult.Status
@@ -450,6 +451,8 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			trades := []*trade.Trade{
 				newTrade,
 			}
+
+			// TODO: Use ApplyComputeResultToPosition here.
 
 			openPositions[symbol] = &Position{
 				ID:                          positionID,
@@ -534,6 +537,8 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			l.Debugw("failed to compute position after charges and marking it as invalid", "error", err, "position_id", position.ID, "symbol", position.Symbol)
 			continue
 		}
+
+		// TODO: Use ApplyComputeResultToPosition here.
 
 		position.NetPnLAmount = computeResult.NetPnLAmount
 		position.NetReturnPercentage = computeResult.NetReturnPercentage

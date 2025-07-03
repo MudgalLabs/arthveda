@@ -441,3 +441,47 @@ func ConvertTradesToCreatePayload(trades []*trade.Trade) []trade.CreatePayload {
 	}
 	return createPayloads
 }
+
+// GetRealizedPnLByTradeID calculates the realized PnL for each trade in the given positions.
+// If you have single position, you can pass a slice with one element.
+func GetRealizedPnLByTradeID(positions []*Position) map[uuid.UUID]decimal.Decimal {
+	// Keep track of realised PnL for each trade.
+	realizedPnLByTradeID := make(map[uuid.UUID]decimal.Decimal)
+
+	for _, pos := range positions {
+		avgPrice := decimal.NewFromFloat(0)
+		totalCost := decimal.NewFromFloat(0)
+		totalCharges := decimal.NewFromFloat(0)
+		netQty := decimal.NewFromFloat(0)
+		direction := pos.Direction
+
+		// Calculate realized PnL for each trade
+		for _, t := range pos.Trades {
+			var pnl decimal.Decimal
+
+			avgPrice, netQty, _, pnl, totalCost, totalCharges = ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, t.Quantity, t.Price, t.ChargesAmount, t.Kind)
+
+			realizedPnLByTradeID[t.ID] = pnl
+		}
+	}
+
+	return realizedPnLByTradeID
+}
+
+func ApplyComputeResultToPosition(
+	position *Position,
+	computeResult computeResult,
+) {
+	position.Direction = computeResult.Direction
+	position.Status = computeResult.Status
+	position.OpenedAt = computeResult.OpenedAt
+	position.ClosedAt = computeResult.ClosedAt
+	position.GrossPnLAmount = computeResult.GrossPnLAmount
+	position.NetPnLAmount = computeResult.NetPnLAmount
+	position.TotalChargesAmount = computeResult.TotalChargesAmount
+	position.RFactor = computeResult.RFactor
+	position.NetReturnPercentage = computeResult.NetReturnPercentage
+	position.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
+	position.OpenQuantity = computeResult.OpenQuantity
+	position.OpenAveragePriceAmount = computeResult.OpenAveragePriceAmount
+}

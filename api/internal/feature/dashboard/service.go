@@ -76,27 +76,6 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 	// Find the earliest and latest trade times
 	var start, end time.Time
 
-	// If start or end is still zero, calculate from positions
-	// if start.IsZero() || end.IsZero() {
-	// 	for _, position := range positions {
-	// 		for _, trade := range position.Trades {
-	// 			if start.IsZero() && (end.IsZero() || trade.Time.Before(start)) {
-	// 				start = trade.Time
-	// 			}
-	// 			if end.IsZero() && (start.IsZero() || trade.Time.After(end)) {
-	// 				end = trade.Time
-	// 			}
-	// 			// If only one is zero, update only that one
-	// 			if !start.IsZero() && trade.Time.Before(start) && payload.DateRange != nil && payload.DateRange.From == nil {
-	// 				start = trade.Time
-	// 			}
-	// 			if !end.IsZero() && trade.Time.After(end) && payload.DateRange != nil && payload.DateRange.To == nil {
-	// 				end = trade.Time
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 	for _, position := range positions {
 		for _, trade := range position.Trades {
 			if start.IsZero() || trade.Time.Before(start) {
@@ -108,10 +87,11 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 		}
 	}
 
+	// If we are provided with a date range, we should use that instead of the earliest and latest trade times.
+
 	if !startUTC.IsZero() {
 		start = startUTC
 	}
-
 	if !endUTC.IsZero() {
 		end = endUTC
 	}
@@ -120,7 +100,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 	var bucketPeriod common.BucketPeriod
 	dateRange := end.Sub(start)
 	switch {
-	case dateRange.Hours() <= 24*30:
+	case dateRange.Hours() <= 24*31:
 		bucketPeriod = common.BucketPeriodDaily
 	case dateRange.Hours() <= 24*90:
 		bucketPeriod = common.BucketPeriodWeekly
@@ -128,7 +108,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 		bucketPeriod = common.BucketPeriodMonthly
 	}
 
-	generalStats := getGeneralStats(positions)
+	generalStats := getGeneralStats(positions, end, loc)
 	pnlBuckets := getPnLBuckets(positions, bucketPeriod, start, end, loc)
 	cumulativePnLBuckets := getCumulativePnLBuckets(positions, bucketPeriod, start, end, loc)
 
