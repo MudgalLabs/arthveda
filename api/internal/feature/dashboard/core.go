@@ -7,7 +7,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
 
@@ -54,18 +53,35 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 
 	for _, p := range positions {
 		positionCopy := *p
-		positionCopy.Trades = make([]*trade.Trade, 0, len(p.Trades))
+		trades := make([]*trade.Trade, 0, len(p.Trades))
+
+		atLeastOneTradeWasScalingOut := false
 
 		// Apply trades to the position to calculate realised PnL.
 		// This will also update the position's GrossPnLAmount, NetPnLAmount
 		// and TotalChargesAmount fields.
 		for _, t := range p.Trades {
 			if t.Time.In(loc).Before(end) || t.Time.In(loc).Equal(end) {
-				positionCopy.Trades = append(positionCopy.Trades, t)
+				trades = append(positionCopy.Trades, t)
+
+				// If position is long and we have a sell trade,
+				// or if position is short and we have a buy trade,
+				// we know that this is a scaling out trade.
+				// This flag helps us to include positions for calculating stats
+				// that have tried to realise PnL by scaling out. Otherwise, we might have
+				// wrong stats for positions that were just scaling in during the time range.
+				if (positionCopy.Direction == position.DirectionLong && t.Kind == trade.TradeKindSell) ||
+					(positionCopy.Direction == position.DirectionShort && t.Kind == trade.TradeKindBuy) {
+					atLeastOneTradeWasScalingOut = true
+				}
 			}
 		}
 
-		positionsWithTradesUptoEnd = append(positionsWithTradesUptoEnd, positionCopy)
+		positionCopy.Trades = trades
+
+		if atLeastOneTradeWasScalingOut {
+			positionsWithTradesUptoEnd = append(positionsWithTradesUptoEnd, positionCopy)
+		}
 	}
 
 	// Let's call "Compute" on positionsWithTradesUptoEnd
@@ -232,26 +248,7 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 		return []pnlBucket{}
 	}
 
-	// realizedPnLByTradeID := position.GetRealizedPnLByTradeID(positions)
-
-	realizedPnLByTradeID := make(map[uuid.UUID]decimal.Decimal)
-
-	for _, pos := range positions {
-		avgPrice := decimal.NewFromFloat(0)
-		totalCost := decimal.NewFromFloat(0)
-		totalCharges := decimal.NewFromFloat(0)
-		netQty := decimal.NewFromFloat(0)
-		direction := pos.Direction
-
-		// Calculate realized PnL for each trade
-		for _, t := range pos.Trades {
-			var pnl decimal.Decimal
-
-			avgPrice, netQty, _, pnl, totalCost, totalCharges = position.ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, t.Quantity, t.Price, t.ChargesAmount, t.Kind)
-
-			realizedPnLByTradeID[t.ID] = pnl
-		}
-	}
+	realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID(positions)
 
 	// Generate buckets
 	buckets := common.GenerateBuckets(period, start, end, loc)
@@ -292,15 +289,12 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 			continue // Skip trades outside the bucket range
 		}
 
-		realizedPnL := realizedPnLByTradeID[t.ID]
-
-		// Subtract trade charges from realizedPnL to calculate NetPnL
-		netPnL := realizedPnL.Sub(t.ChargesAmount)
+		stats := realisedStatsByTradeID[t.ID]
 
 		// Round to match database precision (NUMERIC(14,2))
-		netPnL = netPnL.Round(2)
-		realizedPnL = realizedPnL.Round(2)         // Round GrossPnL for consistency
-		t.ChargesAmount = t.ChargesAmount.Round(2) // Round charges for consistency
+		netPnL := stats.NetPnLAmount.Round(2)
+		realizedPnL := stats.GrossPnLAmount.Round(2)   // Round GrossPnL for consistency
+		t.ChargesAmount = stats.ChargesAmount.Round(2) // Round charges for consistency
 
 		// Add PnL and charges to the bucket (this is bucket-specific, not cumulative yet)
 		activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)

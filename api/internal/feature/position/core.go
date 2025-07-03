@@ -442,11 +442,19 @@ func ConvertTradesToCreatePayload(trades []*trade.Trade) []trade.CreatePayload {
 	return createPayloads
 }
 
-// GetRealizedPnLByTradeID calculates the realized PnL for each trade in the given positions.
+type RealisedStatsUptoATrade struct {
+	GrossPnLAmount decimal.Decimal
+	NetPnLAmount   decimal.Decimal
+	ChargesAmount  decimal.Decimal
+}
+
+// GetRealisedStatsUptoATradeByTradeID calculates the stats up to each trade in the positions.
+// So you will get GrossPnLAmount, NetPnLAmount and ChargesAmount for each trade calculated
+// by how it affects the position up to that trade. Very helpful for analytics and reporting.
 // If you have single position, you can pass a slice with one element.
-func GetRealizedPnLByTradeID(positions []*Position) map[uuid.UUID]decimal.Decimal {
+func GetRealisedStatsUptoATradeByTradeID(positions []*Position) map[uuid.UUID]RealisedStatsUptoATrade {
 	// Keep track of realised PnL for each trade.
-	realizedPnLByTradeID := make(map[uuid.UUID]decimal.Decimal)
+	realisedStats := make(map[uuid.UUID]RealisedStatsUptoATrade)
 
 	for _, pos := range positions {
 		avgPrice := decimal.NewFromFloat(0)
@@ -457,15 +465,21 @@ func GetRealizedPnLByTradeID(positions []*Position) map[uuid.UUID]decimal.Decima
 
 		// Calculate realized PnL for each trade
 		for _, t := range pos.Trades {
-			var pnl decimal.Decimal
+			var grossPnL decimal.Decimal
 
-			avgPrice, netQty, _, pnl, totalCost, totalCharges = ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, t.Quantity, t.Price, t.ChargesAmount, t.Kind)
+			avgPrice, netQty, _, grossPnL, totalCost, totalCharges = ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, t.Quantity, t.Price, t.ChargesAmount, t.Kind)
 
-			realizedPnLByTradeID[t.ID] = pnl
+			stats := RealisedStatsUptoATrade{
+				GrossPnLAmount: grossPnL,
+				ChargesAmount:  totalCharges,
+				NetPnLAmount:   grossPnL.Sub(totalCharges),
+			}
+
+			realisedStats[t.ID] = stats
 		}
 	}
 
-	return realizedPnLByTradeID
+	return realisedStats
 }
 
 func ApplyComputeResultToPosition(
