@@ -7,6 +7,7 @@ import (
 	"arthveda/internal/repository"
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/google/uuid"
@@ -439,10 +440,20 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 				positionMap[pos.ID].Trades = append(positionMap[pos.ID].Trades, &trade)
 			}
 		}
+
 		// Ensure that the Trades slice is set for each position in the positions array
 		for i := range positions {
 			if pm, ok := positionMap[positions[i].ID]; ok {
 				positions[i].Trades = pm.Trades
+			}
+		}
+
+		// Sort trades for each position by trade.Time
+		for _, pos := range positions {
+			if len(pos.Trades) > 1 {
+				sort.Slice(pos.Trades, func(i, j int) bool {
+					return pos.Trades[i].Time.Before(pos.Trades[j].Time)
+				})
 			}
 		}
 	} else {

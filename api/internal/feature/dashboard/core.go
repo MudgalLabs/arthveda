@@ -184,6 +184,27 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 		return []pnlBucket{}
 	}
 
+	// Keep track of realised PnL for each trade.
+	realizedPnLByTradeID := make(map[uuid.UUID]decimal.Decimal)
+
+	for _, pos := range positions {
+		avgPrice := decimal.NewFromFloat(0)
+		totalCost := decimal.NewFromFloat(0)
+		totalCharges := decimal.NewFromFloat(0)
+		netQty := decimal.NewFromFloat(0)
+		direction := pos.Direction
+
+		for _, t := range pos.Trades {
+			// Calculate realized PnL for each trade
+
+			var pnl decimal.Decimal
+
+			avgPrice, netQty, _, pnl, totalCost, totalCharges = position.ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, t.Quantity, t.Price, t.ChargesAmount, t.Kind)
+
+			realizedPnLByTradeID[t.ID] = pnl
+		}
+	}
+
 	// Generate buckets
 	buckets := common.GenerateBuckets(period, start, end, loc)
 	results := make([]pnlBucket, len(buckets))
@@ -198,19 +219,25 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 		}
 	}
 
+	// To look up positions by ID.
+	positionByPosIDMap := make(map[uuid.UUID]*position.Position)
+
 	// Collect all trades and sort them by time
 	var allTrades []struct {
 		Trade    *trade.Trade
 		Position *position.Position
 	}
+
 	for _, pos := range positions {
 		for _, t := range pos.Trades {
 			allTrades = append(allTrades, struct {
 				Trade    *trade.Trade
 				Position *position.Position
 			}{Trade: t, Position: pos})
+			positionByPosIDMap[pos.ID] = pos
 		}
 	}
+
 	sort.Slice(allTrades, func(i, j int) bool {
 		return allTrades[i].Trade.Time.Before(allTrades[j].Trade.Time)
 	})
@@ -225,7 +252,7 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 
 	// Process trades in time order
 	// Track state of each position
-	stateByPositionIDMap := make(map[uuid.UUID]state)
+	// stateByPositionIDMap := make(map[uuid.UUID]state)
 
 	for _, entry := range allTrades {
 		t := entry.Trade
@@ -244,40 +271,56 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 			continue // Skip trades outside the bucket range
 		}
 
-		// Get or initialize the position s
-		s, exists := stateByPositionIDMap[pos.ID]
+		pos, exists := positionByPosIDMap[pos.ID]
 		if !exists {
-			s = state{
-				AvgPrice:     decimal.Zero,
-				Quantity:     decimal.Zero,
-				TotalCost:    decimal.Zero,
-				TotalCharges: decimal.Zero,
-				Direction:    position.DirectionLong, // Default to long
-			}
-			stateByPositionIDMap[pos.ID] = s
+			// NOTE: This should not happen if the positions are correctly linked to trades.
+			continue
 		}
 
-		// Apply the trade to the position and compute PnL
-		newAvgPrice, newQty, newDirection, realizedPnL, newTotalCost, newTotalCharges := position.ApplyTradeToPosition(
-			s.AvgPrice,
-			s.Quantity,
-			s.TotalCost,
-			s.TotalCharges,
-			s.Direction,
-			t.Quantity,
-			t.Price,
-			t.ChargesAmount,
-			t.Kind,
-		)
+		// Get or initialize the position s
+		// s, exists := stateByPositionIDMap[pos.ID]
+		// if !exists {
+		// 	s = state{
+		// 		AvgPrice:     decimal.Zero,
+		// 		Quantity:     decimal.Zero,
+		// 		TotalCost:    decimal.Zero,
+		// 		TotalCharges: decimal.Zero,
+		// 		Direction:    position.DirectionLong, // Default to long
+		// 	}
+		// 	stateByPositionIDMap[pos.ID] = s
+		// }
 
-		// Update the position state
-		stateByPositionIDMap[pos.ID] = state{
-			AvgPrice:     newAvgPrice,
-			Quantity:     newQty,
-			TotalCost:    newTotalCost,
-			TotalCharges: newTotalCharges,
-			Direction:    newDirection,
-		}
+		// s := state{
+		// 	AvgPrice:     decimal.Zero,
+		// 	Quantity:     decimal.Zero,
+		// 	TotalCost:    decimal.Zero,
+		// 	TotalCharges: decimal.Zero,
+		// 	Direction:    pos.Direction,
+		// }
+
+		// // Apply the trade to the position and compute PnL
+		// newAvgPrice, newQty, newDirection, realizedPnL, newTotalCost, newTotalCharges := position.ApplyTradeToPosition(
+		// 	s.AvgPrice,
+		// 	s.Quantity,
+		// 	s.TotalCost,
+		// 	s.TotalCharges,
+		// 	s.Direction,
+		// 	t.Quantity,
+		// 	t.Price,
+		// 	t.ChargesAmount,
+		// 	t.Kind,
+		// )
+
+		// // Update the position state
+		// stateByPositionIDMap[pos.ID] = state{
+		// 	AvgPrice:     newAvgPrice,
+		// 	Quantity:     newQty,
+		// 	TotalCost:    newTotalCost,
+		// 	TotalCharges: newTotalCharges,
+		// 	Direction:    newDirection,
+		// }
+
+		realizedPnL := realizedPnLByTradeID[t.ID]
 
 		// Subtract trade charges from realizedPnL to calculate NetPnL
 		netPnL := realizedPnL.Sub(t.ChargesAmount)

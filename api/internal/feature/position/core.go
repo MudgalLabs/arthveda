@@ -223,7 +223,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 	var closedAt *time.Time = nil
 	var status Status
 	var direction Direction
-	var avgPrice decimal.Decimal
+	avgPrice := decimal.NewFromFloat(0)
 	grossPnL := decimal.NewFromFloat(0)
 	totalCost := decimal.NewFromFloat(0)
 	totalCharges := decimal.NewFromFloat(0)
@@ -243,6 +243,10 @@ func Compute(payload ComputePayload) (computeResult, error) {
 
 		return result, nil
 	}
+
+	// TODO: Calculate and store the realised PnL on every trade in the position.
+	// This will make the analytics easier and faster and we can show the realised
+	// PnL on every trade in the position when viewing the position.
 
 	for _, t := range payload.Trades {
 		var pnl decimal.Decimal
