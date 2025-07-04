@@ -51,7 +51,8 @@ func GenerateBuckets(period BucketPeriod, start, end time.Time, loc *time.Locati
 	switch period {
 	case BucketPeriodMonthly:
 		rangeStart = time.Date(userStart.Year(), userStart.Month(), 1, 0, 0, 0, 0, loc)
-		rangeEnd = time.Date(userEnd.Year(), userEnd.Month(), 1, 0, 0, 0, 0, loc)
+		// Set rangeEnd to the first day of the month after userEnd
+		rangeEnd = time.Date(userEnd.Year(), userEnd.Month(), 1, 0, 0, 0, 0, loc).AddDate(0, 1, 0)
 	default:
 		rangeStart = userStart
 		rangeEnd = userEnd
