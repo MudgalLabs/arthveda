@@ -36,6 +36,7 @@ export const OverviewCard = memo(
         const grossPnL = new Decimal(gross_pnl_amount || "0");
         const charges = new Decimal(total_charges_amount || "0");
         const netReturnPercentage = new Decimal(net_return_percentage || "0");
+        const rFactor = new Decimal(r_factor || "0");
 
         if (!netPnL.isZero() && netPnL.isPositive()) {
             trendingIcon = <IconTrendingUp size={20} />;
@@ -78,7 +79,7 @@ export const OverviewCard = memo(
                         <div>
                             <span className="label-muted">R Factor</span>
                             <div className={`flex items-end gap-x-2`}>
-                                <p className="sub-heading leading-none">{r_factor}</p>
+                                <p className="sub-heading leading-none">{rFactor.toFixed(2).toString()}</p>
                             </div>
                         </div>
                     </div>
