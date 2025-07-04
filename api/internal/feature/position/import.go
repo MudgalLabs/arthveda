@@ -1,6 +1,7 @@
 package position
 
 import (
+	"arthveda/internal/common"
 	"arthveda/internal/domain/symbol"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/trade"
@@ -161,7 +162,7 @@ func (i ZerodhaImporter) parseRow(row []string, metadata *importFileMetadata) (*
 		return nil, fmt.Errorf("Invalid price in row: %s", priceStr)
 	}
 
-	tz, _ := trade.GetTimeZoneForExchange(trade.ExchangeNSE)
+	tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
 	ist, err := time.LoadLocation(string(tz))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
@@ -287,7 +288,7 @@ func (i *GrowwImporter) parseRow(row []string, metadata *importFileMetadata) (*p
 	// Round the price to match database precision
 	price = price.Round(2)
 
-	tz, _ := trade.GetTimeZoneForExchange(trade.ExchangeNSE)
+	tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
 	ist, err := time.LoadLocation(string(tz))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
@@ -446,7 +447,7 @@ func (i *UpstoxImporter) parseRow(row []string, metadata *importFileMetadata) (*
 		return nil, fmt.Errorf("Invalid price at row : %s", priceStr)
 	}
 
-	tz, _ := trade.GetTimeZoneForExchange(trade.ExchangeNSE)
+	tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
 	ist, err := time.LoadLocation(string(tz))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)

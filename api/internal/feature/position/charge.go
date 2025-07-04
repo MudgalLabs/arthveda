@@ -1,6 +1,7 @@
 package position
 
 import (
+	"arthveda/internal/common"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
@@ -203,7 +204,7 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 
 	// Hardcoded timezone for Asia/Kolkata (IST).
 	// TODO: Store `Exchange` in Trade and use that to determine the timezone?
-	tz, _ := trade.GetTimeZoneForExchange(trade.ExchangeNSE)
+	tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
 	loc, _ := time.LoadLocation(string(tz))
 
 	// Convert trade.Time to IST timezone because trades are in UTC.

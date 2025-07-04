@@ -31,16 +31,36 @@ type GetDashboardPayload struct {
 
 type GetDashboardReponse struct {
 	generalStats
-	PositionsCount       int         `json:"positions_count"`
-	CumulativePnLBuckets []pnlBucket `json:"cumulative_pnl_buckets"`
-	PnLBuckets           []pnlBucket `json:"pnl_buckets"`
+	Positions            []*position.Position `json:"positions"`
+	PositionsCount       int                  `json:"positions_count"`
+	CumulativePnLBuckets []pnlBucket          `json:"cumulative_pnl_buckets"`
+	PnLBuckets           []pnlBucket          `json:"pnl_buckets"`
 }
 
-func (s *Service) Get(ctx context.Context, userID uuid.UUID, payload GetDashboardPayload) (*GetDashboardReponse, service.Error, error) {
+func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location, payload GetDashboardPayload) (*GetDashboardReponse, service.Error, error) {
+	from := time.Time{}
+	to := time.Time{}
+
+	if payload.DateRange.From != nil {
+		from = *payload.DateRange.From
+	}
+
+	if payload.DateRange.To != nil {
+		to = *payload.DateRange.To
+	}
+
+	startUTC, endUTC, err := common.NormalizeDateRangeFromTimezone(from, to, loc)
+
+	if err != nil {
+		payload.DateRange.From = &startUTC
+		payload.DateRange.To = &endUTC
+	}
+
 	searchPositionPayload := position.SearchPayload{
 		Filters: position.SearchFilter{
 			CreatedBy: &userID,
-			Opened:    payload.DateRange,
+			// Opened:    payload.DateRange,
+			TradeTime: payload.DateRange,
 		},
 		Sort: common.Sorting{
 			Field: "opened_at",
@@ -55,6 +75,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, payload GetDashboar
 
 	// Find the earliest and latest trade times
 	var start, end time.Time
+
 	for _, position := range positions {
 		for _, trade := range position.Trades {
 			if start.IsZero() || trade.Time.Before(start) {
@@ -66,12 +87,34 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, payload GetDashboar
 		}
 	}
 
-	generalStats := getGeneralStats(positions)
-	cumulativePnLBuckets := getCumulativePnLBuckets(positions, common.BucketPeriodMonthly, start, end)
-	pnlBuckets := getPnLBuckets(positions, common.BucketPeriodMonthly, start, end)
+	// If we are provided with a date range, we should use that instead of the earliest and latest trade times.
+
+	if !startUTC.IsZero() {
+		start = startUTC
+	}
+	if !endUTC.IsZero() {
+		end = endUTC
+	}
+
+	// Dynamically select bucket period based on date range
+	var bucketPeriod common.BucketPeriod
+	dateRange := end.Sub(start)
+	switch {
+	case dateRange.Hours() <= 24*31:
+		bucketPeriod = common.BucketPeriodDaily
+	case dateRange.Hours() <= 24*90:
+		bucketPeriod = common.BucketPeriodWeekly
+	default:
+		bucketPeriod = common.BucketPeriodMonthly
+	}
+
+	generalStats := getGeneralStats(positions, end, loc)
+	pnlBuckets := getPnLBuckets(positions, bucketPeriod, start, end, loc)
+	cumulativePnLBuckets := getCumulativePnLBuckets(positions, bucketPeriod, start, end, loc)
 
 	result := &GetDashboardReponse{
 		generalStats:         generalStats,
+		Positions:            positions,
 		PositionsCount:       len(positions),
 		CumulativePnLBuckets: cumulativePnLBuckets,
 		PnLBuckets:           pnlBuckets,

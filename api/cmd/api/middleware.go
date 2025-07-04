@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -14,9 +15,10 @@ import (
 	"go.uber.org/zap"
 )
 
-type userID string
+type contextKey string
 
-const userIDKey userID = "user_id"
+const ctxUserIDKey contextKey = "user_id"
+const ctxUserTimezoneKey contextKey = "user_timezone"
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -47,10 +49,10 @@ func authMiddleware(next http.Handler) http.Handler {
 		// Extend the session lifetime.
 		session.Manager.SetDeadline(ctx, time.Now().Add(session.Lifetime))
 
-		ctx = context.WithValue(ctx, userIDKey, userID)
+		ctx = context.WithValue(ctx, ctxUserIDKey, userID)
 
 		// Add `user_id` to this ctx's logger.
-		l = l.With(zap.String(string(userIDKey), userID))
+		l = l.With(zap.String(string(ctxUserIDKey), userID))
 		lrw := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
 		// the logger is associated with the request context here
@@ -62,7 +64,7 @@ func authMiddleware(next http.Handler) http.Handler {
 }
 
 func getUserIDFromContext(ctx context.Context) uuid.UUID {
-	idStr, ok := ctx.Value(userIDKey).(string)
+	idStr, ok := ctx.Value(ctxUserIDKey).(string)
 	if !ok {
 		panic("user ID not valid in context")
 	}
@@ -130,4 +132,31 @@ func logRequestMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(ww, r)
 	})
+}
+
+func timezoneMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tz := r.Header.Get("X-Timezone")
+		tz = strings.TrimSpace(tz)
+
+		if tz == "" {
+			tz = "UTC" // fallback
+		}
+
+		loc, err := time.LoadLocation(tz)
+		if err != nil {
+			loc = time.UTC
+		}
+
+		ctx := context.WithValue(r.Context(), ctxUserTimezoneKey, loc)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func getUserTimezoneFromCtx(ctx context.Context) *time.Location {
+	loc, ok := ctx.Value(ctxUserTimezoneKey).(*time.Location)
+	if !ok || loc == nil {
+		return time.UTC
+	}
+	return loc
 }
