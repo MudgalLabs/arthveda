@@ -5,7 +5,6 @@ import (
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
-	"fmt"
 	"sort"
 	"time"
 
@@ -56,7 +55,7 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 		positionCopy := *p
 		trades := []*trade.Trade{}
 
-		atLeastOneTradeWasScalingOut := false
+		atLeastOneTradeWasRealisingPnL := false
 
 		// Apply trades to the position to calculate realised PnL.
 		// This will also update the position's GrossPnLAmount, NetPnLAmount
@@ -65,22 +64,15 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 			if t.Time.In(loc).Before(end) || t.Time.In(loc).Equal(end) {
 				trades = append(trades, t)
 
-				// If position is long and we have a sell trade,
-				// or if position is short and we have a buy trade,
-				// we know that this is a scaling out trade.
-				// This flag helps us to include positions for calculating stats
-				// that have tried to realise PnL by scaling out. Otherwise, we might have
-				// wrong stats for positions that were just scaling in during the time range.
-				if (positionCopy.Direction == position.DirectionLong && t.Kind == trade.TradeKindSell) ||
-					(positionCopy.Direction == position.DirectionShort && t.Kind == trade.TradeKindBuy) {
-					atLeastOneTradeWasScalingOut = true
+				if position.IsTradeRealisingPnL(t, p) {
+					atLeastOneTradeWasRealisingPnL = true
 				}
 			}
 		}
 
 		positionCopy.Trades = trades
 
-		if atLeastOneTradeWasScalingOut {
+		if atLeastOneTradeWasRealisingPnL {
 			positionsWithTradesUptoEnd = append(positionsWithTradesUptoEnd, positionCopy)
 		}
 	}
@@ -105,32 +97,32 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 		positionsWithTradesUptoEnd[i] = p
 	}
 
-	chargesDiffTotal := decimal.Zero
-	chargesDiffCount := 0
+	// chargesDiffTotal := decimal.Zero
+	// chargesDiffCount := 0
 
-	for _, p := range positionsWithTradesUptoEnd {
-		origPos, exists := originalPosByID[p.ID]
-		if !exists {
-			panic("gg")
-		}
+	// for _, p := range positionsWithTradesUptoEnd {
+	// 	origPos, exists := originalPosByID[p.ID]
+	// 	if !exists {
+	// 		panic("gg")
+	// 	}
 
-		if !origPos.GrossPnLAmount.Equal(p.GrossPnLAmount) {
-			fmt.Printf("Position %s has different GrossPnLAmount: original=%s, computed=%s\n",
-				origPos.ID, origPos.GrossPnLAmount.String(), p.GrossPnLAmount.String())
-		}
+	// 	if !origPos.GrossPnLAmount.Equal(p.GrossPnLAmount) {
+	// 		fmt.Printf("Position %s has different GrossPnLAmount: original=%s, computed=%s\n",
+	// 			origPos.ID, origPos.GrossPnLAmount.String(), p.GrossPnLAmount.String())
+	// 	}
 
-		if !origPos.TotalChargesAmount.Equal(p.TotalChargesAmount) {
-			fmt.Printf("Position %s has different TotalChargesAmount: original=%s, computed=%s\n",
-				origPos.ID, origPos.TotalChargesAmount.String(), p.TotalChargesAmount.String())
-			diff := origPos.TotalChargesAmount.Sub(p.TotalChargesAmount).Abs()
-			chargesDiffTotal = chargesDiffTotal.Add(diff)
-			chargesDiffCount++
-		}
-	}
+	// 	if !origPos.TotalChargesAmount.Equal(p.TotalChargesAmount) {
+	// 		fmt.Printf("Position %s has different TotalChargesAmount: original=%s, computed=%s\n",
+	// 			origPos.ID, origPos.TotalChargesAmount.String(), p.TotalChargesAmount.String())
+	// 		diff := origPos.TotalChargesAmount.Sub(p.TotalChargesAmount).Abs()
+	// 		chargesDiffTotal = chargesDiffTotal.Add(diff)
+	// 		chargesDiffCount++
+	// 	}
+	// }
 
-	fmt.Printf("Total original positions: %d\n", len(originalPosByID))
-	fmt.Printf("Total positions with trades up to end: %d\n", len(positionsWithTradesUptoEnd))
-	fmt.Printf("Total charges difference across %d positions: %s\n", chargesDiffCount, chargesDiffTotal.String())
+	// fmt.Printf("Total original positions: %d\n", len(originalPosByID))
+	// fmt.Printf("Total positions with trades up to end: %d\n", len(positionsWithTradesUptoEnd))
+	// fmt.Printf("Total charges difference across %d positions: %s\n", chargesDiffCount, chargesDiffTotal.String())
 
 	var winRate float64
 	var grossPnL, netPnL, charges, avgRFactor, avgWinRFactor, avgLossRFactor, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
@@ -240,13 +232,21 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 	return result
 }
 
+type tradeWithRealisedStats struct {
+	Trade         trade.Trade                      `json:"trade"`
+	RealisedStats position.RealisedStatsUptoATrade `json:"realised_stats"`
+}
+
+type pnlBucketTradesBySymbol map[string][]tradeWithRealisedStats
+
 type pnlBucket struct {
-	Label    string          `json:"label"`
-	Start    time.Time       `json:"start"`
-	End      time.Time       `json:"end"`
-	NetPnL   decimal.Decimal `json:"net_pnl"`
-	GrossPnL decimal.Decimal `json:"gross_pnl"`
-	Charges  decimal.Decimal `json:"charges"`
+	Label          string                  `json:"label"`
+	Start          time.Time               `json:"start"`
+	End            time.Time               `json:"end"`
+	NetPnL         decimal.Decimal         `json:"net_pnl"`
+	GrossPnL       decimal.Decimal         `json:"gross_pnl"`
+	Charges        decimal.Decimal         `json:"charges"`
+	TradesBySymbol pnlBucketTradesBySymbol `json:"trades_by_symbol"`
 }
 
 // getCumulativePnLBuckets calculates cumulative realized PnL across time buckets
@@ -281,6 +281,7 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 		return []pnlBucket{}
 	}
 
+	positionByID := make(map[uuid.UUID]*position.Position)
 	realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID(positions)
 
 	// Generate buckets
@@ -288,12 +289,13 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 	results := make([]pnlBucket, len(buckets))
 	for i, b := range buckets {
 		results[i] = pnlBucket{
-			Start:    b.Start,
-			End:      b.End,
-			Label:    b.Label(loc),
-			NetPnL:   decimal.Zero,
-			GrossPnL: decimal.Zero,
-			Charges:  decimal.Zero,
+			Start:          b.Start,
+			End:            b.End,
+			Label:          b.Label(loc),
+			NetPnL:         decimal.Zero,
+			GrossPnL:       decimal.Zero,
+			Charges:        decimal.Zero,
+			TradesBySymbol: make(pnlBucketTradesBySymbol),
 		}
 	}
 
@@ -301,6 +303,7 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 	var allTrades []*trade.Trade
 
 	for _, pos := range positions {
+		positionByID[pos.ID] = pos
 		allTrades = append(allTrades, pos.Trades...)
 	}
 
@@ -336,12 +339,21 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 		charges := stats.ChargesAmount.Sub(chargesAmount)
 		netPnL := stats.GrossPnLAmount.Sub(charges)
 
-		chargesByPositionID[t.PositionID] = stats.ChargesAmount
+		if stats.IsRealising {
+			activeBucket.GrossPnL = activeBucket.GrossPnL.Add(grossPnL)
+			activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
+			activeBucket.Charges = activeBucket.Charges.Add(charges)
+			chargesByPositionID[t.PositionID] = stats.ChargesAmount
 
-		// Add PnL and charges to the bucket (this is bucket-specific, not cumulative yet)
-		activeBucket.GrossPnL = activeBucket.GrossPnL.Add(grossPnL)
-		activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
-		activeBucket.Charges = activeBucket.Charges.Add(charges)
+			pos, exists := positionByID[t.PositionID]
+			if exists {
+				item := tradeWithRealisedStats{
+					Trade:         *t,
+					RealisedStats: stats,
+				}
+				activeBucket.TradesBySymbol[pos.Symbol] = append(activeBucket.TradesBySymbol[pos.Symbol], item)
+			}
+		}
 	}
 
 	return results

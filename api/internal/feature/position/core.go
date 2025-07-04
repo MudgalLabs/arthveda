@@ -439,6 +439,7 @@ type RealisedStatsUptoATrade struct {
 	GrossPnLAmount decimal.Decimal
 	NetPnLAmount   decimal.Decimal
 	ChargesAmount  decimal.Decimal
+	IsRealising    bool // Indicates if this trade is realising PnL or not.
 }
 
 // GetRealisedStatsUptoATradeByTradeID calculates the stats up to each trade in the positions.
@@ -466,6 +467,7 @@ func GetRealisedStatsUptoATradeByTradeID(positions []*Position) map[uuid.UUID]Re
 				GrossPnLAmount: grossPnL,
 				ChargesAmount:  totalCharges,
 				NetPnLAmount:   grossPnL.Sub(totalCharges),
+				IsRealising:    IsTradeRealisingPnL(t, pos),
 			}
 
 			realisedStats[t.ID] = stats
@@ -491,4 +493,21 @@ func ApplyComputeResultToPosition(
 	position.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
 	position.OpenQuantity = computeResult.OpenQuantity
 	position.OpenAveragePriceAmount = computeResult.OpenAveragePriceAmount
+}
+
+func IsTradeRealisingPnL(
+	t *trade.Trade,
+	position *Position,
+) bool {
+	if position == nil || t == nil {
+		return false
+	}
+
+	// If the trade is opposite direction of the position, it means the trade is realising PnL.
+	if (position.Direction == DirectionLong && t.Kind == trade.TradeKindSell) ||
+		(position.Direction == DirectionShort && t.Kind == trade.TradeKindBuy) {
+		return true
+	}
+
+	return false
 }

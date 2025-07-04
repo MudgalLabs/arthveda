@@ -246,7 +246,7 @@ function AddPosition() {
                     gross_pnl_amount={position.gross_pnl_amount}
                     net_pnl_amount={position.net_pnl_amount}
                     net_return_percentage={position.net_return_percentage}
-                    r_factor={Number(position.r_factor)}
+                    r_factor={position.r_factor}
                 />
 
                 <DurationCard opened_at={position.opened_at} closed_at={position.closed_at} />
