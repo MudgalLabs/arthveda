@@ -152,13 +152,13 @@ type tradeWithRealisedStats struct {
 type pnlBucketTradesBySymbol map[string][]tradeWithRealisedStats
 
 type pnlBucket struct {
-	Label          string                  `json:"label"`
-	Start          time.Time               `json:"start"`
-	End            time.Time               `json:"end"`
-	NetPnL         decimal.Decimal         `json:"net_pnl"`
-	GrossPnL       decimal.Decimal         `json:"gross_pnl"`
-	Charges        decimal.Decimal         `json:"charges"`
-	TradesBySymbol pnlBucketTradesBySymbol `json:"trades_by_symbol"`
+	Label    string          `json:"label"`
+	Start    time.Time       `json:"start"`
+	End      time.Time       `json:"end"`
+	NetPnL   decimal.Decimal `json:"net_pnl"`
+	GrossPnL decimal.Decimal `json:"gross_pnl"`
+	Charges  decimal.Decimal `json:"charges"`
+	// TradesBySymbol pnlBucketTradesBySymbol `json:"trades_by_symbol"`
 }
 
 // getCumulativePnLBuckets calculates cumulative realized PnL using pnL buckets.
@@ -192,13 +192,12 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 	results := make([]pnlBucket, len(buckets))
 	for i, b := range buckets {
 		results[i] = pnlBucket{
-			Start:          b.Start,
-			End:            b.End,
-			Label:          b.Label(loc),
-			NetPnL:         decimal.Zero,
-			GrossPnL:       decimal.Zero,
-			Charges:        decimal.Zero,
-			TradesBySymbol: make(pnlBucketTradesBySymbol),
+			Start:    b.Start,
+			End:      b.End,
+			Label:    b.Label(loc),
+			NetPnL:   decimal.Zero,
+			GrossPnL: decimal.Zero,
+			Charges:  decimal.Zero,
 		}
 	}
 
@@ -247,15 +246,6 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 			activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
 			activeBucket.Charges = activeBucket.Charges.Add(charges)
 			chargesByPositionID[t.PositionID] = stats.ChargesAmount
-
-			pos, exists := positionByID[t.PositionID]
-			if exists {
-				item := tradeWithRealisedStats{
-					Trade:         *t,
-					RealisedStats: stats,
-				}
-				activeBucket.TradesBySymbol[pos.Symbol] = append(activeBucket.TradesBySymbol[pos.Symbol], item)
-			}
 		}
 	}
 
