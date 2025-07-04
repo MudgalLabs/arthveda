@@ -31,7 +31,7 @@ type generalStats struct {
 	LossStreak int `json:"loss_streak"`
 }
 
-func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Location) generalStats {
+func getGeneralStats(positions []*position.Position) generalStats {
 	if len(positions) == 0 {
 		return generalStats{}
 	}

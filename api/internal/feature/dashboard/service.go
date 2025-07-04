@@ -112,7 +112,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 
 	positionsFiltered := filterPositionsWithRealisingTradesUpTo(positions, end, loc)
 
-	generalStats := getGeneralStats(positionsFiltered, end, loc)
+	generalStats := getGeneralStats(positionsFiltered)
 	pnlBuckets := getPnLBuckets(positionsFiltered, bucketPeriod, start, end, loc)
 
 	// Make a copy of the buckets to avoid modifying the original slice
