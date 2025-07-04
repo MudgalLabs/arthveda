@@ -130,13 +130,13 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
                         {showGross && <Bar dataKey="gross_pnl" fill="var(--color-gross-pnl)" />}
                         {showCharges && <Bar dataKey="charges" fill="var(--color-charges)" />}
 
-                        <ReferenceLine
+                        {/* <ReferenceLine
                             y={0}
                             stroke="var(--color-muted-foreground)"
                             strokeDasharray="3 3"
                             strokeWidth={1}
                             strokeOpacity={1}
-                        />
+                        /> */}
                     </BarChart>
                 </ResponsiveContainer>
             </ChartContainer>

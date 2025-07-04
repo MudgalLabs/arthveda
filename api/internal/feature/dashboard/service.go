@@ -87,8 +87,11 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 		}
 	}
 
-	// If we are provided with a date range, we should use that instead of the earliest and latest trade times.
+	// When we are calculating the dashboard, we want to include the entire day of the last trade. Otherwise we will end up skipping the last day's trades.
+	// Extend end to include the entire day of the last trade
+	end = end.Add(24 * time.Hour)
 
+	// If we are provided with a date range, we should use that instead of the earliest and latest trade times.
 	if !startUTC.IsZero() {
 		start = startUTC
 	}

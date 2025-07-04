@@ -7,6 +7,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
 
@@ -165,6 +166,16 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 		maxLossStreak = max(maxLossStreak, currentLoss)
 	}
 
+	// ! ! ! ! ! ! ! !
+	// ! ! ! ! ! ! ! !
+	//
+	// FIXME: For Apr in Upstox, the AvgRFactor, WinRate and LossRate are not being calculated correctly.
+	// We are somehow getting 2 "settled" trades, but we know first of all only 1 trade should be in
+	// `positionsWithTradesUptoEnd`, which is not possible right? So how do we have 50% win rate and 50% loss rate?
+	//
+	// ! ! ! ! ! ! ! !
+	// ! ! ! ! ! ! ! !
+
 	// Trades that are not open are considered settled.
 	settledTradesCount = len(positions) - openTradesCount
 	// Trades that are settled and not winning are considered losing.
@@ -275,6 +286,8 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 		return allTrades[i].Time.Before(allTrades[j].Time)
 	})
 
+	chargesByPositionID := make(map[uuid.UUID]decimal.Decimal)
+
 	for _, t := range allTrades {
 		// Find the active bucket for this trade
 		var activeBucket *pnlBucket
@@ -291,15 +304,22 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 
 		stats := realisedStatsByTradeID[t.ID]
 
-		// Round to match database precision (NUMERIC(14,2))
-		netPnL := stats.NetPnLAmount.Round(2)
-		realizedPnL := stats.GrossPnLAmount.Round(2)   // Round GrossPnL for consistency
-		t.ChargesAmount = stats.ChargesAmount.Round(2) // Round charges for consistency
+		chargesAmount, exists := chargesByPositionID[t.PositionID]
+		if !exists {
+			chargesByPositionID[t.PositionID] = decimal.Zero
+			chargesAmount = decimal.Zero
+		}
+
+		grossPnL := stats.GrossPnLAmount
+		charges := stats.ChargesAmount.Sub(chargesAmount)
+		netPnL := stats.GrossPnLAmount.Sub(charges)
+
+		chargesByPositionID[t.PositionID] = stats.ChargesAmount
 
 		// Add PnL and charges to the bucket (this is bucket-specific, not cumulative yet)
+		activeBucket.GrossPnL = activeBucket.GrossPnL.Add(grossPnL)
 		activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
-		activeBucket.GrossPnL = activeBucket.GrossPnL.Add(realizedPnL)
-		activeBucket.Charges = activeBucket.Charges.Add(t.ChargesAmount)
+		activeBucket.Charges = activeBucket.Charges.Add(charges)
 	}
 
 	return results
