@@ -12,19 +12,34 @@ import (
 // TODO: Add "Exchange" field to the Trade struct to indicate which exchange the trade was made on.
 // This will help us with time related logic like buckets, intraday, etc.
 type Trade struct {
-	ID            uuid.UUID       `json:"id" db:"id"`
-	PositionID    uuid.UUID       `json:"position_id" db:"position_id"` // The ID of the Position to which this Trade belongs to.
-	CreatedAt     time.Time       `json:"created_at" db:"created_at"`
-	UpdatedAt     *time.Time      `json:"updated_at" db:"updated_at"`
-	Kind          Kind            `json:"kind" db:"kind"`
-	Time          time.Time       `json:"time" db:"time"`
-	Quantity      decimal.Decimal `json:"quantity" db:"quantity"`
-	Price         decimal.Decimal `json:"price" db:"price"`
+	ID         uuid.UUID  `json:"id" db:"id"`
+	PositionID uuid.UUID  `json:"position_id" db:"position_id"` // The ID of the Position to which this Trade belongs to.
+	CreatedAt  time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt  *time.Time `json:"updated_at" db:"updated_at"`
+
+	Time     time.Time       `json:"time" db:"time"`
+	Kind     Kind            `json:"kind" db:"kind"`
+	Quantity decimal.Decimal `json:"quantity" db:"quantity"`
+	Price    decimal.Decimal `json:"price" db:"price"`
+
+	// TODO: Rename this to GrossPnL
+	RealisedPnL   decimal.Decimal `json:"realised_pnl" db:"realised_pnl"`
+	ROI           decimal.Decimal `json:"roi" db:"roi"`
 	ChargesAmount decimal.Decimal `json:"charges_amount" db:"charges_amount"`
 
 	// The ID of the trade in the broker's system, if applicable.
 	// This will help us to prevent duplicate trades.
 	BrokerTradeID *string `json:"broker_trade_id" db:"broker_trade_id"`
+
+	// Runtime fields
+	MatchedLots []MatchedLot
+}
+
+type MatchedLot struct {
+	Qty      decimal.Decimal
+	PriceIn  decimal.Decimal
+	PriceOut decimal.Decimal
+	PnL      decimal.Decimal
 }
 
 type CreatePayload struct {

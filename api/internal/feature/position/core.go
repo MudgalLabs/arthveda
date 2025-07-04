@@ -511,3 +511,140 @@ func IsTradeRealisingPnL(
 
 	return false
 }
+
+func ComputeSmartTrades(pos Position) (Position, error) {
+	if len(pos.Trades) == 0 {
+		return pos, nil
+	}
+
+	var direction Direction
+
+	switch pos.Trades[0].Kind {
+	case trade.TradeKindBuy:
+		direction = DirectionLong
+	case trade.TradeKindSell:
+		direction = DirectionShort
+	default:
+		return pos, fmt.Errorf("invalid trade kind in first trade: %s", pos.Trades[0].Kind)
+	}
+
+	type Lot struct {
+		Qty   decimal.Decimal
+		Price decimal.Decimal
+	}
+
+	var fifo []Lot
+	// var smartTrades []trade.Trade
+	netQty := decimal.Zero
+
+	for i, t := range pos.Trades {
+		// smart := trade.Trade{
+		// 	Time:     t.Time,
+		// 	Kind:     t.Kind,
+		// 	Quantity: t.Quantity,
+		// 	Price:    t.Price,
+		// }}
+		qtyLeft := t.Quantity
+
+		if qtyLeft.LessThanOrEqual(decimal.Zero) {
+			return pos, fmt.Errorf("invalid quantity at trade %d: must be positive", i)
+		}
+
+		isScaleIn := (direction == DirectionLong && t.Kind == trade.TradeKindBuy) || (direction == DirectionShort && t.Kind == trade.TradeKindSell)
+
+		if isScaleIn {
+			// Add to FIFO
+			fifo = append(fifo, Lot{Qty: qtyLeft, Price: t.Price})
+			netQty = netQty.Add(qtyLeft.Mul(directionSignDecimal(direction)))
+		} else {
+			// Scale-out
+			requiredQty := qtyLeft
+			if netQty.LessThan(requiredQty) {
+				return pos, fmt.Errorf("invalid scale-out at trade %d: trying to %s %s units, but only %s available",
+					i, t.Kind, requiredQty.String(), netQty.String())
+			}
+
+			matched := []trade.MatchedLot{}
+			realisedPnL := decimal.Zero
+			costBasis := decimal.Zero
+
+			for qtyLeft.GreaterThan(decimal.Zero) && len(fifo) > 0 {
+				lot := &fifo[0]
+				matchQty := decimal.Min(qtyLeft, lot.Qty)
+
+				var pnl decimal.Decimal
+				if direction == DirectionLong {
+					pnl = matchQty.Mul(t.Price.Sub(lot.Price))
+				} else {
+					pnl = matchQty.Mul(lot.Price.Sub(t.Price))
+				}
+
+				matched = append(matched, trade.MatchedLot{
+					Qty:      matchQty,
+					PriceIn:  lot.Price,
+					PriceOut: t.Price,
+					PnL:      pnl,
+				})
+
+				realisedPnL = realisedPnL.Add(pnl)
+				costBasis = costBasis.Add(matchQty.Mul(lot.Price))
+
+				lot.Qty = lot.Qty.Sub(matchQty)
+				qtyLeft = qtyLeft.Sub(matchQty)
+
+				if lot.Qty.IsZero() {
+					fifo = fifo[1:]
+				}
+			}
+
+			t.MatchedLots = matched
+			t.RealisedPnL = realisedPnL
+			if !costBasis.IsZero() {
+				t.ROI = realisedPnL.Div(costBasis).Mul(decimal.NewFromInt(100))
+			}
+
+			netQty = netQty.Sub(t.Quantity.Mul(directionSignDecimal(direction)))
+		}
+
+	}
+
+	pos.Direction = direction
+
+	totalPnL := decimal.Zero
+	capitalUsed := decimal.Zero
+	netQty = decimal.Zero
+
+	for _, t := range pos.Trades {
+		totalPnL = totalPnL.Add(t.RealisedPnL)
+		for _, lot := range t.MatchedLots {
+			capitalUsed = capitalUsed.Add(lot.Qty.Mul(lot.PriceIn))
+		}
+
+		// Tally netQty based on trade kind and direction
+		signedQty := t.Quantity
+		if (pos.Direction == DirectionLong && t.Kind == trade.TradeKindSell) || (pos.Direction == DirectionShort && t.Kind == trade.TradeKindBuy) {
+			signedQty = signedQty.Neg()
+		}
+		netQty = netQty.Add(signedQty)
+	}
+
+	// isClosed := netQty.IsZero()
+
+	realisedROI := decimal.Zero
+	if !capitalUsed.IsZero() {
+		realisedROI = totalPnL.Div(capitalUsed).Mul(decimal.NewFromInt(100))
+	}
+
+	pos.GrossPnLAmount = totalPnL
+	pos.NetPnLAmount = totalPnL // Assuming no charges for simplicity, can be adjusted
+	pos.NetReturnPercentage = realisedROI
+
+	return pos, nil
+}
+
+func directionSignDecimal(direction Direction) decimal.Decimal {
+	if direction == DirectionLong {
+		return decimal.NewFromInt(1)
+	}
+	return decimal.NewFromInt(-1)
+}
