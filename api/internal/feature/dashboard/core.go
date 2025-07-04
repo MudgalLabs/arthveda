@@ -5,7 +5,6 @@ import (
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
-	"fmt"
 	"sort"
 	"time"
 
@@ -49,10 +48,7 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 	// and call "Compute" up until we don't reach a trade that's time is after the end date.
 	// If we reach a trade that is after the end date, we will stop processing the position.
 
-	tempPosByPosID := make(map[uuid.UUID]*position.Position)
-
 	for _, p := range positions {
-		tempPosByPosID[p.ID] = p
 		positionCopy := *p
 		trades := []*trade.Trade{}
 
@@ -82,20 +78,8 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 
 		if atLeastOneTradeWasScalingOut {
 			positionsWithTradesUptoEnd = append(positionsWithTradesUptoEnd, positionCopy)
-		} else {
-			positionsWithTradesUptoEnd = append(positionsWithTradesUptoEnd, positionCopy)
 		}
 	}
-
-	// Debug print the number of positions and number of trades we are considering for stats.
-	fmt.Println("Positions with Trades Upto End Count: ", len(positionsWithTradesUptoEnd))
-	fmt.Println("Trades Upto End Count: ", func() int {
-		count := 0
-		for _, p := range positionsWithTradesUptoEnd {
-			count += len(p.Trades)
-		}
-		return count
-	}())
 
 	// Let's call "Compute" on positionsWithTradesUptoEnd
 	// to calculate the realised PnL and other stats.
