@@ -167,18 +167,8 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 		maxLossStreak = max(maxLossStreak, currentLoss)
 	}
 
-	// ! ! ! ! ! ! ! !
-	// ! ! ! ! ! ! ! !
-	//
-	// FIXME: For Apr in Upstox, the AvgRFactor, WinRate and LossRate are not being calculated correctly.
-	// We are somehow getting 2 "settled" trades, but we know first of all only 1 trade should be in
-	// `positionsWithTradesUptoEnd`, which is not possible right? So how do we have 50% win rate and 50% loss rate?
-	//
-	// ! ! ! ! ! ! ! !
-	// ! ! ! ! ! ! ! !
-
 	// Trades that are not open are considered settled.
-	settledTradesCount = len(positions) - openTradesCount
+	settledTradesCount = len(positionsWithTradesUptoEnd) - openTradesCount
 	// Trades that are settled and not winning are considered losing.
 	lossTradesCount = settledTradesCount - winTradesCount
 
