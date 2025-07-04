@@ -4,6 +4,8 @@ import (
 	"arthveda/internal/common"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
+	"arthveda/internal/logger"
+	"fmt"
 	"sort"
 	"time"
 
@@ -40,21 +42,19 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 	// We will also create a copy of the positions so that we don't modify the original positions
 	// and their trades. This is important because we will be calling "Compute" on the positions
 	// to calculate the realised PnL and other stats, and we don't want to modify the original positions.
-	positionsWithTradesUptoEnd := make([]position.Position, 0, len(positions))
-
-	var winRate float64
-	var grossPnL, netPnL, charges, avgRFactor, avgWinRFactor, avgLossRFactor, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
-	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount int
-	var maxWinStreak, maxLossStreak, currentWin, currentLoss int
+	positionsWithTradesUptoEnd := []position.Position{}
 
 	// We need to compute the Position stats based on the trades that fall within the date range.
 	// So we will go through all positions and their trades,
 	// and call "Compute" up until we don't reach a trade that's time is after the end date.
 	// If we reach a trade that is after the end date, we will stop processing the position.
 
+	tempPosByPosID := make(map[uuid.UUID]*position.Position)
+
 	for _, p := range positions {
+		tempPosByPosID[p.ID] = p
 		positionCopy := *p
-		trades := make([]*trade.Trade, 0, len(p.Trades))
+		trades := []*trade.Trade{}
 
 		atLeastOneTradeWasScalingOut := false
 
@@ -63,7 +63,7 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 		// and TotalChargesAmount fields.
 		for _, t := range p.Trades {
 			if t.Time.In(loc).Before(end) || t.Time.In(loc).Equal(end) {
-				trades = append(positionCopy.Trades, t)
+				trades = append(trades, t)
 
 				// If position is long and we have a sell trade,
 				// or if position is short and we have a buy trade,
@@ -82,8 +82,20 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 
 		if atLeastOneTradeWasScalingOut {
 			positionsWithTradesUptoEnd = append(positionsWithTradesUptoEnd, positionCopy)
+		} else {
+			positionsWithTradesUptoEnd = append(positionsWithTradesUptoEnd, positionCopy)
 		}
 	}
+
+	// Debug print the number of positions and number of trades we are considering for stats.
+	fmt.Println("Positions with Trades Upto End Count: ", len(positionsWithTradesUptoEnd))
+	fmt.Println("Trades Upto End Count: ", func() int {
+		count := 0
+		for _, p := range positionsWithTradesUptoEnd {
+			count += len(p.Trades)
+		}
+		return count
+	}())
 
 	// Let's call "Compute" on positionsWithTradesUptoEnd
 	// to calculate the realised PnL and other stats.
@@ -97,13 +109,18 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 		computeResult, err := position.Compute(payload)
 		if err != nil {
 			// If we fail silently and continue.
+			logger.Get().Errorw("Failed to compute position", "error", err, "symbol", p.Symbol, "opened_at", p.OpenedAt)
 			continue
 		}
 
 		position.ApplyComputeResultToPosition(&p, computeResult)
-
 		positionsWithTradesUptoEnd[i] = p
 	}
+
+	var winRate float64
+	var grossPnL, netPnL, charges, avgRFactor, avgWinRFactor, avgLossRFactor, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
+	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount int
+	var maxWinStreak, maxLossStreak, currentWin, currentLoss int
 
 	for _, p := range positionsWithTradesUptoEnd {
 		// Calculate open trades count.

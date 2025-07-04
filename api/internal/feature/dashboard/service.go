@@ -6,6 +6,7 @@ import (
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/service"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -110,6 +111,17 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 	default:
 		bucketPeriod = common.BucketPeriodMonthly
 	}
+
+	fmt.Println("Using bucket period:", bucketPeriod)
+	fmt.Println("Start:", start, "End:", end)
+	fmt.Println("Positions count:", len(positions))
+	fmt.Println("Trades for all positions count:", func() int {
+		count := 0
+		for _, p := range positions {
+			count += len(p.Trades)
+		}
+		return count
+	}())
 
 	generalStats := getGeneralStats(positions, end, loc)
 	pnlBuckets := getPnLBuckets(positions, bucketPeriod, start, end, loc)

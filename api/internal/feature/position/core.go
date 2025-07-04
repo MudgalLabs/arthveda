@@ -236,13 +236,6 @@ func Compute(payload ComputePayload) (computeResult, error) {
 	}
 
 	// If there is only one trade, we know the trade is the opening trade.
-	if len(payload.Trades) == 1 {
-		result.OpenedAt = payload.Trades[0].Time
-		result.Status = StatusOpen
-		result.Direction = direction
-
-		return result, nil
-	}
 
 	// TODO: Calculate and store the realised PnL on every trade in the position.
 	// This will make the analytics easier and faster and we can show the realised
