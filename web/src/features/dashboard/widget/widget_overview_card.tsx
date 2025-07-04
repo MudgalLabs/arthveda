@@ -12,7 +12,7 @@ interface Props {
     net_pnl_amount: DecimalString;
     gross_pnl_amount: DecimalString;
     total_charges_amount: DecimalString;
-    r_factor: number;
+    r_factor: DecimalString;
     charges_as_percentage_of_net_pnl?: DecimalString;
     net_return_percentage?: DecimalString;
     currency?: CurrencyCode;

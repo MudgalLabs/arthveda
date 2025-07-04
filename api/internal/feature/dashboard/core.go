@@ -5,6 +5,7 @@ import (
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
+	"fmt"
 	"sort"
 	"time"
 
@@ -16,16 +17,16 @@ type generalStats struct {
 	WinRate  float64 `json:"win_rate"`
 	LossRate float64 `json:"loss_rate"`
 
-	GrossPnL       string  `json:"gross_pnl"`
-	NetPnL         string  `json:"net_pnl"`
-	Charges        string  `json:"charges"`
-	AvgWin         string  `json:"avg_win"`
-	AvgLoss        string  `json:"avg_loss"`
-	MaxWin         string  `json:"max_win"`
-	MaxLoss        string  `json:"max_loss"`
-	AvgRFactor     float64 `json:"avg_r_factor"`
-	AvgWinRFactor  float64 `json:"avg_win_r_factor"`
-	AvgLossRFactor float64 `json:"avg_loss_r_factor"`
+	GrossPnL       string `json:"gross_pnl"`
+	NetPnL         string `json:"net_pnl"`
+	Charges        string `json:"charges"`
+	AvgWin         string `json:"avg_win"`
+	AvgLoss        string `json:"avg_loss"`
+	MaxWin         string `json:"max_win"`
+	MaxLoss        string `json:"max_loss"`
+	AvgRFactor     string `json:"avg_r_factor"`
+	AvgWinRFactor  string `json:"avg_win_r_factor"`
+	AvgLossRFactor string `json:"avg_loss_r_factor"`
 
 	WinStreak  int `json:"win_streak"`
 	LossStreak int `json:"loss_streak"`
@@ -35,6 +36,8 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 	if len(positions) == 0 {
 		return generalStats{}
 	}
+
+	originalPosByID := map[uuid.UUID]*position.Position{}
 
 	// These are the trades that we will use to compute the stats.
 	// We will only consider trades that are before or equal to the end date.
@@ -49,6 +52,7 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 	// If we reach a trade that is after the end date, we will stop processing the position.
 
 	for _, p := range positions {
+		originalPosByID[p.ID] = p
 		positionCopy := *p
 		trades := []*trade.Trade{}
 
@@ -101,6 +105,33 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 		positionsWithTradesUptoEnd[i] = p
 	}
 
+	chargesDiffTotal := decimal.Zero
+	chargesDiffCount := 0
+
+	for _, p := range positionsWithTradesUptoEnd {
+		origPos, exists := originalPosByID[p.ID]
+		if !exists {
+			panic("gg")
+		}
+
+		if !origPos.GrossPnLAmount.Equal(p.GrossPnLAmount) {
+			fmt.Printf("Position %s has different GrossPnLAmount: original=%s, computed=%s\n",
+				origPos.ID, origPos.GrossPnLAmount.String(), p.GrossPnLAmount.String())
+		}
+
+		if !origPos.TotalChargesAmount.Equal(p.TotalChargesAmount) {
+			fmt.Printf("Position %s has different TotalChargesAmount: original=%s, computed=%s\n",
+				origPos.ID, origPos.TotalChargesAmount.String(), p.TotalChargesAmount.String())
+			diff := origPos.TotalChargesAmount.Sub(p.TotalChargesAmount).Abs()
+			chargesDiffTotal = chargesDiffTotal.Add(diff)
+			chargesDiffCount++
+		}
+	}
+
+	fmt.Printf("Total original positions: %d\n", len(originalPosByID))
+	fmt.Printf("Total positions with trades up to end: %d\n", len(positionsWithTradesUptoEnd))
+	fmt.Printf("Total charges difference across %d positions: %s\n", chargesDiffCount, chargesDiffTotal.String())
+
 	var winRate float64
 	var grossPnL, netPnL, charges, avgRFactor, avgWinRFactor, avgLossRFactor, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
 	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount int
@@ -152,10 +183,10 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 
 		// Calculate win/loss streaks
 		switch p.Status {
-		case "win":
+		case position.StatusWin:
 			currentWin++
 			currentLoss = 0
-		case "loss":
+		case position.StatusLoss:
 			currentLoss++
 			currentWin = 0
 		default:
@@ -195,13 +226,13 @@ func getGeneralStats(positions []*position.Position, end time.Time, loc *time.Lo
 		GrossPnL:       grossPnL.String(),
 		NetPnL:         netPnL.String(),
 		Charges:        charges.String(),
-		AvgRFactor:     avgRFactor.Round(2).InexactFloat64(),
+		AvgRFactor:     avgRFactor.StringFixed(2),
 		AvgWin:         avgWin.String(),
 		AvgLoss:        avgLoss.String(),
 		MaxWin:         maxWin.String(),
 		MaxLoss:        maxLoss.String(),
-		AvgWinRFactor:  avgWinRFactor.Round(2).InexactFloat64(),
-		AvgLossRFactor: avgLossRFactor.Round(2).InexactFloat64(),
+		AvgWinRFactor:  avgWinRFactor.StringFixed(2),
+		AvgLossRFactor: avgLossRFactor.StringFixed(2),
 		WinStreak:      maxWinStreak,
 		LossStreak:     maxLossStreak,
 	}

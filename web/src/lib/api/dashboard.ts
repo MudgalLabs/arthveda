@@ -8,11 +8,11 @@ interface GeneralStats {
     gross_pnl: DecimalString;
     net_pnl: DecimalString;
     charges: DecimalString;
-    avg_r_factor: number;
-    avg_win_r_factor: number;
+    avg_r_factor: DecimalString;
+    avg_win_r_factor: DecimalString;
     avg_win: DecimalString;
     max_win: DecimalString;
-    avg_loss_r_factor: number;
+    avg_loss_r_factor: DecimalString;
     avg_loss: DecimalString;
     max_loss: DecimalString;
     win_streak: number;

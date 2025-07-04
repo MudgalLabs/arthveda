@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 interface Props {
     isWinning: boolean; // Indicates if the card is for winning or losing
     rate: number;
-    rFactor: number;
+    rFactor: DecimalString;
     max: DecimalString;
     avg: DecimalString;
     streak: number;
