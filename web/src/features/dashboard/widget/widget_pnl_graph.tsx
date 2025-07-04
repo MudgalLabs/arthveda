@@ -4,7 +4,7 @@ import { axisDefaults, ChartConfig, ChartContainer, ChartTooltipContent, Checkbo
 
 import { Card, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";
-import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import {
     formatCurrency,
@@ -129,14 +129,6 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
                         {showNet && <Bar dataKey="net_pnl" fill="var(--color-net-pnl)" />}
                         {showGross && <Bar dataKey="gross_pnl" fill="var(--color-gross-pnl)" />}
                         {showCharges && <Bar dataKey="charges" fill="var(--color-charges)" />}
-
-                        {/* <ReferenceLine
-                            y={0}
-                            stroke="var(--color-muted-foreground)"
-                            strokeDasharray="3 3"
-                            strokeWidth={1}
-                            strokeOpacity={1}
-                        /> */}
                     </BarChart>
                 </ResponsiveContainer>
             </ChartContainer>
