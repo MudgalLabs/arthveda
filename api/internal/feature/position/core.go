@@ -357,55 +357,27 @@ func ConvertTradesToCreatePayload(trades []*trade.Trade) []trade.CreatePayload {
 }
 
 type RealisedStatsUptoATrade struct {
-	GrossPnLAmount decimal.Decimal
-	NetPnLAmount   decimal.Decimal
-	ChargesAmount  decimal.Decimal
-	IsRealising    bool // Indicates if this trade is realising PnL or not.
+	ChargesAmount decimal.Decimal
+	IsScaleOut    bool // Whether this trade is a scale-out trade or not.
 }
 
-// GetRealisedStatsUptoATradeByTradeID calculates the stats up to each trade in the positions.
-// So you will get GrossPnLAmount, NetPnLAmount and ChargesAmount for each trade calculated
-// by how it affects the position up to that trade. Very helpful for analytics and reporting.
+// GetRealisedStatsUptoATradeByTradeID calculates the charges up to each trade in the positions,
+// along with whether the trade is a scale-out trade or not. Very helpful for analytics and reporting.
 // If you have single position, you can pass a slice with one element.
 func GetRealisedStatsUptoATradeByTradeID(positions []*Position) map[uuid.UUID]RealisedStatsUptoATrade {
 	realisedStats := make(map[uuid.UUID]RealisedStatsUptoATrade)
 
 	for _, pos := range positions {
-		// Defensive copy of trades to avoid mutating original
-		tradesCopy := make([]*trade.Trade, len(pos.Trades))
-		for i, t := range pos.Trades {
-			tradeCopy := *t
-			tradesCopy[i] = &tradeCopy
-		}
-
-		// ComputeSmartTrades updates RealisedPnL and ROI in place
-		direction, err := computeDirection(tradesCopy)
-		if err != nil {
-			continue
-		}
-		_, err = ComputeSmartTrades(tradesCopy, direction)
-		if err != nil {
-			continue
-		}
-
-		grossPnL := decimal.Zero
 		charges := decimal.Zero
 
-		for i, t := range tradesCopy {
+		for _, t := range pos.Trades {
 			charges = charges.Add(t.ChargesAmount)
-			grossPnL = grossPnL.Add(t.RealisedPnL)
 
 			stats := RealisedStatsUptoATrade{
-				GrossPnLAmount: grossPnL,
-				ChargesAmount:  charges,
-				NetPnLAmount:   grossPnL.Sub(charges),
-				IsRealising:    IsTradeRealisingPnL(t, pos),
+				ChargesAmount: charges,
+				IsScaleOut:    isScaleOut(t, pos),
 			}
 			realisedStats[t.ID] = stats
-
-			if i < len(pos.Trades) && pos.Trades[i].ID == t.ID {
-				realisedStats[pos.Trades[i].ID] = stats
-			}
 		}
 	}
 
@@ -430,7 +402,7 @@ func ApplyComputeResultToPosition(
 	position.OpenAveragePriceAmount = computeResult.OpenAveragePriceAmount
 }
 
-func IsTradeRealisingPnL(
+func isScaleOut(
 	t *trade.Trade,
 	position *Position,
 ) bool {

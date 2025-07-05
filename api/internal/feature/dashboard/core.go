@@ -144,13 +144,6 @@ func getGeneralStats(positions []*position.Position) generalStats {
 	return result
 }
 
-type tradeWithRealisedStats struct {
-	Trade         trade.Trade                      `json:"trade"`
-	RealisedStats position.RealisedStatsUptoATrade `json:"realised_stats"`
-}
-
-type pnlBucketTradesBySymbol map[string][]tradeWithRealisedStats
-
 type pnlBucket struct {
 	Label    string          `json:"label"`
 	Start    time.Time       `json:"start"`
@@ -158,7 +151,6 @@ type pnlBucket struct {
 	NetPnL   decimal.Decimal `json:"net_pnl"`
 	GrossPnL decimal.Decimal `json:"gross_pnl"`
 	Charges  decimal.Decimal `json:"charges"`
-	// TradesBySymbol pnlBucketTradesBySymbol `json:"trades_by_symbol"`
 }
 
 // getCumulativePnLBuckets calculates cumulative realized PnL using pnL buckets.
@@ -183,7 +175,7 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 	}
 
 	positionByID := make(map[uuid.UUID]*position.Position)
-	realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID(positions)
+	realisedChargesByTradeID := position.GetRealisedStatsUptoATradeByTradeID(positions)
 
 	// Generate buckets
 	buckets := common.GenerateBuckets(period, start, end, loc)
@@ -227,7 +219,7 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 			continue // Skip trades outside the bucket range
 		}
 
-		stats := realisedStatsByTradeID[t.ID]
+		stats := realisedChargesByTradeID[t.ID]
 
 		chargesAmount, exists := chargesByPositionID[t.PositionID]
 		if !exists {
@@ -239,12 +231,13 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 		charges := stats.ChargesAmount.Sub(chargesAmount)
 		netPnL := grossPnL.Sub(charges)
 
-		// if stats.IsRealising {
-		activeBucket.GrossPnL = activeBucket.GrossPnL.Add(grossPnL)
-		activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
-		activeBucket.Charges = activeBucket.Charges.Add(charges)
-		chargesByPositionID[t.PositionID] = stats.ChargesAmount
-		// }
+		if stats.IsScaleOut {
+			activeBucket.GrossPnL = activeBucket.GrossPnL.Add(grossPnL)
+			activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
+			activeBucket.Charges = activeBucket.Charges.Add(charges)
+
+			chargesByPositionID[t.PositionID] = stats.ChargesAmount
+		}
 	}
 
 	return results
