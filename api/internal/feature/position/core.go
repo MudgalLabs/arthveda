@@ -251,7 +251,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 		return result, ErrInvalidTradeData
 	}
 
-	openAvgPrice, err := ComputeSmartTrades(trades, direction)
+	computeTradesResult, err := ComputeSmartTrades(trades, direction)
 	if err != nil {
 		l.Errorw("ComputeSmartTrades", "error", err, "trades", trades)
 		return result, ErrInvalidTradeData
@@ -264,7 +264,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 
 	for _, t := range trades {
 		grossPnL = grossPnL.Add(t.RealisedPnL)
-		for _, lot := range t.MatchedLots {
+		for _, lot := range computeTradesResult.matchedLots {
 			capitalUsed = capitalUsed.Add(lot.Qty.Mul(lot.PriceIn))
 		}
 
@@ -334,7 +334,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 
 	if netOpenQty.IsPositive() {
 		result.OpenQuantity = netOpenQty
-		result.OpenAveragePriceAmount = openAvgPrice
+		result.OpenAveragePriceAmount = computeTradesResult.openAvgPrice
 	}
 
 	return result, nil
@@ -419,38 +419,45 @@ func isScaleOut(
 	return false
 }
 
-type FIFOLot struct {
+type fifoLot struct {
 	Qty   decimal.Decimal
 	Price decimal.Decimal
 }
 
-func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (decimal.Decimal, error) {
+type ComputeSmartTradesResult struct {
+	openAvgPrice decimal.Decimal
+	matchedLots  []trade.MatchedLot
+}
+
+func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmartTradesResult, error) {
+	result := ComputeSmartTradesResult{}
+
 	if len(trades) == 0 {
-		return decimal.Zero, nil
+		return result, nil
 	}
 
-	var fifo []FIFOLot
+	var fifo []fifoLot
 	netOpenQty := decimal.Zero
 
 	for i, t := range trades {
 		qtyLeft := t.Quantity
 
 		if qtyLeft.LessThanOrEqual(decimal.Zero) {
-			return decimal.Zero, fmt.Errorf("invalid quantity at trade %d: must be positive", i)
+			return result, fmt.Errorf("invalid quantity at trade %d: must be positive", i)
 		}
 
 		isScaleIn := (direction == DirectionLong && t.Kind == trade.TradeKindBuy) || (direction == DirectionShort && t.Kind == trade.TradeKindSell)
 
 		if isScaleIn {
 			// Add to FIFO
-			fifo = append(fifo, FIFOLot{Qty: qtyLeft, Price: t.Price})
+			fifo = append(fifo, fifoLot{Qty: qtyLeft, Price: t.Price})
 			netOpenQty = netOpenQty.Add(qtyLeft.Mul(directionSignDecimal(direction)))
 		} else {
 			// Scale-out
 			requiredQty := qtyLeft
 			availableQty := netOpenQty.Abs()
 			if availableQty.LessThan(requiredQty) {
-				return decimal.Zero, fmt.Errorf("invalid scale-out at trade %d: trying to %s %s units, but only %s available",
+				return result, fmt.Errorf("invalid scale-out at trade %d: trying to %s %s units, but only %s available",
 					i, t.Kind, requiredQty.String(), availableQty.String())
 			}
 
@@ -487,7 +494,7 @@ func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (decimal.Dec
 				}
 			}
 
-			t.MatchedLots = matched
+			result.matchedLots = matched
 			t.RealisedPnL = realisedPnL
 			if !costBasis.IsZero() {
 				t.ROI = realisedPnL.Div(costBasis).Mul(decimal.NewFromInt(100))
@@ -497,15 +504,14 @@ func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (decimal.Dec
 		}
 	}
 
-	openAvgPrice := decimal.Zero
-
 	if netOpenQty.IsPositive() {
 		// If we have any open quantity left, it means we have unclosed positions.
 		// We can compute the average price of the open positions.
-		openAvgPrice = computeAvgPrice(fifo)
+		openAvgPrice := computeAvgPrice(fifo)
+		result.openAvgPrice = openAvgPrice
 	}
 
-	return openAvgPrice, nil
+	return result, nil
 }
 
 func directionSignDecimal(direction Direction) decimal.Decimal {
@@ -530,7 +536,7 @@ func computeDirection(trades []*trade.Trade) (Direction, error) {
 	return direction, nil
 }
 
-func computeAvgPrice(fifo []FIFOLot) decimal.Decimal {
+func computeAvgPrice(fifo []fifoLot) decimal.Decimal {
 	totalCost := decimal.Zero
 	totalQty := decimal.Zero
 

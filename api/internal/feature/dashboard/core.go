@@ -307,40 +307,13 @@ func filterPositionsWithRealisingTradesUpTo(positions []*position.Position, end 
 		computeResult, err := position.Compute(payload)
 		if err != nil {
 			// If we fail silently and continue.
-			logger.Get().Errorw("Failed to compute position", "error", err, "symbol", p.Symbol, "opened_at", p.OpenedAt)
+			logger.Get().Errorw("failed to compute position", "error", err, "symbol", p.Symbol, "opened_at", p.OpenedAt)
 			continue
 		}
 
 		position.ApplyComputeResultToPosition(p, computeResult)
 		positionsWithTradesUptoEnd[i] = p
 	}
-
-	// chargesDiffTotal := decimal.Zero
-	// chargesDiffCount := 0
-
-	// for _, p := range positionsWithTradesUptoEnd {
-	// 	origPos, exists := originalPosByID[p.ID]
-	// 	if !exists {
-	// 		panic("gg")
-	// 	}
-
-	// 	if !origPos.GrossPnLAmount.Equal(p.GrossPnLAmount) {
-	// 		fmt.Printf("Position %s has different GrossPnLAmount: original=%s, computed=%s\n",
-	// 			origPos.ID, origPos.GrossPnLAmount.String(), p.GrossPnLAmount.String())
-	// 	}
-
-	// 	if !origPos.TotalChargesAmount.Equal(p.TotalChargesAmount) {
-	// 		fmt.Printf("Position %s has different TotalChargesAmount: original=%s, computed=%s\n",
-	// 			origPos.ID, origPos.TotalChargesAmount.String(), p.TotalChargesAmount.String())
-	// 		diff := origPos.TotalChargesAmount.Sub(p.TotalChargesAmount).Abs()
-	// 		chargesDiffTotal = chargesDiffTotal.Add(diff)
-	// 		chargesDiffCount++
-	// 	}
-	// }
-
-	// fmt.Printf("Total original positions: %d\n", len(originalPosByID))
-	// fmt.Printf("Total positions with trades up to end: %d\n", len(positionsWithTradesUptoEnd))
-	// fmt.Printf("Total charges difference across %d positions: %s\n", chargesDiffCount, chargesDiffTotal.String())
 
 	return positionsWithTradesUptoEnd
 }
