@@ -340,104 +340,6 @@ func Compute(payload ComputePayload) (computeResult, error) {
 	return result, nil
 }
 
-// ApplyTradeToPosition applies a trade to an existing position,
-// handling scaling in, closing, or flipping the position.
-//
-// Logic:
-//   - Scaling in: OrderKind is in same direction as current position; increases quantity and updates average price.
-//   - Closing: OrderKind is opposite; decreases quantity and realizes PnL.
-//   - Flip: OrderKind is opposite and quantity exceeds current; realizes full PnL and opens a new position in opposite direction.
-//
-// Assumptions:
-//   - currentQty and orderQty are always positive.
-//   - direction indicates whether the position is LONG or SHORT.
-//   - OrderKind.Buy means buying (increases long / closes short).
-//   - OrderKind.Sell means selling (increases short / closes long).
-func ApplyTradeToPosition(
-	currentAvgPrice decimal.Decimal,
-	currentQty decimal.Decimal,
-	totalCost decimal.Decimal,
-	totalCharges decimal.Decimal,
-	direction Direction,
-	tradeQty decimal.Decimal,
-	tradePrice decimal.Decimal,
-	tradeChargesAmount decimal.Decimal,
-	tradeKind trade.Kind,
-) (newAvgPrice decimal.Decimal, newQty decimal.Decimal, newDirection Direction, realizedPnL, newTotalCost, newTotalCharges decimal.Decimal) {
-
-	// No-op for 0 order
-	if tradeQty.IsZero() {
-		return currentAvgPrice, currentQty, direction, decimal.Zero, decimal.Zero, decimal.Zero
-	}
-
-	isLong := direction == DirectionLong
-	isBuy := tradeKind == trade.TradeKindBuy
-
-	isScalingIn := (isLong && isBuy) || (!isLong && !isBuy)
-
-	// Add this trade's charges to running total
-	newTotalCharges = totalCharges.Add(tradeChargesAmount)
-
-	if currentQty.IsZero() {
-		// Opening new position
-		newDirection = DirectionLong
-		if !isBuy {
-			newDirection = DirectionShort
-		}
-
-		newTotalCost = tradePrice.Mul(tradeQty)
-
-		return tradePrice, tradeQty, newDirection, decimal.Zero, newTotalCost, newTotalCharges
-	}
-
-	if isScalingIn {
-		// Scaling in → increase qty, update average price
-		tradeCost := currentAvgPrice.Mul(currentQty).Add(tradePrice.Mul(tradeQty))
-		newQty = currentQty.Add(tradeQty)
-		newAvgPrice = tradeCost.Div(newQty)
-		newDirection = direction
-		newTotalCost = totalCost.Add(tradeCost)
-		return newAvgPrice, newQty, newDirection, decimal.Zero, newTotalCost, newTotalCharges
-	}
-
-	// Scaling out or flipping
-	closeQty := decimal.Min(currentQty, tradeQty)
-
-	// Determine realized PnL per unit
-	var pnlPerUnit decimal.Decimal
-	if isLong {
-		pnlPerUnit = tradePrice.Sub(currentAvgPrice) // Sell above avg = profit
-	} else {
-		pnlPerUnit = currentAvgPrice.Sub(tradePrice) // Buy below avg = profit
-	}
-
-	realizedPnL = pnlPerUnit.Mul(closeQty)
-
-	// Check if it's a full close or flip
-	if tradeQty.LessThanOrEqual(currentQty) {
-		newQty = currentQty.Sub(tradeQty)
-
-		// Full close
-		if newQty.IsZero() {
-			return decimal.Zero, decimal.Zero, direction, realizedPnL, totalCost, newTotalCharges
-		}
-
-		// Partial close
-		return currentAvgPrice, newQty, direction, realizedPnL, totalCost, newTotalCharges
-	}
-
-	// Flip
-	netQty := tradeQty.Sub(currentQty) // Excess becomes new position
-	if isLong {
-		newDirection = DirectionShort
-	} else {
-		newDirection = DirectionLong
-	}
-
-	newTotalCost = totalCost.Add(tradePrice.Mul(newQty))
-	return tradePrice, netQty, newDirection, realizedPnL, newTotalCost, newTotalCharges
-}
-
 func ConvertTradesToCreatePayload(trades []*trade.Trade) []trade.CreatePayload {
 	createPayloads := make([]trade.CreatePayload, len(trades))
 	for i, t := range trades {
@@ -466,30 +368,44 @@ type RealisedStatsUptoATrade struct {
 // by how it affects the position up to that trade. Very helpful for analytics and reporting.
 // If you have single position, you can pass a slice with one element.
 func GetRealisedStatsUptoATradeByTradeID(positions []*Position) map[uuid.UUID]RealisedStatsUptoATrade {
-	// Keep track of realised PnL for each trade.
 	realisedStats := make(map[uuid.UUID]RealisedStatsUptoATrade)
 
 	for _, pos := range positions {
-		avgPrice := decimal.NewFromFloat(0)
-		totalCost := decimal.NewFromFloat(0)
-		totalCharges := decimal.NewFromFloat(0)
-		netQty := decimal.NewFromFloat(0)
-		direction := pos.Direction
+		// Defensive copy of trades to avoid mutating original
+		tradesCopy := make([]*trade.Trade, len(pos.Trades))
+		for i, t := range pos.Trades {
+			tradeCopy := *t
+			tradesCopy[i] = &tradeCopy
+		}
 
-		// Calculate realized PnL for each trade
-		for _, t := range pos.Trades {
-			var grossPnL decimal.Decimal
+		// ComputeSmartTrades updates RealisedPnL and ROI in place
+		direction, err := computeDirection(tradesCopy)
+		if err != nil {
+			continue
+		}
+		_, err = ComputeSmartTrades(tradesCopy, direction)
+		if err != nil {
+			continue
+		}
 
-			avgPrice, netQty, _, grossPnL, totalCost, totalCharges = ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, t.Quantity, t.Price, t.ChargesAmount, t.Kind)
+		grossPnL := decimal.Zero
+		charges := decimal.Zero
+
+		for i, t := range tradesCopy {
+			charges = charges.Add(t.ChargesAmount)
+			grossPnL = grossPnL.Add(t.RealisedPnL)
 
 			stats := RealisedStatsUptoATrade{
 				GrossPnLAmount: grossPnL,
-				ChargesAmount:  totalCharges,
-				NetPnLAmount:   grossPnL.Sub(totalCharges),
+				ChargesAmount:  charges,
+				NetPnLAmount:   grossPnL.Sub(charges),
 				IsRealising:    IsTradeRealisingPnL(t, pos),
 			}
-
 			realisedStats[t.ID] = stats
+
+			if i < len(pos.Trades) && pos.Trades[i].ID == t.ID {
+				realisedStats[pos.Trades[i].ID] = stats
+			}
 		}
 	}
 

@@ -235,16 +235,16 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 			chargesAmount = decimal.Zero
 		}
 
-		grossPnL := stats.GrossPnLAmount
+		grossPnL := t.RealisedPnL
 		charges := stats.ChargesAmount.Sub(chargesAmount)
-		netPnL := stats.GrossPnLAmount.Sub(charges)
+		netPnL := grossPnL.Sub(charges)
 
-		if stats.IsRealising {
-			activeBucket.GrossPnL = activeBucket.GrossPnL.Add(grossPnL)
-			activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
-			activeBucket.Charges = activeBucket.Charges.Add(charges)
-			chargesByPositionID[t.PositionID] = stats.ChargesAmount
-		}
+		// if stats.IsRealising {
+		activeBucket.GrossPnL = activeBucket.GrossPnL.Add(grossPnL)
+		activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
+		activeBucket.Charges = activeBucket.Charges.Add(charges)
+		chargesByPositionID[t.PositionID] = stats.ChargesAmount
+		// }
 	}
 
 	return results

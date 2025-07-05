@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/common"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
+	"arthveda/internal/logger"
 	"arthveda/internal/service"
 	"context"
 	"time"
@@ -111,6 +112,14 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 	}
 
 	positionsFiltered := filterPositionsWithRealisingTradesUpTo(positions, end, loc)
+
+	for _, pos := range positionsFiltered {
+		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction)
+		if err != nil {
+			logger.Get().Warnw("failed to compute smart trades for position", "position_id", pos.ID, "error", err)
+			continue
+		}
+	}
 
 	generalStats := getGeneralStats(positionsFiltered)
 	pnlBuckets := getPnLBuckets(positionsFiltered, bucketPeriod, start, end, loc)
