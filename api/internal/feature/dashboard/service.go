@@ -114,11 +114,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 
 	generalStats := getGeneralStats(positionsFiltered)
 	pnlBuckets := getPnLBuckets(positionsFiltered, bucketPeriod, start, end, loc)
-
-	// Make a copy of the buckets to avoid modifying the original slice
-	pnlBucketsCopy := make([]pnlBucket, len(pnlBuckets))
-	copy(pnlBucketsCopy, pnlBuckets)
-	cumulativePnLBuckets := getCumulativePnLBuckets(pnlBucketsCopy)
+	cumulativePnLBuckets := getCumulativePnLBuckets(positionsFiltered, bucketPeriod, start, end, loc)
 
 	result := &GetDashboardReponse{
 		PositionsCount:       len(positionsFiltered),

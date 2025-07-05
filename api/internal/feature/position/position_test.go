@@ -30,34 +30,37 @@ func TestComputeSmartTrades_LongPosition(t *testing.T) {
 		},
 	}
 
-	updated, err := position.ComputeSmartTrades(pos)
+	payload := position.ComputePayload{
+		RiskAmount: pos.RiskAmount,
+		Trades:     position.ConvertTradesToCreatePayload(pos.Trades),
+	}
+
+	res, err := position.Compute(payload)
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatalf("position.Compute: %s", err)
 	}
 
 	fmt.Println("--- Smart Trade Summary ---")
-	for i, t := range updated.Trades {
+	for i, t := range pos.Trades {
 		fmt.Printf("%2d. %s %s @ %s\n", i+1, t.Kind, t.Quantity.String(), t.Price.String())
-		if !t.RealisedPnL.IsZero() {
-			fmt.Printf("    Realised PnL: ₹%s\n", t.RealisedPnL.StringFixed(2))
-			fmt.Printf("    ROI: %s%%\n", t.ROI.StringFixed(2))
-		}
+		fmt.Printf("    Realised PnL: ₹%s\n", t.RealisedPnL.StringFixed(2))
+		fmt.Printf("    ROI: %s%%\n", t.ROI.StringFixed(2))
 	}
 
 	fmt.Println("--- Position Summary ---")
-	fmt.Printf("Direction: %s\n", updated.Direction)
-	fmt.Printf("Gross PnL: ₹%s\n", updated.GrossPnLAmount.StringFixed(2))
-	fmt.Printf("Net Return: %s%%\n", updated.NetReturnPercentage.StringFixed(2))
+	fmt.Printf("Direction: %s\n", res.Direction)
+	fmt.Printf("Gross PnL: ₹%s\n", res.GrossPnLAmount.StringFixed(2))
+	fmt.Printf("Net Return: %s%%\n", res.NetReturnPercentage.StringFixed(2))
 
-	if updated.Direction != position.DirectionLong {
-		t.Errorf("expected direction %s, got %s", position.DirectionLong, updated.Direction)
+	if res.Direction != position.DirectionLong {
+		t.Errorf("expected direction %s, got %s", position.DirectionLong, res.Direction)
 	}
 
-	if !updated.GrossPnLAmount.Equal(d("3800.00")) {
-		t.Errorf("expected GrossPnLAmount 3800.00, got %s", updated.GrossPnLAmount.String())
+	if !res.GrossPnLAmount.Equal(d("3800.00")) {
+		t.Errorf("expected GrossPnLAmount 3800.00, got %s", res.GrossPnLAmount.String())
 	}
 
-	if !updated.NetReturnPercentage.Round(2).Equal(d("16.14")) {
-		t.Errorf("expected NetReturnPercentage 16.14, got %s", updated.NetReturnPercentage.StringFixed(2))
+	if !res.NetReturnPercentage.Round(2).Equal(d("16.14")) {
+		t.Errorf("expected NetReturnPercentage 16.14, got %s", res.NetReturnPercentage.StringFixed(2))
 	}
 }

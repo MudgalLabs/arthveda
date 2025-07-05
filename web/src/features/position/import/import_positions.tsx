@@ -865,6 +865,7 @@ const columns: ColumnDef<Position>[] = [
         header: ({ column, table }) => (
             <DataTableColumnHeader title="R Factor" column={column} disabled={table.options.meta?.isFetching} />
         ),
+        cell: ({ row }) => new Decimal(row.original.r_factor).toFixed(2).toString(),
         enableSorting: false,
     },
     {

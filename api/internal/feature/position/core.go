@@ -3,6 +3,8 @@ package position
 import (
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/feature/trade"
+	"arthveda/internal/logger"
+	"errors"
 	"fmt"
 	"time"
 
@@ -209,7 +211,11 @@ type computeResult struct {
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount"`
 }
 
+var ErrInvalidTradeData = errors.New("Invalid trade data provided")
+
 func Compute(payload ComputePayload) (computeResult, error) {
+	l := logger.Get()
+
 	result := computeResult{
 		OpenedAt:  time.Now().UTC(),
 		Status:    StatusOpen,
@@ -220,55 +226,78 @@ func Compute(payload ComputePayload) (computeResult, error) {
 		return result, nil
 	}
 
-	var closedAt *time.Time = nil
-	var status Status
-	var direction Direction
-	avgPrice := decimal.NewFromFloat(0)
-	grossPnL := decimal.NewFromFloat(0)
-	totalCost := decimal.NewFromFloat(0)
-	totalCharges := decimal.NewFromFloat(0)
-	netQty := decimal.NewFromFloat(0)
-
-	if payload.Trades[0].Kind == trade.TradeKindBuy {
-		direction = DirectionLong
-	} else {
-		direction = DirectionShort
-	}
-
 	// If there is only one trade, we know the trade is the opening trade.
 
 	// TODO: Calculate and store the realised PnL on every trade in the position.
 	// This will make the analytics easier and faster and we can show the realised
 	// PnL on every trade in the position when viewing the position.
 
+	// FIXME: Change thix functions API to accept a "position.Position"?
+	var trades []*trade.Trade
+
 	for _, t := range payload.Trades {
-		var pnl decimal.Decimal
-		var newDirection Direction
-
-		avgPrice, netQty, newDirection, pnl, totalCost, totalCharges = ApplyTradeToPosition(avgPrice, netQty, totalCost, totalCharges, direction, t.Quantity, t.Price, t.ChargesAmount, t.Kind)
-
-		// Trade direction changed, meaning we flipped.
-		// We don't wanna allow users to sell (if long) or buy (if short) more quantity than they have open.
-		// So we will return an error.
-		if newDirection != direction {
-			if direction == DirectionLong {
-				return result, fmt.Errorf("You cannot sell more quantity than you have open")
-			} else {
-				return result, fmt.Errorf("You cannot buy more quantity than you have open")
-			}
+		newTrade, err := trade.New(t)
+		if err != nil {
+			l.Errorw("trade.New", "error", err, "trade", t)
+			return result, ErrInvalidTradeData
 		}
 
-		grossPnL = grossPnL.Add(pnl)
+		trades = append(trades, newTrade)
+	}
 
-		if netQty.IsZero() {
+	direction, err := computeDirection(trades)
+	if err != nil {
+		l.Errorw("computeDirection", "error", err, "trades", trades)
+		return result, ErrInvalidTradeData
+	}
+
+	openAvgPrice, err := ComputeSmartTrades(trades, direction)
+	if err != nil {
+		l.Errorw("ComputeSmartTrades", "error", err, "trades", trades)
+		return result, ErrInvalidTradeData
+	}
+
+	grossPnL := decimal.Zero
+	capitalUsed := decimal.Zero
+	netOpenQty := decimal.Zero
+	var closedAt *time.Time = nil
+
+	for _, t := range trades {
+		grossPnL = grossPnL.Add(t.RealisedPnL)
+		for _, lot := range t.MatchedLots {
+			capitalUsed = capitalUsed.Add(lot.Qty.Mul(lot.PriceIn))
+		}
+
+		// Tally netQty based on trade kind and direction
+		signedQty := t.Quantity
+		if (direction == DirectionLong && t.Kind == trade.TradeKindSell) || (direction == DirectionShort && t.Kind == trade.TradeKindBuy) {
+			signedQty = signedQty.Neg()
+		}
+		netOpenQty = netOpenQty.Add(signedQty)
+
+		// If we ever hit 0 net qty after performing a trade, we know that the position is closed.
+		if netOpenQty.IsZero() {
 			closedAt = &t.Time
 		}
 	}
 
-	var netPnL, rFactor, netReturnPercentage, chargesAsPercentageOfNetPnL decimal.Decimal
+	totalCharges := calculateTotalChargesAmountFromTrades(trades)
+
+	var status Status
+
+	netReturnPercentage := decimal.Zero
+	if !capitalUsed.IsZero() {
+		netReturnPercentage = grossPnL.Div(capitalUsed).Mul(decimal.NewFromInt(100))
+	}
+
+	result.GrossPnLAmount = grossPnL
+	result.NetPnLAmount = grossPnL
+	result.NetReturnPercentage = netReturnPercentage
+
+	var netPnL, rFactor, chargesAsPercentageOfNetPnL decimal.Decimal
 
 	// Position is closed.
-	if netQty.IsZero() {
+	if netOpenQty.IsZero() {
 		netPnL = grossPnL.Sub(totalCharges)
 
 		if payload.RiskAmount.IsPositive() {
@@ -285,35 +314,27 @@ func Compute(payload ComputePayload) (computeResult, error) {
 	} else {
 		// Position is open.
 		status = StatusOpen
-
-		// The position is still open but we have some realised gross pnl.
-		if !grossPnL.IsZero() {
-			netPnL = grossPnL
-		}
+		netPnL = grossPnL
 	}
 
 	if grossPnL.IsPositive() {
 		chargesAsPercentageOfNetPnL = totalCharges.Div(grossPnL).Mul(decimal.NewFromFloat(100))
 	}
 
-	if totalCost.IsPositive() {
-		netReturnPercentage = netPnL.Div(totalCost).Mul(decimal.NewFromFloat(100))
-	}
-
 	result.Direction = direction
 	result.Status = status
 	result.OpenedAt = payload.Trades[0].Time
 	result.ClosedAt = closedAt
-	result.GrossPnLAmount = grossPnL.Round(2) // Round to match NUMERIC(14,2)
-	result.NetPnLAmount = netPnL.Round(2)     // Round to match NUMERIC(14,2)
-	result.RFactor = rFactor.Round(2)
-	result.TotalChargesAmount = totalCharges.Round(2) // Round to match NUMERIC(14,2)
-	result.NetReturnPercentage = netReturnPercentage.Round(2)
-	result.ChargesAsPercentageOfNetPnL = chargesAsPercentageOfNetPnL.Round(2)
+	result.GrossPnLAmount = grossPnL
+	result.NetPnLAmount = netPnL
+	result.RFactor = rFactor
+	result.TotalChargesAmount = totalCharges
+	result.NetReturnPercentage = netReturnPercentage
+	result.ChargesAsPercentageOfNetPnL = chargesAsPercentageOfNetPnL
 
-	if netQty.IsPositive() {
-		result.OpenQuantity = netQty
-		result.OpenAveragePriceAmount = avgPrice.Round(2) // Round to match NUMERIC(14,2)
+	if netOpenQty.IsPositive() {
+		result.OpenQuantity = netOpenQty
+		result.OpenAveragePriceAmount = openAvgPrice
 	}
 
 	return result, nil
@@ -391,8 +412,6 @@ func ApplyTradeToPosition(
 	}
 
 	realizedPnL = pnlPerUnit.Mul(closeQty)
-	// Round realized PnL to match database precision (NUMERIC(14,2))
-	realizedPnL = realizedPnL.Round(2)
 
 	// Check if it's a full close or flip
 	if tradeQty.LessThanOrEqual(currentQty) {
@@ -512,56 +531,39 @@ func IsTradeRealisingPnL(
 	return false
 }
 
-func ComputeSmartTrades(pos Position) (Position, error) {
-	if len(pos.Trades) == 0 {
-		return pos, nil
+type FIFOLot struct {
+	Qty   decimal.Decimal
+	Price decimal.Decimal
+}
+
+func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (decimal.Decimal, error) {
+	if len(trades) == 0 {
+		return decimal.Zero, nil
 	}
 
-	var direction Direction
+	var fifo []FIFOLot
+	netOpenQty := decimal.Zero
 
-	switch pos.Trades[0].Kind {
-	case trade.TradeKindBuy:
-		direction = DirectionLong
-	case trade.TradeKindSell:
-		direction = DirectionShort
-	default:
-		return pos, fmt.Errorf("invalid trade kind in first trade: %s", pos.Trades[0].Kind)
-	}
-
-	type Lot struct {
-		Qty   decimal.Decimal
-		Price decimal.Decimal
-	}
-
-	var fifo []Lot
-	// var smartTrades []trade.Trade
-	netQty := decimal.Zero
-
-	for i, t := range pos.Trades {
-		// smart := trade.Trade{
-		// 	Time:     t.Time,
-		// 	Kind:     t.Kind,
-		// 	Quantity: t.Quantity,
-		// 	Price:    t.Price,
-		// }}
+	for i, t := range trades {
 		qtyLeft := t.Quantity
 
 		if qtyLeft.LessThanOrEqual(decimal.Zero) {
-			return pos, fmt.Errorf("invalid quantity at trade %d: must be positive", i)
+			return decimal.Zero, fmt.Errorf("invalid quantity at trade %d: must be positive", i)
 		}
 
 		isScaleIn := (direction == DirectionLong && t.Kind == trade.TradeKindBuy) || (direction == DirectionShort && t.Kind == trade.TradeKindSell)
 
 		if isScaleIn {
 			// Add to FIFO
-			fifo = append(fifo, Lot{Qty: qtyLeft, Price: t.Price})
-			netQty = netQty.Add(qtyLeft.Mul(directionSignDecimal(direction)))
+			fifo = append(fifo, FIFOLot{Qty: qtyLeft, Price: t.Price})
+			netOpenQty = netOpenQty.Add(qtyLeft.Mul(directionSignDecimal(direction)))
 		} else {
 			// Scale-out
 			requiredQty := qtyLeft
-			if netQty.LessThan(requiredQty) {
-				return pos, fmt.Errorf("invalid scale-out at trade %d: trying to %s %s units, but only %s available",
-					i, t.Kind, requiredQty.String(), netQty.String())
+			availableQty := netOpenQty.Abs()
+			if availableQty.LessThan(requiredQty) {
+				return decimal.Zero, fmt.Errorf("invalid scale-out at trade %d: trying to %s %s units, but only %s available",
+					i, t.Kind, requiredQty.String(), availableQty.String())
 			}
 
 			matched := []trade.MatchedLot{}
@@ -603,43 +605,19 @@ func ComputeSmartTrades(pos Position) (Position, error) {
 				t.ROI = realisedPnL.Div(costBasis).Mul(decimal.NewFromInt(100))
 			}
 
-			netQty = netQty.Sub(t.Quantity.Mul(directionSignDecimal(direction)))
+			netOpenQty = netOpenQty.Sub(t.Quantity.Mul(directionSignDecimal(direction)))
 		}
-
 	}
 
-	pos.Direction = direction
+	openAvgPrice := decimal.Zero
 
-	totalPnL := decimal.Zero
-	capitalUsed := decimal.Zero
-	netQty = decimal.Zero
-
-	for _, t := range pos.Trades {
-		totalPnL = totalPnL.Add(t.RealisedPnL)
-		for _, lot := range t.MatchedLots {
-			capitalUsed = capitalUsed.Add(lot.Qty.Mul(lot.PriceIn))
-		}
-
-		// Tally netQty based on trade kind and direction
-		signedQty := t.Quantity
-		if (pos.Direction == DirectionLong && t.Kind == trade.TradeKindSell) || (pos.Direction == DirectionShort && t.Kind == trade.TradeKindBuy) {
-			signedQty = signedQty.Neg()
-		}
-		netQty = netQty.Add(signedQty)
+	if netOpenQty.IsPositive() {
+		// If we have any open quantity left, it means we have unclosed positions.
+		// We can compute the average price of the open positions.
+		openAvgPrice = computeAvgPrice(fifo)
 	}
 
-	// isClosed := netQty.IsZero()
-
-	realisedROI := decimal.Zero
-	if !capitalUsed.IsZero() {
-		realisedROI = totalPnL.Div(capitalUsed).Mul(decimal.NewFromInt(100))
-	}
-
-	pos.GrossPnLAmount = totalPnL
-	pos.NetPnLAmount = totalPnL // Assuming no charges for simplicity, can be adjusted
-	pos.NetReturnPercentage = realisedROI
-
-	return pos, nil
+	return openAvgPrice, nil
 }
 
 func directionSignDecimal(direction Direction) decimal.Decimal {
@@ -647,4 +625,35 @@ func directionSignDecimal(direction Direction) decimal.Decimal {
 		return decimal.NewFromInt(1)
 	}
 	return decimal.NewFromInt(-1)
+}
+
+func computeDirection(trades []*trade.Trade) (Direction, error) {
+	var direction Direction
+
+	switch trades[0].Kind {
+	case trade.TradeKindBuy:
+		direction = DirectionLong
+	case trade.TradeKindSell:
+		direction = DirectionShort
+	default:
+		return direction, fmt.Errorf("invalid trade kind in first trade: %s", trades[0].Kind)
+	}
+
+	return direction, nil
+}
+
+func computeAvgPrice(fifo []FIFOLot) decimal.Decimal {
+	totalCost := decimal.Zero
+	totalQty := decimal.Zero
+
+	for _, lot := range fifo {
+		totalCost = totalCost.Add(lot.Qty.Mul(lot.Price))
+		totalQty = totalQty.Add(lot.Qty)
+	}
+
+	if totalQty.IsZero() {
+		return decimal.Zero
+	}
+
+	return totalCost.Div(totalQty)
 }

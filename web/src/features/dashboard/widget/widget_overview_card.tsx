@@ -26,7 +26,7 @@ export const OverviewCard = memo(
         total_charges_amount,
         r_factor,
         charges_as_percentage_of_net_pnl,
-        net_return_percentage = "",
+        net_return_percentage,
         currency,
         className,
     }: Props) => {
@@ -46,14 +46,13 @@ export const OverviewCard = memo(
             netPnLColor = "text-foreground-red";
         }
 
-        if (!charges_as_percentage_of_net_pnl) {
-            charges_as_percentage_of_net_pnl = charges
-                .div(grossPnL.isZero() ? 1 : grossPnL)
-                .mul(100)
-                .toFixed(2);
+        let chargesAsPercentageOfNetPnL = new Decimal(charges_as_percentage_of_net_pnl || "0");
+
+        if (chargesAsPercentageOfNetPnL.isZero()) {
+            chargesAsPercentageOfNetPnL = charges.div(grossPnL.isZero() ? 1 : grossPnL).mul(100);
         }
 
-        let progressValue = 100 - new Decimal(charges_as_percentage_of_net_pnl).toNumber();
+        let progressValue = 100 - chargesAsPercentageOfNetPnL.toNumber();
 
         if (grossPnL.isNegative()) {
             progressValue = 0;
@@ -69,7 +68,7 @@ export const OverviewCard = memo(
                             <span className="label-muted">Net</span>
                             <div className={`flex items-end gap-x-2 ${netPnLColor}`}>
                                 <p className={`heading leading-none ${netPnLColor}`}>
-                                    {formatCurrency(net_pnl_amount, { currency })}
+                                    {formatCurrency(netPnL.toFixed(2).toString(), { currency })}
                                 </p>
                                 {net_return_percentage && <p>{netReturnPercentage.toFixed(2).toString()}%</p>}
                                 <p>{trendingIcon}</p>
@@ -90,7 +89,7 @@ export const OverviewCard = memo(
                                 <p className="text-sm font-normal">
                                     Charges are{" "}
                                     <span className="text-foreground font-semibold">
-                                        {charges_as_percentage_of_net_pnl}%
+                                        {chargesAsPercentageOfNetPnL.toFixed(2).toString()}%
                                     </span>{" "}
                                     of gross
                                 </p>
@@ -114,7 +113,7 @@ export const OverviewCard = memo(
                                             // "text-foreground-red": grossPnL.isNegative(),
                                         })}
                                     >
-                                        {formatCurrency(gross_pnl_amount, {
+                                        {formatCurrency(grossPnL.toFixed(2).toString(), {
                                             currency,
                                         })}
                                     </span>
@@ -125,7 +124,7 @@ export const OverviewCard = memo(
                                 <span className="label-muted">Charges</span>
                                 <p className="text-foreground text-base">
                                     <span className="font-semibold">
-                                        {formatCurrency(total_charges_amount, {
+                                        {formatCurrency(charges.toFixed(2).toString(), {
                                             currency,
                                         })}
                                     </span>

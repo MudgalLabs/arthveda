@@ -91,7 +91,7 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 		}
 
 		// Update the position's total charges amount.
-		computeResult.TotalChargesAmount = calculateTotalChargesAmountFromTrades(trades).Round(2)
+		computeResult.TotalChargesAmount = calculateTotalChargesAmountFromTrades(trades)
 		result.TradeCharges = charges
 	}
 
@@ -193,6 +193,7 @@ type ImportPayload struct {
 
 type ImportResult struct {
 	Positions               []*Position `json:"positions"`
+	InvalidPositions        []*Position `json:"invalid_positions"`
 	PositionsCount          int         `json:"positions_count"`
 	DuplicatePositionsCount int         `json:"duplicate_positions_count"`
 	PositionsImportedCount  int         `json:"positions_imported_count"`
@@ -330,9 +331,6 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 	// Convert aggregated trades to tradesWithOrderIDs
 	for orderID, aggregatedTrade := range aggregatedTrades {
 		averagePrice := aggregatedTrade.TotalPrice.Div(aggregatedTrade.Quantity)
-		// Round the average price to match database precision
-		averagePrice = averagePrice.Round(2)
-
 		tradesWithOrderIDs = append(tradesWithOrderIDs, TradeWithOrderID{
 			OrderID: orderID,
 			Payload: trade.CreatePayload{
@@ -524,7 +522,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 		// Add the position's total charges amount.
 		// This is calculated from the trades in the position.
-		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades).Round(2)
+		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades)
 
 		// As we have updated the trades with charges, we need to recompute the position.
 		computePayload := ComputePayload{
@@ -623,6 +621,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 
 	result := &ImportResult{
 		Positions:               finalizedPositions,
+		InvalidPositions:        invalidPositions,
 		PositionsCount:          len(finalizedPositions), // Client can check length of positions?
 		DuplicatePositionsCount: duplicatePositionsCount,
 		PositionsImportedCount:  positionsImported,
