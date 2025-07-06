@@ -147,7 +147,7 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
 
                 <DropdownMenuSeparator />
 
-                <Link to={ROUTES.planAndBilling} variant="unstyled">
+                {/* <Link to={ROUTES.planAndBilling} variant="unstyled">
                     <DropdownMenuItem>
                         <IconCreditCard size={18} />
                         Plan & Billing
@@ -168,7 +168,7 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                     </DropdownMenuItem>
                 </Link>
 
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator /> */}
 
                 <DropdownMenuItem
                     className={cn({
