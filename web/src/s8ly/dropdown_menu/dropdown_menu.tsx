@@ -22,7 +22,7 @@ const DropdownMenuContent: FC<DropdownMenuContentProps> = ({ children, ref, arro
         <DropdownMenuPrimitive.Portal>
             <DropdownMenuPrimitive.Content
                 className={cn(
-                    "bg-muted border-border rounded-md border-1 p-1 font-normal focus-visible:ring-transparent!",
+                    "bg-surface-bg border-border focus-visible:borer-border rounded-md border-1 font-normal",
                     className
                 )}
                 {...props}
@@ -40,7 +40,7 @@ const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 const DropdownMenuItem: FC<DropdownMenuPrimitive.DropdownMenuItemProps> = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Item
         className={cn(
-            "hover:bg-muted text-foreground focus:bg-accent flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-1 text-sm outline-none",
+            "hover:bg-accent-muted text-foreground focus:bg-muted-accent flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-2 text-sm outline-none",
             className
         )}
         {...props}
@@ -56,7 +56,7 @@ const DropdownMenuCheckboxItem = ({
     return (
         <DropdownMenuPrimitive.CheckboxItem
             className={cn(
-                "focus:bg-accent focus:text-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none hover:cursor-pointer data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                "focus:bg-accent-muted focus:text-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none hover:cursor-pointer data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
                 className
             )}
             checked={checked}
@@ -82,7 +82,7 @@ const DropdownMenuRadioItem = ({
     return (
         <DropdownMenuPrimitive.RadioItem
             className={cn(
-                "focus:bg-accent focus:text-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                "focus:bg-accent-muted focus:text-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
                 className
             )}
             {...props}
@@ -107,14 +107,14 @@ const DropdownMenuLabel = ({
     return (
         <DropdownMenuPrimitive.Label
             data-inset={inset}
-            className={cn("p-1 text-sm font-semibold data-[inset]:pl-8", className)}
+            className={cn("p-2 text-sm font-semibold data-[inset]:pl-8", className)}
             {...props}
         />
     );
 };
 
 const DropdownMenuSeparator: FC<DropdownMenuPrimitive.DropdownMenuSeparatorProps> = ({ className, ...props }) => (
-    <DropdownMenuPrimitive.Separator className={cn("bg-border my-1 h-px", className)} {...props} />
+    <DropdownMenuPrimitive.Separator className={cn("bg-border h-px", className)} {...props} />
 );
 
 const DropdownMenuShortcut = ({ className, ...props }: React.ComponentProps<"span">) => {
@@ -135,7 +135,7 @@ const DropdownMenuSubTrigger = ({
         <DropdownMenuPrimitive.SubTrigger
             data-inset={inset}
             className={cn(
-                "focus:bg-accent focus:text-foreground data-[state=open]:bg-accent data-[state=open]:text-foreground flex cursor-default items-center rounded-sm p-1 text-sm outline-hidden select-none hover:cursor-pointer data-[inset]:pl-8",
+                "focus:bg-accent-muted focus:text-foreground data-[state=open]:bg-primary data-[state=open]:text-foreground flex cursor-default items-center rounded-sm p-1 text-sm outline-hidden select-none hover:cursor-pointer data-[inset]:pl-8",
                 className
             )}
             {...props}
@@ -153,7 +153,7 @@ const DropdownMenuSubContent = ({
     return (
         <DropdownMenuPrimitive.SubContent
             className={cn(
-                "bg-muted text-muted-foreground border-border z-20 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border-1 p-1 shadow-lg",
+                "bg-surface-bg text-muted-foreground border-border z-20 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border-1 p-1 shadow-lg",
                 className
             )}
             {...props}

@@ -13,7 +13,9 @@ export const ROUTES = {
     // Using a function so that we can pass the `":id"` only in rendering route.
     // But for ROUTES_PROTECTED and RouteHandler, we don't pass `id`.
     viewPosition: (id = "") => `/position/${id}`,
-    // settings: "/settings",
+    planAndBilling: "/settings/plan-and-billing",
+    connectedBrokers: "/settings/connected-brokers",
+    feedbackAndSupport: "/settings/feedback-and-support",
 };
 
 export const ROUTES_PUBLIC = [ROUTES.index, ROUTES.notFound, ROUTES.signIn];
@@ -24,5 +26,7 @@ export const ROUTES_PROTECTED = [
     ROUTES.explorePositions,
     ROUTES.importPositions,
     ROUTES.viewPosition(),
-    // ROUTES.settings,
+    ROUTES.planAndBilling,
+    ROUTES.connectedBrokers,
+    ROUTES.feedbackAndSupport,
 ];
