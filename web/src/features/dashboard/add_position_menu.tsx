@@ -46,7 +46,7 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ className }) => {
                 <Link to={ROUTES.connectedBrokers} variant="unstyled">
                     <DropdownMenuItem>
                         <IconSync size={18} />
-                        Sync from File
+                        Sync from Broker
                     </DropdownMenuItem>
                 </Link>
             </DropdownMenuContent>
