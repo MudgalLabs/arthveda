@@ -159,35 +159,61 @@ export const createPositionStore = (initProp?: Position) => {
 
 export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
     const position = usePositionStore((s) => s.position);
+    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
+
     const debouncedPosition = useDebounce(position, 1000);
     const prevDebouncedPositionRef = useRef(debouncedPosition);
-
-    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
 
     const [flag, setFlag] = useState(false);
 
     useEffect(() => {
         const prevPosition = prevDebouncedPositionRef.current;
 
-        let flag = false;
+        let hasChanges = false;
 
         if (debouncedPosition.risk_amount !== prevPosition.risk_amount) {
-            flag = true;
+            hasChanges = true;
         }
 
-        if (!isEqual(debouncedPosition.trades, prevPosition.trades)) {
-            flag = true;
+        const prevTrades = prevPosition.trades ?? [];
+        const debouncedTrades = debouncedPosition.trades ?? [];
+
+        // Check if trades array length changed
+        if (prevTrades.length !== debouncedTrades.length) {
+            hasChanges = true;
+        }
+
+        // Check if any trade data changed
+        if (!hasChanges) {
+            for (let i = 0; i < debouncedTrades.length; i++) {
+                const trade = debouncedTrades[i];
+                const prevTrade = prevTrades[i];
+
+                if (
+                    !prevTrade ||
+                    trade.kind !== prevTrade.kind ||
+                    trade.time.getTime() !== prevTrade.time.getTime() ||
+                    trade.price !== prevTrade.price ||
+                    trade.quantity !== prevTrade.quantity
+                ) {
+                    hasChanges = true;
+                    break;
+                }
+            }
         }
 
         if (enableAutoCharges) {
             if (debouncedPosition.broker_id !== prevPosition.broker_id) {
-                flag = true;
+                hasChanges = true;
             }
         }
 
-        setFlag(flag);
+        // Only set flag to true if there are changes AND trades are valid
+        const tradesAreValid = validateTrades(debouncedTrades);
+        setFlag(hasChanges && tradesAreValid);
+
         prevDebouncedPositionRef.current = debouncedPosition;
-    }, [debouncedPosition]);
+    }, [debouncedPosition, enableAutoCharges]);
 
     return [flag, setFlag];
 }
