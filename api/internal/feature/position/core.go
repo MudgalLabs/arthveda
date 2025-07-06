@@ -257,14 +257,15 @@ func Compute(payload ComputePayload) (computeResult, error) {
 		return result, ErrInvalidTradeData
 	}
 
-	grossPnL := decimal.Zero
-	capitalUsed := decimal.Zero
-	netOpenQty := decimal.Zero
 	var closedAt *time.Time = nil
+	grossPnL := decimal.Zero
+	netOpenQty := decimal.Zero
+	capitalUsed := decimal.Zero
 
 	for _, t := range trades {
 		grossPnL = grossPnL.Add(t.RealisedPnL)
-		for _, lot := range computeTradesResult.matchedLots {
+
+		for _, lot := range t.MatchedLots {
 			capitalUsed = capitalUsed.Add(lot.Qty.Mul(lot.PriceIn))
 		}
 
@@ -281,10 +282,6 @@ func Compute(payload ComputePayload) (computeResult, error) {
 		}
 	}
 
-	totalCharges := calculateTotalChargesAmountFromTrades(trades)
-
-	var status Status
-
 	netReturnPercentage := decimal.Zero
 	if !capitalUsed.IsZero() {
 		netReturnPercentage = grossPnL.Div(capitalUsed).Mul(decimal.NewFromInt(100))
@@ -295,6 +292,9 @@ func Compute(payload ComputePayload) (computeResult, error) {
 	result.NetReturnPercentage = netReturnPercentage
 
 	var netPnL, rFactor, chargesAsPercentageOfNetPnL decimal.Decimal
+
+	totalCharges := calculateTotalChargesAmountFromTrades(trades)
+	var status Status
 
 	// Position is closed.
 	if netOpenQty.IsZero() {
@@ -426,7 +426,6 @@ type fifoLot struct {
 
 type ComputeSmartTradesResult struct {
 	openAvgPrice decimal.Decimal
-	matchedLots  []trade.MatchedLot
 }
 
 func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmartTradesResult, error) {
@@ -492,9 +491,10 @@ func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmar
 				if lot.Qty.IsZero() {
 					fifo = fifo[1:]
 				}
+
+				t.MatchedLots = matched
 			}
 
-			result.matchedLots = matched
 			t.RealisedPnL = realisedPnL
 			if !costBasis.IsZero() {
 				t.ROI = realisedPnL.Div(costBasis).Mul(decimal.NewFromInt(100))

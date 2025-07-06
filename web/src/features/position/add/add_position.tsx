@@ -41,7 +41,6 @@ import { WithDebounce } from "@/components/with_debounce";
 import { SymbolInput } from "@/features/position/components/symbol_input";
 import { usePositionStore } from "../position_store_context";
 import { ComputePositionResponse } from "@/lib/api/position";
-import { LoadingScreen } from "@/components/loading_screen";
 import {
     usePositionCanBeSaved,
     useHasPositionDataChanged,
@@ -53,6 +52,7 @@ import {
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { ROUTES } from "@/routes_constants";
 import { BrokerSelect } from "@/components/select/broker_select";
+import { useLatest } from "@/hooks/use_latest";
 
 function AddPosition() {
     const isCreatingPosition = useIsCreatingPosition();
@@ -114,7 +114,6 @@ function AddPosition() {
         onError: apiErrorHandler,
     });
 
-    const [skipCompute, setSkipCompute] = useState(false);
     const setTrades = usePositionStore((s) => s.setTrades);
 
     const { mutateAsync: compute, isPending: isComputing } = apiHooks.position.useCompute({
@@ -130,10 +129,6 @@ function AddPosition() {
                         charges_amount: charges[index] || "0",
                     }))
                 );
-                // We are doing this because, updating the trades will trigger the compute again.
-                // In the compute call in the useEffect, we should check for this flag, skip the compute
-                // and set this to `false` again.
-                setSkipCompute(true);
             }
 
             updatePosition({
@@ -142,20 +137,15 @@ function AddPosition() {
                 closed_at: data.closed_at ? new Date(data.closed_at) : null,
             });
         },
-        onSettled: () => {
-            if (!isInitialized) {
-                setIsInitialized(true);
-            }
-        },
         onError: apiErrorHandler,
     });
 
-    const [isInitialized, setIsInitialized] = useState(false);
     const position = usePositionStore((s) => s.position);
+    const positionLatest = useLatest(position);
     const insertNewTrade = usePositionStore((s) => s.insertNewTrade);
     const discard = usePositionStore((s) => s.discard);
     const updatePosition = usePositionStore((s) => s.updatePosition);
-    const [shouldCompute, setShouldCompute] = usePositionCanBeComputed();
+    const [canCompute, setCanCompute] = usePositionCanBeComputed();
     const canSave = usePositionCanBeSaved();
     const tradesAreValid = usePositionTradesAreValid();
     const hasPositionDataChanged = useHasPositionDataChanged();
@@ -198,16 +188,10 @@ function AddPosition() {
     const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
     const setEnabledAutoCharges = usePositionStore((s) => s.setEnableAutoCharges);
 
-    // FIXME: For some reason, the compute is being called twice on mount.
     useEffect(() => {
-        if (skipCompute) {
-            setSkipCompute(false);
-            return;
-        }
+        const position = positionLatest.current;
 
-        if (!isInitialized || shouldCompute) {
-            setShouldCompute(false);
-
+        if (canCompute) {
             compute({
                 trades: (position.trades || []).map((t) => {
                     const trade: CreateTrade = {
@@ -226,12 +210,10 @@ function AddPosition() {
                 enable_auto_charges: enableAutoCharges,
                 broker_id: position.broker_id,
             });
-        }
-    }, [compute, isInitialized, shouldCompute, skipCompute, position, enableAutoCharges, setShouldCompute]);
 
-    if (!isInitialized) {
-        return <LoadingScreen />;
-    }
+            setCanCompute(false);
+        }
+    }, [compute, canCompute, enableAutoCharges, positionLatest]);
 
     return (
         <>
