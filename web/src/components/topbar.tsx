@@ -8,9 +8,9 @@ import {
     IconPanelLeftClose,
     IconLogout,
     IconChevronDown,
-    IconCreditCard,
-    IconLifeBuoy,
-    IconPlug,
+    // IconCreditCard,
+    // IconLifeBuoy,
+    // IconPlug,
 } from "@/components/icons";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
