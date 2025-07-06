@@ -43,12 +43,12 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ className }) => {
                     </DropdownMenuItem>
                 </Link>
 
-                <Link to={ROUTES.connectedBrokers} variant="unstyled">
+                {/* <Link to={ROUTES.connectedBrokers} variant="unstyled">
                     <DropdownMenuItem>
                         <IconSync size={18} />
                         Sync from Broker
                     </DropdownMenuItem>
-                </Link>
+                </Link> */}
             </DropdownMenuContent>
         </DropdownMenu>
     );
