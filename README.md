@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./.github/screenshots/banner.png" height="64" alt="arthveda banner" />
+  <img src="./.github/screenshots/banner.png"  alt="arthveda banner" />
 </p>
 
 <p align="center">
