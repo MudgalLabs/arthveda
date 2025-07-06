@@ -25,11 +25,13 @@ func assertContinuous(t *testing.T, buckets []Bucket) {
 	}
 }
 
+var loc, _ = time.LoadLocation("Asia/Kolkata")
+
 func TestGenerateBuckets_Monthly(t *testing.T) {
 	start := mustDate("2024-01-15") // intentionally mid-month
 	end := mustDate("2024-12-31")   // inclusive
 
-	buckets := GenerateBuckets(BucketPeriodMonthly, start, end)
+	buckets := GenerateBuckets(BucketPeriodMonthly, start, end, loc)
 
 	expectedMonths := 12
 	if len(buckets) != expectedMonths {
@@ -54,7 +56,7 @@ func TestGenerateBuckets_Daily(t *testing.T) {
 	start := mustDate("2024-05-01")
 	end := mustDate("2024-05-05") // inclusive
 
-	buckets := GenerateBuckets(BucketPeriodDaily, start, end)
+	buckets := GenerateBuckets(BucketPeriodDaily, start, end, loc)
 	expected := 5 // days: 1→2, 2→3, 3→4, 4→5, 5→6
 
 	if len(buckets) != expected {
@@ -79,7 +81,7 @@ func TestGenerateBuckets_Weekly(t *testing.T) {
 	start := mustDate("2024-05-01")
 	end := mustDate("2024-05-29") // inclusive
 
-	buckets := GenerateBuckets(BucketPeriodWeekly, start, end)
+	buckets := GenerateBuckets(BucketPeriodWeekly, start, end, loc)
 	expected := 5 // weeks: 1–8, 8–15, 15–22, 22–29, 29–30
 
 	if len(buckets) != expected {
@@ -108,7 +110,7 @@ func TestGenerateBuckets_Monthly_DecemberEdgeCase(t *testing.T) {
 	start := mustDate("2024-12-01")
 	end := mustDate("2024-12-31") // inclusive
 
-	buckets := GenerateBuckets(BucketPeriodMonthly, start, end)
+	buckets := GenerateBuckets(BucketPeriodMonthly, start, end, loc)
 
 	if len(buckets) != 1 {
 		t.Fatalf("expected 1 bucket for December, got %d", len(buckets))
