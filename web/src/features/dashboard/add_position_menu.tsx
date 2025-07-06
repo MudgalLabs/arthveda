@@ -1,7 +1,13 @@
 import { FC, useState } from "react";
 
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/s8ly";
-import { IconChevronDown, IconImport, IconPlus, IconScrollText, IconSync } from "@/components/icons";
+import {
+    IconChevronDown,
+    IconImport,
+    IconPlus,
+    IconScrollText,
+    // IconSync
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/routes_constants";
 import { Link } from "@/components/link";
