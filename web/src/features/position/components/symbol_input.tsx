@@ -8,6 +8,7 @@ import { useDebounce } from "@/hooks/use_debounce";
 import { IconSearch } from "@/components/icons";
 import { Loading } from "@/components/loading";
 import { cn } from "@/lib/utils";
+import { InputErrorMessage } from "@/components/input_error_message";
 
 interface SymbolInputProps extends Omit<InputProps, "value" | "onChange"> {
     value?: string;
@@ -15,7 +16,7 @@ interface SymbolInputProps extends Omit<InputProps, "value" | "onChange"> {
 }
 
 export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
-    const { value: valueProp, onChange: onChangeProp } = props;
+    const { value: valueProp, onChange: onChangeProp, variant, errorMsg, ...restProps } = props;
 
     const [inputValue, setInputValue] = useState("");
     const debouncedInputValue = useDebounce(inputValue, 500);
@@ -66,65 +67,75 @@ export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
     }, [options]);
 
     return (
-        <Autocomplete
-            inputValue={inputValue}
-            onInputChange={(_, newInputValue) => {
-                setInputValue(newInputValue.toUpperCase());
-                handleChange(newInputValue);
-            }}
-            value={value}
-            onChange={(_, newValue) => handleChange(newValue ?? "")}
-            freeSolo
-            disablePortal
-            open={open}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            options={options}
-            filterOptions={(options) => options}
-            slotProps={{
-                listbox: {
-                    className: "bg-surface-bg text-surface-foreground border-1 border-border",
-                },
-                paper: {
-                    className: "bg-surface-bg! border-1 border-border",
-                },
-            }}
-            renderInput={(params) => {
-                const { type, ...rest } = params.inputProps;
-                return (
-                    <div ref={params.InputProps.ref} className="relative">
-                        <span className="text-foreground-muted absolute top-3 left-3 text-base select-none">
-                            <IconSearch />
-                        </span>
-
-                        <Input {...rest} className="text-foreground pl-8" type="text" />
-
-                        {isLoading && (
-                            <span className="absolute top-1.5 right-3 text-base select-none">
-                                <Loading size="18" />
+        <>
+            <Autocomplete
+                inputValue={inputValue}
+                onInputChange={(_, newInputValue) => {
+                    setInputValue(newInputValue.toUpperCase());
+                    handleChange(newInputValue);
+                }}
+                value={value}
+                onChange={(_, newValue) => handleChange(newValue ?? "")}
+                freeSolo
+                disablePortal
+                open={open}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                options={options}
+                filterOptions={(options) => options}
+                slotProps={{
+                    listbox: {
+                        className: "bg-surface-bg text-surface-foreground border-1 border-border",
+                    },
+                    paper: {
+                        className: "bg-surface-bg! border-1 border-border",
+                    },
+                }}
+                renderInput={(params) => {
+                    const { type, ...restInputProps } = params.inputProps;
+                    return (
+                        <div ref={params.InputProps.ref} className="relative">
+                            <span className="text-foreground-muted absolute top-3 left-3 text-base select-none">
+                                <IconSearch />
                             </span>
-                        )}
-                    </div>
-                );
-            }}
-            renderOption={(props, option) => {
-                const { key, className, ...optionProps } = props;
-                return (
-                    <li
-                        key={key}
-                        {...optionProps}
-                        className={cn(
-                            "bg-surface-bg border-border text-foreground hover:bg-primary hover:text-foreground",
-                            "[&.Mui-focused]:bg-accent-muted!",
-                            "[&:focus]:bg-accent-muted!",
-                            "[&[aria-selected='true']]:bg-accent-muted!",
-                            className
-                        )}
-                    >
-                        <span className="py-1! text-sm!">{option}</span>
-                    </li>
-                );
-            }}
-        />
+
+                            <Input
+                                {...restInputProps}
+                                className="text-foreground pl-8"
+                                type="text"
+                                {...restProps}
+                                variant={variant}
+                            />
+
+                            {isLoading && (
+                                <span className="absolute top-1.5 right-3 text-base select-none">
+                                    <Loading size="18" />
+                                </span>
+                            )}
+                        </div>
+                    );
+                }}
+                renderOption={(props, option) => {
+                    const { key, className, ...optionProps } = props;
+                    return (
+                        <li
+                            key={key}
+                            {...optionProps}
+                            className={cn(
+                                "bg-surface-bg border-border text-foreground hover:bg-primary hover:text-foreground",
+                                "[&.Mui-focused]:bg-accent-muted!",
+                                "[&:focus]:bg-accent-muted!",
+                                "[&[aria-selected='true']]:bg-accent-muted!",
+                                className
+                            )}
+                        >
+                            <span className="py-1! text-sm!">{option}</span>
+                        </li>
+                    );
+                }}
+            />
+
+            {variant === "error" && errorMsg && <InputErrorMessage errorMsg={errorMsg} />}
+        </>
     );
 });

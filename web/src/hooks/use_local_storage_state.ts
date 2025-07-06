@@ -1,8 +1,4 @@
-import {
-    loadFromLocalStorage,
-    LocalStorageKey,
-    saveToLocalStorage,
-} from "@/lib/utils";
+import { loadFromLocalStorage, LocalStorageKey, saveToLocalStorage } from "@/lib/utils";
 import { isFunction } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/use_debounce";
@@ -26,9 +22,15 @@ export function useLocalStorageState<T>(
      */
     options?: Options<T>
 ): [T, React.Dispatch<React.SetStateAction<T>>] {
-    const [state, setState] = useState<T>(
-        () => loadFromLocalStorage(key) ?? defaultValue
-    );
+    const [state, setState] = useState<T>(() => {
+        const loadedValue = loadFromLocalStorage<T>(key);
+
+        if (loadedValue === null) {
+            return defaultValue;
+        } else {
+            return loadedValue;
+        }
+    });
 
     const debouncedState = useDebounce(state, 300);
 

@@ -77,63 +77,6 @@ export const Topbar = () => {
     );
 };
 
-interface SidebarProfileProps {
-    // Menu gets toggled when user clicks on this component.
-    menuOpen: boolean;
-
-    // User's profile image URL.
-    profileImageURL: string;
-
-    // User's display name.
-    displayName: string;
-
-    // Style the component with classes.
-    className?: string;
-
-    // Whether the component is rendered in mobile view.
-    isMobile?: boolean;
-}
-
-const ProfileMenuButton: FC<SidebarProfileProps> = (props) => {
-    const { menuOpen, profileImageURL, displayName, className, isMobile } = props;
-
-    const [error, setError] = useState(false);
-
-    return (
-        <Button
-            variant="secondary"
-            className={cn(
-                "flex h-auto items-center gap-3 px-3 py-1",
-                {
-                    "bg-primary border-primary": menuOpen,
-                },
-                className
-            )}
-        >
-            {!error ? (
-                <img
-                    className="flex-shrink-0 rounded-full"
-                    height={32}
-                    width={32}
-                    src={profileImageURL}
-                    onError={() => setError(true)}
-                />
-            ) : (
-                <DefaultProfileAvatar height={32} />
-            )}
-
-            {!isMobile && <p className="truncate text-sm font-normal whitespace-nowrap">{displayName}</p>}
-
-            <IconChevronDown
-                size={18}
-                className={cn("flex-shrink-0 transition-transform duration-200", {
-                    "rotate-180": menuOpen,
-                })}
-            />
-        </Button>
-    );
-};
-
 interface ProfileMenuProps {
     sidebarOpen: boolean;
     email: string;
@@ -147,7 +90,8 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
 
     const { email, displayName = "", profileImageURL = "", isMobile } = props;
 
-    const [menuOpened, setMenuOpened] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [error, setError] = useState(false);
 
     const client = useQueryClient();
 
@@ -165,14 +109,35 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
     });
 
     return (
-        <DropdownMenu open={menuOpened} onOpenChange={setMenuOpened}>
-            <DropdownMenuTrigger onClick={() => setMenuOpened((prev) => !prev)}>
-                <ProfileMenuButton
-                    profileImageURL={profileImageURL}
-                    displayName={displayName}
-                    menuOpen={menuOpened}
-                    isMobile={isMobile}
-                />
+        <DropdownMenu open={open} onOpenChange={setOpen}>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="secondary"
+                    className={cn("flex h-auto items-center py-1 pr-1 pl-1", {
+                        "bg-primary border-primary": open,
+                    })}
+                >
+                    {!error ? (
+                        <img
+                            className="flex-shrink-0 rounded-sm"
+                            height={32}
+                            width={32}
+                            src={profileImageURL}
+                            onError={() => setError(true)}
+                        />
+                    ) : (
+                        <DefaultProfileAvatar height={32} />
+                    )}
+
+                    {!isMobile && <p className="truncate text-sm font-normal whitespace-nowrap">{displayName}</p>}
+
+                    <IconChevronDown
+                        size={18}
+                        className={cn("flex-shrink-0 transition-transform duration-200", {
+                            "rotate-180": open,
+                        })}
+                    />
+                </Button>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent side="bottom" align="end" className="mt-2 min-w-[240px]">
@@ -229,7 +194,7 @@ const DefaultProfileAvatar: FC<DefaultProfieAvatarProps> = (props) => {
 
     return (
         <svg height={height} viewBox="0 0 40 40" fill="none">
-            <rect width="40" height="40" rx="20" fill="#EFFAFF" />
+            <rect width="40" height="40" rx="5.71429" fill="#EFFAFF" />
             <path
                 fillRule="evenodd"
                 clipRule="evenodd"

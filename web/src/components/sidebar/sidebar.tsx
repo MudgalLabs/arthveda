@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Tooltip } from "@/s8ly/tooltip/tooltip";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
-import { IconDashboard, IconImport, IconPlus, IconTrades, IconType } from "@/components/icons";
+import { IconDashboard, IconTrades, IconType } from "@/components/icons";
 
 import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { useIsMobile } from "@/hooks/use_is_mobile";
@@ -28,7 +28,11 @@ export const Sidebar = () => {
     }, [pathname, isMobile, setIsOpen]);
 
     // Make sure sidebar is closed when we load the component on mobile.
-    useEffect(() => setIsOpen(false), [isMobile, setIsOpen]);
+    useEffect(() => {
+        if (isMobile) {
+            setIsOpen(false);
+        }
+    }, [isMobile, setIsOpen]);
 
     const navigate = useNavigate();
 
@@ -70,45 +74,8 @@ export const Sidebar = () => {
                             onClick={() => handleClick(ROUTES.explorePositions)}
                         />
                     </Link>
-
-                    <Link to={ROUTES.addPosition} variant="unstyled">
-                        <SidebarNavItem
-                            label="Add Position"
-                            Icon={IconPlus}
-                            open={isOpen}
-                            isActive={activeRoute === ROUTES.addPosition}
-                            onClick={() => handleClick(ROUTES.addPosition)}
-                        />
-                    </Link>
-
-                    <Link to={ROUTES.importPositions} variant="unstyled">
-                        <SidebarNavItem
-                            label="Import Positions"
-                            Icon={IconImport}
-                            open={isOpen}
-                            isActive={activeRoute === ROUTES.importPositions}
-                            onClick={() => handleClick(ROUTES.importPositions)}
-                        />
-                    </Link>
                 </div>
             </div>
-
-            {/* {data && (
-                <div
-                    className={cn("flex flex-col gap-y-2 pb-2", {
-                        "items-center": !isOpen,
-                    })}
-                >
-                    <SidebarProfileMenu
-                        sidebarOpen={isOpen}
-                        setActiveRoute={setActiveRoute}
-                        email={data.email}
-                        displayName={data.name}
-                        profileImageURL={data.avatar_url}
-                        isMobile={isMobile}
-                    />
-                </div>
-            )} */}
         </div>
     );
 };

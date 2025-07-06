@@ -19,6 +19,7 @@ import { Button, DatePicker } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
+import { AddPositionMenu } from "./add_position_menu";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -277,12 +278,16 @@ export const Dashboard = () => {
     }, [data, isFetching, isError, layouts, cumulativePnLData, appliedDates.length]);
 
     return (
-        <>
+        <div>
             <PageHeading heading="Dashboard" />
 
             {!isNewUser && (
-                <>
-                    <div className="flex-x justify-end">
+                <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row">
+                    <div>
+                        <AddPositionMenu className="w-full sm:w-fit" />
+                    </div>
+
+                    <div className="flex-x">
                         <DatePicker
                             className="w-full sm:w-fit"
                             placeholder="Select date range"
@@ -307,13 +312,11 @@ export const Dashboard = () => {
                             <IconSearch size={18} />
                         </Button>
                     </div>
-
-                    <div className="h-4" />
-                </>
+                </div>
             )}
 
             {content}
-        </>
+        </div>
     );
 };
 

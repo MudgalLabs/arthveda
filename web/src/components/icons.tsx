@@ -52,3 +52,5 @@ export { LuPanelLeftClose as IconPanelLeftClose } from "react-icons/lu";
 export { LuCreditCard as IconCreditCard } from "react-icons/lu";
 export { LuPlug as IconPlug } from "react-icons/lu";
 export { LuLifeBuoy as IconLifeBuoy } from "react-icons/lu";
+export { LuScrollText as IconScrollText } from "react-icons/lu";
+export { LuRefreshCw as IconSync } from "react-icons/lu";

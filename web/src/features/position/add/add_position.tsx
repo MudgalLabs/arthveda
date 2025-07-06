@@ -217,7 +217,7 @@ function AddPosition() {
 
     return (
         <>
-            <PageHeading heading="Position" loading={isComputing} />
+            <PageHeading heading={isCreatingPosition ? "Add Position Manually" : "Position"} loading={isComputing} />
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:h-44 sm:flex-row">
                 <OverviewCard
