@@ -141,6 +141,7 @@
 
     /* === Misc === */
     --color-logo: var(--color-azure-500);
+    --color-logo: #0095ff;
 
     --font-logo: Museo Sans;
     --font-heading: Inter;
