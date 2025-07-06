@@ -395,19 +395,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				continue
 			}
 
-			// TODO: Use ApplyComputeResultToPosition here.
-			// Update the position with the compute result
-			openPosition.Direction = computeResult.Direction
-			openPosition.Status = computeResult.Status
-			openPosition.OpenedAt = computeResult.OpenedAt
-			openPosition.ClosedAt = computeResult.ClosedAt
-			openPosition.GrossPnLAmount = computeResult.GrossPnLAmount
-			openPosition.NetPnLAmount = computeResult.NetPnLAmount
-			openPosition.RiskAmount = payload.RiskAmount
-			openPosition.RFactor = computeResult.RFactor
-			openPosition.NetReturnPercentage = computeResult.NetReturnPercentage
-			openPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
-			openPosition.TotalChargesAmount = computeResult.TotalChargesAmount
+			ApplyComputeResultToPosition(openPosition, computeResult)
 
 			// If the position is closed (net quantity is 0), finalize it
 			if computeResult.OpenQuantity.IsZero() {
@@ -450,27 +438,19 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 				newTrade,
 			}
 
-			// TODO: Use ApplyComputeResultToPosition here.
-
-			openPositions[symbol] = &Position{
-				ID:                          positionID,
-				CreatedBy:                   userID,
-				CreatedAt:                   now,
-				Symbol:                      symbol,
-				Instrument:                  instrument,
-				Currency:                    payload.Currency,
-				Trades:                      trades,
-				Direction:                   computeResult.Direction,
-				Status:                      computeResult.Status,
-				OpenedAt:                    computeResult.OpenedAt,
-				ClosedAt:                    computeResult.ClosedAt,
-				GrossPnLAmount:              computeResult.GrossPnLAmount,
-				NetPnLAmount:                computeResult.NetPnLAmount,
-				RFactor:                     computeResult.RFactor,
-				NetReturnPercentage:         computeResult.NetReturnPercentage,
-				ChargesAsPercentageOfNetPnL: computeResult.ChargesAsPercentageOfNetPnL,
-				BrokerID:                    &broker.ID,
+			newPosition := &Position{
+				ID:         positionID,
+				CreatedBy:  userID,
+				CreatedAt:  now,
+				Symbol:     symbol,
+				Instrument: instrument,
+				Currency:   payload.Currency,
+				Trades:     trades,
+				BrokerID:   &broker.ID,
 			}
+
+			ApplyComputeResultToPosition(newPosition, computeResult)
+			openPositions[symbol] = newPosition
 		}
 	}
 
@@ -536,12 +516,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			continue
 		}
 
-		// TODO: Use ApplyComputeResultToPosition here.
-
-		position.NetPnLAmount = computeResult.NetPnLAmount
-		position.NetReturnPercentage = computeResult.NetReturnPercentage
-		position.RFactor = computeResult.RFactor
-		position.Status = computeResult.Status
+		ApplyComputeResultToPosition(position, computeResult)
 
 		var isDuplicate bool
 		// If we find a duplicate trade, we need to get it's position ID.

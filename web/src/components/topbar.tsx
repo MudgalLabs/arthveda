@@ -117,7 +117,7 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                         "bg-primary border-primary": open,
                     })}
                 >
-                    {!error ? (
+                    {!error && profileImageURL ? (
                         <img
                             className="flex-shrink-0 rounded-sm"
                             height={32}
@@ -147,7 +147,7 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
 
                 <DropdownMenuSeparator />
 
-                {/* <Link to={ROUTES.planAndBilling} variant="unstyled">
+                <Link to={ROUTES.planAndBilling} variant="unstyled">
                     <DropdownMenuItem>
                         <IconCreditCard size={18} />
                         Plan & Billing
@@ -168,7 +168,7 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                     </DropdownMenuItem>
                 </Link>
 
-                <DropdownMenuSeparator /> */}
+                <DropdownMenuSeparator />
 
                 <DropdownMenuItem
                     className={cn({
