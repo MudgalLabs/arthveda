@@ -25,11 +25,11 @@ func IsProd() bool {
 }
 
 // When running in Docker, the environment variables are loaded by Docker from .env at the root.
-func Init() {
+func Init(path string) {
 
 	// We load the .env file from the parent directory just in case we are running in development mode.
 	// This is because the .env file is in the root of the project.
-	err := godotenv.Load("../.env")
+	err := godotenv.Load(path)
 
 	API_ENV = os.Getenv("ARTHVEDA_API_ENV")
 	LOG_LEVEL = os.Getenv("ARTHVEDA_API_LOG_LEVEL")

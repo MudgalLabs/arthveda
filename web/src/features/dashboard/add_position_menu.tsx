@@ -16,7 +16,7 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ className }) => {
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
-                <Button size="large" className={className}>
+                <Button className={cn("h-10", className)}>
                     <IconPlus size={18} />
                     Add Position
                     <IconChevronDown

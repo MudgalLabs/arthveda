@@ -52,7 +52,7 @@ type repositories struct {
 }
 
 func main() {
-	env.Init()
+	env.Init("../.env")
 
 	// IDK what this does but it was on the blogpost so I'm using it.
 	// I think it has something to do with Go sync for multi threading?

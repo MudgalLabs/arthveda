@@ -19,7 +19,6 @@ func Init() (*pgxpool.Pool, error) {
 
 	connectionStr := env.DB_URL
 	l.Info("connecting to database")
-	l.Debug("conectionStr: ", connectionStr)
 
 	config, err := pgxpool.ParseConfig(connectionStr)
 	if err != nil {
