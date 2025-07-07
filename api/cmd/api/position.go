@@ -77,7 +77,7 @@ func getPositionHandler(s *position.Service) http.HandlerFunc {
 			return
 		}
 
-		successResponse(w, r, http.StatusCreated, "", map[string]any{"position": position})
+		successResponse(w, r, http.StatusOK, "", map[string]any{"position": position})
 	}
 }
 

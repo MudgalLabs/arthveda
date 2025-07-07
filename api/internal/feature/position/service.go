@@ -65,7 +65,7 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 
 	if payload.EnableAutoCharges {
 		if payload.BrokerID == nil {
-			return result, service.ErrBadRequest, fmt.Errorf("Broker is required to calculate charges")
+			return result, service.ErrBadRequest, fmt.Errorf("Broker Account is required to calculate charges")
 		}
 
 		broker, err := s.brokerRepository.GetByID(ctx, *payload.BrokerID)
@@ -101,10 +101,11 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 type CreatePayload struct {
 	ComputePayload
 
-	Notes      string                `json:"notes"`
-	Symbol     string                `json:"symbol"`
-	Instrument Instrument            `json:"instrument"`
-	Currency   currency.CurrencyCode `json:"currency"`
+	Notes               string                `json:"notes"`
+	Symbol              string                `json:"symbol"`
+	Instrument          Instrument            `json:"instrument"`
+	Currency            currency.CurrencyCode `json:"currency"`
+	UserBrokerAccountID *uuid.UUID            `json:"user_broker_account_id"`
 }
 
 func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePayload) (*Position, service.Error, error) {

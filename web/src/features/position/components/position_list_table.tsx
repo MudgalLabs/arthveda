@@ -140,7 +140,7 @@ const columns: ColumnDef<Position>[] = [
     {
         id: "actions",
         cell: ({ row }) => {
-            const { getBrokerNameByBrokerId, getBrokerLogoById } = useBroker();
+            const { getBrokerLogoById } = useBroker();
 
             return (
                 <div className="flex-x">
@@ -152,22 +152,26 @@ const columns: ColumnDef<Position>[] = [
                         </Tooltip>
                     </Link>
 
-                    <Tooltip
-                        delayDuration={300}
-                        content={
-                            row.original.broker_id
-                                ? `Imported from ${getBrokerNameByBrokerId(row.original.broker_id)}`
-                                : "Not imported from any broker"
-                        }
-                    >
-                        <div className="size-4">
-                            {row.original.broker_id ? (
-                                <img src={getBrokerLogoById(row.original.broker_id)} alt="broker logo" />
-                            ) : (
-                                <Logo className="size-4" />
-                            )}
-                        </div>
-                    </Tooltip>
+                    {row.original.user_broker_account?.broker_id && (
+                        <Tooltip
+                            delayDuration={300}
+                            content={
+                                row.original.user_broker_account?.broker_id
+                                    ? `Broker Account: ${row.original.user_broker_account.name}`
+                                    : null
+                            }
+                            disabled={!row.original.user_broker_account?.broker_id}
+                        >
+                            <div className="size-4">
+                                {row.original.user_broker_account?.broker_id && (
+                                    <img
+                                        src={getBrokerLogoById(row.original.user_broker_account?.broker_id)}
+                                        alt="broker logo"
+                                    />
+                                )}
+                            </div>
+                        </Tooltip>
+                    )}
 
                     {row.original.notes && (
                         <Popover>

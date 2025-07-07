@@ -48,7 +48,11 @@ export interface CreatePositionRequest {
     instrument: PositionInstrument;
     currency: CurrencyCode;
     risk_amount: DecimalString;
+    user_broker_account_id: string | null;
     trades: CreateTrade[];
+
+    // Only used for "Compute" when creating/updating a position. This is not stored in the database.
+    broker_id: string | null;
 }
 
 export interface CreatePositionResponse {
@@ -59,9 +63,7 @@ export function create(body: CreatePositionRequest) {
     return client.post<CreatePositionRequest, ApiRes<CreatePositionResponse>>(API_ROUTES.position.create, body);
 }
 
-export interface UpdatePositionRequest extends CreatePositionRequest {
-    broker_id: string | null;
-}
+export interface UpdatePositionRequest extends CreatePositionRequest {}
 
 export interface UpdatePositionResponse {
     position: Position;

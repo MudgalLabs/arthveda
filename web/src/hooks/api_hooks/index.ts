@@ -5,6 +5,7 @@ import * as dashboard from "@/hooks/api_hooks/dashboard";
 import * as position from "@/hooks/api_hooks/position";
 import * as symbol from "@/hooks/api_hooks/symbol";
 import * as user from "@/hooks/api_hooks/user";
+import * as userBrokerAccount from "@/hooks/api_hooks/user_broker_account";
 
 export const apiHooks = {
     auth,
@@ -14,4 +15,5 @@ export const apiHooks = {
     symbol,
     position,
     user,
+    userBrokerAccount,
 };

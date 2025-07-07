@@ -23,7 +23,7 @@ const getBrokerLogoByName = (name: BrokerName) => {
 
 interface BrokerContextType {
     isLoading: boolean;
-    getBrokerNameByBrokerId: (brokerId: string) => BrokerName | "";
+    getBrokerNameById: (brokerId: string) => BrokerName | "";
     getBrokerLogoByName: (brokerName: BrokerName) => string;
     getBrokerLogoById: (brokerId: string) => string;
 }
@@ -35,7 +35,7 @@ export const BrokerProvider: FC<PropsWithChildren> = ({ children }) => {
 
     const brokers = useMemo(() => data?.data || [], [data]);
 
-    const getBrokerNameByBrokerId = useCallback(
+    const getBrokerNameById = useCallback(
         (brokerId: string): BrokerName | "" => {
             const broker = brokers.find((b) => b.id === brokerId);
             return broker ? (broker.name as BrokerName) : "";
@@ -45,20 +45,20 @@ export const BrokerProvider: FC<PropsWithChildren> = ({ children }) => {
 
     const getBrokerLogoById = useCallback(
         (brokerId: string): string => {
-            const brokerName = getBrokerNameByBrokerId(brokerId);
+            const brokerName = getBrokerNameById(brokerId);
             return getBrokerLogoByName(brokerName as BrokerName);
         },
-        [getBrokerNameByBrokerId, getBrokerLogoByName]
+        [getBrokerNameById]
     );
 
     const value: BrokerContextType = useMemo(() => {
         return {
             isLoading,
-            getBrokerNameByBrokerId,
+            getBrokerNameById,
             getBrokerLogoById,
-            getBrokerLogoByName: getBrokerLogoByName,
+            getBrokerLogoByName,
         };
-    }, [isLoading, getBrokerNameByBrokerId, getBrokerLogoById, getBrokerLogoByName]);
+    }, [isLoading, getBrokerNameById, getBrokerLogoById]);
 
     return <BrokerContext.Provider value={value}>{children}</BrokerContext.Provider>;
 };

@@ -47,16 +47,30 @@ type Position struct {
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount" db:"open_average_price_amount"`
 
 	// If this Position is imported, then the following fields are used to track the source of the import.
+	// Deprecated: Use UserBrokerAccountID instead.
 	BrokerID *uuid.UUID `json:"broker_id" db:"broker_id"` // The ID of the Broker from which this Position is imported.
+
+	UserBrokerAccountID *uuid.UUID `json:"user_broker_account_id" db:"user_broker_account_id"` // The ID of the UserBrokerAccount to which this Position belongs.
 
 	//
 	// Everything above is present in the DATABASE but everything below isn't.
 	//
+
+	// Simplified UserBrokerAccount with only required fields
+	UserBrokerAccount *UserBrokerAccountSummary `json:"user_broker_account"` // The UserBrokerAccount to which this Position belongs.
+
 	Trades []*trade.Trade `json:"trades"` // All the trade(s) that are RELATED to this Position.
 
 	// Whether this Position is a duplicate of another Position or not.
 	// This flag is used when we are importing positions from Brokers.
 	IsDuplicate bool `json:"is_duplicate"`
+}
+
+// UserBrokerAccountSummary contains only the essential fields needed for Position display
+type UserBrokerAccountSummary struct {
+	ID       uuid.UUID `json:"id"`
+	BrokerID uuid.UUID `json:"broker_id"`
+	Name     string    `json:"name"`
 }
 
 type Instrument string
@@ -100,14 +114,18 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 	}
 
 	position = &Position{
-		ID:                          positionID,
-		CreatedBy:                   userID,
-		CreatedAt:                   now,
-		Symbol:                      payload.Symbol,
-		Instrument:                  payload.Instrument,
-		Currency:                    payload.Currency,
-		RiskAmount:                  payload.RiskAmount,
-		Notes:                       payload.Notes,
+		ID:                  positionID,
+		CreatedBy:           userID,
+		CreatedAt:           now,
+		Symbol:              payload.Symbol,
+		Instrument:          payload.Instrument,
+		Currency:            payload.Currency,
+		RiskAmount:          payload.RiskAmount,
+		Notes:               payload.Notes,
+		UserBrokerAccountID: payload.UserBrokerAccountID,
+		Trades:              trades,
+
+		// TODO: use ApplyComputeResultToPosition instead.
 		TotalChargesAmount:          computeResult.TotalChargesAmount,
 		Direction:                   computeResult.Direction,
 		Status:                      computeResult.Status,
@@ -120,7 +138,6 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 		ChargesAsPercentageOfNetPnL: computeResult.ChargesAsPercentageOfNetPnL,
 		OpenQuantity:                computeResult.OpenQuantity,
 		OpenAveragePriceAmount:      computeResult.OpenAveragePriceAmount,
-		Trades:                      trades,
 	}
 
 	return position, false, nil
@@ -176,8 +193,12 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 	updatedPosition.Instrument = payload.Instrument
 	updatedPosition.Currency = payload.Currency
 	updatedPosition.RiskAmount = payload.RiskAmount
-	updatedPosition.TotalChargesAmount = computeResult.TotalChargesAmount
 	updatedPosition.Notes = payload.Notes
+	updatedPosition.BrokerID = payload.BrokerID
+	updatedPosition.UserBrokerAccountID = payload.UserBrokerAccountID
+
+	// TODO: Use ApplyComputeResultToPosition here.
+	updatedPosition.TotalChargesAmount = computeResult.TotalChargesAmount
 	updatedPosition.Direction = computeResult.Direction
 	updatedPosition.Status = computeResult.Status
 	updatedPosition.OpenedAt = computeResult.OpenedAt
@@ -189,7 +210,6 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 	updatedPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
 	updatedPosition.OpenQuantity = computeResult.OpenQuantity
 	updatedPosition.OpenAveragePriceAmount = computeResult.OpenAveragePriceAmount
-	updatedPosition.BrokerID = payload.BrokerID
 
 	updatedPosition.Trades = trades
 

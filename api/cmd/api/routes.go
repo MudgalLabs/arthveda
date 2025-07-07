@@ -111,6 +111,15 @@ func initRouter(a *app) http.Handler {
 
 			r.Get("/me", getMeHandler(a.service.UserProfileService))
 		})
+
+		r.Route("/user-broker-accounts", func(r chi.Router) {
+			r.Use(authMiddleware)
+
+			r.Post("/", createUserBrokerAccountHandler(a.service.UserBrokerAccountService))
+			r.Get("/", listUserBrokerAccountsHandler(a.service.UserBrokerAccountService))
+			r.Put("/{id}", updateUserBrokerAccountHandler(a.service.UserBrokerAccountService))
+			r.Delete("/{id}", deleteUserBrokerAccountHandler(a.service.UserBrokerAccountService))
+		})
 	})
 
 	return r

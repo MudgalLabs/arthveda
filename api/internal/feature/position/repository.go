@@ -57,7 +57,7 @@ const (
 	searchFieldNetPnL              common.SearchField = "net_pnl"
 	searchFieldNetReturnPercentage common.SearchField = "net_return_percentage"
 	searchFieldChargesPercentage   common.SearchField = "charges_percentage"
-	searchFieldBrokerID            common.SearchField = "broker_id"
+	searchFieldBrokerAccountID     common.SearchField = "broker_account_id"
 	searchFieldTotalCharges        common.SearchField = "total_charges_amount"
 
 	// We can use this field to search for positions based on their trade time.
@@ -92,6 +92,7 @@ type SearchFilter struct {
 	NetReturnPercentageOperator *dbx.Operator           `json:"net_return_percentage_operator"`
 	ChargesPercentage           *string                 `json:"charges_percentage"`
 	ChargesPercentageOperator   *dbx.Operator           `json:"charges_percentage_operator"`
+	BrokerAccountID             *uuid.UUID              `json:"broker_account_id"`
 
 	TradeTime *common.DateRangeFilter `json:"trade_time"`
 }
@@ -124,7 +125,7 @@ var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldNetPnL:              "p.net_pnl_amount",
 	searchFieldNetReturnPercentage: "p.net_return_percentage",
 	searchFieldChargesPercentage:   "p.charges_as_percentage_of_net_pnl",
-	searchFieldBrokerID:            "p.broker_id",
+	searchFieldBrokerAccountID:     "p.user_broker_account_id",
 	searchFieldTotalCharges:        "p.total_charges_amount",
 	searchFieldTradeTime:           "t.time", // This is used when we want to filter positions based on their trades' time.
 }
@@ -136,14 +137,14 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
             risk_amount, notes, total_charges_amount, direction, status, opened_at, closed_at,
             gross_pnl_amount, net_pnl_amount, r_factor, net_return_percentage,
             charges_as_percentage_of_net_pnl, open_quantity, open_average_price_amount,
-            broker_id
+            broker_id, user_broker_account_id
         )
         VALUES (
             @id, @created_by, @created_at, @updated_at, @symbol, @instrument, @currency,
             @risk_amount, @notes, @total_charges_amount, @direction, @status, @opened_at, @closed_at,
             @gross_pnl_amount, @net_pnl_amount, @r_factor, @net_return_percentage,
             @charges_as_percentage_of_net_pnl, @open_quantity, @open_average_price_amount,
-            @broker_id
+            @broker_id, @user_broker_account_id
         )
     `
 
@@ -170,6 +171,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"open_quantity":                    position.OpenQuantity,
 		"open_average_price_amount":        position.OpenAveragePriceAmount,
 		"broker_id":                        position.BrokerID,
+		"user_broker_account_id":           position.UserBrokerAccountID,
 	})
 
 	if err != nil {
@@ -203,7 +205,8 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
             charges_as_percentage_of_net_pnl = @charges_as_percentage_of_net_pnl,
             open_quantity = @open_quantity,
             open_average_price_amount = @open_average_price_amount,
-            broker_id = @broker_id
+            broker_id = @broker_id,
+            user_broker_account_id = @user_broker_account_id
         WHERE id = @id
     `
 
@@ -230,6 +233,7 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
 		"open_quantity":                    position.OpenQuantity,
 		"open_average_price_amount":        position.OpenAveragePriceAmount,
 		"broker_id":                        position.BrokerID,
+		"user_broker_account_id":           position.UserBrokerAccountID,
 	})
 
 	if err != nil {
@@ -290,10 +294,12 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 				p.direction, p.status, p.opened_at, p.closed_at,
 				p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
 				p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
-				p.broker_id,
+				p.broker_id, p.user_broker_account_id,
+				uba.id, uba.broker_id, uba.name,
 				t.id, t.position_id, t.created_at, t.updated_at, t.kind, t.time, t.quantity, t.price, t.charges_amount
 			FROM
 				position p
+			LEFT JOIN user_broker_account uba ON uba.id = p.user_broker_account_id
 			LEFT JOIN trade t ON t.position_id = p.id`
 	} else {
 		baseSQL = `
@@ -303,9 +309,12 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 				p.direction, p.status, p.opened_at, p.closed_at,
 				p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
 				p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
-				p.broker_id
+				p.broker_id, p.user_broker_account_id,
+				uba.id, uba.broker_id, uba.name
 			FROM
-				position p`
+				position p
+			LEFT JOIN user_broker_account uba ON uba.id = p.user_broker_account_id
+			LEFT JOIN broker b ON b.id = uba.broker_id`
 	}
 
 	b := dbx.NewSQLBuilder(baseSQL)
@@ -382,6 +391,10 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldChargesPercentage], *p.Filters.ChargesPercentageOperator, *p.Filters.ChargesPercentage)
 	}
 
+	if p.Filters.BrokerAccountID != nil {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldBrokerAccountID], "=", p.Filters.BrokerAccountID)
+	}
+
 	if p.Sort.Field == "" {
 		p.Sort.Field = searchFieldOpened
 	}
@@ -412,15 +425,20 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 			var pos Position
 			var trade trade.Trade
 			var tradeID *uuid.UUID // to check if trade is null (no trade)
+			var ubaID *uuid.UUID   // to check if user_broker_account is null
 
-			// Scan all position fields + trade fields (LEFT JOIN)
+			var ubaBrokerID *uuid.UUID
+			var ubaName *string
+
+			// Scan all position fields + broker name + user_broker_account fields + trade fields (LEFT JOIN)
 			err := rows.Scan(
 				&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
 				&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
 				&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
 				&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
 				&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
-				&pos.BrokerID,
+				&pos.BrokerID, &pos.UserBrokerAccountID,
+				&ubaID, &ubaBrokerID, &ubaName,
 				&tradeID, &trade.PositionID, &trade.CreatedAt, &trade.UpdatedAt, &trade.Kind, &trade.Time, &trade.Quantity, &trade.Price, &trade.ChargesAmount,
 			)
 
@@ -430,6 +448,16 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 
 			// Only add position once
 			if _, exists := positionMap[pos.ID]; !exists {
+				// Set UserBrokerAccount if it exists
+				if ubaID != nil {
+					ubaSummary := UserBrokerAccountSummary{
+						ID:       *ubaID,
+						BrokerID: *ubaBrokerID,
+						Name:     *ubaName,
+					}
+					pos.UserBrokerAccount = &ubaSummary
+				}
+
 				positionMap[pos.ID] = &pos
 				positions = append(positions, &pos)
 			}
@@ -459,17 +487,34 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 	} else {
 		for rows.Next() {
 			var pos Position
+			var ubaID *uuid.UUID // to check if user_broker_account is null
+
+			var ubaBrokerID *uuid.UUID
+			var ubaName *string
+
 			err := rows.Scan(
 				&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
 				&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
 				&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
 				&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
 				&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
-				&pos.BrokerID,
+				&pos.BrokerID, &pos.UserBrokerAccountID,
+				&ubaID, &ubaBrokerID, &ubaName,
 			)
 			if err != nil {
 				return nil, 0, fmt.Errorf("scan: %w", err)
 			}
+
+			// Set UserBrokerAccount if it exists
+			if ubaID != nil {
+				ubaSummary := UserBrokerAccountSummary{
+					ID:       *ubaID,
+					BrokerID: *ubaBrokerID,
+					Name:     *ubaName,
+				}
+				pos.UserBrokerAccount = &ubaSummary
+			}
+
 			positions = append(positions, &pos)
 		}
 	}

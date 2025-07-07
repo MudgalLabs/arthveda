@@ -9,6 +9,7 @@ import * as dashboard from "@/lib/api/dashboard";
 import * as position from "@/lib/api/position";
 import * as symbol from "@/lib/api/symbol";
 import * as user from "@/lib/api/user";
+import * as userBrokerAccount from "@/lib/api/user_broker_account";
 
 export const api = {
     auth,
@@ -18,6 +19,7 @@ export const api = {
     position,
     symbol,
     user,
+    userBrokerAccount,
 };
 
 export function apiErrorHandler(err: any) {
