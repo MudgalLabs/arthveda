@@ -4,6 +4,7 @@ import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMe
 import { IconImport, IconPlus, IconScrollText, IconSync } from "@/components/icons";
 import { ROUTES } from "@/routes_constants";
 import { Link } from "@/components/link";
+import { cn } from "@/lib/utils";
 
 interface AddPositionMenuProps {
     className?: string;
@@ -15,7 +16,7 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ className }) => {
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
-                <Button className={className}>
+                <Button className={cn("enabled:active:scale-[1]!", className)}>
                     <IconPlus size={16} />
                     Add Position
                 </Button>

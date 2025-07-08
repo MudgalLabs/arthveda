@@ -113,7 +113,7 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="secondary"
-                    className={cn("flex h-auto items-center py-1 pr-1 pl-1", {
+                    className={cn("flex h-auto items-center py-1 pr-1 pl-1 enabled:active:scale-[1]!", {
                         "bg-primary border-primary": open,
                     })}
                 >
@@ -147,12 +147,12 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
 
                 <DropdownMenuSeparator />
 
-                <Link to={ROUTES.planAndBilling} variant="unstyled">
+                {/* <Link to={ROUTES.planAndBilling} variant="unstyled">
                     <DropdownMenuItem>
                         <IconCreditCard size={18} />
                         Plan & Billing
                     </DropdownMenuItem>
-                </Link>
+                </Link> */}
 
                 <Link to={ROUTES.brokerAccounts} variant="unstyled">
                     <DropdownMenuItem>
@@ -161,12 +161,12 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                     </DropdownMenuItem>
                 </Link>
 
-                <Link to={ROUTES.feedbackAndSupport} variant="unstyled">
+                {/* <Link to={ROUTES.feedbackAndSupport} variant="unstyled">
                     <DropdownMenuItem>
                         <IconLifeBuoy size={18} />
                         Feedback & Support
                     </DropdownMenuItem>
-                </Link>
+                </Link> */}
 
                 <DropdownMenuSeparator />
 

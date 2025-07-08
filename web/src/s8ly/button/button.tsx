@@ -17,7 +17,7 @@ const buttonVariants = cva(
                 outline: "bg-transparent text-foreground border-accent-muted enabled:hover:bg-accent-muted",
                 destructive: "bg-red-bg text-foreground enabled:hover:bg-red-bg/90 focus-visible:ring-foreground!",
                 success: "bg-green-bg text-foreground enabled:hover:bg-green-bg/90 focus-visible:ring-foreground!",
-                ghost: "enabled:hover:bg-accent-muted enabled:hover:text-foreground",
+                ghost: "enabled:hover:bg-overlay-bg-hover enabled:hover:text-foreground",
                 link: "text-link underline-offset-4 hover:underline p-0! h-fit!",
             },
             size: {

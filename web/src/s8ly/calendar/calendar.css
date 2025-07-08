@@ -1,13 +1,22 @@
 .day {
-    --border-color: var(--color-accent);
-    --in-range-bg: var(--color-accent-muted);
+    --border-color: var(--color-overlay-border);
+    --in-range-bg: var(--color-overlay-bg-hover);
     --border-radius: 4px;
 }
 
-.in-range,
+.in-range {
+    color: white;
+}
+
 .range-start,
 .range-end {
-    color: white;
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+}
+
+.will-be-range-start,
+.will-be-range-end {
+    background-color: var(--color-primary);
 }
 
 .in-range {
@@ -17,6 +26,7 @@
 .will-be-in-range,
 .in-range {
     border-radius: 0 !important;
+    background-color: var(--in-range-bg);
 }
 
 .range-start:nth-child(7n),

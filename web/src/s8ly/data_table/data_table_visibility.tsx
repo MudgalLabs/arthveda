@@ -19,7 +19,7 @@ export function DataTableVisibility<TData>({ table }: DataTableVisibilityProps<T
                     Columns
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[150px]">
+            <DropdownMenuContent align="end" className="mt-2 min-w-[180px]">
                 {table
                     .getAllColumns()
                     .filter((column) => column.getCanHide())

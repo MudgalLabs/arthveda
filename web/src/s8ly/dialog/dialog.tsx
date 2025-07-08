@@ -2,6 +2,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 import { cn } from "@/lib/utils";
 import { IconCross } from "@/components/icons";
+import { Button } from "../button/button";
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
     return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -45,9 +46,13 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<t
                 {...props}
             >
                 {children}
-                <DialogPrimitive.Close className="data-[state=open]:bg-accent data-[state=open]:text-foreground-muted absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 enabled:hover:cursor-pointer disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
-                    <IconCross />
-                    <span className="sr-only">Close</span>
+                <DialogPrimitive.Close
+                    className="data-[state=open]:bg-accent data-[state=open]:text-foreground-muted absolute top-4 right-4 opacity-70 transition-opacity hover:opacity-100 enabled:hover:cursor-pointer disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+                    asChild
+                >
+                    <Button variant="ghost" size="icon">
+                        <IconCross size={16} />
+                    </Button>
                 </DialogPrimitive.Close>
             </DialogPrimitive.Content>
         </DialogPortal>

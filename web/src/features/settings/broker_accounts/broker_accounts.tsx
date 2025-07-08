@@ -69,9 +69,9 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
         cell: ({ row }) => {
             const { getBrokerNameById } = useBroker();
             return (
-                <span className="flex-x">
+                <span className="flex-x gap-x-4">
                     <BrokerLogo brokerId={row.original.broker_id} className="h-6 w-6" />
-                    <span className="ml-2">{getBrokerNameById(row.original.broker_id)}</span>
+                    <span>{getBrokerNameById(row.original.broker_id)}</span>
                 </span>
             );
         },
