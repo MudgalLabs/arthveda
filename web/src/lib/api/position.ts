@@ -93,6 +93,7 @@ export interface PositionSearchFilters {
     net_return_percentage_operator?: CompareOperator;
     charges_percentage?: DecimalString | "";
     charges_percentage_operator?: CompareOperator;
+    user_broker_account_id?: string | "";
 }
 
 export interface PositionSearchRequest extends SearchRequest<PositionSearchFilters> {}

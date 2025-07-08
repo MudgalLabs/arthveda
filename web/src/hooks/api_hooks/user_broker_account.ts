@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnyUseMutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
@@ -16,36 +16,45 @@ export function useList() {
     });
 }
 
-export function useCreate() {
+export function useCreate(options: AnyUseMutationOptions = {}) {
     const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
 
     return useMutation({
         mutationFn: (payload: CreateUserBrokerAccountPayload) => api.userBrokerAccount.create(payload),
-        onSuccess: () => {
+        onSuccess: (...args) => {
             queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
+            onSuccess?.(...args);
         },
+        ...restOptions,
     });
 }
 
-export function useUpdate() {
+export function useUpdate(options: AnyUseMutationOptions = {}) {
     const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
 
     return useMutation({
         mutationFn: ({ id, payload }: { id: string; payload: UpdateUserBrokerAccountPayload }) =>
             api.userBrokerAccount.update(id, payload),
-        onSuccess: () => {
+        onSuccess: (...args) => {
             queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
+            onSuccess?.(...args);
         },
+        ...restOptions,
     });
 }
 
-export function useDelete() {
+export function useDelete(options: AnyUseMutationOptions = {}) {
     const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
 
     return useMutation({
         mutationFn: (id: string) => api.userBrokerAccount.remove(id),
-        onSuccess: () => {
+        onSuccess: (...args) => {
             queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
+            onSuccess?.(...args);
         },
+        ...restOptions,
     });
 }

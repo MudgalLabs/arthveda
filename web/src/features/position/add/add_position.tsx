@@ -53,6 +53,7 @@ import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { ROUTES } from "@/routes_constants";
 import { useLatest } from "@/hooks/use_latest";
 import { UserBrokerAccountSearch } from "@/features/broker/components/user_broker_account_search";
+import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
 
 function AddPosition() {
     const isCreatingPosition = useIsCreatingPosition();
@@ -303,7 +304,14 @@ function AddPosition() {
                     )}
                 </WithDebounce>
 
-                <WithLabel Label={<Label>Broker Account</Label>}>
+                <WithLabel
+                    Label={
+                        <div className="flex-x">
+                            <Label>Broker Account</Label>
+                            <BrokerAccountInfoTooltip />
+                        </div>
+                    }
+                >
                     <UserBrokerAccountSearch
                         value={position.user_broker_account}
                         onChange={(v) =>
@@ -695,7 +703,7 @@ const DeleteButton = memo(
 
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete</DialogTitle>
+                        <DialogTitle>Delete Position</DialogTitle>
                         <DialogDescription>Are you sure you want to delete this position?</DialogDescription>
                     </DialogHeader>
 

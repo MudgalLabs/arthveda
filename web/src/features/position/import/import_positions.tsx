@@ -40,6 +40,7 @@ import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { useBroker } from "@/features/broker/broker_context";
 import { UserBrokerAccountSearch } from "@/features/broker/components/user_broker_account_search";
+import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
 
 interface State {
     brokerID: string;
@@ -435,7 +436,14 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
 
             <div className="h-8" />
 
-            <WithLabel Label={<Label>Broker Account</Label>}>
+            <WithLabel
+                Label={
+                    <div className="flex-x">
+                        <Label>Broker Account</Label>
+                        <BrokerAccountInfoTooltip />
+                    </div>
+                }
+            >
                 <Tooltip content="Select a broker first" contentProps={{ side: "bottom" }} disabled={!!state.brokerID}>
                     <UserBrokerAccountSearch
                         filters={{

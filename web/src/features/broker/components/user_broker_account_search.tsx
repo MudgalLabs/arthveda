@@ -107,9 +107,9 @@ export const UserBrokerAccountSearch: FC<UserBrokerAccountSearchProps> = memo((p
                 }}
                 getOptionLabel={(option) => `${option.name} (${getBrokerNameById(option.broker_id)})`}
                 noOptionsText={
-                    <span className="text-foreground-muted p-2 text-sm">
-                        No broker account{filters.brokerId ? ` for ${getBrokerNameById(filters.brokerId)}` : ""}.{" "}
-                        <Link to={ROUTES.brokerAccounts}>Create</Link>
+                    <span className="text-foreground-muted text-sm">
+                        No broker account{filters.brokerId ? ` for ${getBrokerNameById(filters.brokerId)}` : ""}. You
+                        can manage your broker accounts <Link to={ROUTES.brokerAccounts}>here</Link>.
                     </span>
                 }
                 slotProps={{

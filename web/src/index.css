@@ -131,6 +131,9 @@
     --color-surface-border: var(--color-border);
     --color-surface-foreground: var(--color-muted-foreground);
 
+    --color-overlay: hsl(221, 52%, 18%);
+    --color-overlay-border: hsl(221, 52%, 30%);
+
     /* === Charts & Visualizations === */
     --color-chart-primary: var(--color-primary);
     --color-chart-muted: var(--color-muted-foreground);

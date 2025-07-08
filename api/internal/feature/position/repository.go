@@ -414,10 +414,8 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 
 	defer rows.Close()
 
-	var (
-		positions   []*Position
-		positionMap = map[uuid.UUID]*Position{}
-	)
+	positions := []*Position{}
+	positionMap := map[uuid.UUID]*Position{}
 
 	if attachTrades {
 		for rows.Next() {

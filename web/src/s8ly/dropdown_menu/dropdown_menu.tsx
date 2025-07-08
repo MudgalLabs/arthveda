@@ -22,7 +22,7 @@ const DropdownMenuContent: FC<DropdownMenuContentProps> = ({ children, ref, arro
         <DropdownMenuPrimitive.Portal>
             <DropdownMenuPrimitive.Content
                 className={cn(
-                    "bg-surface-bg border-border focus-visible:borer-border rounded-md border-1 font-normal",
+                    "bg-overlay border-overlay-border focus-visible:borer-overlay-border rounded-md border-1 font-normal",
                     className
                 )}
                 {...props}
@@ -40,7 +40,7 @@ const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 const DropdownMenuItem: FC<DropdownMenuPrimitive.DropdownMenuItemProps> = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Item
         className={cn(
-            "hover:bg-accent-muted text-foreground focus:bg-muted-accent flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-2 text-sm outline-none",
+            "hover:bg-primary text-foreground focus:bg-primary flex cursor-pointer items-center justify-start gap-x-3 rounded-sm p-2 text-sm outline-none",
             className
         )}
         {...props}
@@ -114,7 +114,7 @@ const DropdownMenuLabel = ({
 };
 
 const DropdownMenuSeparator: FC<DropdownMenuPrimitive.DropdownMenuSeparatorProps> = ({ className, ...props }) => (
-    <DropdownMenuPrimitive.Separator className={cn("bg-border h-px", className)} {...props} />
+    <DropdownMenuPrimitive.Separator className={cn("bg-overlay-border h-px", className)} {...props} />
 );
 
 const DropdownMenuShortcut = ({ className, ...props }: React.ComponentProps<"span">) => {

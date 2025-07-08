@@ -157,7 +157,7 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                 <Link to={ROUTES.brokerAccounts} variant="unstyled">
                     <DropdownMenuItem>
                         <IconPlug size={18} />
-                        Manage Broker Accounts
+                        Broker Accounts
                     </DropdownMenuItem>
                 </Link>
 
