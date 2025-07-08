@@ -39,7 +39,7 @@ function positionStatusToString(status: PositionStatus): string {
     }
 }
 
-interface UserBrokerAccountSummary {
+interface UserBrokerAccountSearchValue {
     id: string;
     name: string;
     broker_id: string;
@@ -72,9 +72,16 @@ interface Position {
     user_broker_account_id: string | null;
 
     trades: Trade[] | null;
-    user_broker_account: UserBrokerAccountSummary | null;
+    user_broker_account: UserBrokerAccountSearchValue | null;
 }
 
 export { positionInstrumentToString, positionDirectionToString, positionStatusToString };
 
-export type { CurrencyCode, Position, PositionDirection, PositionInstrument, PositionStatus, UserBrokerAccountSummary };
+export type {
+    CurrencyCode,
+    Position,
+    PositionDirection,
+    PositionInstrument,
+    PositionStatus,
+    UserBrokerAccountSearchValue,
+};

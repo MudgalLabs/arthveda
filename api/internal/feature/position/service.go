@@ -5,6 +5,7 @@ import (
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/trade"
+	"arthveda/internal/feature/user_broker_account"
 	"arthveda/internal/logger"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
@@ -23,16 +24,20 @@ import (
 )
 
 type Service struct {
-	brokerRepository   broker.ReadWriter
-	positionRepository ReadWriter
-	tradeRepository    trade.ReadWriter
+	brokerRepository            broker.ReadWriter
+	positionRepository          ReadWriter
+	tradeRepository             trade.ReadWriter
+	userBrokerAccountRepository user_broker_account.Reader
 }
 
-func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWriter, tradeRepository trade.ReadWriter) *Service {
+func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWriter, tradeRepository trade.ReadWriter,
+	userBrokerAccountRepository user_broker_account.Reader,
+) *Service {
 	return &Service{
 		brokerRepository,
 		positionRepository,
 		tradeRepository,
+		userBrokerAccountRepository,
 	}
 }
 
@@ -168,6 +173,9 @@ type ImportPayload struct {
 	// Broker ID is the ID of the broker from which the positions are being imported.
 	BrokerID uuid.UUID `form:"broker_id"`
 
+	// To which UserBrokerAccount the positions are being imported to.
+	UserBrokerAccountID uuid.UUID `json:"user_broker_account_id"`
+
 	// The excel file from which we will import positions.
 	// These files are expected to be in .xlsx format and are provided by a broker.
 	File multipart.File `form:"file"`
@@ -181,8 +189,10 @@ type ImportPayload struct {
 	// Instrument is the instrument type of the positions being imported.
 	Instrument Instrument `json:"instrument"`
 
+	// Whether to auto calculate charges or let user provide a manual charge amount.
 	ChargesCalculationMethod ChargesCalculationMethod `json:"charges_calculation_method"`
 
+	// If ChargesCalculationMethod is Manual, this field will be used to specify the charge amount for each trade.
 	ManualChargeAmount decimal.Decimal `json:"manual_charge_amount"`
 
 	// Confirm is a boolean flag to indicate whether the positions should be created in the database.
@@ -204,7 +214,7 @@ type ImportResult struct {
 	ToDate                  time.Time   `json:"to_date"`
 }
 
-var errImportFileInvalid = errors.New("File seems broken or unsupported")
+var errImportFileInvalid = errors.New("File seems invalid or unsupported")
 
 func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPayload) (*ImportResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
@@ -236,6 +246,19 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		}
 
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get broker by ID: %w", err)
+	}
+
+	uba, err := s.userBrokerAccountRepository.GetByID(ctx, payload.UserBrokerAccountID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return nil, service.ErrBadRequest, fmt.Errorf("Broker Account provided is invalid or does not exist")
+		}
+
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get user's broker account by ID: %w", err)
+	}
+
+	if uba.BrokerID != broker.ID {
+		return nil, service.ErrBadRequest, fmt.Errorf("Broker Account provided does not belong to the Broker provided")
 	}
 
 	importer, err := getImporer(broker)
@@ -440,14 +463,16 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			}
 
 			newPosition := &Position{
-				ID:         positionID,
-				CreatedBy:  userID,
-				CreatedAt:  now,
-				Symbol:     symbol,
-				Instrument: instrument,
-				Currency:   payload.Currency,
-				Trades:     trades,
-				BrokerID:   &broker.ID,
+				ID:                  positionID,
+				CreatedBy:           userID,
+				CreatedAt:           now,
+				Symbol:              symbol,
+				Instrument:          instrument,
+				Currency:            payload.Currency,
+				RiskAmount:          payload.RiskAmount,
+				Trades:              trades,
+				BrokerID:            &broker.ID,
+				UserBrokerAccountID: &payload.UserBrokerAccountID,
 			}
 
 			ApplyComputeResultToPosition(newPosition, computeResult)

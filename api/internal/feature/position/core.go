@@ -57,7 +57,7 @@ type Position struct {
 	//
 
 	// Simplified UserBrokerAccount with only required fields
-	UserBrokerAccount *UserBrokerAccountSummary `json:"user_broker_account"` // The UserBrokerAccount to which this Position belongs.
+	UserBrokerAccount *UserBrokerAccountSearchValue `json:"user_broker_account"` // The UserBrokerAccount to which this Position belongs.
 
 	Trades []*trade.Trade `json:"trades"` // All the trade(s) that are RELATED to this Position.
 
@@ -66,8 +66,8 @@ type Position struct {
 	IsDuplicate bool `json:"is_duplicate"`
 }
 
-// UserBrokerAccountSummary contains only the essential fields needed for Position display
-type UserBrokerAccountSummary struct {
+// UserBrokerAccountSearchValue contains only the essential fields needed for Position display
+type UserBrokerAccountSearchValue struct {
 	ID       uuid.UUID `json:"id"`
 	BrokerID uuid.UUID `json:"broker_id"`
 	Name     string    `json:"name"`

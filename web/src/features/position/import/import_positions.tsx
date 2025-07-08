@@ -25,6 +25,7 @@ import {
     positionDirectionToString,
     PositionInstrument,
     positionStatusToString,
+    UserBrokerAccountSearchValue,
 } from "@/features/position/position";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { MultiStepProps } from "@/components/multi_step/multi_step_context";
@@ -38,9 +39,11 @@ import {
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { useBroker } from "@/features/broker/broker_context";
+import { UserBrokerAccountSearch } from "@/features/broker/components/user_broker_account_search";
 
 interface State {
     brokerID: string;
+    userBrokerAccount: UserBrokerAccountSearchValue | null;
     brokerName: BrokerName | null;
     file: File | null;
     instrument: PositionInstrument;
@@ -55,6 +58,7 @@ interface State {
 
 const INITIAL_STATE: State = {
     brokerID: "",
+    userBrokerAccount: null,
     brokerName: null,
     file: null,
     instrument: "equity",
@@ -84,12 +88,13 @@ export const ImportPositions = () => {
     });
 
     const handleReviewImport = ({ onSuccess }: { onSuccess?: (data: ImportPositionsResponse) => void }) => {
-        if (!state.file || !state.brokerID) return;
+        if (!state.file || !state.brokerID || !state.userBrokerAccount) return;
 
         toast.promise(
             importAsync({
                 file: state.file,
                 broker_id: state.brokerID,
+                user_broker_account_id: state.userBrokerAccount.id,
                 currency: state.currency,
                 risk_amount: state.riskAmount,
                 instrument: state.instrument,
@@ -115,12 +120,19 @@ export const ImportPositions = () => {
     };
 
     const handleStartImport = ({ onSuccess }: { onSuccess?: (data: ImportPositionsResponse) => void }) => {
-        if (!state.file || !state.brokerID || importPositionResData?.positions?.length === 0) return;
+        if (
+            !state.file ||
+            !state.brokerID ||
+            !state.userBrokerAccount ||
+            importPositionResData?.positions?.length === 0
+        )
+            return;
 
         toast.promise(
             importAsync({
                 file: state.file,
                 broker_id: state.brokerID,
+                user_broker_account_id: state.userBrokerAccount.id,
                 currency: state.currency,
                 risk_amount: state.riskAmount,
                 instrument: state.instrument,
@@ -173,6 +185,10 @@ export const ImportPositions = () => {
 
         if (currentStepId === "broker-step") {
             if (state.brokerID === "") {
+                disabled = true;
+            }
+
+            if (state.userBrokerAccount === null) {
                 disabled = true;
             }
         }
@@ -330,19 +346,15 @@ export const ImportPositions = () => {
 
                 <div className="flex w-full justify-between gap-x-4">
                     <MultiStep.PreviousStepButton>
-                        {(props) => (
-                            <Button
-                                className={cn({
-                                    "opacity-0": !props.hasPrevious,
-                                    "opacity-100": props.hasPrevious,
-                                })}
-                                variant="secondary"
-                                onClick={() => props.prev()}
-                                disabled={isPending}
-                            >
-                                {getPrevButtonLabel(props)}
-                            </Button>
-                        )}
+                        {(props) =>
+                            props.hasPrevious ? (
+                                <Button variant="secondary" onClick={() => props.prev()} disabled={isPending}>
+                                    {getPrevButtonLabel(props)}
+                                </Button>
+                            ) : (
+                                <span />
+                            )
+                        }
                     </MultiStep.PreviousStepButton>
 
                     <MultiStep.NextStepButton>
@@ -390,6 +402,7 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
                 ...prev,
                 brokerID: nextBrokerID,
                 brokerName: nextBrokerName,
+                userBrokerAccount: null, // Reset the user broker account when changing broker.
             };
         });
     };
@@ -397,7 +410,9 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
     return (
         <>
             <h2 className="sub-heading">Broker</h2>
-            <p className="label-muted">Select the broker from which you want to import positions</p>
+            <p className="label-muted">
+                Select the Broker and the Broker Account you want to link these imported positions to
+            </p>
 
             <div className="h-8" />
 
@@ -417,6 +432,28 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
                     );
                 })}
             </ul>
+
+            <div className="h-8" />
+
+            <WithLabel Label={<Label>Broker Account</Label>}>
+                <Tooltip content="Select a broker first" contentProps={{ side: "bottom" }} disabled={!!state.brokerID}>
+                    <UserBrokerAccountSearch
+                        filters={{
+                            brokerId: state.brokerID,
+                        }}
+                        disabled={!state.brokerID}
+                        value={state.userBrokerAccount}
+                        onChange={(v) => {
+                            if (v) {
+                                setState((prev) => ({
+                                    ...prev,
+                                    userBrokerAccount: v,
+                                }));
+                            }
+                        }}
+                    />
+                </Tooltip>
+            </WithLabel>
         </>
     );
 };

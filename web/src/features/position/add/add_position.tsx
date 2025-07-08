@@ -363,7 +363,7 @@ function AddPosition() {
                     />
 
                     <Label htmlFor="auto">Enable Auto Charges</Label>
-                    <Tooltip content="Charges will get calculated for each trade and closely match actual charges. Requires a broker account to be selected.">
+                    <Tooltip content="Charges will get calculated for each trade approximately to actual charges. Requires a broker account to be selected.">
                         <IconInfo />
                     </Tooltip>
                 </div>

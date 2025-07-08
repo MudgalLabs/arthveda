@@ -107,6 +107,7 @@ export type ChargesCalculationMethod = "auto" | "manual";
 export interface ImportPositionsRequest {
     file: File;
     broker_id: string;
+    user_broker_account_id: string;
     currency: CurrencyCode;
     risk_amount: DecimalString;
     instrument: PositionInstrument;
@@ -130,6 +131,7 @@ export function importPositions(body: ImportPositionsRequest) {
     const formData = new FormData();
     formData.append("file", body.file);
     formData.append("broker_id", body.broker_id);
+    formData.append("user_broker_account_id", body.user_broker_account_id);
     formData.append("currency", body.currency);
     formData.append("risk_amount", body.risk_amount);
     formData.append("instrument", body.instrument);

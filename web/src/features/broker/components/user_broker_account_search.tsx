@@ -10,15 +10,21 @@ import { Loading } from "@/components/loading";
 import { cn } from "@/lib/utils";
 import { InputErrorMessage } from "@/components/input_error_message";
 import { useBroker } from "@/features/broker/broker_context";
-import { UserBrokerAccountSummary } from "@/features/position/position";
+import { UserBrokerAccountSearchValue } from "@/features/position/position";
+import { Link } from "@/components/link";
+import { ROUTES } from "@/routes_constants";
 
 interface UserBrokerAccountSearchProps extends Omit<InputProps, "value" | "onChange"> {
-    value?: UserBrokerAccountSummary | null;
-    onChange?: (value: UserBrokerAccountSummary | null) => void;
+    value?: UserBrokerAccountSearchValue | null;
+    onChange?: (value: UserBrokerAccountSearchValue | null) => void;
+    filters?: {
+        // Show Broker Accounts only for broker with this ID.
+        brokerId?: string;
+    };
 }
 
 export const UserBrokerAccountSearch: FC<UserBrokerAccountSearchProps> = memo((props) => {
-    const { value: valueProp, onChange: onChangeProp, variant, errorMsg, ...restProps } = props;
+    const { filters = {}, value: valueProp, onChange: onChangeProp, variant, errorMsg, ...restProps } = props;
 
     const [inputValue, setInputValue] = useState("");
 
@@ -29,19 +35,20 @@ export const UserBrokerAccountSearch: FC<UserBrokerAccountSearchProps> = memo((p
         return data.data;
     }, [data]);
 
-    const [value, setValue] = useControlled<UserBrokerAccountSummary | null>({
+    const [value, setValue] = useControlled<UserBrokerAccountSearchValue | null>({
         controlled: valueProp,
         default: null,
         name: "value",
     });
 
-    const handleChange = (newValue: UserBrokerAccountSummary | null) => {
-        setValue(newValue);
-        onChangeProp?.(newValue);
-    };
-
     const [focus, setFocus] = useState(false);
     const [open, setOpen] = useState(false);
+
+    const handleChange = (newValue: UserBrokerAccountSearchValue | null) => {
+        setValue(newValue);
+        onChangeProp?.(newValue);
+        setOpen(false);
+    };
 
     const handleFocus = () => {
         setFocus(true);
@@ -81,13 +88,36 @@ export const UserBrokerAccountSearch: FC<UserBrokerAccountSearchProps> = memo((p
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 options={options}
+                filterOptions={(options) => {
+                    // If brokerId is not provided in filters, return all options.
+                    let filtered = options;
+
+                    // Show Broker Accounts only for broker with this ID.
+                    if (filters.brokerId) {
+                        filtered = options.filter((option) => option.broker_id === filters.brokerId);
+                    }
+
+                    if (inputValue && value === null) {
+                        filtered = filtered.filter((option) =>
+                            option.name.toLowerCase().includes(inputValue.toLowerCase())
+                        );
+                    }
+
+                    return filtered;
+                }}
                 getOptionLabel={(option) => `${option.name} (${getBrokerNameById(option.broker_id)})`}
+                noOptionsText={
+                    <span className="text-foreground-muted p-2 text-sm">
+                        No broker account{filters.brokerId ? ` for ${getBrokerNameById(filters.brokerId)}` : ""}.{" "}
+                        <Link to={ROUTES.brokerAccounts}>Create</Link>
+                    </span>
+                }
                 slotProps={{
                     listbox: {
                         className: "bg-surface-bg text-surface-foreground border-1 border-border",
                     },
                     paper: {
-                        className: "bg-surface-bg! border-1 border-border",
+                        className: "bg-surface-bg! border-1 border-border max-w-[300px]",
                     },
                 }}
                 renderInput={(params) => {

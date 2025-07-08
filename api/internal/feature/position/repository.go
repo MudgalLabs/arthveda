@@ -57,7 +57,7 @@ const (
 	searchFieldNetPnL              common.SearchField = "net_pnl"
 	searchFieldNetReturnPercentage common.SearchField = "net_return_percentage"
 	searchFieldChargesPercentage   common.SearchField = "charges_percentage"
-	searchFieldBrokerAccountID     common.SearchField = "broker_account_id"
+	searchFieldUserBrokerAccountID common.SearchField = "broker_account_id"
 	searchFieldTotalCharges        common.SearchField = "total_charges_amount"
 
 	// We can use this field to search for positions based on their trade time.
@@ -92,7 +92,7 @@ type SearchFilter struct {
 	NetReturnPercentageOperator *dbx.Operator           `json:"net_return_percentage_operator"`
 	ChargesPercentage           *string                 `json:"charges_percentage"`
 	ChargesPercentageOperator   *dbx.Operator           `json:"charges_percentage_operator"`
-	BrokerAccountID             *uuid.UUID              `json:"broker_account_id"`
+	UserBrokerAccountID         *uuid.UUID              `json:"user_broker_account_id"`
 
 	TradeTime *common.DateRangeFilter `json:"trade_time"`
 }
@@ -125,7 +125,7 @@ var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldNetPnL:              "p.net_pnl_amount",
 	searchFieldNetReturnPercentage: "p.net_return_percentage",
 	searchFieldChargesPercentage:   "p.charges_as_percentage_of_net_pnl",
-	searchFieldBrokerAccountID:     "p.user_broker_account_id",
+	searchFieldUserBrokerAccountID: "p.user_broker_account_id",
 	searchFieldTotalCharges:        "p.total_charges_amount",
 	searchFieldTradeTime:           "t.time", // This is used when we want to filter positions based on their trades' time.
 }
@@ -313,8 +313,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 				uba.id, uba.broker_id, uba.name
 			FROM
 				position p
-			LEFT JOIN user_broker_account uba ON uba.id = p.user_broker_account_id
-			LEFT JOIN broker b ON b.id = uba.broker_id`
+			LEFT JOIN user_broker_account uba ON uba.id = p.user_broker_account_id`
 	}
 
 	b := dbx.NewSQLBuilder(baseSQL)
@@ -391,8 +390,8 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldChargesPercentage], *p.Filters.ChargesPercentageOperator, *p.Filters.ChargesPercentage)
 	}
 
-	if p.Filters.BrokerAccountID != nil {
-		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldBrokerAccountID], "=", p.Filters.BrokerAccountID)
+	if p.Filters.UserBrokerAccountID != nil {
+		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldUserBrokerAccountID], "=", p.Filters.UserBrokerAccountID)
 	}
 
 	if p.Sort.Field == "" {
@@ -450,7 +449,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 			if _, exists := positionMap[pos.ID]; !exists {
 				// Set UserBrokerAccount if it exists
 				if ubaID != nil {
-					ubaSummary := UserBrokerAccountSummary{
+					ubaSummary := UserBrokerAccountSearchValue{
 						ID:       *ubaID,
 						BrokerID: *ubaBrokerID,
 						Name:     *ubaName,
@@ -487,8 +486,8 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 	} else {
 		for rows.Next() {
 			var pos Position
-			var ubaID *uuid.UUID // to check if user_broker_account is null
 
+			var ubaID *uuid.UUID // to check if user_broker_account is null
 			var ubaBrokerID *uuid.UUID
 			var ubaName *string
 
@@ -507,7 +506,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 
 			// Set UserBrokerAccount if it exists
 			if ubaID != nil {
-				ubaSummary := UserBrokerAccountSummary{
+				ubaSummary := UserBrokerAccountSearchValue{
 					ID:       *ubaID,
 					BrokerID: *ubaBrokerID,
 					Name:     *ubaName,

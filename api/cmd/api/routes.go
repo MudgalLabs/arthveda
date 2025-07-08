@@ -97,7 +97,7 @@ func initRouter(a *app) http.Handler {
 
 			r.Post("/compute", computePositionHandler(a.service.PositionService))
 			r.Post("/search", searchPositionsHandler(a.service.PositionService))
-			r.Post("/import", handleImportTrades(a.service.PositionService))
+			r.Post("/import", importHandler(a.service.PositionService))
 		})
 
 		r.Route("/symbols", func(r chi.Router) {

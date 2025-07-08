@@ -159,7 +159,7 @@ func searchPositionsHandler(s *position.Service) http.HandlerFunc {
 	}
 }
 
-func handleImportTrades(s *position.Service) http.HandlerFunc {
+func importHandler(s *position.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
@@ -176,6 +176,12 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 		brokerID, err := uuid.Parse(r.FormValue("broker_id"))
 		if err != nil {
 			invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(apires.NewApiError("Broker is invalid or not supported", "", "broker_id", r.FormValue("broker_id"))))
+			return
+		}
+
+		userBrokerAccountID, err := uuid.Parse(r.FormValue("user_broker_account_id"))
+		if err != nil {
+			invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(apires.NewApiError("Broker Account is invalid or not supported", "", "user_broker_account_id", r.FormValue("user_broker_account_id"))))
 			return
 		}
 
@@ -274,6 +280,7 @@ func handleImportTrades(s *position.Service) http.HandlerFunc {
 		payload := position.ImportPayload{
 			File:                     file,
 			BrokerID:                 brokerID,
+			UserBrokerAccountID:      userBrokerAccountID,
 			Currency:                 currencyCode,
 			RiskAmount:               riskAmount,
 			Instrument:               instrument,
