@@ -28,4 +28,10 @@ export const API_ROUTES = {
     user: {
         me: "/v1/users/me",
     },
+    userBrokerAccount: {
+        list: "/v1/user-broker-accounts",
+        create: "/v1/user-broker-accounts",
+        update: (id: string) => `/v1/user-broker-accounts/${id}`,
+        delete: (id: string) => `/v1/user-broker-accounts/${id}`,
+    },
 };

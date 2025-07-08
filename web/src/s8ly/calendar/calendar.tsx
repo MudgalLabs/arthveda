@@ -19,8 +19,6 @@ import {
     useTimePropGetter,
 } from "@rehookify/datepicker";
 
-import {} from "@rehookify/datepicker";
-
 import { cn, deepMerge } from "@/lib/utils";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { Button } from "@/s8ly";
@@ -266,10 +264,13 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
     return (
         <>
             <div
-                className={cn("bg-muted border-border flex h-[330px] w-fit gap-x-4 rounded-md border-1 p-3", {
-                    "w-[280px]": !isRange,
-                    "w-[560px]": isRange,
-                })}
+                className={cn(
+                    "bg-overlay-bg border-overlay-border flex h-[330px] w-fit gap-x-4 rounded-md border-1 p-3 shadow-2xl",
+                    {
+                        "w-[280px]": !isRange,
+                        "w-[560px]": isRange,
+                    }
+                )}
             >
                 {view === View.Years ? (
                     <YearsView />
@@ -335,7 +336,7 @@ interface CalendarGridProps {
 }
 
 const CalendarGrid: FC<CalendarGridProps> = ({ className, children }) => {
-    const mainClassName = cn("grid grid-cols-7 gap-x-0 gap-y-0", className);
+    const mainClassName = cn("grid grid-cols-7 gap-x-0 gap-y-1", className);
     return <main className={mainClassName}>{children}</main>;
 };
 

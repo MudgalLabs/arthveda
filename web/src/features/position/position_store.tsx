@@ -53,8 +53,10 @@ const defaultState: State = {
         charges_as_percentage_of_net_pnl: "0",
         open_quantity: "0",
         open_average_price_amount: "0",
-        broker_id: null,
+        user_broker_account_id: null,
+
         trades: [],
+        user_broker_account: null,
     },
 
     enableAutoCharges: false,
@@ -72,7 +74,7 @@ export const createPositionStore = (initProp?: Position) => {
     return createStore<PositionStore>((set, get) => ({
         initialPosition,
         position,
-        enableAutoCharges: initialPosition.broker_id ? true : false,
+        enableAutoCharges: false,
 
         updatePosition: (newState) => {
             set((state) => {
@@ -159,10 +161,12 @@ export const createPositionStore = (initProp?: Position) => {
 
 export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
     const position = usePositionStore((s) => s.position);
-    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
 
     const debouncedPosition = useDebounce(position, 1000);
     const prevDebouncedPositionRef = useRef(debouncedPosition);
+
+    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
+    const prevEnableAutoChargesRef = useRef(enableAutoCharges);
 
     const [flag, setFlag] = useState(false);
 
@@ -202,8 +206,13 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
             }
         }
 
+        if (enableAutoCharges !== prevEnableAutoChargesRef.current) {
+            hasChanges = true;
+            prevEnableAutoChargesRef.current = enableAutoCharges;
+        }
+
         if (enableAutoCharges) {
-            if (debouncedPosition.broker_id !== prevPosition.broker_id) {
+            if (debouncedPosition.user_broker_account?.broker_id !== prevPosition.user_broker_account?.broker_id) {
                 hasChanges = true;
             }
         }

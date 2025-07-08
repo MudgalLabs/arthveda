@@ -48,7 +48,11 @@ export interface CreatePositionRequest {
     instrument: PositionInstrument;
     currency: CurrencyCode;
     risk_amount: DecimalString;
+    user_broker_account_id: string | null;
     trades: CreateTrade[];
+
+    // Only used for "Compute" when creating/updating a position. This is not stored in the database.
+    broker_id: string | null;
 }
 
 export interface CreatePositionResponse {
@@ -59,9 +63,7 @@ export function create(body: CreatePositionRequest) {
     return client.post<CreatePositionRequest, ApiRes<CreatePositionResponse>>(API_ROUTES.position.create, body);
 }
 
-export interface UpdatePositionRequest extends CreatePositionRequest {
-    broker_id: string | null;
-}
+export interface UpdatePositionRequest extends CreatePositionRequest {}
 
 export interface UpdatePositionResponse {
     position: Position;
@@ -91,6 +93,7 @@ export interface PositionSearchFilters {
     net_return_percentage_operator?: CompareOperator;
     charges_percentage?: DecimalString | "";
     charges_percentage_operator?: CompareOperator;
+    user_broker_account_id?: string | "";
 }
 
 export interface PositionSearchRequest extends SearchRequest<PositionSearchFilters> {}
@@ -105,6 +108,7 @@ export type ChargesCalculationMethod = "auto" | "manual";
 export interface ImportPositionsRequest {
     file: File;
     broker_id: string;
+    user_broker_account_id: string;
     currency: CurrencyCode;
     risk_amount: DecimalString;
     instrument: PositionInstrument;
@@ -128,6 +132,7 @@ export function importPositions(body: ImportPositionsRequest) {
     const formData = new FormData();
     formData.append("file", body.file);
     formData.append("broker_id", body.broker_id);
+    formData.append("user_broker_account_id", body.user_broker_account_id);
     formData.append("currency", body.currency);
     formData.append("risk_amount", body.risk_amount);
     formData.append("instrument", body.instrument);

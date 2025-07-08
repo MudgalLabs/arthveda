@@ -39,6 +39,12 @@ function positionStatusToString(status: PositionStatus): string {
     }
 }
 
+interface UserBrokerAccountSearchValue {
+    id: string;
+    name: string;
+    broker_id: string;
+}
+
 interface Position {
     id: string;
     created_by: string;
@@ -63,11 +69,19 @@ interface Position {
     charges_as_percentage_of_net_pnl: DecimalString;
     open_quantity: DecimalString;
     open_average_price_amount: DecimalString;
-    broker_id: string | null;
+    user_broker_account_id: string | null;
 
     trades: Trade[] | null;
+    user_broker_account: UserBrokerAccountSearchValue | null;
 }
 
 export { positionInstrumentToString, positionDirectionToString, positionStatusToString };
 
-export type { CurrencyCode, Position, PositionDirection, PositionInstrument, PositionStatus };
+export type {
+    CurrencyCode,
+    Position,
+    PositionDirection,
+    PositionInstrument,
+    PositionStatus,
+    UserBrokerAccountSearchValue,
+};

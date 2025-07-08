@@ -1,13 +1,7 @@
 import { FC, useState } from "react";
 
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/s8ly";
-import {
-    IconChevronDown,
-    IconImport,
-    IconPlus,
-    IconScrollText,
-    // IconSync
-} from "@/components/icons";
+import { IconImport, IconPlus, IconScrollText, IconSync } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/routes_constants";
 import { Link } from "@/components/link";
@@ -22,15 +16,9 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ className }) => {
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
-                <Button size="large" className={className}>
-                    <IconPlus size={18} />
+                <Button className={cn("enabled:active:scale-[1]!", className)}>
+                    <IconPlus size={16} />
                     Add Position
-                    <IconChevronDown
-                        size={18}
-                        className={cn("flex-shrink-0 transition-transform duration-200", {
-                            "rotate-180": open,
-                        })}
-                    />
                 </Button>
             </DropdownMenuTrigger>
 
@@ -49,12 +37,12 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ className }) => {
                     </DropdownMenuItem>
                 </Link>
 
-                {/* <Link to={ROUTES.connectedBrokers} variant="unstyled">
+                <Link to={ROUTES.brokerAccounts} variant="unstyled">
                     <DropdownMenuItem>
                         <IconSync size={18} />
                         Sync from Broker
                     </DropdownMenuItem>
-                </Link> */}
+                </Link>
             </DropdownMenuContent>
         </DropdownMenu>
     );

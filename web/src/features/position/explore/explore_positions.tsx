@@ -6,7 +6,7 @@ import { useListPositionsStore } from "@/features/position/list_positions_store"
 import { prepareFilters } from "@/features/position/utils";
 import { apiHooks } from "@/hooks/api_hooks";
 
-export const ListPositions = () => {
+export const ExplorePositions = () => {
     const tableState = useListPositionsStore((s) => s.tableState);
     const setTableState = useListPositionsStore((s) => s.setTableState);
     const appliedFilters = useListPositionsStore((s) => s.appliedFilters);
@@ -55,4 +55,4 @@ export const ListPositions = () => {
     );
 };
 
-export default ListPositions;
+export default ExplorePositions;

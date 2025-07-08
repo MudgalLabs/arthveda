@@ -51,8 +51,9 @@ import {
 } from "@/features/position/position_store";
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { ROUTES } from "@/routes_constants";
-import { BrokerSelect } from "@/components/select/broker_select";
 import { useLatest } from "@/hooks/use_latest";
+import { UserBrokerAccountSearch } from "@/features/broker/components/user_broker_account_search";
+import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
 
 function AddPosition() {
     const isCreatingPosition = useIsCreatingPosition();
@@ -153,12 +154,14 @@ function AddPosition() {
     const handleClickSave = () => {
         if (!canSave) return;
 
-        const dataForCreate = {
+        const data = {
             risk_amount: position.risk_amount || "0",
             symbol: position.symbol,
             instrument: position.instrument,
             currency: position.currency,
             notes: position.notes,
+            broker_id: position.user_broker_account?.broker_id || null,
+            user_broker_account_id: position.user_broker_account_id,
             trades: (position.trades || []).map((t) => {
                 // Removing fields that are not required by the API.
                 // We are removing these fields because the API will throw an error if we send them.
@@ -173,15 +176,10 @@ function AddPosition() {
             }),
         };
 
-        const dataForUpdate = {
-            ...dataForCreate,
-            broker_id: position.broker_id,
-        };
-
         if (isCreatingPosition) {
-            create(dataForCreate);
+            create(data);
         } else if (isEditingPosition) {
-            update({ id: position.id, body: dataForUpdate });
+            update({ id: position.id, body: data });
         }
     };
 
@@ -208,7 +206,7 @@ function AddPosition() {
                 risk_amount: position.risk_amount || "0",
                 instrument: position.instrument,
                 enable_auto_charges: enableAutoCharges,
-                broker_id: position.broker_id,
+                broker_id: position.user_broker_account?.broker_id || null,
             });
 
             setCanCompute(false);
@@ -217,7 +215,7 @@ function AddPosition() {
 
     return (
         <>
-            <PageHeading heading={isCreatingPosition ? "Add Position Manually" : "Position"} loading={isComputing} />
+            <PageHeading heading={isCreatingPosition ? "Add Position" : "View Position"} loading={isComputing} />
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:h-44 sm:flex-row">
                 <OverviewCard
@@ -308,65 +306,76 @@ function AddPosition() {
 
                 <WithLabel
                     Label={
-                        <Label className="flex items-center gap-x-2">
-                            <Checkbox
-                                id="auto"
-                                checked={enableAutoCharges}
-                                onCheckedChange={() => setEnabledAutoCharges(!enableAutoCharges)}
-                            />
-                            <Label htmlFor="auto">Enable Auto Charges</Label>
-                            <Tooltip content="Charges are calculated based on the trade and closely match actual charges">
-                                <IconInfo />
-                            </Tooltip>
-                        </Label>
+                        <div className="flex-x">
+                            <Label>Broker Account</Label>
+                            <BrokerAccountInfoTooltip />
+                        </div>
                     }
                 >
-                    <BrokerSelect
-                        value={position.broker_id || ""}
-                        onValueChange={(v) =>
+                    <UserBrokerAccountSearch
+                        value={position.user_broker_account}
+                        onChange={(v) =>
                             updatePosition({
-                                broker_id: v,
+                                user_broker_account_id: v ? v.id : null,
+                                user_broker_account: v,
                             })
                         }
-                        disabled={!enableAutoCharges}
-                        error={!position.broker_id && enableAutoCharges}
-                        errorMsg="Broker is required"
+                        variant={!position.user_broker_account && enableAutoCharges ? "error" : "default"}
+                        errorMsg="Broker Account is required to calculate charges"
                     />
                 </WithLabel>
             </div>
 
             <div className="h-4" />
 
-            <WithDebounce
-                state={position.notes}
-                onDebounce={(v) => {
-                    updatePosition({
-                        notes: v,
-                    });
-                }}
-            >
-                {(value, setValue) => (
-                    <WithLabel
-                        Label={
-                            <Label className="flex w-full justify-between">
-                                <span>Notes </span> <span className="text-xs">{value.length} / 4096</span>
-                            </Label>
-                        }
-                    >
-                        <Textarea
-                            className="h-24 w-full resize-none whitespace-pre-wrap"
-                            maxLength={4096}
-                            value={value}
-                            onChange={(e) => setValue(e.target.value)}
-                            placeholder="Add notes about this position"
-                        />
-                    </WithLabel>
-                )}
-            </WithDebounce>
+            <div className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
+                <WithDebounce
+                    state={position.notes}
+                    onDebounce={(v) => {
+                        updatePosition({
+                            notes: v,
+                        });
+                    }}
+                >
+                    {(value, setValue) => (
+                        <WithLabel
+                            className="flex-1"
+                            Label={
+                                <Label className="flex w-full justify-between">
+                                    <span>Notes </span> <span className="text-xs">{value.length} / 4096</span>
+                                </Label>
+                            }
+                        >
+                            <Textarea
+                                className="h-24 w-full resize-none whitespace-pre-wrap"
+                                maxLength={4096}
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                placeholder="Add notes about this position"
+                            />
+                        </WithLabel>
+                    )}
+                </WithDebounce>
+            </div>
 
             <div className="h-8" />
 
-            <h2 className="sub-heading">Trades</h2>
+            <div className="flex-x justify-between">
+                <h2 className="sub-heading">Trades</h2>
+
+                <div className="flex-x">
+                    <Checkbox
+                        id="auto"
+                        checked={enableAutoCharges}
+                        onCheckedChange={() => setEnabledAutoCharges(!enableAutoCharges)}
+                    />
+
+                    <Label htmlFor="auto">Enable Auto Charges</Label>
+                    <Tooltip content="Charges will get calculated for each trade approximately to actual charges. Requires a broker account to be selected.">
+                        <IconInfo />
+                    </Tooltip>
+                </div>
+            </div>
 
             <div className="h-4" />
 
@@ -694,7 +703,7 @@ const DeleteButton = memo(
 
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete</DialogTitle>
+                        <DialogTitle>Delete Position</DialogTitle>
                         <DialogDescription>Are you sure you want to delete this position?</DialogDescription>
                     </DialogHeader>
 

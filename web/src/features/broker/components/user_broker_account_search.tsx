@@ -2,44 +2,49 @@ import { FC, memo, useEffect, useMemo, useState } from "react";
 import Autocomplete from "@mui/material/Autocomplete";
 
 import { Input, InputProps } from "@/s8ly";
-import { useControlled } from "@/hooks/use_controlled";
 import { apiHooks } from "@/hooks/api_hooks";
-import { useDebounce } from "@/hooks/use_debounce";
+import { BrokerLogo } from "@/components/broker_logo";
+import { useControlled } from "@/hooks/use_controlled";
 import { IconSearch } from "@/components/icons";
 import { Loading } from "@/components/loading";
 import { cn } from "@/lib/utils";
 import { InputErrorMessage } from "@/components/input_error_message";
+import { useBroker } from "@/features/broker/broker_context";
+import { UserBrokerAccountSearchValue } from "@/features/position/position";
+import { Link } from "@/components/link";
+import { ROUTES } from "@/routes_constants";
 
-interface SymbolInputProps extends Omit<InputProps, "value" | "onChange"> {
-    value?: string;
-    onChange?: (value: string) => void;
+interface UserBrokerAccountSearchProps extends Omit<InputProps, "value" | "onChange"> {
+    value?: UserBrokerAccountSearchValue | null;
+    onChange?: (value: UserBrokerAccountSearchValue | null) => void;
+    filters?: {
+        // Show Broker Accounts only for broker with this ID.
+        brokerId?: string;
+    };
 }
 
-export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
-    const { value: valueProp, onChange: onChangeProp, variant, errorMsg, ...restProps } = props;
+export const UserBrokerAccountSearch: FC<UserBrokerAccountSearchProps> = memo((props) => {
+    const { filters = {}, value: valueProp, onChange: onChangeProp, variant, errorMsg, ...restProps } = props;
 
     const [inputValue, setInputValue] = useState("");
-    const debouncedInputValue = useDebounce(inputValue, 500);
 
-    const { data, isLoading } = apiHooks.symbol.useSearch({
-        query: debouncedInputValue,
-    });
+    const { data, isLoading } = apiHooks.userBrokerAccount.useList();
 
     const options = useMemo(() => {
         if (!data || !data.data) return [];
         return data.data;
     }, [data]);
 
-    const [value, setValue] = useControlled<string>({
+    const [value, setValue] = useControlled<UserBrokerAccountSearchValue | null>({
         controlled: valueProp,
-        default: "",
+        default: null,
         name: "value",
     });
 
     const [focus, setFocus] = useState(false);
     const [open, setOpen] = useState(false);
 
-    const handleChange = (newValue: string) => {
+    const handleChange = (newValue: UserBrokerAccountSearchValue | null) => {
         setValue(newValue);
         onChangeProp?.(newValue);
         setOpen(false);
@@ -67,29 +72,52 @@ export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
         }
     }, [options]);
 
+    const { getBrokerNameById } = useBroker();
+
     return (
         <>
             <Autocomplete
                 inputValue={inputValue}
                 onInputChange={(_, newInputValue) => {
-                    setInputValue(newInputValue.toUpperCase());
-                    handleChange(newInputValue);
+                    setInputValue(newInputValue);
                 }}
                 value={value}
-                onChange={(_, newValue) => handleChange(newValue ?? "")}
-                freeSolo
+                onChange={(_, newValue) => handleChange(newValue)}
                 disablePortal
                 open={open}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 options={options}
-                filterOptions={(options) => options}
+                filterOptions={(options) => {
+                    // If brokerId is not provided in filters, return all options.
+                    let filtered = options;
+
+                    // Show Broker Accounts only for broker with this ID.
+                    if (filters.brokerId) {
+                        filtered = options.filter((option) => option.broker_id === filters.brokerId);
+                    }
+
+                    if (inputValue && value === null) {
+                        filtered = filtered.filter((option) =>
+                            option.name.toLowerCase().includes(inputValue.toLowerCase())
+                        );
+                    }
+
+                    return filtered;
+                }}
+                getOptionLabel={(option) => `${option.name} (${getBrokerNameById(option.broker_id)})`}
+                noOptionsText={
+                    <span className="text-foreground-muted text-sm">
+                        No broker account{filters.brokerId ? ` for ${getBrokerNameById(filters.brokerId)}` : ""}. You
+                        can manage your broker accounts <Link to={ROUTES.brokerAccounts}>here</Link>.
+                    </span>
+                }
                 slotProps={{
                     listbox: {
                         className: "bg-surface-bg text-surface-foreground border-1 border-border",
                     },
                     paper: {
-                        className: "bg-surface-bg! border-1 border-border",
+                        className: "bg-surface-bg! border-1 border-border max-w-[300px]",
                     },
                 }}
                 renderInput={(params) => {
@@ -130,7 +158,10 @@ export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
                                 className
                             )}
                         >
-                            <span className="py-1! text-sm!">{option}</span>
+                            <div className="flex-x">
+                                <BrokerLogo brokerId={option.broker_id} />
+                                <p className="text-sm!">{option.name}</p>
+                            </div>
                         </li>
                     );
                 }}

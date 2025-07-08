@@ -17,7 +17,6 @@ type Reader interface {
 }
 
 type Writer interface {
-	Create(ctx context.Context, broker *Broker) error
 }
 
 type ReadWriter interface {
@@ -36,20 +35,6 @@ func NewRepository(db *pgxpool.Pool) *brokerRepository {
 type filters struct {
 	ID   *uuid.UUID
 	Name *Name
-}
-
-func (r *brokerRepository) Create(ctx context.Context, broker *Broker) error {
-	const sql = `
-		INSERT INTO broker (id, name)
-		VALUES ($1, $2)
-	`
-
-	_, err := r.db.Exec(ctx, sql, broker.ID, broker.Name)
-	if err != nil {
-		return fmt.Errorf("create broker: %w", err)
-	}
-
-	return nil
 }
 
 func (r *brokerRepository) GetByID(ctx context.Context, id uuid.UUID) (*Broker, error) {
@@ -93,7 +78,7 @@ func (r *brokerRepository) List(ctx context.Context) ([]*Broker, error) {
 }
 
 func (r *brokerRepository) findBrokers(ctx context.Context, f filters) ([]*Broker, error) {
-	baseSQL := "SELECT id, name FROM broker"
+	baseSQL := "SELECT id, name, supports_file_import, supports_trade_sync  FROM broker"
 	builder := dbx.NewSQLBuilder(baseSQL)
 
 	if v := f.ID; v != nil {
@@ -118,7 +103,7 @@ func (r *brokerRepository) findBrokers(ctx context.Context, f filters) ([]*Broke
 	var brokers []*Broker
 	for rows.Next() {
 		var broker Broker
-		if err := rows.Scan(&broker.ID, &broker.Name); err != nil {
+		if err := rows.Scan(&broker.ID, &broker.Name, &broker.SupportsFileImport, &broker.SupportsTradeSync); err != nil {
 			return nil, fmt.Errorf("scan broker: %w", err)
 		}
 		brokers = append(brokers, &broker)

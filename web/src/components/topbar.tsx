@@ -10,7 +10,7 @@ import {
     IconChevronDown,
     // IconCreditCard,
     // IconLifeBuoy,
-    // IconPlug,
+    IconPlug,
 } from "@/components/icons";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
@@ -113,7 +113,7 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="secondary"
-                    className={cn("flex h-auto items-center py-1 pr-1 pl-1", {
+                    className={cn("flex h-auto items-center py-1 pr-1 pl-1 enabled:active:scale-[1]!", {
                         "bg-primary border-primary": open,
                     })}
                 >
@@ -152,23 +152,23 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                         <IconCreditCard size={18} />
                         Plan & Billing
                     </DropdownMenuItem>
-                </Link>
+                </Link> */}
 
-                <Link to={ROUTES.connectedBrokers} variant="unstyled">
+                <Link to={ROUTES.brokerAccounts} variant="unstyled">
                     <DropdownMenuItem>
                         <IconPlug size={18} />
-                        Connected Brokers
+                        Broker Accounts
                     </DropdownMenuItem>
                 </Link>
 
-                <Link to={ROUTES.feedbackAndSupport} variant="unstyled">
+                {/* <Link to={ROUTES.feedbackAndSupport} variant="unstyled">
                     <DropdownMenuItem>
                         <IconLifeBuoy size={18} />
                         Feedback & Support
                     </DropdownMenuItem>
-                </Link>
+                </Link> */}
 
-                <DropdownMenuSeparator /> */}
+                <DropdownMenuSeparator />
 
                 <DropdownMenuItem
                     className={cn({

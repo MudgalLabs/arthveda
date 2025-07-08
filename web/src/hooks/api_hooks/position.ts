@@ -1,4 +1,11 @@
-import { useMutation, AnyUseMutationOptions, useQuery, keepPreviousData } from "@tanstack/react-query";
+import {
+    useMutation,
+    AnyUseMutationOptions,
+    useQuery,
+    keepPreviousData,
+    AnyUseQueryOptions,
+    UseQueryResult,
+} from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
 import {
@@ -58,13 +65,17 @@ export function useDelete(options: AnyUseMutationOptions = {}) {
     });
 }
 
-export function useSearch(body: PositionSearchRequest) {
+export function useSearch(
+    body: PositionSearchRequest,
+    options: Omit<AnyUseQueryOptions, "queryKey"> = {}
+): UseQueryResult<ApiRes<PositionSearchResponse>> {
     return useQuery({
         queryKey: ["usePositionsSearch", body],
         queryFn: () => api.position.search(body),
         select: (res) => res.data as ApiRes<PositionSearchResponse>,
         placeholderData: keepPreviousData,
         refetchOnMount: true,
+        ...options,
     });
 }
 

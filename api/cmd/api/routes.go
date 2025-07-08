@@ -97,7 +97,7 @@ func initRouter(a *app) http.Handler {
 
 			r.Post("/compute", computePositionHandler(a.service.PositionService))
 			r.Post("/search", searchPositionsHandler(a.service.PositionService))
-			r.Post("/import", handleImportTrades(a.service.PositionService))
+			r.Post("/import", importHandler(a.service.PositionService))
 		})
 
 		r.Route("/symbols", func(r chi.Router) {
@@ -110,6 +110,15 @@ func initRouter(a *app) http.Handler {
 			r.Use(authMiddleware)
 
 			r.Get("/me", getMeHandler(a.service.UserProfileService))
+		})
+
+		r.Route("/user-broker-accounts", func(r chi.Router) {
+			r.Use(authMiddleware)
+
+			r.Post("/", createUserBrokerAccountHandler(a.service.UserBrokerAccountService))
+			r.Get("/", listUserBrokerAccountsHandler(a.service.UserBrokerAccountService))
+			r.Put("/{id}", updateUserBrokerAccountHandler(a.service.UserBrokerAccountService))
+			r.Delete("/{id}", deleteUserBrokerAccountHandler(a.service.UserBrokerAccountService))
 		})
 	})
 

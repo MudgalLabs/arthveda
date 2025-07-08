@@ -13,6 +13,8 @@ const (
 )
 
 type Broker struct {
-	ID   uuid.UUID `json:"id"`
-	Name Name      `json:"name"`
+	ID                 uuid.UUID `json:"id" db:"id"`
+	Name               Name      `json:"name" db:"name"`
+	SupportsFileImport bool      `json:"supports_file_import" db:"supports_file_import"`
+	SupportsTradeSync  bool      `json:"supports_trade_sync" db:"supports_trade_sync"`
 }
