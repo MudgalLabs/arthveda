@@ -47,7 +47,6 @@ export const UserBrokerAccountSearch: FC<UserBrokerAccountSearchProps> = memo((p
     const handleChange = (newValue: UserBrokerAccountSearchValue | null) => {
         setValue(newValue);
         onChangeProp?.(newValue);
-        setOpen(false);
     };
 
     const handleFocus = () => {

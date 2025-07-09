@@ -95,8 +95,7 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 			}
 		}
 
-		// Update the position's total charges amount.
-		computeResult.TotalChargesAmount = calculateTotalChargesAmountFromTrades(trades)
+		result.computeResult.TotalChargesAmount = calculateTotalChargesAmountFromTrades(trades)
 		result.TradeCharges = charges
 	}
 

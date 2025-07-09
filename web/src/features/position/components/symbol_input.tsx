@@ -42,7 +42,6 @@ export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
     const handleChange = (newValue: string) => {
         setValue(newValue);
         onChangeProp?.(newValue);
-        setOpen(false);
     };
 
     const handleFocus = () => {
