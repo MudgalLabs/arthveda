@@ -59,6 +59,7 @@ I aim to support as many brokers as I can but until then this screen will help y
 
 ## License
 
-Arthveda is licensed under the [Business Source License 1.1](./LICENSE).
-It's source-available: free for personal use and self-hosting.
-Commercial hosting is restricted for 36 months from release.
+Arthveda is licensed under the **GNU AGPLv3**.  
+This means you are free to use, modify, and self-host it, as long as you share your changes if you offer it as a web service.
+
+🔗 [Read the full license](./LICENSE)
