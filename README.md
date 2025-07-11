@@ -22,7 +22,7 @@
 
 ## ⭐ Features
 
-> The screenshots may be out of sync as the project is being actively developed. Last updated at 2nd Jul, 2025.
+> The screenshots may be out of sync as the project is being actively developed. Last updated at 12nd Jul, 2025.
 
 <h2 align="center">Analytics Dashboard</h3>
 
