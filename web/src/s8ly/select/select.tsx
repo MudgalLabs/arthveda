@@ -73,11 +73,12 @@ const Select: FC<SelectProps> = ({
             <SelectPrimitive.Trigger
                 ref={ref}
                 className={cn(
-                    "bg-input-bg text-foreground border-input-border flex h-10 w-full items-center justify-between gap-x-4 rounded-md border-1 p-3 text-sm enabled:cursor-pointer sm:w-[240px]",
+                    "bg-secondary text-text-primary border-border-soft hover:bg-secondary-hover flex h-10 w-full items-center justify-between gap-x-4 rounded-md border-1 p-3 text-sm transition-colors sm:w-[240px]",
                     {
-                        "text-input-placeholder": !value,
-                        "opacity-60 disabled:cursor-not-allowed": disabled || loading,
+                        "text-text-muted": !value,
+                        "opacity-60": disabled || loading,
                         "border-b-border-red": error,
+                        "bg-secondary-hover": open,
                     },
                     classNames?.trigger
                 )}
@@ -108,7 +109,7 @@ const Select: FC<SelectProps> = ({
                 <SelectPrimitive.Content
                     position="popper"
                     className={cn(
-                        "border-border bg-surface-bg z-100 mt-1 w-[240px] rounded-md border-1 text-sm",
+                        "border-border-soft bg-surface-3 z-100 my-1 w-[240px] rounded-md border-1 text-sm",
                         classNames?.content
                     )}
                 >
@@ -148,7 +149,7 @@ const SelectItem: FC<SelectItemProps> = ({ ref, children, className, disabled, .
             ref={ref}
             data-disabled={disabled}
             className={cn(
-                "enabled:hover:bg-accent-muted focus:bg-accent-muted data-[disabled=true]:text-foreground-muted m-1 flex h-fit items-center justify-between rounded-md px-2 py-3 hover:cursor-pointer focus:outline-none data-[disabled=true]:hover:cursor-not-allowed",
+                "enabled:hover:bg-secondary-hover focus:bg-secondary-hover data-[disabled=true]:text-text-subtle focus:outline-noned m-1 flex h-fit items-center justify-between rounded-sm p-2",
                 className
             )}
             disabled={disabled}
@@ -156,7 +157,7 @@ const SelectItem: FC<SelectItemProps> = ({ ref, children, className, disabled, .
         >
             <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
             <SelectPrimitive.ItemIndicator>
-                <IconCheck size={24} className="text-foreground-muted" />
+                <IconCheck size={18} className="text-text-muted" />
             </SelectPrimitive.ItemIndicator>
         </SelectPrimitive.Item>
     );

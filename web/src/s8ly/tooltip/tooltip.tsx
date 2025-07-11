@@ -20,7 +20,7 @@ export const Tooltip: FC<TooltipProps> = ({
     open,
     defaultOpen,
     onOpenChange,
-    delayDuration = 0,
+    delayDuration = 100,
     disableHoverableContent,
     ...props
 }) => {
@@ -44,9 +44,9 @@ export const Tooltip: FC<TooltipProps> = ({
             <TooltipPrimitive.Portal>
                 <TooltipPrimitive.Content
                     className={cn(
-                        "z-100 m-2 max-w-96 rounded-md border-1 px-3 py-2 text-sm font-medium",
+                        "z-100 m-2 w-fit max-w-72 rounded-md border-1 px-3 py-2 text-[13px] font-normal text-pretty",
                         {
-                            "bg-muted border-border text-foreground-muted": variant === "default",
+                            "bg-surface-3 border-border-soft text-text-primary": variant === "default",
                             "bg-surface-bg border-surface-border text-surface-foreground": variant === "info",
                             "bg-success-bg border-success-border text-success-foreground": variant === "success",
                             "bg-warning-bg border-warning-border text-warning-foreground": variant === "warning",

@@ -7,5 +7,5 @@ interface InputErrorMessageProps {
 }
 
 export const InputErrorMessage: FC<InputErrorMessageProps> = ({ errorMsg, className }) => {
-    return <p className={cn("text-foreground-red text-xs", className)}>{errorMsg}</p>;
+    return <p className={cn("text-text-destructive text-xs", className)}>{errorMsg}</p>;
 };

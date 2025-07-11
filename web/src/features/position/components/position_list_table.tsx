@@ -26,7 +26,8 @@ import {
 import { DataTableState } from "@/s8ly/data_table/data_table_state";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import Decimal from "decimal.js";
-import { useBroker } from "@/features/broker/broker_context";
+import { BrokerLogo } from "@/components/broker_logo";
+import { ROUTES } from "@/routes_constants";
 
 export interface PositionListTable {
     positions: Position[];
@@ -53,7 +54,6 @@ export const PositionListTable: FC<PositionListTable> = memo(
         isLoading,
     }) => {
         const appliedFilters = useListPositionsStore((s) => s.appliedFilters);
-        const resetFilters = useListPositionsStore((s) => s.resetFilters);
         const resetFilter = useListPositionsStore((s) => s.resetFilter);
 
         const activeFilters = Object.entries(appliedFilters).filter(
@@ -84,20 +84,16 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                 <Button
                                     variant="ghost"
                                     size="small"
-                                    className="text-input-placeholder hover:text-foreground h-6 p-1 hover:cursor-pointer"
+                                    className="text-input-placeholder hover:text-foreground h-6 p-1"
                                     onClick={() => resetFilter(key as keyof typeof appliedFilters)}
                                 >
                                     <IconCross size={14} />
                                 </Button>
                             </Tag>
                         ))}
-                        <Button variant="link" onClick={resetFilters}>
-                            Reset Filters
-                        </Button>
                     </div>
-                ) : (
-                    <p className="text-foreground-muted text-base">No filters applied</p>
-                )}
+                ) : // <p className="text-text-subtle">No filters applied</p>
+                null}
             </div>
         );
 
@@ -139,14 +135,12 @@ const columns: ColumnDef<Position>[] = [
     {
         id: "actions",
         cell: ({ row }) => {
-            const { getBrokerLogoById } = useBroker();
-
             return (
                 <div className="flex-x">
                     <Link to={`/position/${row.original.id}`}>
                         <Tooltip content="View Position" delayDuration={300}>
                             <Button variant="ghost" size="icon">
-                                <IconArrowUpRight className="text-link" size={20} />
+                                <IconArrowUpRight size={18} />
                             </Button>
                         </Tooltip>
                     </Link>
@@ -161,14 +155,13 @@ const columns: ColumnDef<Position>[] = [
                             }
                             disabled={!row.original.user_broker_account?.broker_id}
                         >
-                            <div className="size-4">
-                                {row.original.user_broker_account?.broker_id && (
-                                    <img
-                                        src={getBrokerLogoById(row.original.user_broker_account?.broker_id)}
-                                        alt="broker logo"
-                                    />
-                                )}
-                            </div>
+                            {row.original.user_broker_account?.broker_id && (
+                                <Link to={ROUTES.brokerAccounts}>
+                                    <Button variant="ghost" size="icon">
+                                        <BrokerLogo brokerId={row.original.user_broker_account.broker_id} />
+                                    </Button>
+                                </Link>
+                            )}
                         </Tooltip>
                     )}
 

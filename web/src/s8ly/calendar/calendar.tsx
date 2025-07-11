@@ -75,13 +75,13 @@ function Calendar({
         <DatePickerStateProvider config={config}>
             <div
                 className={cn("grid grid-cols-[repeat(2,_min-content)]", {
-                    "gap-x-6": time,
+                    "gap-x-2": time,
                 })}
             >
                 <CalendarInternal time={time} />
 
                 {time && (
-                    <div className="border-border block rounded border p-4">
+                    <div className="bg-surface-3 border-border-subtle block rounded border p-4">
                         <Time />
                     </div>
                 )}
@@ -157,7 +157,7 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
                     <div />
                 )}
 
-                <span className="text-foreground flex-center gap-x-2">
+                <span className="text-text-primary flex-center gap-x-2">
                     <Button variant="link" className="p-0 font-normal" onClick={() => setView(View.Months)}>
                         {calendar.month}
                     </Button>
@@ -177,7 +177,7 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
 
             <CalendarGrid className="mb-2 h-8 items-center">
                 {weekDays.map((d) => (
-                    <p key={d} className="text-foreground-muted text-center text-xs">
+                    <p key={d} className="text-text-muted text-center text-xs">
                         {d}
                     </p>
                 ))}
@@ -191,7 +191,7 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
                             variant="ghost"
                             size="icon"
                             key={d.$date.toString()}
-                            className={getDayClassName("text-foreground text-xs", d)}
+                            className={getDayClassName("text-text-primary text-xs", d)}
                             {...dayButton(d)}
                         >
                             {d.day}
@@ -208,7 +208,11 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
                 <Button variant="ghost" size="icon" {...subtractOffset({ months: 1 })}>
                     <IconChevronLeft />
                 </Button>
-                <Button variant="link" className="text-foreground p-0 font-normal" onClick={() => setView(View.Years)}>
+                <Button
+                    variant="link"
+                    className="text-text-primary p-0 font-normal"
+                    onClick={() => setView(View.Years)}
+                >
                     {year}
                 </Button>
                 <Button variant="ghost" size="icon" {...addOffset({ months: 1 })}>
@@ -265,7 +269,7 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
         <>
             <div
                 className={cn(
-                    "bg-overlay-bg border-overlay-border flex h-[330px] w-fit gap-x-4 rounded-md border-1 p-3 shadow-2xl",
+                    "bg-surface-3 border-border-soft flex h-[330px] w-fit gap-x-4 rounded-md border-1 p-3 shadow-2xl",
                     {
                         "w-[280px]": !isRange,
                         "w-[560px]": isRange,
@@ -362,8 +366,8 @@ const Section: FC<SectionProps> = ({ className, children }) => {
 
 const getDayClassName = (className: string, { selected, disabled, inCurrentMonth, now, range }: DPDay) =>
     cn("day", className, range, {
-        "bg-primary text-foreground hover:bg-primary/90! opacity-100!": selected,
-        "opacity-25 cursor-not-allowed": disabled,
+        "bg-primary text-foreground hover:bg-accent! opacity-100!": selected,
+        "opacity-25": disabled,
         "text-foreground-muted": !inCurrentMonth && !selected,
         "bg-muted! text-foreground-muted!": !inCurrentMonth && !!range,
         "border border-accent rounded-md!": now, // The `!` on rounded-md exists because without it, the "range" classes remove it.
@@ -373,20 +377,20 @@ const getMonthClassName = (className: string, { selected, now, disabled }: DPMon
     cn(className, {
         "bg-primary text-foreground hover:bg-accent opacity-100": selected,
         "border border-accent": now,
-        "opacity-25 cursor-not-allowed": disabled,
+        "opacity-25": disabled,
     });
 
 const getYearsClassName = (className: string, { selected, now, disabled }: DPYear) =>
     cn(className, {
         "bg-primary text-foreground hover:bg-accent opacity-100": selected,
         "border border-accent": now,
-        "opacity-25 cursor-not-allowed": disabled,
+        "opacity-25": disabled,
     });
 
 const getTimesClassName = (className: string, { selected, disabled }: DPTime) =>
     cn(className, {
         "bg-primary text-foreground hover:bg-primary/90! opacity-100!": selected,
-        "opacity-25 cursor-not-allowed": disabled,
+        "opacity-25": disabled,
     });
 
 export { Calendar, Time, CalendarInternal };

@@ -11,11 +11,7 @@ function Card({ children, className, ...props }: CardProps) {
     return (
         <div
             data-slow="card"
-            className={cn(
-                "bg-surface-bg border-surface-border rounded-md border-1 p-3",
-                // "hover:border-accent smooth-colors",
-                className
-            )}
+            className={cn("bg-surface-2 border-border-subtle rounded-md border-1 p-3 shadow-2xl", className)}
             {...props}
         >
             {children}
@@ -30,7 +26,7 @@ interface CardTitleProps {
 
 function CardTitle({ children, className }: CardTitleProps) {
     return (
-        <div data-slow="card-title" className={cn("text-foreground font-medium", className)}>
+        <div data-slow="card-title" className={cn("text-text-primary text-base font-medium", className)}>
             {children}
         </div>
     );
@@ -38,7 +34,7 @@ function CardTitle({ children, className }: CardTitleProps) {
 
 function CardContent({ children, className }: CardProps) {
     return (
-        <div data-slot="card-content" className={cn("text-muted-foreground text-sm", className)}>
+        <div data-slot="card-content" className={cn("text-text-muted text-sm", className)}>
             {children}
         </div>
     );

@@ -1,6 +1,6 @@
 .day {
-    --border-color: var(--color-overlay-border);
-    --in-range-bg: var(--color-overlay-bg-hover);
+    --border-color: var(--color-border-subtle);
+    --in-range-bg: var(--color-secondary-hover);
     --border-radius: 4px;
 }
 

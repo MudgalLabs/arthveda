@@ -5,7 +5,7 @@ import "../src/index.css";
 const preview: Preview = {
     parameters: {
         backgrounds: {
-            values: [{ name: "Dark", value: "hsl(224, 76%, 5%)" }],
+            values: [{ name: "Dark", value: "var(--color-surface-0)" }],
             default: "Dark",
         },
         controls: {

@@ -34,10 +34,7 @@ export const Disabled = () => {
     return (
         <div className="flex-center gap-x-2">
             <CheckboxComp id="terms" disabled />
-            <Label
-                className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                htmlFor="terms"
-            >
+            <Label className="peer-disabled:opacity-70" htmlFor="terms">
                 Accept terms and conditions
             </Label>
         </div>

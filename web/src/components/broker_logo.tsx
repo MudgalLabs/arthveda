@@ -24,5 +24,17 @@ export const BrokerLogo: FC<BrokerLogoProps> = ({ brokerId, size = "md", classNa
         lg: "h-8 w-8",
     };
 
-    return <img src={logoSrc} alt={`${brokerName} logo`} className={cn(sizeClasses[size], className)} />;
+    return (
+        <img
+            src={logoSrc}
+            alt={`${brokerName} logo`}
+            className={cn(
+                sizeClasses[size],
+                {
+                    "p-0.5": brokerName !== "Upstox",
+                },
+                className
+            )}
+        />
+    );
 };

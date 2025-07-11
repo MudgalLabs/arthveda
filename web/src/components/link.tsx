@@ -1,9 +1,6 @@
 import { cn } from "@/lib/utils";
 import { FC } from "react";
-import {
-    Link as RouterLink,
-    LinkProps as RouterLinkProps,
-} from "react-router-dom";
+import { Link as RouterLink, LinkProps as RouterLinkProps } from "react-router-dom";
 
 interface LinkProps extends RouterLinkProps {
     variant?: "default" | "unstyled";
@@ -16,8 +13,7 @@ export const Link: FC<LinkProps> = (props) => {
         <RouterLink
             className={cn(
                 {
-                    "text-base! font-normal! text-inherit! no-underline!":
-                        variant === "unstyled",
+                    "cursor-default! text-base! font-normal! text-inherit! no-underline!": variant === "unstyled",
                 },
                 className
             )}

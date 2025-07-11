@@ -3,7 +3,7 @@ import { ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 import { useControlled } from "@/hooks/use_controlled";
 import { IconCalendarRange, IconCalendarSingle } from "@/components/icons";
 import { cn, formatDate } from "@/lib/utils";
-import { Calendar, CalendarProps, Popover, PopoverContent, PopoverTrigger, PopoverContentProps } from "@/s8ly";
+import { Calendar, CalendarProps, Popover, PopoverContent, PopoverTrigger, PopoverContentProps, Button } from "@/s8ly";
 
 interface DatePickerProps extends Omit<CalendarProps, "dates" | "onDatesChange"> {
     popoverContentProps?: PopoverContentProps;
@@ -76,7 +76,7 @@ function DatePicker({
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <DatePickerButton className={cn(width, className)} open={open} isDateSet={isDateSet}>
-                    {isRange ? <IconCalendarRange size={18} /> : <IconCalendarSingle size={18} />}
+                    {isRange ? <IconCalendarRange size={16} /> : <IconCalendarSingle size={16} />}
                     {isDateSet ? selectedText : placeholder}
                 </DatePickerButton>
             </PopoverTrigger>
@@ -108,19 +108,16 @@ function DatePickerButton({
     ...props
 }: ComponentProps<"button"> & { open: boolean; isDateSet: boolean }) {
     return (
-        <button
-            className={cn(
-                "border-input-border text-input-placeholder bg-input-bg flex h-10 items-center justify-start gap-x-2 rounded-md border-1 p-2 text-left text-sm font-normal enabled:hover:cursor-pointer",
-                {
-                    "active-focus": open,
-                    "text-foreground": isDateSet,
-                },
-                className
-            )}
+        <Button
+            variant="secondary"
+            className={cn("text-text-muted justify-start font-normal enabled:active:scale-[1]!", {
+                "bg-secondary-hover": open,
+                "text-text-primary": isDateSet,
+            })}
             {...props}
         >
             {children}
-        </button>
+        </Button>
     );
 }
 

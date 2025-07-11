@@ -169,6 +169,8 @@ export const AddBrokerAccountModal: FC<AddBrokerAccountModalProps> = ({ renderTr
         });
     };
 
+    const disableCreate = !name.trim() || !brokerId;
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{renderTrigger()}</DialogTrigger>
@@ -208,9 +210,11 @@ export const AddBrokerAccountModal: FC<AddBrokerAccountModalProps> = ({ renderTr
                     </WithLabel>
 
                     <DialogFooter>
-                        <Button type="submit" disabled={!name.trim() || !brokerId} loading={isPending}>
-                            Create
-                        </Button>
+                        <Tooltip content="Some required fields are missing" disabled={!disableCreate}>
+                            <Button type="submit" disabled={disableCreate} loading={isPending}>
+                                Create
+                            </Button>
+                        </Tooltip>
                     </DialogFooter>
                 </form>
             </DialogContent>

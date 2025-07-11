@@ -25,7 +25,7 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
         <DialogPrimitive.Overlay
             data-slot="dialog-overlay"
             className={cn(
-                "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-70 bg-black/50",
+                "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-70 bg-black/25",
                 className
             )}
             {...props}
@@ -46,10 +46,7 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<t
                 {...props}
             >
                 {children}
-                <DialogPrimitive.Close
-                    className="data-[state=open]:bg-accent data-[state=open]:text-foreground-muted absolute top-4 right-4 opacity-70 transition-opacity hover:opacity-100 enabled:hover:cursor-pointer disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-                    asChild
-                >
+                <DialogPrimitive.Close className="absolute top-4 right-4" asChild>
                     <Button variant="ghost" size="icon">
                         <IconCross size={16} />
                     </Button>
@@ -83,7 +80,7 @@ function DialogTitle({ className, ...props }: React.ComponentProps<typeof Dialog
     return (
         <DialogPrimitive.Title
             data-slot="dialog-title"
-            className={cn("text-lg leading-none font-semibold", className)}
+            className={cn("text-text-primary text-base leading-none font-medium", className)}
             {...props}
         />
     );
@@ -93,7 +90,7 @@ function DialogDescription({ className, ...props }: React.ComponentProps<typeof 
     return (
         <DialogPrimitive.Description
             data-slot="dialog-description"
-            className={cn("text-foreground-muted text-sm", className)}
+            className={cn("text-text-muted text-sm", className)}
             {...props}
         />
     );

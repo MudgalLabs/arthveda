@@ -66,7 +66,7 @@
     --font-heading: Inter;
     --font-content: Inter;
 
-    --color-azure-50: #f2f7fc;
+    /* --color-azure-50: #f2f7fc;
     --color-azure-100: #e1ecf8;
     --color-azure-200: #c9def4;
     --color-azure-300: #a4caec;
@@ -76,7 +76,19 @@
     --color-azure-700: #375dae;
     --color-azure-800: #355298;
     --color-azure-900: #2f4679;
-    --color-azure-950: #212c4a;
+    --color-azure-950: #212c4a; */
+
+    --color-azure-50: hsl(213, 52%, 97%);
+    --color-azure-100: hsl(213, 62%, 93%);
+    --color-azure-200: hsl(213, 66%, 87%);
+    --color-azure-300: hsl(213, 69%, 79%);
+    --color-azure-400: hsl(213, 67%, 69%);
+    --color-azure-500: hsl(213, 59%, 59%);
+    --color-azure-600: hsl(220, 54%, 54%);
+    --color-azure-700: hsl(226, 51%, 45%);
+    --color-azure-800: hsl(229, 49%, 40%);
+    --color-azure-900: hsl(229, 44%, 33%);
+    --color-azure-950: hsl(230, 39%, 21%);
 
     /* === Base Backgrounds & Foregrounds === */
     /* Very dark background */
@@ -90,9 +102,11 @@
     --color-border-muted: hsl(0, 0%, 100%);
 
     /* === Brand / Accent System === */
-    --color-primary: var(--color-azure-700);
+    --color-primary: hsl(226, 51%, 45%);
+    --color-primary-hover: hsl(226, 51%, 49%);
     --color-primary-foreground: hsl(210, 40%, 98%);
     --color-secondary: hsl(218, 60%, 11%);
+    --color-secondary-hover: hsl(218, 60%, 15%);
     --color-secondary-foreground: hsl(225, 56%, 88%);
     /* --color-link: hsl(221, 82%, 67%); */
     --color-link: var(--color-azure-500);
@@ -122,6 +136,7 @@
 
     /* === Inputs === */
     --color-input-bg: hsl(220, 60%, 6%);
+    --color-input-bg: hsl(225, 40%, 16%);
     --color-input-border: var(--color-border);
     --color-input-placeholder: #62809d;
     --color-input-focus-ring: var(--color-primary);
@@ -147,6 +162,66 @@
     --color-logo: var(--color-azure-500);
     --color-logo: #0095ff;
 
+    /* === Surface Hierarchy === */
+    /* Background of the entire app. Left sidebar uses this. */
+    --color-surface-0: var(--color-background);
+    /* Main content area. */
+    --color-surface-1: hsl(220, 60%, 5%);
+    /* Cards, right sidebar (if any), textarea, modals, etc.  */
+    --color-surface-2: hsl(220, 60%, 8%);
+    /* Popover, dropdown. */
+    --color-surface-3: hsl(220, 60%, 12%);
+
+    /* Cards, panels, list items */
+    --color-surface-4: hsl(220, 60%, 12%);
+    /* Input fields */
+    --color-surface-5: hsl(220, 60%, 14%);
+    /* Modals, Popovers, Active menu */
+    --color-surface-6: hsl(220, 60%, 16%);
+
+    --color-surface-0: hsl(220, 39%, 5%);
+    --color-surface-1: hsl(223, 48%, 8%);
+    --color-surface-2: hsl(224, 44%, 12%);
+    --color-surface-3: hsl(225, 40%, 16%);
+    --color-surface-4: hsl(226, 36%, 20%);
+
+    /* surface-3 */
+    --color-secondary: hsl(225, 40%, 16%);
+    --color-secondary-hover: hsl(225, 40%, 24%);
+
+    --color-secondary: hsl(222, 42%, 20%);
+    --color-secondary-hover: hsl(222, 42%, 24%);
+
+    /* === Hover & Focus Variants === */
+    --color-hover-soft: hsl(220, 60%, 18%); /* Button hover, card hover */
+    --color-hover-subtle: hsl(220, 60%, 12%); /* Row hover */
+
+    --color-focus-ring: hsl(221, 100%, 40%); /* Ring for inputs, buttons */
+
+    /* === Border & Divider === */
+    /* Feels subtly navy, still soft */
+    --color-border-soft: hsl(220, 30%, 22%);
+    /* Fainter, more navy than gray */
+    --color-border-subtle: hsl(220, 20%, 18%);
+
+    --color-border-soft: hsl(220, 35%, 28%);
+    --color-border-subtle: hsl(220, 35%, 24%);
+    --color-border-hover: hsl(220, 35%, 40%);
+    --color-border-accent: var(--color-azure-500);
+
+    /* === Text Layers === */
+    --color-text-primary: hsl(210, 40%, 98%);
+    --color-text-muted: hsl(213, 30%, 70%);
+    --color-text-subtle: hsl(215, 15%, 50%);
+    --color-text-placeholder: hsl(215, 13%, 45%);
+    --color-text-destructive: lch(80 80 29);
+
+    /* === Accent Layers (from your Azure palette) === */
+    /* For brand accents */
+    --color-accent: var(--color-azure-500);
+    /* On darker surfaces */
+    --color-accent-muted: var(--color-surface-5);
+
     --font-logo: Museo Sans;
     --font-heading: Inter;
     --font-content: Inter;
@@ -156,6 +231,7 @@
 
 * {
     box-sizing: border-box;
+    user-select: none;
 
     /* @apply focus-visible:ring-primary focus-visible:border-transparent focus-visible:ring-[2px] focus-visible:outline-none; */
 }
@@ -164,11 +240,17 @@ body {
     background: var(--color-background);
     color: var(--color-foreground);
 
-    @apply font-content text-base font-normal;
+    @apply font-content text-sm font-normal;
 }
 
 a {
     @apply text-link font-content text-sm font-medium underline-offset-4 hover:underline;
+}
+
+input,
+textarea,
+[contenteditable] {
+    user-select: text;
 }
 
 /* Change Autocomplete styles in Chrome*/
@@ -191,12 +273,12 @@ select:-webkit-autofill:focus {
 
 /* Custom Scrollbar Styles */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--color-accent-muted);
+    background-color: var(--color-border-hover);
     border-radius: 4px;
     cursor: auto;
 }
@@ -228,7 +310,7 @@ select:-webkit-autofill:focus {
     @apply text-foreground text-sm font-medium;
 }
 @utility label-muted {
-    @apply text-muted-foreground text-sm font-normal;
+    @apply text-text-muted text-sm font-normal;
 }
 @utility small {
     @apply text-foreground font-content text-[14px] font-normal;

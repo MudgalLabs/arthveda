@@ -16,7 +16,7 @@ const SidebarContext = createContext<SidebarContextType>({
 });
 
 export const SidebarProvider: FC<PropsWithChildren> = ({ children }) => {
-    const [isOpen, setIsOpen] = useLocalStorageState<boolean>(LocalStorageKeySidebarOpen, false);
+    const [isOpen, setIsOpen] = useLocalStorageState<boolean>(LocalStorageKeySidebarOpen, true);
 
     function toggleSidebar() {
         setIsOpen((prev) => !prev);

@@ -86,9 +86,9 @@ export const OverviewCard = memo(
                     <div className="w-full">
                         <Tooltip
                             content={
-                                <p className="text-sm font-normal">
+                                <p>
                                     Charges are{" "}
-                                    <span className="text-foreground font-semibold">
+                                    <span className="text-text-destructive font-medium">
                                         {chargesAsPercentageOfNetPnL.toFixed(2).toString()}%
                                     </span>{" "}
                                     of gross
