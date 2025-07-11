@@ -1,6 +1,5 @@
 import { FC, useMemo, useState } from "react";
 import { Responsive, WidthProvider, Layout } from "react-grid-layout";
-import { usePostHog } from "posthog-js/react";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -14,7 +13,7 @@ import { LoadingScreen } from "@/components/loading_screen";
 import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cumulative_pnl_graph";
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
-import { IconImport, IconPlus, IconSearch } from "@/components/icons";
+import { IconSearch } from "@/components/icons";
 import { Button, DatePicker } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
@@ -295,7 +294,7 @@ export const Dashboard = () => {
                                     maxDate: new Date(),
                                 },
                             }}
-                            popoverContentProps={{ align: "end" }}
+                            popoverContentProps={{ align: "start" }}
                         />
 
                         <Button variant="secondary" disabled={isFetching} onClick={() => applyFilters()}>
@@ -313,8 +312,6 @@ export const Dashboard = () => {
 export default Dashboard;
 
 function GetStarted() {
-    const posthog = usePostHog();
-
     const { data } = useAuthentication();
 
     if (!data) {
@@ -335,9 +332,9 @@ function GetStarted() {
                 <div className="h-8" />
 
                 {/* <div className="border-border bg-background-subtle mb-8 rounded-lg border p-6 text-left"> */}
-                <Card className="mx-auto w-full max-w-[500px] text-left">
-                    <CardTitle className="sub-heading">Get Started</CardTitle>
-                    <CardContent className="mt-4 text-base! text-pretty">
+                {/* <Card className="mx-auto w-full max-w-[500px] border-none bg-transparent text-left">
+                    <CardTitle>Get Started</CardTitle>
+                    <CardContent className="mt-4 text-pretty">
                         <p>
                             You haven’t added any{" "}
                             <Link className="text-base!" to={ROUTES.explorePositions}>
@@ -346,13 +343,11 @@ function GetStarted() {
                             yet.
                         </p>
 
-                        <div className="h-4" />
-
                         <p>You can import positions from your broker or add a position.</p>
 
                         <div className="h-8" />
 
-                        <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:justify-start">
                             <Link
                                 to={ROUTES.addPosition}
                                 onClick={() => posthog?.capture("Clicked Add Position Manually On Dashboard")}
@@ -372,6 +367,27 @@ function GetStarted() {
                                 </Button>
                             </Link>
                         </div>
+                    </CardContent>
+                </Card> */}
+
+                <Card className="mx-auto w-full max-w-[500px] border-none bg-transparent text-left">
+                    <CardTitle>Get Started</CardTitle>
+                    <CardContent className="mt-4 space-y-4 text-pretty">
+                        <p>
+                            It looks like you haven’t added any <Link to={ROUTES.explorePositions}>positions</Link> yet.
+                        </p>
+
+                        <p>
+                            To get started, use the <strong>"Add Position"</strong> button in the sidebar. You can:
+                        </p>
+
+                        <ul className="text-muted-foreground list-inside list-disc">
+                            <li>Add a position manually</li>
+                            <li>Import from a broker file</li>
+                            <li>Sync from a connected broker</li>
+                        </ul>
+
+                        <p className="text-muted-foreground">Once added, you’ll have trading analytics here.</p>
                     </CardContent>
                 </Card>
                 {/* </div> */}

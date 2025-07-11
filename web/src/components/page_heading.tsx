@@ -21,7 +21,7 @@ const PageHeading: FC<PageHeadingProps> = memo(({ heading, loading }) => {
                     contentProps={{ side: "right" }}
                 >
                     <Button
-                        className="text-text-subtle hover:bg-hover-soft!"
+                        className="text-text-subtle"
                         variant="ghost"
                         size="icon"
                         type="button"

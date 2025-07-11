@@ -10,7 +10,6 @@ import {
     // IconCreditCard,
     // IconLifeBuoy,
     IconPlug,
-    IconChevronRight,
     IconChevronDown,
 } from "@/components/icons";
 import { Branding } from "@/components/branding";
@@ -115,7 +114,8 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                 <Button
                     variant="ghost"
                     className={cn("flex h-auto w-fit items-start justify-between p-1 enabled:active:scale-[1]!", {
-                        "bg-secondary-hover": open,
+                        "bg-secondary-hover text-text-primary": open,
+                        "flex-center": sidebarOpen,
                     })}
                 >
                     {!error && profileImageURL ? (

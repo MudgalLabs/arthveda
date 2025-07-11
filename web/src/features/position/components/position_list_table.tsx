@@ -26,7 +26,8 @@ import {
 import { DataTableState } from "@/s8ly/data_table/data_table_state";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import Decimal from "decimal.js";
-import { useBroker } from "@/features/broker/broker_context";
+import { BrokerLogo } from "@/components/broker_logo";
+import { ROUTES } from "@/routes_constants";
 
 export interface PositionListTable {
     positions: Position[];
@@ -134,8 +135,6 @@ const columns: ColumnDef<Position>[] = [
     {
         id: "actions",
         cell: ({ row }) => {
-            const { getBrokerLogoById } = useBroker();
-
             return (
                 <div className="flex-x">
                     <Link to={`/position/${row.original.id}`}>
@@ -156,14 +155,13 @@ const columns: ColumnDef<Position>[] = [
                             }
                             disabled={!row.original.user_broker_account?.broker_id}
                         >
-                            <div className="size-4">
-                                {row.original.user_broker_account?.broker_id && (
-                                    <img
-                                        src={getBrokerLogoById(row.original.user_broker_account?.broker_id)}
-                                        alt="broker logo"
-                                    />
-                                )}
-                            </div>
+                            {row.original.user_broker_account?.broker_id && (
+                                <Link to={ROUTES.brokerAccounts}>
+                                    <Button variant="ghost" size="icon">
+                                        <BrokerLogo brokerId={row.original.user_broker_account.broker_id} />
+                                    </Button>
+                                </Link>
+                            )}
                         </Tooltip>
                     )}
 

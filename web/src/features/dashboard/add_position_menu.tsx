@@ -1,4 +1,5 @@
 import { FC, useState } from "react";
+import { usePostHog } from "posthog-js/react";
 
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/s8ly";
 import { IconImport, IconPlus, IconScrollText, IconSync } from "@/components/icons";
@@ -14,15 +15,17 @@ interface AddPositionMenuProps {
 export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, className }) => {
     const [open, setOpen] = useState(false);
 
+    const posthog = usePostHog();
+
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
                 <Button
                     className={cn(
-                        "w-full enabled:active:scale-[1]!",
+                        "w-full rounded-sm p-2 enabled:active:scale-[1]!",
                         {
                             "bg-primary-hover": open,
-                            "h-9 w-9": !sidebarOpen,
+                            "flex-center! h-9 w-9": !sidebarOpen,
                         },
                         className
                     )}
@@ -33,21 +36,33 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
             </DropdownMenuTrigger>
 
             <DropdownMenuContent side="right" align="end" className="ml-1 min-w-[180px]">
-                <Link to={ROUTES.addPosition} variant="unstyled">
+                <Link
+                    to={ROUTES.addPosition}
+                    variant="unstyled"
+                    onClick={() => posthog?.capture("Clicked Add Position Manually On Dashboard")}
+                >
                     <DropdownMenuItem>
                         <IconScrollText size={18} />
-                        Add Manually
+                        Add manually
                     </DropdownMenuItem>
                 </Link>
 
-                <Link to={ROUTES.importPositions} variant="unstyled">
+                <Link
+                    to={ROUTES.importPositions}
+                    variant="unstyled"
+                    onClick={() => posthog?.capture("Clicked Import Positions From Broker On Dashboard")}
+                >
                     <DropdownMenuItem>
                         <IconImport size={18} />
-                        Import from File
+                        Import from file
                     </DropdownMenuItem>
                 </Link>
 
-                <Link to={ROUTES.brokerAccounts} variant="unstyled">
+                <Link
+                    to={ROUTES.brokerAccounts}
+                    variant="unstyled"
+                    onClick={() => posthog?.capture("Clicked sync from broker")}
+                >
                     <DropdownMenuItem>
                         <IconSync size={18} />
                         Sync from Broker

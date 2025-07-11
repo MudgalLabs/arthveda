@@ -18,14 +18,14 @@ const buttonVariants = cva(
                 destructive:
                     "bg-transparent text-text-destructive enabled:hover:bg-text-destructive/10 focus-visible:ring-foreground!",
                 success: "bg-green-bg text-foreground enabled:hover:bg-green-bg/90 focus-visible:ring-foreground!",
-                ghost: "text-text-muted enabled:hover:bg-hover-soft enabled:hover:text-text-primary",
+                ghost: "text-text-muted enabled:hover:bg-secondary-hover enabled:hover:text-text-primary",
                 link: "text-accent underline-offset-4 hover:underline p-0! h-fit!",
             },
             size: {
                 default: "text-sm px-3 h-9",
                 small: "text-xs px-2 font-normal h-8",
                 large: "text-base px-3 h-10 font-medium",
-                icon: "p-1.5",
+                icon: "h-8 w-8",
             },
         },
         defaultVariants: {

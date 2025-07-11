@@ -664,13 +664,13 @@ const DiscardButton = memo(
     ({ hasSomethingToDiscard, discard }: { hasSomethingToDiscard: boolean; discard: () => void }) => {
         return (
             <Dialog>
-                <DialogTrigger asChild>
-                    <Tooltip content="No changes to discard" disabled={hasSomethingToDiscard}>
+                <Tooltip content="No changes to discard" disabled={hasSomethingToDiscard}>
+                    <DialogTrigger asChild>
                         <Button variant="secondary" disabled={!hasSomethingToDiscard}>
                             Discard
                         </Button>
-                    </Tooltip>
-                </DialogTrigger>
+                    </DialogTrigger>
+                </Tooltip>
 
                 <DialogContent>
                     <DialogHeader>

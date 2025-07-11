@@ -56,7 +56,7 @@ const DropdownMenuCheckboxItem = ({
     return (
         <DropdownMenuPrimitive.CheckboxItem
             className={cn(
-                "focus:bg-overlay-bg-hover focus:text-foreground relative flex items-center gap-2 rounded-sm py-1.5 pr-2 pl-10 text-sm outline-hidden select-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                "focus:bg-secondary-hover focus:text-text-primary relative flex items-center gap-2 rounded-sm py-1.5 pr-2 pl-10 text-sm outline-hidden select-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
                 className
             )}
             checked={checked}

@@ -55,7 +55,11 @@ export const Sidebar = () => {
             <div>
                 <div className="mt-6 flex flex-col gap-y-2 pb-2">
                     <div className="flex-x mb-8 ml-1 justify-between">
-                        {isOpen && <Branding size="small" hideText />}
+                        {isOpen && (
+                            <Link to={ROUTES.dashboard} variant="unstyled" className="cursor-pointer!">
+                                <Branding size="small" hideText />
+                            </Link>
+                        )}
 
                         {data && (
                             <ProfileMenu
@@ -110,12 +114,15 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
 
     const content = (
         <div
-            className={cn("text-text-muted w-full rounded-md bg-transparent p-2", {
-                "bg-hover-soft text-text-primary": isActive,
-                "hover:bg-hover-soft hover:text-text-primary": !isActive,
-                "flex items-center gap-2 text-base": open,
-                "h-9 w-9": !open,
-            })}
+            className={cn(
+                "peer text-text-muted [&_svg]:text-text-muted hover:[&_svg]:text-text-primary w-full rounded-sm bg-transparent p-2 transition-colors",
+                {
+                    "bg-secondary-hover text-text-primary": isActive,
+                    "hover:bg-secondary-hover hover:text-text-primary": !isActive,
+                    "flex items-center gap-2 text-base": open,
+                    "mx-auto flex h-9 w-9 items-center justify-center": !open,
+                }
+            )}
             onClick={onClick}
         >
             <Icon size={20} />

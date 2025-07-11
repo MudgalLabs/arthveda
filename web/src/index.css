@@ -185,7 +185,8 @@
     --color-surface-3: hsl(225, 40%, 16%);
     --color-surface-4: hsl(226, 36%, 20%);
 
-    --color-secondary: hsl(225, 40%, 16%); /* surface-3 */
+    /* surface-3 */
+    --color-secondary: hsl(225, 40%, 16%);
     --color-secondary-hover: hsl(225, 40%, 24%);
 
     --color-secondary: hsl(222, 42%, 20%);

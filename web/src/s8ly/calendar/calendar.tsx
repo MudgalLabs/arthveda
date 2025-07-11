@@ -75,13 +75,13 @@ function Calendar({
         <DatePickerStateProvider config={config}>
             <div
                 className={cn("grid grid-cols-[repeat(2,_min-content)]", {
-                    "gap-x-6": time,
+                    "gap-x-2": time,
                 })}
             >
                 <CalendarInternal time={time} />
 
                 {time && (
-                    <div className="border-border block rounded border p-4">
+                    <div className="bg-surface-3 border-border-subtle block rounded border p-4">
                         <Time />
                     </div>
                 )}
@@ -157,7 +157,7 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
                     <div />
                 )}
 
-                <span className="text-foreground flex-center gap-x-2">
+                <span className="text-text-primary flex-center gap-x-2">
                     <Button variant="link" className="p-0 font-normal" onClick={() => setView(View.Months)}>
                         {calendar.month}
                     </Button>
@@ -177,7 +177,7 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
 
             <CalendarGrid className="mb-2 h-8 items-center">
                 {weekDays.map((d) => (
-                    <p key={d} className="text-foreground-muted text-center text-xs">
+                    <p key={d} className="text-text-muted text-center text-xs">
                         {d}
                     </p>
                 ))}
@@ -191,7 +191,7 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
                             variant="ghost"
                             size="icon"
                             key={d.$date.toString()}
-                            className={getDayClassName("text-foreground text-xs", d)}
+                            className={getDayClassName("text-text-primary text-xs", d)}
                             {...dayButton(d)}
                         >
                             {d.day}
@@ -208,7 +208,11 @@ function CalendarInternal({ time = false }: { time?: boolean }): ReactElement {
                 <Button variant="ghost" size="icon" {...subtractOffset({ months: 1 })}>
                     <IconChevronLeft />
                 </Button>
-                <Button variant="link" className="text-foreground p-0 font-normal" onClick={() => setView(View.Years)}>
+                <Button
+                    variant="link"
+                    className="text-text-primary p-0 font-normal"
+                    onClick={() => setView(View.Years)}
+                >
                     {year}
                 </Button>
                 <Button variant="ghost" size="icon" {...addOffset({ months: 1 })}>
