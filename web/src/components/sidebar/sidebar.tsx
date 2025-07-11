@@ -4,16 +4,21 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Tooltip } from "@/s8ly/tooltip/tooltip";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
-import { IconDashboard, IconTrades, IconType } from "@/components/icons";
+import { IconCandlestick, IconDashboard, IconType } from "@/components/icons";
 
 import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/routes_constants";
+import { ProfileMenu } from "@/components/topbar";
+import { useAuthentication } from "@/features/auth/auth_context";
+import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
+import { Branding } from "@/components/branding";
 
 const sidebarRoutes = [ROUTES.dashboard, ROUTES.explorePositions, ROUTES.addPosition, ROUTES.importPositions];
 
 export const Sidebar = () => {
     const { pathname } = useLocation();
+    const { data } = useAuthentication();
     const { isOpen, setIsOpen } = useSidebar();
     const isMobile = useIsMobile();
 
@@ -43,18 +48,26 @@ export const Sidebar = () => {
 
     return (
         <div
-            className={cn(
-                "bg-background border-r-border relative flex h-full flex-col justify-between border-r-1 px-3",
-                {
-                    "min-w-[280px]!": isOpen,
-                    "min-w-fit": !isOpen,
-                    hidden: isMobile && !isOpen, // On mobile, we don't show the sidebar when it's closed
-                    "w-screen": isMobile && isOpen,
-                }
-            )}
+            className={cn("relative flex h-full flex-col justify-between px-3", {
+                "w-[220px]!": isOpen,
+            })}
         >
             <div>
-                <div className="mt-4 flex flex-col gap-y-2 pb-2">
+                <div className="mt-6 flex flex-col gap-y-2 pb-2">
+                    <div className="flex-x mb-8 ml-1 justify-between">
+                        {isOpen && <Branding size="small" hideText />}
+
+                        {data && (
+                            <ProfileMenu
+                                sidebarOpen={isOpen}
+                                email={data.email}
+                                displayName={data.name}
+                                profileImageURL={data.avatar_url}
+                                isMobile={isMobile}
+                            />
+                        )}
+                    </div>
+
                     <Link to={ROUTES.dashboard} variant="unstyled">
                         <SidebarNavItem
                             label="Dashboard"
@@ -68,13 +81,17 @@ export const Sidebar = () => {
                     <Link to={ROUTES.explorePositions} variant="unstyled">
                         <SidebarNavItem
                             label="Explore Positions"
-                            Icon={IconTrades}
+                            Icon={IconCandlestick}
                             open={isOpen}
                             isActive={activeRoute === ROUTES.explorePositions}
                             onClick={() => handleClick(ROUTES.explorePositions)}
                         />
                     </Link>
                 </div>
+            </div>
+
+            <div className="mb-4 space-y-2">
+                <AddPositionMenu sidebarOpen={isOpen} />
             </div>
         </div>
     );
@@ -93,18 +110,16 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
 
     const content = (
         <div
-            className={cn(
-                "text-muted-foreground w-full rounded-md border-l-[4px] border-transparent bg-transparent p-3",
-                {
-                    "bg-accent-muted text-foreground border-l-primary border-l-[4px]": isActive,
-                    "hover:bg-accent-muted hover:text-muted-foreground hover:cursor-pointer": !isActive,
-                    "flex items-center gap-3 text-base": open,
-                }
-            )}
+            className={cn("text-text-muted w-full rounded-md bg-transparent p-2", {
+                "bg-hover-soft text-text-primary": isActive,
+                "hover:bg-hover-soft hover:text-text-primary": !isActive,
+                "flex items-center gap-2 text-base": open,
+                "h-9 w-9": !open,
+            })}
             onClick={onClick}
         >
-            <Icon size={24} />
-            {open && <p className="font-normal">{label}</p>}
+            <Icon size={20} />
+            {open && <p className="text-sm">{label}</p>}
         </div>
     );
 

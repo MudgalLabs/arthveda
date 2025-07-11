@@ -53,7 +53,6 @@ export const PositionListTable: FC<PositionListTable> = memo(
         isLoading,
     }) => {
         const appliedFilters = useListPositionsStore((s) => s.appliedFilters);
-        const resetFilters = useListPositionsStore((s) => s.resetFilters);
         const resetFilter = useListPositionsStore((s) => s.resetFilter);
 
         const activeFilters = Object.entries(appliedFilters).filter(
@@ -84,20 +83,16 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                 <Button
                                     variant="ghost"
                                     size="small"
-                                    className="text-input-placeholder hover:text-foreground h-6 p-1 hover:cursor-pointer"
+                                    className="text-input-placeholder hover:text-foreground h-6 p-1"
                                     onClick={() => resetFilter(key as keyof typeof appliedFilters)}
                                 >
                                     <IconCross size={14} />
                                 </Button>
                             </Tag>
                         ))}
-                        <Button variant="link" onClick={resetFilters}>
-                            Reset Filters
-                        </Button>
                     </div>
-                ) : (
-                    <p className="text-foreground-muted text-base">No filters applied</p>
-                )}
+                ) : // <p className="text-text-subtle">No filters applied</p>
+                null}
             </div>
         );
 
@@ -146,7 +141,7 @@ const columns: ColumnDef<Position>[] = [
                     <Link to={`/position/${row.original.id}`}>
                         <Tooltip content="View Position" delayDuration={300}>
                             <Button variant="ghost" size="icon">
-                                <IconArrowUpRight className="text-link" size={20} />
+                                <IconArrowUpRight size={18} />
                             </Button>
                         </Tooltip>
                     </Link>

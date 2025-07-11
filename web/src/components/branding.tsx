@@ -39,17 +39,12 @@ export const Branding: FC<BrandingProps> = (props) => {
                 // className: "max-w-[300px] text-balance",
             }}
             content={
-                <p onClick={(e) => e.stopPropagation()} className="">
+                <p onClick={(e) => e.stopPropagation()} className="text-balance">
                     Arthveda is in Beta. Please help us make it better by reporting issues or suggesting features on{" "}
                     <a href="https://github.com/MudgalLabs/arthveda" target="_blank" rel="noopener noreferrer">
                         GitHub
                     </a>{" "}
-                    <br />
-                    or by writing to us{" "}
-                    <a href="mailto:hey@arthveda.app" className="">
-                        hey@arthveda.app
-                    </a>
-                    .
+                    or by writing to us <a href="mailto:hey@arthveda.app">hey@arthveda.app</a>.
                 </p>
             }
         >

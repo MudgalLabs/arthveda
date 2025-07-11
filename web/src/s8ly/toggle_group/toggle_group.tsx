@@ -21,10 +21,7 @@ function ToggleGroup({
         <ToggleGroupPrimitive.Root
             data-variant={variant}
             data-size={size}
-            className={cn(
-                "group/toggle-group bg-input-bg border-input-border flex w-fit items-center gap-x-1.5 rounded-md border-1 p-1",
-                className
-            )}
+            className={cn("group/toggle-group flex w-fit items-center gap-x-2 bg-transparent p-1", className)}
             {...props}
         >
             <ToggleGroupContext.Provider value={{ variant, size }}>{children}</ToggleGroupContext.Provider>

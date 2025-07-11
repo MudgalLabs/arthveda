@@ -7,22 +7,32 @@ import { ROUTES } from "@/routes_constants";
 import { Link } from "@/components/link";
 
 interface AddPositionMenuProps {
+    sidebarOpen: boolean;
     className?: string;
 }
 
-export const AddPositionMenu: FC<AddPositionMenuProps> = ({ className }) => {
+export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, className }) => {
     const [open, setOpen] = useState(false);
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
-                <Button className={cn("enabled:active:scale-[1]!", className)}>
-                    <IconPlus size={16} />
-                    Add Position
+                <Button
+                    className={cn(
+                        "w-full enabled:active:scale-[1]!",
+                        {
+                            "bg-primary-hover": open,
+                            "h-9 w-9": !sidebarOpen,
+                        },
+                        className
+                    )}
+                >
+                    <IconPlus size={18} />
+                    {sidebarOpen ? "Add Position" : ""}
                 </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent side="bottom" align="start" className="mt-2 min-w-[180px]">
+            <DropdownMenuContent side="right" align="end" className="ml-1 min-w-[180px]">
                 <Link to={ROUTES.addPosition} variant="unstyled">
                     <DropdownMenuItem>
                         <IconScrollText size={18} />

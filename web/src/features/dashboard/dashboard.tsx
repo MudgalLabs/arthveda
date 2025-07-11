@@ -19,7 +19,6 @@ import { Button, DatePicker } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
-import { AddPositionMenu } from "./add_position_menu";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -283,10 +282,6 @@ export const Dashboard = () => {
 
             {!isNewUser && (
                 <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row">
-                    <div>
-                        <AddPositionMenu className="w-full sm:w-fit" />
-                    </div>
-
                     <div className="flex-x">
                         <DatePicker
                             className="w-full sm:w-fit"
@@ -303,12 +298,7 @@ export const Dashboard = () => {
                             popoverContentProps={{ align: "end" }}
                         />
 
-                        <Button
-                            className="size-10"
-                            variant="secondary"
-                            disabled={isFetching}
-                            onClick={() => applyFilters()}
-                        >
+                        <Button variant="secondary" disabled={isFetching} onClick={() => applyFilters()}>
                             <IconSearch size={18} />
                         </Button>
                     </div>

@@ -22,7 +22,7 @@ import {
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
 import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
-import { IconCalendarRange, IconCross, IconInfo, IconPlus } from "@/components/icons";
+import { IconCalendarRange, IconInfo, IconPlus, IconTrash } from "@/components/icons";
 import { getDataTableCellUpdateFn, useDataTableEditableCell } from "@/hooks/use_data_table_editable_cell";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { cn, formatDate, getElapsedTime, isSameDay } from "@/lib/utils";
@@ -213,6 +213,8 @@ function AddPosition() {
         }
     }, [compute, canCompute, enableAutoCharges, positionLatest]);
 
+    const disablePrimaryButton = (isEditingPosition && !hasPositionDataChanged) || !canSave;
+
     return (
         <>
             <PageHeading heading={isCreatingPosition ? "Add Position" : "View Position"} loading={isComputing} />
@@ -351,7 +353,7 @@ function AddPosition() {
                                 maxLength={4096}
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
-                                placeholder="Add notes about this position"
+                                placeholder="Add notes here..."
                             />
                         </WithLabel>
                     )}
@@ -399,13 +401,18 @@ function AddPosition() {
                 <div className="flex flex-col justify-between gap-2 sm:flex-row">
                     <DiscardButton hasSomethingToDiscard={hasPositionDataChanged} discard={discard} />
 
-                    <Button
-                        onClick={handleClickSave}
-                        loading={isCreating || isUpdating}
-                        disabled={(isEditingPosition && !hasPositionDataChanged) || !canSave}
+                    <Tooltip
+                        content={isEditingPosition ? "No changes to save" : "Some required fields are missing"}
+                        disabled={!disablePrimaryButton}
                     >
-                        {isCreatingPosition ? "Create" : "Update"}
-                    </Button>
+                        <Button
+                            onClick={handleClickSave}
+                            loading={isCreating || isUpdating}
+                            disabled={disablePrimaryButton}
+                        >
+                            {isCreatingPosition ? "Create" : "Update"}
+                        </Button>
+                    </Tooltip>
                 </div>
             </div>
         </>
@@ -585,13 +592,8 @@ const columns: ColumnDef<CreateTrade>[] = [
                     contentProps={{ side: "bottom" }}
                     disabled={!disableButton}
                 >
-                    <Button
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => removeTrade(row.index)}
-                        disabled={disableButton}
-                    >
-                        <IconCross size={18} />
+                    <Button variant="ghost" size="icon" onClick={() => removeTrade(row.index)} disabled={disableButton}>
+                        <IconTrash size={18} />
                     </Button>
                 </Tooltip>
             );
@@ -619,11 +621,7 @@ const AddTradeButton = memo(
     ({ tradesAreValid, insertNewTrade }: { tradesAreValid: boolean; insertNewTrade: () => void }) => {
         return (
             <Tooltip
-                content={
-                    <div className="flex-center gap-x-2">
-                        <p>Fill in the missing information</p>
-                    </div>
-                }
+                content="Some required fields are missing"
                 contentProps={{ side: "bottom" }}
                 disabled={tradesAreValid}
             >
@@ -667,9 +665,11 @@ const DiscardButton = memo(
         return (
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button variant="secondary" disabled={!hasSomethingToDiscard}>
-                        Discard
-                    </Button>
+                    <Tooltip content="No changes to discard" disabled={hasSomethingToDiscard}>
+                        <Button variant="secondary" disabled={!hasSomethingToDiscard}>
+                            Discard
+                        </Button>
+                    </Tooltip>
                 </DialogTrigger>
 
                 <DialogContent>
@@ -698,7 +698,7 @@ const DeleteButton = memo(
         return (
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="secondary">Delete</Button>
+                    <Button variant="destructive">Delete</Button>
                 </DialogTrigger>
 
                 <DialogContent>

@@ -3,7 +3,7 @@ export type { IconType } from "react-icons";
 export { LuPlus as IconPlus } from "react-icons/lu";
 export { FaGithub as IconGithub } from "react-icons/fa";
 export { MdGridView as IconDashboard } from "react-icons/md";
-export { LuChartNoAxesCombined as IconTrades } from "react-icons/lu";
+export { LuChartCandlestick as IconCandlestick } from "react-icons/lu";
 export { FaCircleChevronRight as IconChevronRightCircle } from "react-icons/fa6";
 export { FaCircleChevronLeft as IconChevronLeftCircle } from "react-icons/fa6";
 export { RiExpandUpDownLine as IconExpandUpDown } from "react-icons/ri";

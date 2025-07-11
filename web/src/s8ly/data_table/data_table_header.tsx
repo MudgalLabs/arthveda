@@ -24,9 +24,9 @@ export function DataTableColumnHeader<TData, TValue>({
     return (
         <div className={cn("flex items-center space-x-2", className)}>
             <Button
-                variant={column.getIsSorted() ? "secondary" : "ghost"}
+                variant="ghost"
                 className={cn("mx-1 h-8 w-full justify-start", {
-                    "text-foreground font-semibold": column.getIsSorted(),
+                    "text-foreground font-medium": column.getIsSorted(),
                 })}
                 onClick={() => column.toggleSorting()}
                 disabled={disabled}
@@ -41,7 +41,7 @@ export function DataTableColumnHeader<TData, TValue>({
                             "rotate-0 transition-transform": column.getIsSorted() === "desc",
                         })}
                     >
-                        <IconArrowDown size={16} />
+                        <IconArrowDown size={14} />
                     </div>
                 }
             </Button>

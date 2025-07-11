@@ -33,8 +33,8 @@ export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: 
             <Drawer.Trigger asChild>
                 <Button
                     variant="secondary"
-                    className={cn("w-full sm:w-fit", {
-                        "bg-primary": open,
+                    className={cn("w-full enabled:active:scale-[1]! sm:w-fit", {
+                        "bg-secondary-hover": open,
                     })}
                 >
                     <IconListFilter className="text-foreground" /> Filters
@@ -45,7 +45,7 @@ export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: 
                 <Drawer.Overlay className="fixed inset-0 bg-black/50" />
                 <Drawer.Content
                     ref={handleRef}
-                    className="bg-surface-bg border-border fixed right-0 bottom-0 left-0 z-50 mt-24 flex h-[80%] flex-col rounded-t-[10px] border-1 outline-none lg:h-fit"
+                    className="bg-surface-1 border-border-soft fixed right-0 bottom-0 left-0 z-50 mt-24 flex h-[80%] flex-col rounded-t-[10px] border-1 outline-none lg:h-fit"
                 >
                     <div className="mx-auto max-w-[1440px] flex-1 overflow-y-auto rounded-t-[10px] p-4">
                         <Drawer.Handle />
@@ -60,8 +60,8 @@ export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: 
                             </div>
 
                             <Drawer.Close asChild>
-                                <Button variant="secondary" size="icon">
-                                    <IconCross size={20} />
+                                <Button variant="ghost" size="icon">
+                                    <IconCross size={18} />
                                 </Button>
                             </Drawer.Close>
                         </div>

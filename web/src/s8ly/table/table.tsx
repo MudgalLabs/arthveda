@@ -3,13 +3,19 @@ import { cn } from "@/lib/utils";
 function Table({ className, ...props }: React.ComponentProps<"table">) {
     return (
         <div className="border-border relative w-full overflow-hidden overflow-x-auto rounded-md border-1">
-            <table className={cn("bg-surface-bg w-full caption-bottom text-sm", className)} {...props} />
+            <table className={cn("w-full caption-bottom bg-transparent text-sm", className)} {...props} />
+            {/* <table className={cn("bg-surface-bg w-full caption-bottom text-sm", className)} {...props} /> */}
         </div>
     );
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-    return <thead className={cn("[&_tr]:border-b-border [&_tr]:border-b-1", className)} {...props} />;
+    return (
+        <thead
+            className={cn("[&_tr]:border-b-border [&_tr]:border-b-1 [&_tr]:bg-transparent!", className)}
+            {...props}
+        />
+    );
 }
 
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
@@ -29,7 +35,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     return (
         <tr
             className={cn(
-                "hover:bg-accent-muted/50 data-[state=selected]:bg-accent-muted border-b-border/50 border-b-1 transition-colors",
+                "hover:bg-hover-subtle data-[state=selected]:bg-accent-muted border-b-border/50 border-b-1 transition-colors",
                 className
             )}
             {...props}

@@ -1,15 +1,14 @@
 import { FC, PropsWithChildren } from "react";
 
 import { Sidebar } from "@/components/sidebar/sidebar";
-import { Topbar } from "@/components/topbar";
 
 export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
     return (
         <div className="fixed inset-0 flex flex-col overflow-hidden">
             {/* Topbar */}
-            <div className="z-10 h-[64px] shrink-0">
+            {/* <div className="z-10 h-[64px] shrink-0">
                 <Topbar />
-            </div>
+            </div> */}
 
             {/* Sidebar + Content */}
             <div className="flex flex-1 overflow-hidden">
@@ -19,11 +18,10 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
                 </div>
 
                 {/* Main content area */}
-                <div className="flex-1 overflow-y-auto">
-                    <div className="flex h-full justify-center">
-                        <div className="w-full max-w-[1440px] px-4">
-                            {children}
-                            <div className="h-4" />
+                <div className="overflow-none min-w-0 flex-1 sm:p-2 sm:pl-0">
+                    <div className="flex h-full min-w-0 justify-center">
+                        <div className="bg-surface-1 border-border-subtle w-full min-w-0 overflow-auto px-6 py-4 sm:rounded-md sm:border-1">
+                            <div className="min-w-full">{children}</div>
                         </div>
                     </div>
                 </div>

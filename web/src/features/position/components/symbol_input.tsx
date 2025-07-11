@@ -91,6 +91,7 @@ export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
                         className: "bg-surface-bg! border-1 border-border",
                     },
                 }}
+                noOptionsText={<span className="text-foreground-muted text-sm">No options</span>}
                 renderInput={(params) => {
                     const { type, ...restInputProps } = params.inputProps;
                     return (

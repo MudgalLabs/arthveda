@@ -7,10 +7,11 @@ import {
     IconPanelLeftOpen,
     IconPanelLeftClose,
     IconLogout,
-    IconChevronDown,
     // IconCreditCard,
     // IconLifeBuoy,
     IconPlug,
+    IconChevronRight,
+    IconChevronDown,
 } from "@/components/icons";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
@@ -85,10 +86,10 @@ interface ProfileMenuProps {
     isMobile?: boolean;
 }
 
-const ProfileMenu: FC<ProfileMenuProps> = (props) => {
+export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
     const posthog = usePostHog();
 
-    const { email, displayName = "", profileImageURL = "", isMobile } = props;
+    const { sidebarOpen, email, displayName = "", profileImageURL = "" } = props;
 
     const [open, setOpen] = useState(false);
     const [error, setError] = useState(false);
@@ -112,37 +113,48 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
         <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
                 <Button
-                    variant="secondary"
-                    className={cn("flex h-auto items-center py-1 pr-1 pl-1 enabled:active:scale-[1]!", {
-                        "bg-primary border-primary": open,
+                    variant="ghost"
+                    className={cn("flex h-auto w-fit items-start justify-between p-1 enabled:active:scale-[1]!", {
+                        "bg-secondary-hover": open,
                     })}
                 >
                     {!error && profileImageURL ? (
                         <img
-                            className="flex-shrink-0 rounded-sm"
-                            height={32}
-                            width={32}
+                            className="rounded-sm p-0"
+                            height={28}
+                            width={28}
                             src={profileImageURL}
                             onError={() => setError(true)}
                         />
                     ) : (
-                        <DefaultProfileAvatar height={32} />
+                        <DefaultProfileAvatar height={36} />
                     )}
 
-                    {!isMobile && <p className="truncate text-sm font-normal whitespace-nowrap">{displayName}</p>}
-
-                    <IconChevronDown
-                        size={18}
-                        className={cn("flex-shrink-0 transition-transform duration-200", {
-                            "rotate-180": open,
-                        })}
-                    />
+                    {sidebarOpen && <IconChevronDown size={16} />}
                 </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent side="bottom" align="end" className="mt-2 min-w-[240px]">
+            <DropdownMenuContent side="bottom" align="start" className="mt-1 min-w-[240px]">
                 <DropdownMenuLabel>
-                    <p>{email}</p>
+                    <div className="flex-x">
+                        <div>
+                            {!error && profileImageURL ? (
+                                <img
+                                    className="rounded-sm"
+                                    height={40}
+                                    width={40}
+                                    src={profileImageURL}
+                                    onError={() => setError(true)}
+                                />
+                            ) : (
+                                <DefaultProfileAvatar height={36} />
+                            )}
+                        </div>
+                        <div>
+                            <p className="text-sm font-normal">{displayName}</p>
+                            <p className="label-muted text-xs">{email}</p>
+                        </div>
+                    </div>
                 </DropdownMenuLabel>
 
                 <DropdownMenuSeparator />
@@ -172,7 +184,7 @@ const ProfileMenu: FC<ProfileMenuProps> = (props) => {
 
                 <DropdownMenuItem
                     className={cn({
-                        "cursor-not-allowed hover:bg-none": isSignoutPending,
+                        "hover:bg-none": isSignoutPending,
                     })}
                     onSelect={() => signout()}
                     disabled={isSignoutPending}

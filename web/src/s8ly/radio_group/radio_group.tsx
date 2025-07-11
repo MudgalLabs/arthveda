@@ -3,28 +3,16 @@ import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { cn } from "@/lib/utils";
 import { IconCircle } from "@/components/icons";
 
-function RadioGroup({
-    className,
-    ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
-    return (
-        <RadioGroupPrimitive.Root
-            data-slot="radio-group"
-            className={cn("grid gap-3", className)}
-            {...props}
-        />
-    );
+function RadioGroup({ className, ...props }: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
+    return <RadioGroupPrimitive.Root data-slot="radio-group" className={cn("grid gap-3", className)} {...props} />;
 }
 
-function RadioGroupItem({
-    className,
-    ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
+function RadioGroupItem({ className, ...props }: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
     return (
         <RadioGroupPrimitive.Item
             data-slot="radio-group-item"
             className={cn(
-                "border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-border-red/20 dark:aria-invalid:ring-border-red/40 aria-invalid:border-border-red dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+                "border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-border-red/20 dark:aria-invalid:ring-border-red/40 aria-invalid:border-border-red dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:opacity-50",
                 className
             )}
             {...props}

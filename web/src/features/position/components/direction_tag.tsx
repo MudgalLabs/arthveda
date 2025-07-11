@@ -13,14 +13,7 @@ const DirectionTag: FC<DirectionTagProps> = memo(({ direction, className }) => {
         return null;
     }
 
-    return (
-        <Tag
-            className={className}
-            // variant={direction === "long" ? "success" : "destructive"}
-        >
-            {positionDirectionToString(direction)}
-        </Tag>
-    );
+    return <Tag className={className}>{positionDirectionToString(direction)}</Tag>;
 });
 
 export { DirectionTag };

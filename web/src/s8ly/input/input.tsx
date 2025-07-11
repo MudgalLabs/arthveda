@@ -42,11 +42,10 @@ const Input: FC<InputProps> = (props) => {
         <>
             <input
                 className={cn(
-                    "bg-input-bg text-foreground border-input-border h-10 w-full rounded-md border-1 p-3 text-sm sm:w-[300px]",
-                    "placeholder:text-input-placeholder disabled:opacity-69",
-                    "transition-all outline-none disabled:cursor-not-allowed",
+                    "text-text-primary border-border-soft placeholder-text-placeholder h-10 w-full rounded-md border-1 bg-transparent p-3 text-sm transition-colors outline-none disabled:opacity-69 sm:w-[300px]",
+                    "hover:border-border-hover focus:border-tranparent focus-visible:border-accent focus-visible:ring-0",
                     {
-                        "file:bg-secondary file:text-foreground p-0 file:mr-4 file:h-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-medium hover:cursor-pointer hover:file:cursor-pointer sm:w-[420px]":
+                        "file:bg-secondary file:text-foreground p-0 file:mr-4 file:h-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-medium sm:w-[420px]":
                             props.type === "file",
                         "border-b-border-red": error,
                     },
