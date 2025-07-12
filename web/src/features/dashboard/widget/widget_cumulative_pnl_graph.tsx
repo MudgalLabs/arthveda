@@ -105,7 +105,7 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                             left: isMobile ? -10 : 0,
                         }}
                     >
-                        <CartesianGrid stroke="var(--color-primary)" strokeOpacity={0.3} vertical={false} />
+                        <CartesianGrid stroke="var(--color-secondary-hover)" strokeOpacity={1} vertical={false} />
                         <XAxis {...axisDefaults(isMobile)} dataKey="label" />
                         <YAxis
                             {...axisDefaults(isMobile)}

@@ -105,7 +105,7 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
                             left: isMobile ? -10 : 0,
                         }}
                     >
-                        <CartesianGrid stroke="var(--color-primary)" strokeOpacity={0.3} vertical={false} />
+                        <CartesianGrid stroke="var(--color-secondary-hover)" strokeOpacity={1} vertical={false} />
                         <XAxis {...axisDefaults(isMobile)} dataKey="label" />
                         <YAxis
                             {...axisDefaults(isMobile)}
@@ -117,7 +117,7 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
                             }
                         />
                         <Tooltip
-                            cursor={{ fill: "var(--color-accent-muted)", fillOpacity: 1 }}
+                            cursor={{ fill: "var(--color-secondary-hover)", fillOpacity: 0.5 }}
                             content={
                                 <ChartTooltipContent
                                     indicator="line"
