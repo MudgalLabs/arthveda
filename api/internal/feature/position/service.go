@@ -2,6 +2,7 @@ package position
 
 import (
 	"arthveda/internal/common"
+	"arthveda/internal/domain/broker_integration"
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
@@ -202,7 +203,7 @@ type ImportPayload struct {
 
 var errImportFileInvalid = errors.New("File seems invalid or unsupported")
 
-func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPayload) (*ImportResult, service.Error, error) {
+func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPayload) (*importResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
 
 	// Save it temporarily (excelize works with file paths or io.Reader)
@@ -246,7 +247,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		return nil, service.ErrBadRequest, fmt.Errorf("Broker Account provided does not belong to the Broker provided")
 	}
 
-	importer, err := getImporer(broker)
+	fileAdapter, err := broker_integration.GetFileAdapter(broker)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get broker importer: %w", err)
 	}
@@ -264,15 +265,14 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		return nil, service.ErrBadRequest, fmt.Errorf("Excel file is empty")
 	}
 
-	metadata, err := importer.getMetadata(rows)
+	metadata, err := fileAdapter.GetMetadata(rows)
 	if err != nil {
 		l.Infow("Failed to get metadata from importer", "error", err, "broker", broker)
 		return nil, service.ErrBadRequest, errImportFileInvalid
 	}
 
-	headerRowIdx := metadata.headerRowIdx
-
-	importableTrades := []*ImportableTrade{}
+	headerRowIdx := metadata.HeaderRowIdx
+	importableTrades := []*types.ImportableTrade{}
 
 	// Replace the map with a slice and populate it
 	for rowIdx, row := range rows[headerRowIdx+1:] {
@@ -283,15 +283,15 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 			break
 		}
 
-		parseRowResult, err := importer.parseRow(row, metadata)
+		importableTrade, err := fileAdapter.ParseRow(row, metadata)
 		if err != nil {
 			return nil, service.ErrBadRequest, fmt.Errorf("failed to parse row %d: %w", rowIdx+headerRowIdx+1, err)
 		}
 
-		importableTrades = append(importableTrades, parseRowResult)
+		importableTrades = append(importableTrades, importableTrade)
 	}
 
-	options := tradeImporterOptions{
+	options := importOptions{
 		positionService:          s,
 		userID:                   userID,
 		userBrokerAccountID:      payload.UserBrokerAccountID,
@@ -304,8 +304,7 @@ func (s *Service) Import(ctx context.Context, userID uuid.UUID, payload ImportPa
 		confirm:                  payload.Confirm,
 		force:                    payload.Force,
 	}
-	tradeImporter := NewTradeImporter(options)
-	return tradeImporter.Import(ctx, importableTrades)
+	return Import(ctx, importableTrades, options)
 }
 
 func (s *Service) Get(ctx context.Context, userID, positionID uuid.UUID) (*Position, service.Error, error) {
