@@ -65,7 +65,7 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
                 >
                     <DropdownMenuItem>
                         <IconSync size={18} />
-                        Sync from Broker
+                        Sync from broker
                     </DropdownMenuItem>
                 </Link>
             </DropdownMenuContent>

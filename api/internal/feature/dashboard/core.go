@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"arthveda/internal/common"
+	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
@@ -281,8 +282,8 @@ func filterPositionsWithRealisingTradesUpTo(positions []*position.Position, end 
 				// This flag helps us to include positions for calculating stats
 				// that have tried to realise PnL by scaling out. Otherwise, we might have
 				// wrong stats for positions that were just scaling in during the time range.
-				if (positionCopy.Direction == position.DirectionLong && t.Kind == trade.TradeKindSell) ||
-					(positionCopy.Direction == position.DirectionShort && t.Kind == trade.TradeKindBuy) {
+				if (positionCopy.Direction == position.DirectionLong && t.Kind == types.TradeKindSell) ||
+					(positionCopy.Direction == position.DirectionShort && t.Kind == types.TradeKindBuy) {
 					atLeastOneTradeWasScalingOut = true
 				}
 			}

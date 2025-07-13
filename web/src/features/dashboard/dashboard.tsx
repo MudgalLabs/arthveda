@@ -6,8 +6,6 @@ import "react-resizable/css/styles.css";
 
 import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
-import { Link } from "@/components/link";
-import { ROUTES } from "@/routes_constants";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cumulative_pnl_graph";
@@ -331,52 +329,9 @@ function GetStarted() {
 
                 <div className="h-8" />
 
-                {/* <div className="border-border bg-background-subtle mb-8 rounded-lg border p-6 text-left"> */}
-                {/* <Card className="mx-auto w-full max-w-[500px] border-none bg-transparent text-left">
-                    <CardTitle>Get Started</CardTitle>
-                    <CardContent className="mt-4 text-pretty">
-                        <p>
-                            You haven’t added any{" "}
-                            <Link className="text-base!" to={ROUTES.explorePositions}>
-                                positions
-                            </Link>{" "}
-                            yet.
-                        </p>
-
-                        <p>You can import positions from your broker or add a position.</p>
-
-                        <div className="h-8" />
-
-                        <div className="flex flex-col gap-4 sm:flex-row sm:justify-start">
-                            <Link
-                                to={ROUTES.addPosition}
-                                onClick={() => posthog?.capture("Clicked Add Position Manually On Dashboard")}
-                            >
-                                <Button variant="secondary" className="w-full sm:w-fit">
-                                    <IconPlus />
-                                    Add Position Manually
-                                </Button>
-                            </Link>
-                            <Link
-                                to={ROUTES.importPositions}
-                                onClick={() => posthog?.capture("Clicked Import Positions From Broker On Dashboard")}
-                            >
-                                <Button variant="primary" className="w-full sm:w-fit">
-                                    <IconImport />
-                                    Import from Broker
-                                </Button>
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card> */}
-
                 <Card className="mx-auto w-full max-w-[500px] border-none bg-transparent text-left">
                     <CardTitle>Get Started</CardTitle>
                     <CardContent className="mt-4 space-y-4 text-pretty">
-                        <p>
-                            It looks like you haven’t added any <Link to={ROUTES.explorePositions}>positions</Link> yet.
-                        </p>
-
                         <p>
                             To get started, use the <strong>"Add Position"</strong> button in the sidebar. You can:
                         </p>

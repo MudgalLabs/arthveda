@@ -6,7 +6,7 @@ const ToastProvider = () => {
     return (
         <Toaster
             theme="dark"
-            position="bottom-right"
+            position="top-right"
             richColors
             visibleToasts={3}
             expand

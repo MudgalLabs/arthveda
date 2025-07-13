@@ -2,6 +2,7 @@ package position
 
 import (
 	"arthveda/internal/common"
+	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
@@ -12,7 +13,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrument, brokerName broker.Name) (charges []decimal.Decimal, userError bool, err error) {
+func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument types.Instrument, brokerName broker.Name) (charges []decimal.Decimal, userError bool, err error) {
 	charges = make([]decimal.Decimal, len(trades))
 
 	intraday := EquityTradeIntraday
@@ -27,7 +28,7 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument Instrume
 	}
 
 	for i, trade := range trades {
-		if instrument == InstrumentEquity {
+		if instrument == types.InstrumentEquity {
 			chargeContext, exists := chargeContextByTradeID[trade.ID]
 			if !exists {
 				// If we don't have a charges context for the trade, we skip it.
@@ -94,7 +95,7 @@ func calculateTotalChargesAmountFromTrades(trades []*trade.Trade) decimal.Decima
 
 // getTotalChargesForTrade computes the total charges for a trade based on the trade value and the configuration.
 // tradeValue is the value of the trade (quantity * price).
-func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind trade.Kind, config computeChargesConfig) decimal.Decimal {
+func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind types.TradeKind, config computeChargesConfig) decimal.Decimal {
 	// Calcualte brokerage
 	// Formula : tradeValue * brokeragePercent -> apply min/max
 	brokerageCharges := tradeValue.Mul(decimal.NewFromFloat(config.brokerage.percent / 100))
@@ -112,9 +113,9 @@ func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind trade.Kind, c
 	var sttCharges decimal.Decimal
 
 	switch tradeKind {
-	case trade.TradeKindBuy:
+	case types.TradeKindBuy:
 		sttCharges = tradeValue.Mul(decimal.NewFromFloat(config.stt.percentOnBuy / 100))
-	case trade.TradeKindSell:
+	case types.TradeKindSell:
 		sttCharges = tradeValue.Mul(decimal.NewFromFloat(config.stt.percentOnSell / 100))
 	}
 
@@ -125,7 +126,7 @@ func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind trade.Kind, c
 	// Calculate stamp charges
 	var stampCharges decimal.Decimal
 
-	if tradeKind == trade.TradeKindBuy {
+	if tradeKind == types.TradeKindBuy {
 		stampCharges = tradeValue.Mul(decimal.NewFromFloat(config.stampChargesPercent / 100))
 	}
 
@@ -136,7 +137,7 @@ func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind trade.Kind, c
 	var dpCharges decimal.Decimal
 
 	// DP charges are only applicable for sell trades.
-	if tradeKind == trade.TradeKindSell {
+	if tradeKind == types.TradeKindSell {
 		dpCharges = config.dpChargesAmount
 	}
 
@@ -346,7 +347,7 @@ func computeEquityTradeChargesContext(trades []*trade.Trade) (chargeContextByTra
 						// current trade, that means have imbalance of quantity.
 						// This is a case where we have sold more quantity than we had bought or vice-versa.
 						if j == 0 && newCurrTradeQty.GreaterThan(decimal.Zero) {
-							if openTrade.Kind == trade.TradeKindBuy {
+							if openTrade.Kind == types.TradeKindBuy {
 								// If the open trade is a buy, it means we have sold more quantity than we had bought.
 								return chargeContextByTradeID, true, fmt.Errorf("You cannot sell more quantity than you have open")
 							} else {
@@ -426,7 +427,7 @@ type computeChargesConfig struct {
 
 // TODO: We need to pass exchange as a parameter to this function
 // so that we can compute the charges based on the exchange.
-func getComputeTradeChargesConfig(brokerName broker.Name, instrument Instrument, etk *equityTradeKind) computeChargesConfig {
+func getComputeTradeChargesConfig(brokerName broker.Name, instrument types.Instrument, etk *equityTradeKind) computeChargesConfig {
 	const (
 		gstPercent         = 18
 		sebiChargesPercent = 0.0001
@@ -446,10 +447,10 @@ func getComputeTradeChargesConfig(brokerName broker.Name, instrument Instrument,
 	return config
 }
 
-func getBrokerageConfig(brokerName broker.Name, instrument Instrument, etk *equityTradeKind) brokerageConfig {
+func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk *equityTradeKind) brokerageConfig {
 	config := brokerageConfig{}
 
-	if instrument == InstrumentEquity {
+	if instrument == types.InstrumentEquity {
 		switch brokerName {
 		case broker.BrokerNameZerodha:
 			// No brokerage for Zerodha on delivery trades.
@@ -483,7 +484,7 @@ func getBrokerageConfig(brokerName broker.Name, instrument Instrument, etk *equi
 	return config
 }
 
-func getSttConfig(instrument Instrument, etk *equityTradeKind) sttConfig {
+func getSttConfig(instrument types.Instrument, etk *equityTradeKind) sttConfig {
 	const (
 		sttPercentOnSellIntraday = 0.025
 		sttPercentOnBuyDelivery  = 0.1
@@ -492,7 +493,7 @@ func getSttConfig(instrument Instrument, etk *equityTradeKind) sttConfig {
 
 	stt := sttConfig{}
 
-	if instrument == InstrumentEquity {
+	if instrument == types.InstrumentEquity {
 		if etk != nil {
 			switch *etk {
 			case EquityTradeIntraday:
@@ -507,7 +508,7 @@ func getSttConfig(instrument Instrument, etk *equityTradeKind) sttConfig {
 	return stt
 }
 
-func getExchangeTransactionChargesConfig(instrument Instrument) exchangeTransactionChargesConfig {
+func getExchangeTransactionChargesConfig(instrument types.Instrument) exchangeTransactionChargesConfig {
 	const (
 		txnEquityChargesPercentForNSE = 0.00297
 		txnEquityChargesPercentForBSE = 0.00375
@@ -515,7 +516,7 @@ func getExchangeTransactionChargesConfig(instrument Instrument) exchangeTransact
 
 	exchangeTransactionCharges := exchangeTransactionChargesConfig{}
 
-	if instrument == InstrumentEquity {
+	if instrument == types.InstrumentEquity {
 		exchangeTransactionCharges.percentForNSE = txnEquityChargesPercentForNSE
 		exchangeTransactionCharges.percentForBSE = txnEquityChargesPercentForBSE
 	}
@@ -523,7 +524,7 @@ func getExchangeTransactionChargesConfig(instrument Instrument) exchangeTransact
 	return exchangeTransactionCharges
 }
 
-func getStampChargesPercent(instrument Instrument, etk *equityTradeKind) float64 {
+func getStampChargesPercent(instrument types.Instrument, etk *equityTradeKind) float64 {
 	const (
 		stampEquityDeliveryChargesPercentOnBuy = 0.015
 		stampEquityIntradayChargesPercentOnBuy = 0.003
@@ -531,7 +532,7 @@ func getStampChargesPercent(instrument Instrument, etk *equityTradeKind) float64
 
 	var stampChargesPercent float64
 
-	if instrument == InstrumentEquity {
+	if instrument == types.InstrumentEquity {
 		if etk != nil {
 			switch *etk {
 			case EquityTradeIntraday:
@@ -568,13 +569,13 @@ func getDpChargesAmount(b broker.Name, etk *equityTradeKind) decimal.Decimal {
 	}
 }
 
-func getNSEInvestorProtectionFundPercentage(instrument Instrument) float64 {
+func getNSEInvestorProtectionFundPercentage(instrument types.Instrument) float64 {
 	var (
 		equityNSEInvestorProtectionFundPercentage = 0.0001
 	)
 
 	switch instrument {
-	case InstrumentEquity:
+	case types.InstrumentEquity:
 		return equityNSEInvestorProtectionFundPercentage
 	default:
 		return 0

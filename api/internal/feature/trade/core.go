@@ -1,6 +1,7 @@
 package trade
 
 import (
+	"arthveda/internal/domain/types"
 	"fmt"
 	"time"
 
@@ -18,7 +19,7 @@ type Trade struct {
 	UpdatedAt  *time.Time `json:"updated_at" db:"updated_at"`
 
 	Time     time.Time       `json:"time" db:"time"`
-	Kind     Kind            `json:"kind" db:"kind"`
+	Kind     types.TradeKind `json:"kind" db:"kind"`
 	Quantity decimal.Decimal `json:"quantity" db:"quantity"`
 	Price    decimal.Decimal `json:"price" db:"price"`
 
@@ -46,7 +47,7 @@ type MatchedLot struct {
 
 type CreatePayload struct {
 	PositionID    uuid.UUID
-	Kind          Kind            `json:"kind"`
+	Kind          types.TradeKind `json:"kind"`
 	Time          time.Time       `json:"time"`
 	Quantity      decimal.Decimal `json:"quantity"`
 	Price         decimal.Decimal `json:"price"`
@@ -80,10 +81,3 @@ func New(payload CreatePayload) (*Trade, error) {
 type UpdatePayload struct {
 	Trade
 }
-
-type Kind string
-
-const (
-	TradeKindBuy  Kind = "buy"
-	TradeKindSell Kind = "sell"
-)
