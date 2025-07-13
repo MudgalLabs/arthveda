@@ -51,8 +51,8 @@ func (r *userBrokerAccountRepository) Create(ctx context.Context, account *UserB
 
 	sql := `
 		INSERT INTO user_broker_account (
-			id, name, broker_id, user_id, created_at, access_token
-		) VALUES ($1, $2, $3, $4, $5, $6)
+			id, name, broker_id, user_id, created_at, access_token, last_login_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
 
 	_, err = tx.Exec(ctx, sql,
@@ -62,6 +62,7 @@ func (r *userBrokerAccountRepository) Create(ctx context.Context, account *UserB
 		account.UserID,
 		account.CreatedAt,
 		account.AccessToken,
+		account.LastLoginAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert: %w", err)
@@ -91,7 +92,8 @@ func (r *userBrokerAccountRepository) Update(ctx context.Context, account *UserB
 			oauth_client_id = $6,
 			oauth_client_secret = $7,
 			access_token = $8,
-			last_sync_at = $9
+			last_sync_at = $9,
+			last_login_at = $10
 		WHERE id = $1
 	`
 
@@ -105,6 +107,7 @@ func (r *userBrokerAccountRepository) Update(ctx context.Context, account *UserB
 		account.OAuthClientSecret,
 		account.AccessToken,
 		account.LastSyncAt,
+		account.LastLoginAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("update: %w", err)
@@ -185,8 +188,7 @@ func (r *userBrokerAccountRepository) ExistsByNameAndBrokerIDAndUserID(ctx conte
 func (r *userBrokerAccountRepository) findAccounts(ctx context.Context, f filters) ([]*UserBrokerAccount, error) {
 	baseSQL := `
 		SELECT id, created_at, updated_at, name, broker_id, user_id, 
-		       oauth_client_id, oauth_client_secret, access_token,
-		       last_sync_at
+		       oauth_client_id, oauth_client_secret, access_token, last_sync_at, last_login_at
 		FROM user_broker_account
 	`
 
@@ -229,18 +231,19 @@ func (r *userBrokerAccountRepository) findAccounts(ctx context.Context, f filter
 			&account.OAuthClientSecret,
 			&account.AccessToken,
 			&account.LastSyncAt,
+			&account.LastLoginAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
 
-		isConnected := false
-
 		if account.OAuthClientID != nil && *account.OAuthClientID != "" && account.OAuthClientSecret != nil && *account.OAuthClientSecret != "" {
-			isConnected = true
+			account.IsConnected = true
 		}
 
-		account.IsConnected = isConnected
+		if account.AccessToken != nil && *account.AccessToken != "" {
+			account.IsAuthenticated = true
+		}
 
 		accounts = append(accounts, &account)
 	}

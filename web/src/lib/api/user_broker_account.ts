@@ -9,7 +9,10 @@ export interface UserBrokerAccount {
     broker_id: string;
     user_id: string;
     last_sync_at: string | null;
+    last_login_at: string | null;
+
     is_connected: boolean;
+    is_authenticated: boolean;
 }
 
 export interface CreateUserBrokerAccountPayload {
@@ -24,6 +27,10 @@ export interface UpdateUserBrokerAccountPayload {
 export interface ConnectUserBrokerAccountPayload {
     client_id: string;
     client_secret: string;
+}
+
+export interface ConnectUserBrokerAccountResult {
+    login_url: string;
 }
 
 export interface SyncUserBrokerAccountResult {

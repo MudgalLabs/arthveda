@@ -19,9 +19,15 @@ type UserBrokerAccount struct {
 	OAuthClientSecret *string    `json:"-" db:"oauth_client_secret"`
 	AccessToken       *string    `json:"-" db:"access_token"`
 	LastSyncAt        *time.Time `json:"last_sync_at" db:"last_sync_at"`
+	LastLoginAt       *time.Time `json:"last_login_at" db:"last_login_at"`
 
 	// Runtime fields
+
+	// If we have a OAuthClientID and OAuthClientSecret, we are considered connected.
 	IsConnected bool `json:"is_connected"`
+
+	// if we have an access token, we are considered authenticated.
+	IsAuthenticated bool `json:"is_authenticated"`
 }
 
 type SyncStatus string

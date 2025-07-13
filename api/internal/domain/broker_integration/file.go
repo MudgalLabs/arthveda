@@ -59,19 +59,19 @@ type FileAdapter interface {
 func GetFileAdapter(b *broker.Broker) (FileAdapter, error) {
 	switch b.Name {
 	case broker.BrokerNameZerodha:
-		return &ZerodhaImporter{}, nil
+		return &zerodhaFileAdapter{}, nil
 	case broker.BrokerNameGroww:
-		return &GrowwImporter{}, nil
+		return &growwFileAdapter{}, nil
 	case broker.BrokerNameUpstox:
-		return &UpstoxImporter{}, nil
+		return &upstoxFileAdapter{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported broker: %s", b.Name)
 	}
 }
 
-type ZerodhaImporter struct{}
+type zerodhaFileAdapter struct{}
 
-func (i ZerodhaImporter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
+func (adapter zerodhaFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
 	var headerRowIdx int
 	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, dateTimeColumnIdx int
 
@@ -126,7 +126,7 @@ func (i ZerodhaImporter) GetMetadata(rows [][]string) (*importFileMetadata, erro
 	}, nil
 }
 
-func (i ZerodhaImporter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
+func (adapter zerodhaFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
 	symbolColumnIdx := metadata.symbolColumnIdx
 	segmentColumnIdx := metadata.segmentColumnIdx
 	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
@@ -193,9 +193,9 @@ func (i ZerodhaImporter) ParseRow(row []string, metadata *importFileMetadata) (*
 	}, nil
 }
 
-type GrowwImporter struct{}
+type growwFileAdapter struct{}
 
-func (i *GrowwImporter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
+func (adapter *growwFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
 	var headerRowIdx int
 	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, dateTimeColumnIdx int
 
@@ -246,7 +246,7 @@ func (i *GrowwImporter) GetMetadata(rows [][]string) (*importFileMetadata, error
 	}, nil
 }
 
-func (i *GrowwImporter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
+func (adapter *growwFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
 	symbolColumnIdx := metadata.symbolColumnIdx
 	segmentColumnIdx := metadata.segmentColumnIdx
 	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
@@ -314,9 +314,9 @@ func (i *GrowwImporter) ParseRow(row []string, metadata *importFileMetadata) (*t
 	}, nil
 }
 
-type UpstoxImporter struct{}
+type upstoxFileAdapter struct{}
 
-func (i *UpstoxImporter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
+func (adapter *upstoxFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
 	var headerRowIdx int
 	var symbolColumnIdx, scripCodeColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, timeColumnIdx, dateColumnIdx int
 
@@ -382,7 +382,7 @@ func (i *UpstoxImporter) GetMetadata(rows [][]string) (*importFileMetadata, erro
 	}, nil
 }
 
-func (i *UpstoxImporter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
+func (adapter *upstoxFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
 	symbolColumnIdx := metadata.symbolColumnIdx
 	scripCodeColumnIdx := metadata.scripCodeIdx
 	segmentColumnIdx := metadata.segmentColumnIdx

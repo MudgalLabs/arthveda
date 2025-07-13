@@ -18,7 +18,11 @@ import { LoadingScreen } from "@/components/loading_screen";
 import { PageHeading } from "@/components/page_heading";
 import { useBroker } from "@/features/broker/broker_context";
 import { apiHooks } from "@/hooks/api_hooks";
-import { SyncUserBrokerAccountResult, UserBrokerAccount } from "@/lib/api/user_broker_account";
+import {
+    ConnectUserBrokerAccountResult,
+    SyncUserBrokerAccountResult,
+    UserBrokerAccount,
+} from "@/lib/api/user_broker_account";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import {
@@ -113,8 +117,22 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
         enableSorting: false,
     },
     {
+        accessorKey: "last_login_at",
+        header: ({ column }) => <DataTableColumnHeader title="Last Login" column={column} />,
+        cell: ({ row }) => {
+            if (row.original.last_login_at === null) {
+                return "Never";
+            }
+
+            const date = new Date(row.original.last_login_at);
+            return formatDate(date, { time: true });
+        },
+        enableHiding: false,
+        enableSorting: false,
+    },
+    {
         accessorKey: "is_connected",
-        header: ({ column }) => <DataTableColumnHeader title="Connect Status" column={column} />,
+        header: ({ column }) => <DataTableColumnHeader title="OAuth Connect" column={column} />,
         cell: ({ row }) => {
             const { getBrokerById } = useBroker();
             const broker = getBrokerById(row.original.broker_id);
@@ -141,6 +159,34 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
         enableSorting: false,
     },
     {
+        accessorKey: "is_authenticated",
+        header: ({ column }) => <DataTableColumnHeader title="OAuth Login" column={column} />,
+        cell: ({ row }) => {
+            const { getBrokerById } = useBroker();
+            const broker = getBrokerById(row.original.broker_id);
+
+            if (!broker) {
+                return "";
+            }
+
+            if (row.original.is_authenticated) {
+                return (
+                    <span className="flex-x">
+                        <IconBadgeCheck size={16} className="text-success-foreground" /> Logged in
+                    </span>
+                );
+            }
+
+            return (
+                <span className="flex-x">
+                    <IconBadgeAlert size={16} className="text-text-destructive" /> Logged out
+                </span>
+            );
+        },
+        enableHiding: false,
+        enableSorting: false,
+    },
+    {
         id: "actions",
         header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
         cell: ({ row }) => {
@@ -149,18 +195,20 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                     const data = res.data.data as SyncUserBrokerAccountResult;
 
                     if (data.login_required) {
-                        window.location.assign(data.login_url);
+                        toast.warning("Broker connect has expired", {
+                            duration: 10000,
+                            description: "Login to reconnect your broker account",
+                            action: {
+                                label: "Login",
+                                onClick: () => {
+                                    window.location.assign(data.login_url);
+                                },
+                            },
+                        });
                         return;
                     }
 
                     toast.success(`${row.original.name} synced successfully`);
-                },
-                onError: apiErrorHandler,
-            });
-
-            const { mutate: disconnect, isPending: isDisconnecting } = apiHooks.userBrokerAccount.useDisconnect({
-                onSuccess: () => {
-                    toast.success(`${row.original.name} disconnected successfully`);
                 },
                 onError: apiErrorHandler,
             });
@@ -175,6 +223,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
             const [editOpen, setEditOpen] = useState(false);
             const [deleteOpen, setDeleteOpen] = useState(false);
             const [connectOpen, setConnectOpen] = useState(false);
+            const [disconnectOpen, setDisconnectOpen] = useState(false);
             const [dropdownOpen, setDropdownOpen] = useState(false);
 
             const handleEditOpen = () => {
@@ -190,6 +239,11 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
             const handleConnectOpen = () => {
                 setDropdownOpen(false);
                 setConnectOpen(true);
+            };
+
+            const handleDisconnectOpen = () => {
+                setDropdownOpen(false);
+                setDisconnectOpen(true);
             };
 
             return (
@@ -234,8 +288,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                                         <Button
                                             variant="ghost"
                                             className="w-full! justify-start"
-                                            onClick={() => disconnect(row.original.id)}
-                                            loading={isDisconnecting}
+                                            onClick={handleDisconnectOpen}
                                         >
                                             <IconPlug size={16} />
                                             Disconnect
@@ -273,6 +326,13 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                         userBrokerAccount={row.original}
                         open={connectOpen}
                         setOpen={setConnectOpen}
+                    />
+
+                    <DisconnectBrokerAccountModal
+                        id={row.original.id}
+                        name={row.original.name}
+                        open={disconnectOpen}
+                        setOpen={setDisconnectOpen}
                     />
                 </>
             );
@@ -536,12 +596,11 @@ const ConnectBrokerAccountModal: FC<ConnectBrokerAccountModalProps> = ({ userBro
     const [clientId, setClientId] = useState("");
     const [clientSecret, setClientSecret] = useState("");
 
-    const { mutate: connect, isPending } = apiHooks.userBrokerAccount.useConnect({
-        onSuccess: () => {
-            toast.success("Connected successfully", {
-                description: `${userBrokerAccount.name} is now connected to ${getBrokerNameById(userBrokerAccount.broker_id)}. You can now sync your positions.`,
-            });
-            setOpen(false);
+    const { mutate: connect, isPending: isConnecting } = apiHooks.userBrokerAccount.useConnect({
+        onSuccess: (res) => {
+            const data = res.data.data as ConnectUserBrokerAccountResult;
+            const url = data.login_url;
+            window.location.assign(url);
         },
         onError: apiErrorHandler,
     });
@@ -642,7 +701,7 @@ const ConnectBrokerAccountModal: FC<ConnectBrokerAccountModalProps> = ({ userBro
 
                     <DialogFooter>
                         <Tooltip content="Some required fields are missing" disabled={!disableSave}>
-                            <Button type="submit" disabled={disableSave} loading={isPending}>
+                            <Button type="submit" disabled={disableSave} loading={isConnecting}>
                                 Connect
                             </Button>
                         </Tooltip>
@@ -700,5 +759,44 @@ const ConnectBrokerAccountOAuthSteps = ({ brokerName }: { brokerName: BrokerName
             <AlertTitle>Steps to create your OAuth app</AlertTitle>
             <AlertDescription>{renderSteps()}</AlertDescription>
         </Alert>
+    );
+};
+
+interface DisconnectBrokerAccountModalProps {
+    id: string;
+    name: string;
+    open: boolean;
+    setOpen: (open: boolean) => void;
+}
+
+const DisconnectBrokerAccountModal: FC<DisconnectBrokerAccountModalProps> = ({ id, name, open, setOpen }) => {
+    const { mutate: disconnect, isPending: isDisconnecting } = apiHooks.userBrokerAccount.useDisconnect({
+        onSuccess: () => {
+            toast.success(`${name} disconnected successfully`);
+            setOpen(false);
+        },
+        onError: apiErrorHandler,
+    });
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="flex-x">Disconnect Broker Account</DialogTitle>
+                    <DialogDescription>Are you sure you want to disconnect {name}?</DialogDescription>
+                </DialogHeader>
+
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => disconnect(id)}
+                        loading={isDisconnecting}
+                    >
+                        Disconnect
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 };

@@ -108,7 +108,7 @@ func connectUserBrokerAccountHandler(s *user_broker_account.Service) http.Handle
 		userID := getUserIDFromContext(ctx)
 		id := chi.URLParam(r, "id")
 
-		accountID, err := uuid.Parse(id)
+		ubaID, err := uuid.Parse(id)
 		if err != nil {
 			l.Warnw("invalid user broker account id", "id", id, "error", err.Error())
 			badRequestResponse(w, r, errors.New("Invalid Broker Account ID"))
@@ -121,13 +121,13 @@ func connectUserBrokerAccountHandler(s *user_broker_account.Service) http.Handle
 			return
 		}
 
-		errKind, err := s.Connect(ctx, userID, accountID, payload)
+		result, errKind, err := s.Connect(ctx, userID, ubaID, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return
 		}
 
-		successResponse(w, r, http.StatusOK, "User broker account connected successfully", nil)
+		successResponse(w, r, http.StatusOK, "User must be redirected to the login URL to complete the connect", result)
 	}
 }
 
