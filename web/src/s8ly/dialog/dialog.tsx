@@ -40,7 +40,7 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<t
             <DialogPrimitive.Content
                 data-slot="dialog-content"
                 className={cn(
-                    "bg-surface-bg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 border-border fixed top-[50%] left-[50%] z-80 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-4 shadow-lg duration-200 sm:max-w-lg",
+                    "bg-surface-2 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 border-border-subtle fixed top-[50%] left-[50%] z-80 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-4 shadow-2xl duration-200 sm:max-w-lg",
                     className
                 )}
                 {...props}
@@ -80,7 +80,7 @@ function DialogTitle({ className, ...props }: React.ComponentProps<typeof Dialog
     return (
         <DialogPrimitive.Title
             data-slot="dialog-title"
-            className={cn("text-text-primary text-base leading-none font-medium", className)}
+            className={cn("text-text-primary w-[80%] text-base leading-none font-medium", className)}
             {...props}
         />
     );
@@ -90,7 +90,7 @@ function DialogDescription({ className, ...props }: React.ComponentProps<typeof 
     return (
         <DialogPrimitive.Description
             data-slot="dialog-description"
-            className={cn("text-text-muted text-sm", className)}
+            className={cn("text-text-muted w-[80%] text-sm", className)}
             {...props}
         />
     );

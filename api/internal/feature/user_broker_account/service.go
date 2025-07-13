@@ -3,13 +3,17 @@ package user_broker_account
 import (
 	"arthveda/internal/apires"
 	"arthveda/internal/feature/broker"
+	"arthveda/internal/logger"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
+	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/google/uuid"
+	kiteconnect "github.com/zerodha/gokiteconnect/v4"
 )
 
 type Service struct {
@@ -129,6 +133,221 @@ func (s *Service) Delete(ctx context.Context, userID, accountID uuid.UUID) (serv
 	err = s.userBrokerAccountRepository.Delete(ctx, accountID)
 	if err != nil {
 		return service.ErrInternalServerError, fmt.Errorf("delete: %w", err)
+	}
+
+	return service.ErrNone, nil
+}
+
+func (s *Service) Connect(ctx context.Context, userID, ubaID uuid.UUID, payload ConnectPayload) (service.Error, error) {
+	uba, err := s.userBrokerAccountRepository.GetByID(ctx, ubaID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return service.ErrNotFound, fmt.Errorf("Broker Account not found")
+		}
+		return service.ErrInternalServerError, fmt.Errorf("get by id: %w", err)
+	}
+
+	b, err := s.brokerRepository.GetByID(ctx, uba.BrokerID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return service.ErrBadRequest, fmt.Errorf("Broker not found")
+		}
+		return service.ErrInternalServerError, fmt.Errorf("get broker: %w", err)
+	}
+
+	if !b.SupportsTradeSync {
+		return service.ErrBadRequest, fmt.Errorf("Connect is not suppored for broker %s", b.Name)
+	}
+
+	connector, err := getConnector(b.Name)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("get connector: %w", err)
+	}
+
+	err = connector.connect(ctx, payload.ClientID, payload.ClientSecret)
+	if err != nil {
+		return service.ErrBadRequest, fmt.Errorf("Failed to connect to broker %s. Check your client id and client secret.", b.Name)
+	}
+
+	now := time.Now().UTC()
+
+	uba.LastSyncAt = &now
+	uba.OAuthClientID = &payload.ClientID
+	uba.OAuthClientSecret = &payload.ClientSecret
+	uba.IsConnected = true
+
+	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("update account: %w", err)
+	}
+
+	return service.ErrNone, nil
+}
+
+func (s *Service) Disconnect(ctx context.Context, userID, ubaID uuid.UUID) (service.Error, error) {
+	uba, err := s.userBrokerAccountRepository.GetByID(ctx, ubaID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return service.ErrNotFound, fmt.Errorf("Broker Account not found")
+		}
+		return service.ErrInternalServerError, fmt.Errorf("get by id: %w", err)
+	}
+
+	// TODO: Call disconnect method of the syncer.
+
+	now := time.Now().UTC()
+
+	uba.UpdatedAt = &now
+	uba.OAuthClientID = nil
+	uba.OAuthClientSecret = nil
+	uba.AccessToken = nil
+	uba.IsConnected = false
+
+	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("update account: %w", err)
+	}
+
+	return service.ErrNone, nil
+}
+
+type syncResult struct {
+	LoginRequired bool   `json:"login_required"`
+	LoginURL      string `json:"login_url"`
+}
+
+func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*syncResult, service.Error, error) {
+	l := logger.FromCtx(ctx)
+
+	uba, err := s.userBrokerAccountRepository.GetByID(ctx, ubaID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return nil, service.ErrNotFound, fmt.Errorf("Broker Account not found")
+		}
+		return nil, service.ErrInternalServerError, fmt.Errorf("get account: %w", err)
+	}
+
+	b, err := s.brokerRepository.GetByID(ctx, uba.BrokerID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return nil, service.ErrBadRequest, fmt.Errorf("Broker not found")
+		}
+		return nil, service.ErrInternalServerError, fmt.Errorf("get broker: %w", err)
+	}
+
+	if !b.SupportsTradeSync {
+		return nil, service.ErrBadRequest, fmt.Errorf("Sync is not suppored for broker %s", b.Name)
+	}
+
+	if !uba.IsConnected {
+		return nil, service.ErrBadRequest, fmt.Errorf("Broker account is not connected")
+	}
+
+	// TODO: Create a "BrokerOAuth" interface with "Connect", "Disconnect", and "Sync" methods.
+
+	// TODO: Check when was access token set. If it was set not today, then we need to refresh it.
+	// Or maybe we can have a cron job that clears access token every early morning?
+
+	clientID := uba.OAuthClientID
+	accessToken := uba.AccessToken
+
+	if clientID == nil || *clientID == "" {
+		return nil, service.ErrBadRequest, errors.New("Broker account is not connected")
+	}
+
+	// Create a new Kite connect instance
+	kc := kiteconnect.New(*clientID)
+
+	if accessToken == nil || *accessToken == "" {
+		// Login URL from which request token can be obtained
+		urlValues := url.Values{}
+		urlValues.Add("uba_id", uba.ID.String())
+		urlValues.Add("user_id", userID.String())
+		loginURL := kc.GetLoginURLWithparams(urlValues)
+
+		result := &syncResult{
+			LoginRequired: true,
+			LoginURL:      loginURL,
+		}
+
+		return result, service.ErrNone, nil
+	}
+
+	l.Debugw("Trying to sync user broker account", "uba_id", uba.ID, "client_id", *clientID, "access_token", *accessToken)
+
+	// Set access token
+	kc.SetAccessToken(*accessToken)
+
+	margin, err := kc.GetUserMargins()
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("get user margins: %w", err)
+	}
+
+	fmt.Println("############################################################   margin: ", margin)
+
+	trades, err := kc.GetTrades()
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("get trades: %w", err)
+	}
+
+	fmt.Println("############################################################   trades: ", trades)
+
+	now := time.Now().UTC()
+
+	uba.LastSyncAt = &now
+
+	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("update account: %w", err)
+	}
+
+	result := &syncResult{}
+
+	return result, service.ErrNone, nil
+}
+
+func (s *Service) ZerodhaRedirect(ctx context.Context, userID, ubaID uuid.UUID, requestToken string) (service.Error, error) {
+	l := logger.FromCtx(ctx)
+
+	uba, err := s.userBrokerAccountRepository.GetByID(ctx, ubaID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return service.ErrNotFound, fmt.Errorf("Broker Account not found")
+		}
+		return service.ErrInternalServerError, fmt.Errorf("get account: %w", err)
+	}
+
+	if uba.UserID != userID {
+		return service.ErrUnauthorized, errors.New("Unauthorized access to broker account")
+	}
+
+	apiKey := uba.OAuthClientID
+	apiSecret := uba.OAuthClientSecret
+
+	if apiKey == nil || apiSecret == nil || *apiKey == "" || *apiSecret == "" {
+		return service.ErrBadRequest, errors.New("Broker account is not connected")
+	}
+
+	kc := kiteconnect.New(*apiKey)
+
+	// Get user details and access token
+	data, err := kc.GenerateSession(requestToken, *apiSecret)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("generate session: %w", err)
+	}
+
+	accessToken := data.AccessToken
+	refreshToken := data.RefreshToken
+
+	l.Debugw("Zerodha redirect successful", "uba_id", uba.ID, "access_token", accessToken, "refresh_token", refreshToken)
+
+	now := time.Now().UTC()
+	uba.UpdatedAt = &now
+	uba.AccessToken = &accessToken
+
+	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("update account: %w", err)
 	}
 
 	return service.ErrNone, nil

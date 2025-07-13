@@ -73,6 +73,7 @@ func initRouter(a *app) http.Handler {
 			r.Use(authMiddleware)
 
 			r.Get("/", getBrokersHandler(a.service.BrokerService))
+			r.Get("/zerodha/redirect", zerodhaRedirectHandler(a.service.UserBrokerAccountService))
 		})
 
 		r.Route("/currencies", func(r chi.Router) {
@@ -119,6 +120,9 @@ func initRouter(a *app) http.Handler {
 			r.Get("/", listUserBrokerAccountsHandler(a.service.UserBrokerAccountService))
 			r.Put("/{id}", updateUserBrokerAccountHandler(a.service.UserBrokerAccountService))
 			r.Delete("/{id}", deleteUserBrokerAccountHandler(a.service.UserBrokerAccountService))
+			r.Post("/{id}/connect", connectUserBrokerAccountHandler(a.service.UserBrokerAccountService))
+			r.Post("/{id}/disconnect", disconnectUserBrokerAccountHandler(a.service.UserBrokerAccountService))
+			r.Post("/{id}/sync", syncUserBrokerAccountHandler(a.service.UserBrokerAccountService))
 		})
 	})
 

@@ -52,8 +52,8 @@ function DatePicker({
     const selectedText = dates.map((d) => formatDate(d, { time: time })).join(" - ");
 
     let width = "w-[150px]";
-    if (isRange) width = "w-[260px]";
-    if (time && !isRange) width = "w-[190px]";
+    if (isRange) width = "w-[190px]";
+    if (time && !isRange) width = "w-[150px]";
     if (time && isRange) width = "w-[330px]";
 
     const { className: popoverContentClassname, ...restPopoverContentProps } = popoverContentProps;
@@ -75,9 +75,9 @@ function DatePicker({
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <DatePickerButton className={cn(width, className)} open={open} isDateSet={isDateSet}>
+                <DatePickerButton className={className} open={open} isDateSet={isDateSet}>
                     {isRange ? <IconCalendarRange size={16} /> : <IconCalendarSingle size={16} />}
-                    {isDateSet ? selectedText : placeholder}
+                    <span className={cn("tabular-nums", width)}>{isDateSet ? selectedText : placeholder}</span>
                 </DatePickerButton>
             </PopoverTrigger>
             <PopoverContent
@@ -110,7 +110,7 @@ function DatePickerButton({
     return (
         <Button
             variant="secondary"
-            className={cn("text-text-muted justify-start font-normal enabled:active:scale-[1]!", {
+            className={cn("text-text-muted font-normal enabled:active:scale-[1]!", {
                 "bg-secondary-hover": open,
                 "text-text-primary": isDateSet,
             })}

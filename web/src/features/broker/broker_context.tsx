@@ -1,6 +1,6 @@
 import { createContext, FC, PropsWithChildren, useCallback, useContext, useMemo } from "react";
 
-import { BrokerName } from "@/lib/api/broker";
+import { BrokerName, Broker } from "@/lib/api/broker";
 import { apiHooks } from "@/hooks/api_hooks";
 
 // Broker logos
@@ -23,6 +23,7 @@ const getBrokerLogoByName = (name: BrokerName) => {
 
 interface BrokerContextType {
     isLoading: boolean;
+    getBrokerById: (brokerId: string) => Broker | null;
     getBrokerNameById: (brokerId: string) => BrokerName | "";
     getBrokerLogoByName: (brokerName: BrokerName) => string;
     getBrokerLogoById: (brokerId: string) => string;
@@ -34,6 +35,14 @@ export const BrokerProvider: FC<PropsWithChildren> = ({ children }) => {
     const { data, isLoading } = apiHooks.broker.useList();
 
     const brokers = useMemo(() => data?.data || [], [data]);
+
+    const getBrokerById = useCallback(
+        (brokerId: string): Broker | null => {
+            const broker = brokers.find((b) => b.id === brokerId);
+            return broker ? broker : null;
+        },
+        [brokers]
+    );
 
     const getBrokerNameById = useCallback(
         (brokerId: string): BrokerName | "" => {
@@ -54,6 +63,7 @@ export const BrokerProvider: FC<PropsWithChildren> = ({ children }) => {
     const value: BrokerContextType = useMemo(() => {
         return {
             isLoading,
+            getBrokerById,
             getBrokerNameById,
             getBrokerLogoById,
             getBrokerLogoByName,

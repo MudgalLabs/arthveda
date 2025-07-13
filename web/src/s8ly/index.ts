@@ -4,6 +4,8 @@
  * We will use these core building blocks as base components in all Mudgal Labs web projects.
  */
 
+// Alert
+export * from "@/s8ly/alert/alert";
 // Button
 export * from "@/s8ly/button/button";
 // Chart

@@ -40,7 +40,7 @@ const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 const DropdownMenuItem: FC<DropdownMenuPrimitive.DropdownMenuItemProps> = ({ className, ...props }) => (
     <DropdownMenuPrimitive.Item
         className={cn(
-            "hover:bg-secondary-hover text-foreground focus:bg-secondary-hover flex items-center justify-start gap-x-3 rounded-sm p-2 text-sm outline-none",
+            "enabled:hover:bg-secondary-hover text-foreground focus:bg-secondary-hover flex items-center justify-start gap-x-3 rounded-sm p-2 text-sm outline-none",
             className
         )}
         {...props}
@@ -56,7 +56,7 @@ const DropdownMenuCheckboxItem = ({
     return (
         <DropdownMenuPrimitive.CheckboxItem
             className={cn(
-                "focus:bg-secondary-hover focus:text-text-primary relative flex items-center gap-2 rounded-sm py-1.5 pr-2 pl-10 text-sm outline-hidden select-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                "focus:bg-secondary-hover enabled:focus:text-text-primary relative flex items-center gap-2 rounded-sm py-1.5 pr-2 pl-10 text-sm outline-hidden select-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
                 className
             )}
             checked={checked}
@@ -83,7 +83,7 @@ const DropdownMenuRadioItem = ({
     return (
         <DropdownMenuPrimitive.RadioItem
             className={cn(
-                "focus:bg-overlay-bg-hover focus:text-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                "enabled:focus:bg-secondary-hover enabled:focus:text-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
                 className
             )}
             {...props}

@@ -6,10 +6,11 @@ const ToastProvider = () => {
     return (
         <Toaster
             theme="dark"
+            position="bottom-right"
             richColors
             visibleToasts={3}
             expand
-            position="top-center"
+            closeButton
             icons={{
                 loading: <Loading size={16} color="var(--color-foreground)" />,
             }}
