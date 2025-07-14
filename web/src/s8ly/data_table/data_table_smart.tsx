@@ -24,6 +24,7 @@ interface DataTableSmartProps<TData, TValue> {
     state?: Partial<DataTableState>;
     onStateChange?: (newState: DataTableState) => void;
     isFetching?: boolean;
+    extra?: Record<string, any>;
 }
 
 function DataTableSmart<TData, TValue>({
@@ -34,22 +35,17 @@ function DataTableSmart<TData, TValue>({
     state: stateProp,
     onStateChange,
     isFetching,
+    extra = {},
 }: DataTableSmartProps<TData, TValue>) {
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-        () => stateProp?.columnVisibility ?? {}
-    );
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => stateProp?.columnVisibility ?? {});
     const [pagination, setPagination] = useState<PaginationState>(
         () => stateProp?.pagination ?? { pageIndex: 0, pageSize: 10 }
     );
-    const [sorting, setSorting] = useState<SortingState>(
-        stateProp?.sorting ?? []
-    );
+    const [sorting, setSorting] = useState<SortingState>(stateProp?.sorting ?? []);
     const [rowSelection, setRowSelection] = useState({});
 
     if (stateProp?.pagination && total === undefined) {
-        throw new Error(
-            "DataTableSmart: you provided `state.pagination` but no `total`"
-        );
+        throw new Error("DataTableSmart: you provided `state.pagination` but no `total`");
     }
 
     const table = useReactTable({
@@ -71,16 +67,13 @@ function DataTableSmart<TData, TValue>({
         onColumnVisibilityChange: setColumnVisibility,
         onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: !stateProp?.pagination
-            ? getPaginationRowModel()
-            : undefined, // Use client-side pagination if uncontrolled
-        getSortedRowModel: !stateProp?.sorting
-            ? getSortedRowModel()
-            : undefined, // Use client-side sorting if uncontrolled
+        getPaginationRowModel: !stateProp?.pagination ? getPaginationRowModel() : undefined, // Use client-side pagination if uncontrolled
+        getSortedRowModel: !stateProp?.sorting ? getSortedRowModel() : undefined, // Use client-side sorting if uncontrolled
         getFacetedRowModel: getFacetedRowModel(),
         getFacetedUniqueValues: getFacetedUniqueValues(),
         meta: {
             isFetching,
+            extra,
         },
     });
 
@@ -92,12 +85,7 @@ function DataTableSmart<TData, TValue>({
             pagination: tableState.pagination,
         };
         onStateChange?.(newState);
-    }, [
-        tableState.sorting,
-        tableState.columnVisibility,
-        tableState.pagination,
-        onStateChange,
-    ]);
+    }, [tableState.sorting, tableState.columnVisibility, tableState.pagination, onStateChange]);
 
     return <>{children(table)}</>;
 }

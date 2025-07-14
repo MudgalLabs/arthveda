@@ -4,11 +4,13 @@ import isEqual from "lodash/isEqual";
 
 import { BrokerLogo } from "@/components/broker_logo";
 import {
+    IconArrowUpRight,
     IconBadgeAlert,
     IconBadgeCheck,
     IconBadgeInfo,
     IconEdit,
     IconEllipsis,
+    IconInfo,
     IconPlug,
     IconPlus,
     IconSync,
@@ -47,6 +49,12 @@ import {
     Alert,
     AlertTitle,
     AlertDescription,
+    Table,
+    TableHeader,
+    TableBody,
+    TableHead,
+    TableRow,
+    TableCell,
 } from "@/s8ly";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";
@@ -55,13 +63,20 @@ import { apiErrorHandler } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { BrokerName } from "@/lib/api/broker";
 import { PasswordInput } from "@/components/input/password_input";
+import { Setter } from "@/lib/types";
+import { Position } from "@/features/position/position";
+import { Link } from "@/components/link";
+import { ROUTES } from "@/routes_constants";
 
 export const BrokerAccounts = () => {
+    const [syncSummary, setSyncSummary] = useState<SyncSummary | null>(null);
+    const [syncSummaryModalOpen, setSyncSummaryModalOpen] = useState(false);
+
     return (
         <>
             <PageHeading heading="Broker Accounts" />
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-x-4">
                 <AddBrokerAccountModal
                     renderTrigger={() => (
                         <Button>
@@ -73,12 +88,22 @@ export const BrokerAccounts = () => {
 
             <div className="h-4" />
 
-            <BrokerAccountsTable />
+            <BrokerAccountsTable setSyncSummary={setSyncSummary} setSyncSummaryModalOpen={setSyncSummaryModalOpen} />
+
+            <SyncSummaryModal syncSummary={syncSummary} open={syncSummaryModalOpen} setOpen={setSyncSummaryModalOpen} />
         </>
     );
 };
 
 export default BrokerAccounts;
+
+interface SyncSummary {
+    BrokerName: BrokerName;
+    BrokerAccountName: string;
+    NewPositionsCount: number;
+    UpdatedPositionsCount: number;
+    PositionsData: Position[];
+}
 
 const columns: ColumnDef<UserBrokerAccount>[] = [
     {
@@ -132,7 +157,18 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
     },
     {
         accessorKey: "is_connected",
-        header: ({ column }) => <DataTableColumnHeader title="OAuth Connect" column={column} />,
+        header: ({ column }) => (
+            <DataTableColumnHeader
+                title={
+                    <Tooltip content="You connect your broker account via OAuth to sync positions from your broker.">
+                        <span className="flex-x">
+                            OAuth Connect <IconInfo />
+                        </span>
+                    </Tooltip>
+                }
+                column={column}
+            />
+        ),
         cell: ({ row }) => {
             const { getBrokerById } = useBroker();
             const broker = getBrokerById(row.original.broker_id);
@@ -160,7 +196,18 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
     },
     {
         accessorKey: "is_authenticated",
-        header: ({ column }) => <DataTableColumnHeader title="OAuth Login" column={column} />,
+        header: ({ column }) => (
+            <DataTableColumnHeader
+                title={
+                    <Tooltip content="For security reasons, brokers requires users to login everyday to grant access.">
+                        <span className="flex-x">
+                            OAuth Login <IconInfo />
+                        </span>
+                    </Tooltip>
+                }
+                column={column}
+            />
+        ),
         cell: ({ row }) => {
             const { getBrokerById } = useBroker();
             const broker = getBrokerById(row.original.broker_id);
@@ -172,14 +219,14 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
             if (row.original.is_authenticated) {
                 return (
                     <span className="flex-x">
-                        <IconBadgeCheck size={16} className="text-success-foreground" /> Logged in
+                        <IconBadgeCheck size={16} className="text-success-foreground" /> Authenticated
                     </span>
                 );
             }
 
             return (
                 <span className="flex-x">
-                    <IconBadgeAlert size={16} className="text-text-destructive" /> Logged out
+                    <IconBadgeAlert size={16} className="text-text-destructive" /> Not Authenticated
                 </span>
             );
         },
@@ -189,7 +236,14 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
     {
         id: "actions",
         header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
-        cell: ({ row }) => {
+        cell: ({ table, row }) => {
+            const setSyncSummary = table.options.meta?.extra?.setSyncSummary;
+            const setSyncSummaryModalOpen = table.options.meta?.extra?.setSyncSummaryModalOpen;
+
+            const { getBrokerById, getBrokerNameById } = useBroker();
+            const broker = getBrokerById(row.original.broker_id);
+            const brokerName = getBrokerNameById(row.original.broker_id);
+
             const { mutate: sync, isPending: isSyncing } = apiHooks.userBrokerAccount.useSync({
                 onSuccess: (res) => {
                     const data = res.data.data as SyncUserBrokerAccountResult;
@@ -208,13 +262,21 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                         return;
                     }
 
+                    if (setSyncSummary && setSyncSummaryModalOpen) {
+                        setSyncSummary({
+                            BrokerName: brokerName,
+                            BrokerAccountName: row.original.name,
+                            NewPositionsCount: data.positions_imported_count - data.forced_positions_count,
+                            UpdatedPositionsCount: data.forced_positions_count,
+                            PositionsData: data.positions,
+                        });
+                        setSyncSummaryModalOpen(true);
+                    }
+
                     toast.success(`${row.original.name} synced successfully`);
                 },
                 onError: apiErrorHandler,
             });
-
-            const { getBrokerById } = useBroker();
-            const broker = getBrokerById(row.original.broker_id);
 
             if (!broker) {
                 return null;
@@ -342,7 +404,13 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
     },
 ];
 
-const BrokerAccountsTable = () => {
+const BrokerAccountsTable = ({
+    setSyncSummary,
+    setSyncSummaryModalOpen,
+}: {
+    setSyncSummary: Setter<SyncSummary | null>;
+    setSyncSummaryModalOpen: Setter<boolean>;
+}) => {
     const { data, isLoading, isError } = apiHooks.userBrokerAccount.useList();
 
     if (isLoading) {
@@ -354,7 +422,7 @@ const BrokerAccountsTable = () => {
     }
 
     return (
-        <DataTableSmart data={data.data} columns={columns}>
+        <DataTableSmart data={data.data} columns={columns} extra={{ setSyncSummary, setSyncSummaryModalOpen }}>
             {(table) => <DataTable table={table} />}
         </DataTableSmart>
     );
@@ -795,6 +863,60 @@ const DisconnectBrokerAccountModal: FC<DisconnectBrokerAccountModalProps> = ({ i
                     >
                         Disconnect
                     </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+interface SyncSummaryModalProps {
+    syncSummary: SyncSummary | null;
+    open: boolean;
+    setOpen: (open: boolean) => void;
+}
+
+const SyncSummaryModal: FC<SyncSummaryModalProps> = ({ syncSummary, open, setOpen }) => {
+    if (!syncSummary) return null;
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Sync Complete</DialogTitle>
+                    <DialogDescription>Synced positions for {syncSummary.BrokerAccountName}</DialogDescription>
+                </DialogHeader>
+
+                <div>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>
+                                    <DataTableColumnHeader title="Symbol" />
+                                </TableHead>
+                                <TableHead>
+                                    <DataTableColumnHeader title="Opened At" />
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {syncSummary.PositionsData.map((position) => (
+                                <TableRow key={position.id}>
+                                    <TableCell>
+                                        <Link to={ROUTES.viewPosition(position.id)} target="_blank">
+                                            <span className="flex-x">
+                                                {position.symbol} <IconArrowUpRight />
+                                            </span>
+                                        </Link>
+                                    </TableCell>
+                                    <TableCell>{formatDate(new Date(position.opened_at))}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                <DialogFooter>
+                    <Button onClick={() => setOpen(false)}>Close</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

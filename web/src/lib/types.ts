@@ -4,6 +4,7 @@ declare module "@tanstack/react-table" {
     interface TableMeta<TData extends RowData> {
         updateFn?: (rowIndex: number, columnId: string, value: unknown) => void;
         isFetching?: boolean;
+        extra?: Record<string, any>;
     }
 
     interface ColumnMeta<TData extends RowData, TValue> {

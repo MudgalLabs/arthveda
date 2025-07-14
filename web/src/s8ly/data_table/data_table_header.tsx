@@ -1,12 +1,13 @@
+import { ReactNode } from "react";
 import { Column } from "@tanstack/react-table";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/s8ly";
+import { cn } from "@/lib/utils";
 import { IconArrowDown } from "@/components/icons";
 
 interface DataTableColumnHeaderProps<TData, TValue> {
-    column: Column<TData, TValue>;
-    title: string;
+    title: ReactNode;
+    column?: Column<TData, TValue>;
     className?: string;
     disabled?: boolean;
 }
@@ -17,7 +18,7 @@ export function DataTableColumnHeader<TData, TValue>({
     className,
     disabled = false,
 }: DataTableColumnHeaderProps<TData, TValue>) {
-    if (!column.getCanSort()) {
+    if (!column || !column.getCanSort()) {
         return <div className={cn("px-4 py-2", className)}>{title}</div>;
     }
 

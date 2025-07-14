@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/s8ly";
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Tooltip } from "@/s8ly";
 import { IconImport, IconPlus, IconScrollText, IconSync } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/routes_constants";
@@ -19,21 +19,23 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    className={cn(
-                        "w-full rounded-sm p-2 enabled:active:scale-[1]!",
-                        {
-                            "bg-primary-hover": open,
-                            "flex-center! h-9 w-9": !sidebarOpen,
-                        },
-                        className
-                    )}
-                >
-                    <IconPlus size={18} />
-                    {sidebarOpen ? "Add Position" : ""}
-                </Button>
-            </DropdownMenuTrigger>
+            <Tooltip content="Add Position" contentProps={{ side: "right" }} disabled={sidebarOpen}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        className={cn(
+                            "w-full rounded-sm p-2 enabled:active:scale-[1]!",
+                            {
+                                "bg-primary-hover": open,
+                                "flex-center! h-9 w-9": !sidebarOpen,
+                            },
+                            className
+                        )}
+                    >
+                        <IconPlus size={18} />
+                        {sidebarOpen ? "Add Position" : ""}
+                    </Button>
+                </DropdownMenuTrigger>
+            </Tooltip>
 
             <DropdownMenuContent side="right" align="end" className="ml-1 min-w-[180px]">
                 <Link
