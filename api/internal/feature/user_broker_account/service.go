@@ -279,9 +279,6 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 	// Set access token
 	kc.SetAccessToken(*accessToken)
 
-	margin, _ := kc.GetUserMargins()
-	fmt.Println("############################################################   margin: ", margin)
-
 	now := time.Now().UTC()
 
 	trades, err := kc.GetTrades()
@@ -292,8 +289,6 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 		s.userBrokerAccountRepository.Update(ctx, uba)
 		return redirectToLoginResult, service.ErrBadRequest, nil
 	}
-
-	fmt.Println("############################################################   trades: ", trades)
 
 	importableTrades := []*types.ImportableTrade{}
 	for _, t := range trades {

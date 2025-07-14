@@ -562,47 +562,12 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 	positionsImported := 0
 	forcedPositionCount := 0
 
-	for positionIdx, position := range finalizedPositions {
-		switch options.ChargesCalculationMethod {
-		case ChargesCalculationMethodAuto:
-			_, userErr, err := CalculateAndApplyChargesToTrades(position.Trades, options.Instrument, options.Broker.Name)
-			if err != nil {
-				if userErr {
-					return nil, service.ErrBadRequest, err
-				} else {
-					return nil, service.ErrInternalServerError, fmt.Errorf("CalculateAndApplyChargesToTrades: %w", err)
-				}
-			}
-
-		case ChargesCalculationMethodManual:
-			for _, trade := range position.Trades {
-				trade.ChargesAmount = options.ManualChargeAmount
-			}
-		}
-
-		// Add the position's total charges amount.
-		// This is calculated from the trades in the position.
-		position.TotalChargesAmount = calculateTotalChargesAmountFromTrades(position.Trades)
-
-		// As we have updated the trades with charges, we need to recompute the position.
-		computePayload := ComputePayload{
-			RiskAmount: options.RiskAmount,
-			Trades:     ConvertTradesToCreatePayload(position.Trades),
-		}
-
-		computeResult, err := Compute(computePayload)
-		if err != nil {
-			l.Debugw("failed to compute position after charges and marking it as invalid", "error", err, "position_id", position.ID, "symbol", position.Symbol)
-			continue
-		}
-
-		ApplyComputeResultToPosition(position, computeResult)
-
+	for positionIdx, finalizedPos := range finalizedPositions {
 		var isDuplicate bool
 		// If we find a duplicate trade, we need to get it's position ID.
 		var positionIDForTheDuplicateOrderID uuid.UUID
 
-		for _, trade := range position.Trades {
+		for _, trade := range finalizedPos.Trades {
 			orderID := trade.BrokerTradeID
 
 			if common.ExistsInSet(brokerTradeIDs, *orderID) {
@@ -616,27 +581,92 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 			}
 		}
 
+		var existingPosition *Position
+		var svcErr service.Error
+
+		if isDuplicate {
+			existingPosition, svcErr, err = s.Get(ctx, options.UserID, positionIDForTheDuplicateOrderID)
+			if err != nil {
+				return nil, svcErr, fmt.Errorf("failed to fetch existing position: %w", err)
+			}
+
+			// We should copy some fields from the existing position to the new position.
+			// This helps us keep the risk amount of the existing position.
+			// Also the URL for the existing position will be the same as the new position.
+			finalizedPos.RiskAmount = existingPosition.RiskAmount
+
+			// So that the existing URL to view the position remains the same.
+			finalizedPos.ID = existingPosition.ID
+			finalizedPos.Notes = existingPosition.Notes
+
+			// Update the positionID for the trades in the position.
+			for _, trade := range finalizedPos.Trades {
+				trade.PositionID = existingPosition.ID
+			}
+		}
+
+		switch options.ChargesCalculationMethod {
+		case ChargesCalculationMethodAuto:
+			_, userErr, err := CalculateAndApplyChargesToTrades(finalizedPos.Trades, options.Instrument, options.Broker.Name)
+			if err != nil {
+				if userErr {
+					return nil, service.ErrBadRequest, err
+				} else {
+					return nil, service.ErrInternalServerError, fmt.Errorf("CalculateAndApplyChargesToTrades: %w", err)
+				}
+			}
+
+		case ChargesCalculationMethodManual:
+			for _, trade := range finalizedPos.Trades {
+				trade.ChargesAmount = options.ManualChargeAmount
+			}
+		}
+
+		// Add the position's total charges amount.
+		// This is calculated from the trades in the position.
+		finalizedPos.TotalChargesAmount = calculateTotalChargesAmountFromTrades(finalizedPos.Trades)
+
+		riskAmount := options.RiskAmount
+		if isDuplicate && existingPosition.RiskAmount.IsPositive() {
+			// If we are updating an existing position, we should use the risk amount from the existing position.
+			riskAmount = existingPosition.RiskAmount
+		}
+
+		// As we have updated the trades with charges, we need to recompute the position.
+		computePayload := ComputePayload{
+			RiskAmount: riskAmount,
+			Trades:     ConvertTradesToCreatePayload(finalizedPos.Trades),
+		}
+
+		computeResult, err := Compute(computePayload)
+		if err != nil {
+			l.Debugw("failed to compute position after charges and marking it as invalid", "error", err, "position_id", finalizedPos.ID, "symbol", finalizedPos.Symbol)
+			continue
+		}
+
+		ApplyComputeResultToPosition(finalizedPos, computeResult)
+
 		if isDuplicate {
 			// If the force & confirm flags are true, we will have to delete the existing position and create a new position.
 			if options.Force && options.Confirm {
-				l.Debugw("force importing a duplicate position, deleting existing position", "symbol", position.Symbol, "opened_at", position.OpenedAt)
+				l.Debugw("force importing a duplicate position, deleting existing position", "symbol", finalizedPos.Symbol, "opened_at", finalizedPos.OpenedAt)
 
-				svcErr, err := s.Delete(ctx, options.UserID, positionIDForTheDuplicateOrderID)
+				svcErr, err = s.Delete(ctx, options.UserID, positionIDForTheDuplicateOrderID)
 				if err != nil {
 					return nil, svcErr, fmt.Errorf("failed to delete existing position: %w", err)
 				}
 
 				// Create the position in the database
-				err = s.positionRepository.Create(ctx, position)
+				err = s.positionRepository.Create(ctx, finalizedPos)
 				if err != nil {
 					return nil, service.ErrInternalServerError, err
 				}
 
 				// Create the trades in the database
-				_, err = s.tradeRepository.CreateForPosition(ctx, position.Trades)
+				_, err = s.tradeRepository.CreateForPosition(ctx, finalizedPos.Trades)
 				if err != nil {
 					// Delete the position if trades creation fails.
-					s.positionRepository.Delete(ctx, position.ID)
+					s.positionRepository.Delete(ctx, finalizedPos.ID)
 					return nil, service.ErrInternalServerError, err
 				}
 
@@ -645,9 +675,10 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 				continue
 			}
 
-			l.Debugw("skipping position because it is a duplicate", "symbol", position.Symbol, "opened_at", position.OpenedAt)
+			l.Debugw("skipping position because it is a duplicate", "symbol", finalizedPos.Symbol, "opened_at", finalizedPos.OpenedAt)
 			duplicatePositionsCount += 1
 			finalizedPositions[positionIdx].IsDuplicate = true
+
 			// We skip the position if it has any duplicate trades.
 			continue
 		}
@@ -655,16 +686,16 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		// If confirm is true, we will create the positions in the database.
 		if options.Confirm {
 			// Create the position in the database
-			err := s.positionRepository.Create(ctx, position)
+			err := s.positionRepository.Create(ctx, finalizedPos)
 			if err != nil {
 				return nil, service.ErrInternalServerError, err
 			}
 
 			// Create the trades in the database
-			_, err = s.tradeRepository.CreateForPosition(ctx, position.Trades)
+			_, err = s.tradeRepository.CreateForPosition(ctx, finalizedPos.Trades)
 			if err != nil {
 				// Delete the position if trades creation fails.
-				s.positionRepository.Delete(ctx, position.ID)
+				s.positionRepository.Delete(ctx, finalizedPos.ID)
 				return nil, service.ErrInternalServerError, err
 			}
 
