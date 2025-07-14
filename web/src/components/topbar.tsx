@@ -127,7 +127,7 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                             onError={() => setError(true)}
                         />
                     ) : (
-                        <DefaultProfileAvatar height={36} />
+                        <DefaultProfileAvatar height={28} />
                     )}
 
                     {sidebarOpen && <IconChevronDown size={16} />}

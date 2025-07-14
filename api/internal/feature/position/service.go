@@ -598,6 +598,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 			// So that the existing URL to view the position remains the same.
 			finalizedPos.ID = existingPosition.ID
 			finalizedPos.Notes = existingPosition.Notes
+			finalizedPos.IsDuplicate = true
 
 			// Update the positionID for the trades in the position.
 			for _, trade := range finalizedPos.Trades {

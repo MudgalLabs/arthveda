@@ -73,6 +73,7 @@ interface Position {
 
     trades: Trade[] | null;
     user_broker_account: UserBrokerAccountSearchValue | null;
+    is_duplicate: boolean;
 }
 
 export { positionInstrumentToString, positionDirectionToString, positionStatusToString };

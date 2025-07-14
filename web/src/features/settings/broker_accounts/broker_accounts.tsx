@@ -55,6 +55,7 @@ import {
     TableHead,
     TableRow,
     TableCell,
+    Tag,
 } from "@/s8ly";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";
@@ -883,7 +884,9 @@ const SyncSummaryModal: FC<SyncSummaryModalProps> = ({ syncSummary, open, setOpe
             <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Sync Complete</DialogTitle>
-                    <DialogDescription>Synced positions for {syncSummary.BrokerAccountName}</DialogDescription>
+                    <DialogDescription>
+                        Synced positions to {syncSummary.BrokerAccountName} from {syncSummary.BrokerName}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div>
@@ -901,12 +904,14 @@ const SyncSummaryModal: FC<SyncSummaryModalProps> = ({ syncSummary, open, setOpe
                         <TableBody>
                             {syncSummary.PositionsData.map((position) => (
                                 <TableRow key={position.id}>
-                                    <TableCell>
+                                    <TableCell className="flex-x gap-x-4">
                                         <Link to={ROUTES.viewPosition(position.id)} target="_blank">
                                             <span className="flex-x">
-                                                {position.symbol} <IconArrowUpRight />
+                                                {position.symbol} <IconArrowUpRight />{" "}
                                             </span>
                                         </Link>
+
+                                        {!position.is_duplicate && <Tag size="small">New</Tag>}
                                     </TableCell>
                                     <TableCell>{formatDate(new Date(position.opened_at))}</TableCell>
                                 </TableRow>

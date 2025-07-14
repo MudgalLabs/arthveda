@@ -99,6 +99,7 @@ export function useSync(options: AnyUseMutationOptions = {}) {
         mutationFn: (id: string) => api.userBrokerAccount.sync(id),
         onSuccess: (...args) => {
             queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
+            queryClient.invalidateQueries({ queryKey: ["useGetDashboard"] });
             onSuccess?.(...args);
         },
         ...restOptions,
