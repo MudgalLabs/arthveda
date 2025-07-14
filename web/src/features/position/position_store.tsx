@@ -57,6 +57,7 @@ const defaultState: State = {
 
         trades: [],
         user_broker_account: null,
+        is_duplicate: false,
     },
 
     enableAutoCharges: false,
