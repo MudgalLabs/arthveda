@@ -2,17 +2,22 @@ package user_broker_account
 
 import (
 	"arthveda/internal/apires"
+	"arthveda/internal/common"
 	"arthveda/internal/domain/broker_integration"
+	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
+	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	kiteconnect "github.com/zerodha/gokiteconnect/v4"
 )
 
@@ -196,8 +201,6 @@ func (s *Service) Disconnect(ctx context.Context, userID, ubaID uuid.UUID) (serv
 		return service.ErrInternalServerError, fmt.Errorf("get by id: %w", err)
 	}
 
-	// TODO: Call disconnect method of the syncer.
-
 	now := time.Now().UTC()
 
 	uba.UpdatedAt = &now
@@ -213,12 +216,14 @@ func (s *Service) Disconnect(ctx context.Context, userID, ubaID uuid.UUID) (serv
 	return service.ErrNone, nil
 }
 
-type syncResult struct {
-	LoginRequired bool   `json:"login_required"`
-	LoginURL      string `json:"login_url"`
+type SyncResult struct {
+	LoginRequired    bool                     `json:"login_required"`
+	LoginURL         string                   `json:"login_url"`
+	Broker           *broker.Broker           `json:"-"`
+	ImportableTrades []*types.ImportableTrade `json:"-"`
 }
 
-func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*syncResult, service.Error, error) {
+func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
 
 	uba, err := s.userBrokerAccountRepository.GetByID(ctx, ubaID)
@@ -259,7 +264,7 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*syncResul
 	}
 
 	loginURL := adapter.GetLoginURL(ctx, userID, uba.ID)
-	redirectToLoginResult := &syncResult{
+	redirectToLoginResult := &SyncResult{
 		LoginRequired: true,
 		LoginURL:      loginURL,
 	}
@@ -290,6 +295,37 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*syncResul
 
 	fmt.Println("############################################################   trades: ", trades)
 
+	importableTrades := []*types.ImportableTrade{}
+	for _, t := range trades {
+		symbol := t.TradingSymbol
+		err := trade.MakeSureSymbolIsEquity(symbol)
+		if err != nil {
+			l.Debugw("Trade symbol is not equity", "symbol", symbol, "error", err.Error())
+			continue
+		}
+
+		// NOTE: Fetch exchange timezone. Using NSE because we only suport sync for Indian brokers.
+		tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
+		ist, err := time.LoadLocation(string(tz))
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("Failed to load timezone for trade: %s", tz)
+		}
+
+		tradeTime := t.FillTimestamp.Time.In(ist)
+		tradeKind := types.TradeKind(strings.ToLower(t.TransactionType))
+
+		importableTrade := types.ImportableTrade{
+			Symbol:     symbol,
+			Instrument: types.InstrumentEquity,
+			TradeKind:  tradeKind,
+			Quantity:   decimal.NewFromFloat(t.Quantity),
+			Price:      decimal.NewFromFloat(t.AveragePrice),
+			OrderID:    t.OrderID,
+			Time:       tradeTime,
+		}
+		importableTrades = append(importableTrades, &importableTrade)
+	}
+
 	uba.LastSyncAt = &now
 
 	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
@@ -297,7 +333,12 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*syncResul
 		return nil, service.ErrInternalServerError, fmt.Errorf("update account: %w", err)
 	}
 
-	return &syncResult{}, service.ErrNone, nil
+	return &SyncResult{
+		LoginRequired:    false,
+		LoginURL:         "",
+		ImportableTrades: importableTrades,
+		Broker:           b,
+	}, service.ErrNone, nil
 }
 
 func (s *Service) ZerodhaRedirect(ctx context.Context, userID, ubaID uuid.UUID, requestToken string) (service.Error, error) {

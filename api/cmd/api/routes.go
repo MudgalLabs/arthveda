@@ -122,7 +122,7 @@ func initRouter(a *app) http.Handler {
 			r.Delete("/{id}", deleteUserBrokerAccountHandler(a.service.UserBrokerAccountService))
 			r.Post("/{id}/connect", connectUserBrokerAccountHandler(a.service.UserBrokerAccountService))
 			r.Post("/{id}/disconnect", disconnectUserBrokerAccountHandler(a.service.UserBrokerAccountService))
-			r.Post("/{id}/sync", syncUserBrokerAccountHandler(a.service.UserBrokerAccountService))
+			r.Post("/{id}/sync", syncUserBrokerAccountHandler(a.service.UserBrokerAccountService, a.service.PositionService))
 		})
 	})
 

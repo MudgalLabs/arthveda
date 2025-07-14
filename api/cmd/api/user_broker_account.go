@@ -1,7 +1,10 @@
 package main
 
 import (
+	"arthveda/internal/domain/currency"
+	"arthveda/internal/domain/types"
 	"arthveda/internal/env"
+	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/user_broker_account"
 	"arthveda/internal/logger"
 	"errors"
@@ -9,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 func createUserBrokerAccountHandler(s *user_broker_account.Service) http.HandlerFunc {
@@ -155,7 +159,7 @@ func disconnectUserBrokerAccountHandler(s *user_broker_account.Service) http.Han
 	}
 }
 
-func syncUserBrokerAccountHandler(s *user_broker_account.Service) http.HandlerFunc {
+func syncUserBrokerAccountHandler(s *user_broker_account.Service, ps *position.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		l := logger.FromCtx(ctx)
@@ -169,10 +173,42 @@ func syncUserBrokerAccountHandler(s *user_broker_account.Service) http.HandlerFu
 			return
 		}
 
-		result, errKind, err := s.Sync(ctx, userID, ubaID)
+		type finalResult struct {
+			*user_broker_account.SyncResult
+			*position.ImportResult
+		}
+
+		syncResult, errKind, err := s.Sync(ctx, userID, ubaID)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return
+		}
+
+		var importResult *position.ImportResult
+		if len(syncResult.ImportableTrades) > 0 {
+			options := position.ImportOptions{
+				UserID:                   userID,
+				UserBrokerAccountID:      ubaID,
+				Broker:                   syncResult.Broker,
+				RiskAmount:               decimal.Zero,
+				Currency:                 currency.CurrencyINR,
+				ChargesCalculationMethod: position.ChargesCalculationMethodAuto,
+				ManualChargeAmount:       decimal.Zero,
+				Instrument:               types.InstrumentEquity,
+				Confirm:                  true,
+				Force:                    true,
+			}
+
+			importResult, errKind, err = ps.Import(ctx, syncResult.ImportableTrades, options)
+			if err != nil {
+				serviceErrResponse(w, r, errKind, err)
+				return
+			}
+		}
+
+		result := finalResult{
+			SyncResult:   syncResult,
+			ImportResult: importResult,
 		}
 
 		successResponse(w, r, http.StatusOK, "User broker account synced successfully", result)

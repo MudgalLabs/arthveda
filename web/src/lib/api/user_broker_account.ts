@@ -1,5 +1,6 @@
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
+import { ImportPositionsResponse } from "@/lib/api/position";
 
 export interface UserBrokerAccount {
     id: string;
@@ -33,9 +34,9 @@ export interface ConnectUserBrokerAccountResult {
     login_url: string;
 }
 
-export interface SyncUserBrokerAccountResult {
-    login_required: boolean;
-    login_url: string;
+export interface SyncUserBrokerAccountResult extends ImportPositionsResponse {
+    login_required?: boolean;
+    login_url?: string;
 }
 
 export function list() {

@@ -3,6 +3,7 @@ package trade
 import (
 	"arthveda/internal/domain/types"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -80,4 +81,61 @@ func New(payload CreatePayload) (*Trade, error) {
 
 type UpdatePayload struct {
 	Trade
+}
+
+// MakeSureSymbolIsEquity validates that a given trading symbol represents an equity instrument
+// rather than a Futures & Options (F&O) instrument.
+//
+// The function performs pattern matching to detect F&O instruments by looking for:
+// - Month series identifiers (jan, feb, mar, etc.)
+// - F&O instrument types (fut for futures, ce for call options, pe for put options)
+//
+// If both patterns are found together in the symbol, it's considered an F&O instrument
+// and an error is returned.
+//
+// Parameters:
+//   - symbol: The trading symbol to validate (case-insensitive)
+//
+// Returns:
+//   - error: nil if the symbol is valid equity, otherwise an error describing the issue
+//
+// Examples:
+//   - "RELIANCE" -> nil (valid equity)
+//   - "NIFTY24JANFUT" -> error (F&O instrument)
+//   - "" -> error (empty symbol)
+func MakeSureSymbolIsEquity(symbol string) error {
+	if symbol == "" {
+		return fmt.Errorf("trading symbol cannot be empty")
+	}
+
+	lowercaseSymbol := strings.ToLower(symbol)
+
+	fnoInstrument := []string{"fut", "ce", "pe"}
+	fnoSeries := []string{"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"}
+
+	// Check if symbol contains both month series AND F&O instrument types (typical F&O pattern)
+	hasMonthSeries := false
+	hasFnoInstrument := false
+
+	for _, series := range fnoSeries {
+		if strings.Contains(lowercaseSymbol, series) {
+			hasMonthSeries = true
+			break
+		}
+	}
+
+	for _, instrument := range fnoInstrument {
+		if strings.Contains(lowercaseSymbol, instrument) {
+			hasFnoInstrument = true
+			break
+		}
+	}
+
+	// If both patterns exist together, it's likely an F&O instrument
+	if hasMonthSeries && hasFnoInstrument {
+		return fmt.Errorf("symbol '%s' appears to be a F&O instrument, not equity", symbol)
+	}
+
+	// If no F&O patterns found, assume it's equity
+	return nil
 }
