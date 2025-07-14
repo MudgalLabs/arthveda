@@ -7,6 +7,8 @@ export type BrokerName = "Groww" | "Upstox" | "Zerodha";
 export interface Broker {
     id: string;
     name: string;
+    supports_file_import: boolean;
+    supports_trade_sync: boolean;
 }
 
 export function list() {

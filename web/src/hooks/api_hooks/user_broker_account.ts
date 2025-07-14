@@ -6,6 +6,7 @@ import {
     UserBrokerAccount,
     CreateUserBrokerAccountPayload,
     UpdateUserBrokerAccountPayload,
+    ConnectUserBrokerAccountPayload,
 } from "@/lib/api/user_broker_account";
 
 export function useList() {
@@ -51,6 +52,51 @@ export function useDelete(options: AnyUseMutationOptions = {}) {
 
     return useMutation({
         mutationFn: (id: string) => api.userBrokerAccount.remove(id),
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
+            queryClient.invalidateQueries({ queryKey: ["usePositionsSearch"] });
+            queryClient.invalidateQueries({ queryKey: ["useGetDashboard"] });
+            onSuccess?.(...args);
+        },
+        ...restOptions,
+    });
+}
+
+export function useConnect(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
+    return useMutation({
+        mutationFn: ({ id, payload }: { id: string; payload: ConnectUserBrokerAccountPayload }) =>
+            api.userBrokerAccount.connect(id, payload),
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
+            onSuccess?.(...args);
+        },
+        ...restOptions,
+    });
+}
+
+export function useDisconnect(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
+    return useMutation({
+        mutationFn: (id: string) => api.userBrokerAccount.disconnect(id),
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
+            onSuccess?.(...args);
+        },
+        ...restOptions,
+    });
+}
+
+export function useSync(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
+    return useMutation({
+        mutationFn: (id: string) => api.userBrokerAccount.sync(id),
         onSuccess: (...args) => {
             queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
             onSuccess?.(...args);

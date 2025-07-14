@@ -3,6 +3,7 @@ package position
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/dbx"
+	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/repository"
 	"context"
@@ -79,7 +80,7 @@ type SearchFilter struct {
 
 	Opened                      *common.DateRangeFilter `json:"opened"`
 	Symbol                      *string                 `json:"symbol"`
-	Instrument                  *Instrument             `json:"instrument"`
+	Instrument                  *types.Instrument       `json:"instrument"`
 	Direction                   *Direction              `json:"direction"`
 	Status                      *Status                 `json:"status"`
 	RFactor                     *string                 `json:"r_factor"`

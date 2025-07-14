@@ -33,5 +33,8 @@ export const API_ROUTES = {
         create: "/v1/user-broker-accounts",
         update: (id: string) => `/v1/user-broker-accounts/${id}`,
         delete: (id: string) => `/v1/user-broker-accounts/${id}`,
+        connect: (id: string) => `/v1/user-broker-accounts/${id}/connect`,
+        disconnect: (id: string) => `/v1/user-broker-accounts/${id}/disconnect`,
+        sync: (id: string) => `/v1/user-broker-accounts/${id}/sync`,
     },
 };

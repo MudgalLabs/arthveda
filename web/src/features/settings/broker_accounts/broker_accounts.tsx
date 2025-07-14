@@ -3,12 +3,26 @@ import { ColumnDef } from "@tanstack/react-table";
 import isEqual from "lodash/isEqual";
 
 import { BrokerLogo } from "@/components/broker_logo";
-import { IconEdit, IconPlus, IconTrash } from "@/components/icons";
+import {
+    IconBadgeAlert,
+    IconBadgeCheck,
+    IconBadgeInfo,
+    IconEdit,
+    IconEllipsis,
+    IconPlug,
+    IconPlus,
+    IconSync,
+    IconTrash,
+} from "@/components/icons";
 import { LoadingScreen } from "@/components/loading_screen";
 import { PageHeading } from "@/components/page_heading";
 import { useBroker } from "@/features/broker/broker_context";
 import { apiHooks } from "@/hooks/api_hooks";
-import { UserBrokerAccount } from "@/lib/api/user_broker_account";
+import {
+    ConnectUserBrokerAccountResult,
+    SyncUserBrokerAccountResult,
+    UserBrokerAccount,
+} from "@/lib/api/user_broker_account";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import {
@@ -26,11 +40,21 @@ import {
     DialogFooter,
     DialogOverlay,
     DialogPortal,
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    Alert,
+    AlertTitle,
+    AlertDescription,
 } from "@/s8ly";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";
 import { toast } from "@/components/toast";
 import { apiErrorHandler } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
+import { BrokerName } from "@/lib/api/broker";
+import { PasswordInput } from "@/components/input/password_input";
 
 export const BrokerAccounts = () => {
     return (
@@ -79,34 +103,238 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
         enableSorting: false,
     },
     {
+        accessorKey: "last_sync_at",
+        header: ({ column }) => <DataTableColumnHeader title="Last Sync" column={column} />,
+        cell: ({ row }) => {
+            if (row.original.last_sync_at === null) {
+                return "Never";
+            }
+
+            const date = new Date(row.original.last_sync_at);
+            return formatDate(date, { time: true });
+        },
+        enableHiding: false,
+        enableSorting: false,
+    },
+    {
+        accessorKey: "last_login_at",
+        header: ({ column }) => <DataTableColumnHeader title="Last Login" column={column} />,
+        cell: ({ row }) => {
+            if (row.original.last_login_at === null) {
+                return "Never";
+            }
+
+            const date = new Date(row.original.last_login_at);
+            return formatDate(date, { time: true });
+        },
+        enableHiding: false,
+        enableSorting: false,
+    },
+    {
+        accessorKey: "is_connected",
+        header: ({ column }) => <DataTableColumnHeader title="OAuth Connect" column={column} />,
+        cell: ({ row }) => {
+            const { getBrokerById } = useBroker();
+            const broker = getBrokerById(row.original.broker_id);
+
+            if (!broker) {
+                return "";
+            }
+
+            if (row.original.is_connected) {
+                return (
+                    <span className="flex-x">
+                        <IconBadgeCheck size={16} className="text-success-foreground" /> Connected
+                    </span>
+                );
+            }
+
+            return (
+                <span className="flex-x">
+                    <IconBadgeAlert size={16} className="text-text-destructive" /> Not connected
+                </span>
+            );
+        },
+        enableHiding: false,
+        enableSorting: false,
+    },
+    {
+        accessorKey: "is_authenticated",
+        header: ({ column }) => <DataTableColumnHeader title="OAuth Login" column={column} />,
+        cell: ({ row }) => {
+            const { getBrokerById } = useBroker();
+            const broker = getBrokerById(row.original.broker_id);
+
+            if (!broker) {
+                return "";
+            }
+
+            if (row.original.is_authenticated) {
+                return (
+                    <span className="flex-x">
+                        <IconBadgeCheck size={16} className="text-success-foreground" /> Logged in
+                    </span>
+                );
+            }
+
+            return (
+                <span className="flex-x">
+                    <IconBadgeAlert size={16} className="text-text-destructive" /> Logged out
+                </span>
+            );
+        },
+        enableHiding: false,
+        enableSorting: false,
+    },
+    {
         id: "actions",
         header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
         cell: ({ row }) => {
-            return (
-                <div className="flex-x gap-x-0">
-                    <Tooltip content="Edit" delayDuration={500}>
-                        <EditBrokerAccountModal
-                            userBrokerAccount={row.original}
-                            renderTrigger={() => (
-                                <Button variant="ghost" size="icon">
-                                    <IconEdit size={16} />
-                                </Button>
-                            )}
-                        />
-                    </Tooltip>
+            const { mutate: sync, isPending: isSyncing } = apiHooks.userBrokerAccount.useSync({
+                onSuccess: (res) => {
+                    const data = res.data.data as SyncUserBrokerAccountResult;
 
-                    <Tooltip content="Delete" delayDuration={500}>
-                        <DeleteBrokerAccountModal
-                            id={row.original.id}
-                            name={row.original.name}
-                            renderTrigger={() => (
-                                <Button variant="ghost" size="icon">
-                                    <IconTrash size={16} />
+                    if (data.login_required && data.login_url) {
+                        toast.warning("Broker connect has expired", {
+                            duration: 10000,
+                            description: "Login to reconnect your broker account",
+                            action: {
+                                label: "Login",
+                                onClick: () => {
+                                    window.location.assign(data.login_url!);
+                                },
+                            },
+                        });
+                        return;
+                    }
+
+                    toast.success(`${row.original.name} synced successfully`);
+                },
+                onError: apiErrorHandler,
+            });
+
+            const { getBrokerById } = useBroker();
+            const broker = getBrokerById(row.original.broker_id);
+
+            if (!broker) {
+                return null;
+            }
+
+            const [editOpen, setEditOpen] = useState(false);
+            const [deleteOpen, setDeleteOpen] = useState(false);
+            const [connectOpen, setConnectOpen] = useState(false);
+            const [disconnectOpen, setDisconnectOpen] = useState(false);
+            const [dropdownOpen, setDropdownOpen] = useState(false);
+
+            const handleEditOpen = () => {
+                setDropdownOpen(false);
+                setEditOpen(true);
+            };
+
+            const handleDeleteOpen = () => {
+                setDropdownOpen(false);
+                setDeleteOpen(true);
+            };
+
+            const handleConnectOpen = () => {
+                setDropdownOpen(false);
+                setConnectOpen(true);
+            };
+
+            const handleDisconnectOpen = () => {
+                setDropdownOpen(false);
+                setDisconnectOpen(true);
+            };
+
+            return (
+                <>
+                    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <IconEllipsis size={16} />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="flex w-35 flex-col">
+                            <Tooltip content="Broker must be connected to sync" disabled={row.original.is_connected}>
+                                <DropdownMenuItem asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full! justify-start"
+                                        onClick={() => sync(row.original.id)}
+                                        disabled={isSyncing || !row.original.is_connected}
+                                    >
+                                        <IconSync size={16} />
+                                        Sync
+                                    </Button>
+                                </DropdownMenuItem>
+                            </Tooltip>
+
+                            <Tooltip
+                                content="Connect is not supported for this broker"
+                                disabled={broker.supports_trade_sync}
+                            >
+                                <DropdownMenuItem asChild>
+                                    {!row.original.is_connected ? (
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full! justify-start"
+                                            onClick={handleConnectOpen}
+                                            disabled={!broker.supports_trade_sync}
+                                        >
+                                            <IconPlug size={16} />
+                                            Connect
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full! justify-start"
+                                            onClick={handleDisconnectOpen}
+                                        >
+                                            <IconPlug size={16} />
+                                            Disconnect
+                                        </Button>
+                                    )}
+                                </DropdownMenuItem>
+                            </Tooltip>
+
+                            <DropdownMenuItem asChild>
+                                <Button variant="ghost" className="w-full! justify-start" onClick={handleEditOpen}>
+                                    <IconEdit size={16} />
+                                    Edit
                                 </Button>
-                            )}
-                        />
-                    </Tooltip>
-                </div>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
+                                <Button variant="ghost" className="w-full! justify-start" onClick={handleDeleteOpen}>
+                                    <IconTrash size={16} />
+                                    Delete
+                                </Button>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <EditBrokerAccountModal userBrokerAccount={row.original} open={editOpen} setOpen={setEditOpen} />
+
+                    <DeleteBrokerAccountModal
+                        id={row.original.id}
+                        name={row.original.name}
+                        open={deleteOpen}
+                        setOpen={setDeleteOpen}
+                    />
+
+                    <ConnectBrokerAccountModal
+                        userBrokerAccount={row.original}
+                        open={connectOpen}
+                        setOpen={setConnectOpen}
+                    />
+
+                    <DisconnectBrokerAccountModal
+                        id={row.original.id}
+                        name={row.original.name}
+                        open={disconnectOpen}
+                        setOpen={setDisconnectOpen}
+                    />
+                </>
             );
         },
         enableHiding: false,
@@ -225,12 +453,11 @@ export const AddBrokerAccountModal: FC<AddBrokerAccountModalProps> = ({ renderTr
 interface DeleteBrokerAccountModalProps {
     id: string;
     name: string;
-    renderTrigger: () => ReactNode;
+    open: boolean;
+    setOpen: (open: boolean) => void;
 }
 
-const DeleteBrokerAccountModal: FC<DeleteBrokerAccountModalProps> = ({ id, name, renderTrigger }) => {
-    const [open, setOpen] = useState(false);
-
+const DeleteBrokerAccountModal: FC<DeleteBrokerAccountModalProps> = ({ id, name, open, setOpen }) => {
     const { data, isLoading } = apiHooks.position.useSearch(
         {
             filters: {
@@ -253,8 +480,6 @@ const DeleteBrokerAccountModal: FC<DeleteBrokerAccountModalProps> = ({ id, name,
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>{renderTrigger()}</DialogTrigger>
-
             {isLoading ? (
                 <DialogPortal>
                     <DialogOverlay />
@@ -300,11 +525,11 @@ const DeleteBrokerAccountModal: FC<DeleteBrokerAccountModalProps> = ({ id, name,
 
 interface EditBrokerAccountModalProps {
     userBrokerAccount: UserBrokerAccount;
-    renderTrigger: () => React.ReactNode;
+    open: boolean;
+    setOpen: (open: boolean) => void;
 }
 
-const EditBrokerAccountModal: FC<EditBrokerAccountModalProps> = ({ userBrokerAccount, renderTrigger }) => {
-    const [open, setOpen] = useState(false);
+const EditBrokerAccountModal: FC<EditBrokerAccountModalProps> = ({ userBrokerAccount, open, setOpen }) => {
     const [state, setState] = useState(userBrokerAccount);
     const initialState = useRef(userBrokerAccount);
 
@@ -333,7 +558,6 @@ const EditBrokerAccountModal: FC<EditBrokerAccountModalProps> = ({ userBrokerAcc
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>{renderTrigger()}</DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Edit Broker Account</DialogTitle>
@@ -357,6 +581,221 @@ const EditBrokerAccountModal: FC<EditBrokerAccountModalProps> = ({ userBrokerAcc
                         </Button>
                     </DialogFooter>
                 </form>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+interface ConnectBrokerAccountModalProps {
+    userBrokerAccount: UserBrokerAccount;
+    open: boolean;
+    setOpen: (open: boolean) => void;
+}
+
+const ConnectBrokerAccountModal: FC<ConnectBrokerAccountModalProps> = ({ userBrokerAccount, open, setOpen }) => {
+    const [clientId, setClientId] = useState("");
+    const [clientSecret, setClientSecret] = useState("");
+
+    const { mutate: connect, isPending: isConnecting } = apiHooks.userBrokerAccount.useConnect({
+        onSuccess: (res) => {
+            const data = res.data.data as ConnectUserBrokerAccountResult;
+            const url = data.login_url;
+            window.location.assign(url);
+        },
+        onError: apiErrorHandler,
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!clientId.trim() || !clientSecret.trim()) return;
+        connect({
+            id: userBrokerAccount.id,
+            payload: {
+                client_id: clientId.trim(),
+                client_secret: clientSecret.trim(),
+            },
+        });
+    };
+
+    useEffect(() => {
+        if (open) {
+            setClientId("");
+            setClientSecret("");
+        }
+    }, [open]);
+
+    const { getBrokerNameById } = useBroker();
+    const brokerName = getBrokerNameById(userBrokerAccount.broker_id);
+
+    if (!brokerName) {
+        return null;
+    }
+
+    const disableSave = !clientId.trim() || !clientSecret.trim();
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Connect Broker Account</DialogTitle>
+                    <DialogDescription>
+                        Connect {userBrokerAccount.name} to {getBrokerNameById(userBrokerAccount.broker_id)} via OAuth
+                    </DialogDescription>
+                </DialogHeader>
+
+                <Alert>
+                    <IconBadgeInfo />
+                    <AlertTitle>Heads up!</AlertTitle>
+                    <AlertDescription>
+                        <ul className="list-disc">
+                            <li>
+                                <span>
+                                    <a
+                                        href="https://github.com/MudgalLabs/arthveda"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Arthveda
+                                    </a>{" "}
+                                    uses your OAuth app only to access and sync your trading positions. It does{" "}
+                                    <strong>not</strong> use it for any other purpose.
+                                </span>
+                            </li>
+
+                            <li>
+                                <span>
+                                    For security reasons, your OAuth credentials are not visible once saved. If you ever
+                                    need to update them, you'll need to <strong>disconnect and reconnect</strong> the
+                                    broker account.
+                                </span>
+                            </li>
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+
+                <ConnectBrokerAccountOAuthSteps brokerName={brokerName} />
+
+                <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+                    <WithLabel Label={<Label>Client ID</Label>}>
+                        <Input
+                            className="w-full!"
+                            placeholder="Paste your client ID / API key"
+                            type="text"
+                            required
+                            autoComplete="new-password"
+                            value={clientId}
+                            onChange={(e) => setClientId(e.target.value)}
+                        />
+                    </WithLabel>
+
+                    <WithLabel Label={<Label>Client Secret</Label>}>
+                        <PasswordInput
+                            className="w-full!"
+                            placeholder="Paste your client secret / API secret"
+                            required
+                            autoComplete="new-password"
+                            value={clientSecret}
+                            onChange={(e) => setClientSecret(e.target.value)}
+                        />
+                    </WithLabel>
+
+                    <DialogFooter>
+                        <Tooltip content="Some required fields are missing" disabled={!disableSave}>
+                            <Button type="submit" disabled={disableSave} loading={isConnecting}>
+                                Connect
+                            </Button>
+                        </Tooltip>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+const ConnectBrokerAccountOAuthSteps = ({ brokerName }: { brokerName: BrokerName }) => {
+    const renderSteps = () => {
+        switch (brokerName) {
+            case "Zerodha":
+                return (
+                    <ul className="list-disc">
+                        <li>
+                            <span>
+                                Go to{" "}
+                                <a href="https://developers.kite.trade" target="_blank" rel="noopener noreferrer">
+                                    Kite Connect developer portal
+                                </a>{" "}
+                                and create a new app.
+                            </span>
+                        </li>
+                        <li>
+                            <span>
+                                Set the Redirect URL to:
+                                <br />
+                                <span className="text-link select-text!">
+                                    https://api.arthveda.app/v1/brokers/zerodha/redirect
+                                </span>
+                                <br />
+                                <span className="text-xs">(Arthveda won’t be able to connect without this.)</span>
+                            </span>
+                        </li>
+                        <li>
+                            <span>
+                                Copy the API Key (Client ID) and API Secret (Client Secret) from the app dashboard and
+                                paste them below.
+                            </span>
+                        </li>
+                    </ul>
+                );
+            default:
+                null;
+        }
+
+        return null;
+    };
+
+    return (
+        <Alert>
+            <IconBadgeInfo />
+            <AlertTitle>Steps to create your OAuth app</AlertTitle>
+            <AlertDescription>{renderSteps()}</AlertDescription>
+        </Alert>
+    );
+};
+
+interface DisconnectBrokerAccountModalProps {
+    id: string;
+    name: string;
+    open: boolean;
+    setOpen: (open: boolean) => void;
+}
+
+const DisconnectBrokerAccountModal: FC<DisconnectBrokerAccountModalProps> = ({ id, name, open, setOpen }) => {
+    const { mutate: disconnect, isPending: isDisconnecting } = apiHooks.userBrokerAccount.useDisconnect({
+        onSuccess: () => {
+            toast.success(`${name} disconnected successfully`);
+            setOpen(false);
+        },
+        onError: apiErrorHandler,
+    });
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="flex-x">Disconnect Broker Account</DialogTitle>
+                    <DialogDescription>Are you sure you want to disconnect {name}?</DialogDescription>
+                </DialogHeader>
+
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => disconnect(id)}
+                        loading={isDisconnecting}
+                    >
+                        Disconnect
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );

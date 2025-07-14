@@ -418,20 +418,22 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
             <div className="h-8" />
 
             <ul className="flex flex-col gap-4 sm:flex-row">
-                {brokers.map((broker) => {
-                    const isSelected = state.brokerID === broker.id;
-                    return (
-                        <li key={broker.id}>
-                            <BrokerTile
-                                key={broker.id}
-                                name={broker.name as BrokerName}
-                                image={getBrokerLogoByName(broker.name as BrokerName)}
-                                isSelected={isSelected}
-                                onClick={() => handleClick(broker)}
-                            />
-                        </li>
-                    );
-                })}
+                {brokers
+                    .filter((b) => b.supports_file_import)
+                    .map((broker) => {
+                        const isSelected = state.brokerID === broker.id;
+                        return (
+                            <li key={broker.id}>
+                                <BrokerTile
+                                    key={broker.id}
+                                    name={broker.name as BrokerName}
+                                    image={getBrokerLogoByName(broker.name as BrokerName)}
+                                    isSelected={isSelected}
+                                    onClick={() => handleClick(broker)}
+                                />
+                            </li>
+                        );
+                    })}
             </ul>
 
             <div className="h-8" />

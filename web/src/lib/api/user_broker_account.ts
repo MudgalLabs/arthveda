@@ -1,5 +1,6 @@
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
+import { ImportPositionsResponse } from "@/lib/api/position";
 
 export interface UserBrokerAccount {
     id: string;
@@ -8,10 +9,11 @@ export interface UserBrokerAccount {
     name: string;
     broker_id: string;
     user_id: string;
-    enable_auto_sync: boolean;
     last_sync_at: string | null;
-    last_successful_sync_at: string | null;
-    last_sync_status: "success" | "failure" | null;
+    last_login_at: string | null;
+
+    is_connected: boolean;
+    is_authenticated: boolean;
 }
 
 export interface CreateUserBrokerAccountPayload {
@@ -21,6 +23,20 @@ export interface CreateUserBrokerAccountPayload {
 
 export interface UpdateUserBrokerAccountPayload {
     name: string;
+}
+
+export interface ConnectUserBrokerAccountPayload {
+    client_id: string;
+    client_secret: string;
+}
+
+export interface ConnectUserBrokerAccountResult {
+    login_url: string;
+}
+
+export interface SyncUserBrokerAccountResult extends ImportPositionsResponse {
+    login_required?: boolean;
+    login_url?: string;
 }
 
 export function list() {
@@ -37,4 +53,16 @@ export function update(id: string, payload: UpdateUserBrokerAccountPayload) {
 
 export function remove(id: string) {
     return client.delete(API_ROUTES.userBrokerAccount.delete(id));
+}
+
+export function connect(id: string, body: ConnectUserBrokerAccountPayload) {
+    return client.post(API_ROUTES.userBrokerAccount.connect(id), body);
+}
+
+export function disconnect(id: string) {
+    return client.post(API_ROUTES.userBrokerAccount.disconnect(id));
+}
+
+export function sync(id: string) {
+    return client.post(API_ROUTES.userBrokerAccount.sync(id));
 }

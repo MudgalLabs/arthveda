@@ -3,6 +3,7 @@ package main
 import (
 	"arthveda/internal/apires"
 	"arthveda/internal/domain/currency"
+	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/logger"
 	"arthveda/internal/service"
@@ -218,11 +219,11 @@ func importHandler(s *position.Service) http.HandlerFunc {
 			}
 		}
 
-		var instrument position.Instrument
+		var instrument types.Instrument
 		instrumentStr := r.FormValue("instrument")
 
 		if instrumentStr != "" {
-			instrument = position.Instrument(instrumentStr)
+			instrument = types.Instrument(instrumentStr)
 		}
 
 		var chargesCalculationMethod position.ChargesCalculationMethod
@@ -277,7 +278,7 @@ func importHandler(s *position.Service) http.HandlerFunc {
 			}
 		}
 
-		payload := position.ImportPayload{
+		payload := position.FileImportPayload{
 			File:                     file,
 			BrokerID:                 brokerID,
 			UserBrokerAccountID:      userBrokerAccountID,
@@ -290,7 +291,7 @@ func importHandler(s *position.Service) http.HandlerFunc {
 			Force:                    force,
 		}
 
-		result, errKind, err := s.Import(ctx, userID, payload)
+		result, errKind, err := s.FileImport(ctx, userID, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

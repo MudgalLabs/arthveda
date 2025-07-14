@@ -90,7 +90,7 @@ export function ChartTooltipContent({
     return (
         <div
             className={cn(
-                "border-surface-border bg-surface-bg grid min-w-[8rem] items-start gap-1.5 rounded-md border px-2.5 py-1.5 text-sm shadow-xl",
+                "border-border-subtle bg-surface-3 grid min-w-[8rem] items-start gap-1.5 rounded-md border px-2.5 py-1.5 text-sm shadow-xl",
                 className
             )}
         >
@@ -105,7 +105,7 @@ export function ChartTooltipContent({
                         <div
                             key={item.dataKey}
                             className={cn(
-                                "[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
+                                "[&>svg]:text-text-muted flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
                                 indicator === "dot" && "items-center"
                             )}
                         >
@@ -117,7 +117,7 @@ export function ChartTooltipContent({
                                         !hideIndicator && (
                                             <div
                                                 className={cn(
-                                                    "shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)",
+                                                    "shrink-0 rounded-[2px] border-(--color-border-subtle) bg-(--color-bg)",
                                                     {
                                                         "h-2.5 w-2.5": indicator === "dot",
                                                         "w-1": indicator === "line",
@@ -143,12 +143,10 @@ export function ChartTooltipContent({
                                     >
                                         <div className="grid gap-1.5">
                                             {nestLabel ? tooltipLabel : null}
-                                            <span className="text-foreground-muted">
-                                                {itemConfig?.label || item.name}
-                                            </span>
+                                            <span className="text-text-muted">{itemConfig?.label || item.name}</span>
                                         </div>
                                         {item.value && (
-                                            <span className="text-foreground font-medium tabular-nums">
+                                            <span className="text-text-primary font-medium tabular-nums">
                                                 {formatter && item?.value !== undefined && item.name
                                                     ? formatter(item.value, item.name, item, index, item.payload)
                                                     : item.value.toLocaleString()}
@@ -253,14 +251,14 @@ function getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, key:
 }
 
 export const tooltipCursor = {
-    stroke: "var(--color-primary)",
+    stroke: "var(--color-secondary-hover)",
     strokeWidth: 1,
-    strokeOpacity: 0.25,
+    strokeOpacity: 1,
 };
 
 export const axisDefaults = (isMobile?: boolean) => ({
     tick: {
-        fill: "var(--color-foreground-muted)",
+        fill: "var(--color-text-subtle)",
         fontSize: isMobile ? 10 : 14,
     },
     tickMargin: 5,

@@ -1,10 +1,10 @@
-package position
+package broker_integration
 
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/symbol"
+	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
-	"arthveda/internal/feature/trade"
 	"fmt"
 	"strconv"
 	"strings"
@@ -15,7 +15,7 @@ import (
 
 type importFileMetadata struct {
 	// The row index of the header.
-	headerRowIdx int
+	HeaderRowIdx int
 
 	// The symbol column index.
 	symbolColumnIdx int
@@ -50,24 +50,28 @@ type importFileMetadata struct {
 	dateColumnIdx int
 }
 
-type parseRowResult struct {
-	symbol     string
-	instrument Instrument
-	tradeKind  trade.Kind
-	quantity   decimal.Decimal
-	price      decimal.Decimal
-	orderID    string
-	time       time.Time
+type FileAdapter interface {
+	GetMetadata(rows [][]string) (*importFileMetadata, error)
+	ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error)
 }
 
-type Importer interface {
-	getMetadata(rows [][]string) (*importFileMetadata, error)
-	parseRow(row []string, metadata *importFileMetadata) (*parseRowResult, error)
+// GetFileAdapter returns an importer for the given broker.
+func GetFileAdapter(b *broker.Broker) (FileAdapter, error) {
+	switch b.Name {
+	case broker.BrokerNameZerodha:
+		return &zerodhaFileAdapter{}, nil
+	case broker.BrokerNameGroww:
+		return &growwFileAdapter{}, nil
+	case broker.BrokerNameUpstox:
+		return &upstoxFileAdapter{}, nil
+	default:
+		return nil, fmt.Errorf("unsupported broker: %s", b.Name)
+	}
 }
 
-type ZerodhaImporter struct{}
+type zerodhaFileAdapter struct{}
 
-func (i ZerodhaImporter) getMetadata(rows [][]string) (*importFileMetadata, error) {
+func (adapter zerodhaFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
 	var headerRowIdx int
 	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, dateTimeColumnIdx int
 
@@ -111,7 +115,7 @@ func (i ZerodhaImporter) getMetadata(rows [][]string) (*importFileMetadata, erro
 	}
 
 	return &importFileMetadata{
-		headerRowIdx:       headerRowIdx,
+		HeaderRowIdx:       headerRowIdx,
 		symbolColumnIdx:    symbolColumnIdx,
 		segmentColumnIdx:   segmentColumnIdx,
 		tradeTypeColumnIdx: tradeTypeColumnIdx,
@@ -122,7 +126,7 @@ func (i ZerodhaImporter) getMetadata(rows [][]string) (*importFileMetadata, erro
 	}, nil
 }
 
-func (i ZerodhaImporter) parseRow(row []string, metadata *importFileMetadata) (*parseRowResult, error) {
+func (adapter zerodhaFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
 	symbolColumnIdx := metadata.symbolColumnIdx
 	segmentColumnIdx := metadata.segmentColumnIdx
 	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
@@ -151,7 +155,7 @@ func (i ZerodhaImporter) parseRow(row []string, metadata *importFileMetadata) (*
 	priceStr := row[priceColumnIdx]
 	timeStr := row[dateTimeColumnIdx]
 
-	tradeKind := trade.Kind(tradeTypeStr)
+	tradeKind := types.TradeKind(tradeTypeStr)
 	quantity, err := strconv.ParseFloat(quantityStr, 64)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid quantity in row: %s", quantityStr)
@@ -173,25 +177,25 @@ func (i ZerodhaImporter) parseRow(row []string, metadata *importFileMetadata) (*
 		return nil, fmt.Errorf("Invalid time in row: %s", timeStr)
 	}
 
-	var instrument Instrument
+	var instrument types.Instrument
 	if segment == "EQ" {
-		instrument = InstrumentEquity
+		instrument = types.InstrumentEquity
 	}
 
-	return &parseRowResult{
-		symbol:     symbol,
-		instrument: instrument,
-		tradeKind:  tradeKind,
-		quantity:   decimal.NewFromFloat(quantity),
-		price:      price,
-		orderID:    orderID,
-		time:       tradeTime,
+	return &types.ImportableTrade{
+		Symbol:     symbol,
+		Instrument: instrument,
+		TradeKind:  tradeKind,
+		Quantity:   decimal.NewFromFloat(quantity),
+		Price:      price,
+		OrderID:    orderID,
+		Time:       tradeTime,
 	}, nil
 }
 
-type GrowwImporter struct{}
+type growwFileAdapter struct{}
 
-func (i *GrowwImporter) getMetadata(rows [][]string) (*importFileMetadata, error) {
+func (adapter *growwFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
 	var headerRowIdx int
 	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, dateTimeColumnIdx int
 
@@ -231,7 +235,7 @@ func (i *GrowwImporter) getMetadata(rows [][]string) (*importFileMetadata, error
 	}
 
 	return &importFileMetadata{
-		headerRowIdx:       headerRowIdx,
+		HeaderRowIdx:       headerRowIdx,
 		symbolColumnIdx:    symbolColumnIdx,
 		segmentColumnIdx:   segmentColumnIdx,
 		tradeTypeColumnIdx: tradeTypeColumnIdx,
@@ -242,7 +246,7 @@ func (i *GrowwImporter) getMetadata(rows [][]string) (*importFileMetadata, error
 	}, nil
 }
 
-func (i *GrowwImporter) parseRow(row []string, metadata *importFileMetadata) (*parseRowResult, error) {
+func (adapter *growwFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
 	symbolColumnIdx := metadata.symbolColumnIdx
 	segmentColumnIdx := metadata.segmentColumnIdx
 	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
@@ -272,7 +276,7 @@ func (i *GrowwImporter) parseRow(row []string, metadata *importFileMetadata) (*p
 	priceStr := row[priceColumnIdx]
 	timeStr := row[dateTimeColumnIdx]
 
-	tradeKind := trade.Kind(strings.ToLower(tradeTypeStr))
+	tradeKind := types.TradeKind(strings.ToLower(tradeTypeStr))
 	quantity, err := strconv.ParseFloat(quantityStr, 64)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid quantity at row : %s", quantityStr)
@@ -297,22 +301,22 @@ func (i *GrowwImporter) parseRow(row []string, metadata *importFileMetadata) (*p
 		return nil, fmt.Errorf("Invalid time at row : %s", timeStr)
 	}
 
-	instrument := InstrumentEquity
+	instrument := types.InstrumentEquity
 
-	return &parseRowResult{
-		symbol:     symbol,
-		instrument: instrument,
-		tradeKind:  tradeKind,
-		quantity:   decimal.NewFromFloat(quantity),
-		price:      price,
-		orderID:    orderID,
-		time:       tradeTime,
+	return &types.ImportableTrade{
+		Symbol:     symbol,
+		Instrument: instrument,
+		TradeKind:  tradeKind,
+		Quantity:   decimal.NewFromFloat(quantity),
+		Price:      price,
+		OrderID:    orderID,
+		Time:       tradeTime,
 	}, nil
 }
 
-type UpstoxImporter struct{}
+type upstoxFileAdapter struct{}
 
-func (i *UpstoxImporter) getMetadata(rows [][]string) (*importFileMetadata, error) {
+func (adapter *upstoxFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
 	var headerRowIdx int
 	var symbolColumnIdx, scripCodeColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, timeColumnIdx, dateColumnIdx int
 
@@ -365,7 +369,7 @@ func (i *UpstoxImporter) getMetadata(rows [][]string) (*importFileMetadata, erro
 	}
 
 	return &importFileMetadata{
-		headerRowIdx:       headerRowIdx,
+		HeaderRowIdx:       headerRowIdx,
 		symbolColumnIdx:    symbolColumnIdx,
 		scripCodeIdx:       scripCodeColumnIdx,
 		segmentColumnIdx:   segmentColumnIdx,
@@ -378,7 +382,7 @@ func (i *UpstoxImporter) getMetadata(rows [][]string) (*importFileMetadata, erro
 	}, nil
 }
 
-func (i *UpstoxImporter) parseRow(row []string, metadata *importFileMetadata) (*parseRowResult, error) {
+func (adapter *upstoxFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
 	symbolColumnIdx := metadata.symbolColumnIdx
 	scripCodeColumnIdx := metadata.scripCodeIdx
 	segmentColumnIdx := metadata.segmentColumnIdx
@@ -424,7 +428,7 @@ func (i *UpstoxImporter) parseRow(row []string, metadata *importFileMetadata) (*
 	quantityStr := row[quantityColumnIdx]
 	priceStr := row[priceColumnIdx]
 
-	tradeKind := trade.Kind(strings.ToLower(tradeTypeStr))
+	tradeKind := types.TradeKind(strings.ToLower(tradeTypeStr))
 	quantity, err := strconv.ParseFloat(quantityStr, 64)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid quantity at row : %s", quantityStr)
@@ -461,7 +465,7 @@ func (i *UpstoxImporter) parseRow(row []string, metadata *importFileMetadata) (*
 		return nil, fmt.Errorf("Invalid datetime at row : %s", dateTimeStr)
 	}
 
-	instrument := InstrumentEquity
+	instrument := types.InstrumentEquity
 
 	// We will create our own order ID based on the first 3 characters of the order ID and the date.
 	// We need date because using just the first 3 characters of the order ID can lead to collisions.
@@ -476,27 +480,13 @@ func (i *UpstoxImporter) parseRow(row []string, metadata *importFileMetadata) (*
 	dateStr = tradeTime.Format("20060102")
 	orderID = orderIDPrefix + dateStr + symbolStr
 
-	return &parseRowResult{
-		symbol:     symbolStr,
-		instrument: instrument,
-		tradeKind:  tradeKind,
-		quantity:   decimal.NewFromFloat(quantity),
-		price:      price,
-		orderID:    orderID,
-		time:       tradeTime,
+	return &types.ImportableTrade{
+		Symbol:     symbolStr,
+		Instrument: instrument,
+		TradeKind:  tradeKind,
+		Quantity:   decimal.NewFromFloat(quantity),
+		Price:      price,
+		OrderID:    orderID,
+		Time:       tradeTime,
 	}, nil
-}
-
-// getImporter returns an importer for the given broker.
-func getImporer(b *broker.Broker) (Importer, error) {
-	switch b.Name {
-	case broker.BrokerNameZerodha:
-		return &ZerodhaImporter{}, nil
-	case broker.BrokerNameGroww:
-		return &GrowwImporter{}, nil
-	case broker.BrokerNameUpstox:
-		return &UpstoxImporter{}, nil
-	default:
-		return nil, fmt.Errorf("unsupported broker: %s", b.Name)
-	}
 }

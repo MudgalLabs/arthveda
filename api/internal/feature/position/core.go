@@ -2,6 +2,7 @@ package position
 
 import (
 	"arthveda/internal/domain/currency"
+	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
 	"errors"
@@ -23,7 +24,7 @@ type Position struct {
 	//
 
 	Symbol             string                `json:"symbol" db:"symbol"`
-	Instrument         Instrument            `json:"instrument" db:"instrument"`
+	Instrument         types.Instrument      `json:"instrument" db:"instrument"`
 	Currency           currency.CurrencyCode `json:"currency" db:"currency"`
 	RiskAmount         decimal.Decimal       `json:"risk_amount" db:"risk_amount"`
 	Notes              string                `json:"notes" db:"notes"`
@@ -72,12 +73,6 @@ type UserBrokerAccountSearchValue struct {
 	BrokerID uuid.UUID `json:"broker_id"`
 	Name     string    `json:"name"`
 }
-
-type Instrument string
-
-const (
-	InstrumentEquity Instrument = "equity"
-)
 
 type Direction string
 
@@ -291,7 +286,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 
 		// Tally netQty based on trade kind and direction
 		signedQty := t.Quantity
-		if (direction == DirectionLong && t.Kind == trade.TradeKindSell) || (direction == DirectionShort && t.Kind == trade.TradeKindBuy) {
+		if (direction == DirectionLong && t.Kind == types.TradeKindSell) || (direction == DirectionShort && t.Kind == types.TradeKindBuy) {
 			signedQty = signedQty.Neg()
 		}
 		netOpenQty = netOpenQty.Add(signedQty)
@@ -431,8 +426,8 @@ func isScaleOut(
 	}
 
 	// If the trade is opposite direction of the position, it means the trade is realising PnL.
-	if (position.Direction == DirectionLong && t.Kind == trade.TradeKindSell) ||
-		(position.Direction == DirectionShort && t.Kind == trade.TradeKindBuy) {
+	if (position.Direction == DirectionLong && t.Kind == types.TradeKindSell) ||
+		(position.Direction == DirectionShort && t.Kind == types.TradeKindBuy) {
 		return true
 	}
 
@@ -465,7 +460,7 @@ func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmar
 			return result, fmt.Errorf("invalid quantity at trade %d: must be positive", i)
 		}
 
-		isScaleIn := (direction == DirectionLong && t.Kind == trade.TradeKindBuy) || (direction == DirectionShort && t.Kind == trade.TradeKindSell)
+		isScaleIn := (direction == DirectionLong && t.Kind == types.TradeKindBuy) || (direction == DirectionShort && t.Kind == types.TradeKindSell)
 
 		if isScaleIn {
 			// Add to FIFO
@@ -545,9 +540,9 @@ func computeDirection(trades []*trade.Trade) (Direction, error) {
 	var direction Direction
 
 	switch trades[0].Kind {
-	case trade.TradeKindBuy:
+	case types.TradeKindBuy:
 		direction = DirectionLong
-	case trade.TradeKindSell:
+	case types.TradeKindSell:
 		direction = DirectionShort
 	default:
 		return direction, fmt.Errorf("invalid trade kind in first trade: %s", trades[0].Kind)

@@ -51,8 +51,8 @@ func (r *userBrokerAccountRepository) Create(ctx context.Context, account *UserB
 
 	sql := `
 		INSERT INTO user_broker_account (
-			id, name, broker_id, user_id, created_at
-		) VALUES ($1, $2, $3, $4, $5)
+			id, name, broker_id, user_id, created_at, access_token, last_login_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
 
 	_, err = tx.Exec(ctx, sql,
@@ -61,6 +61,8 @@ func (r *userBrokerAccountRepository) Create(ctx context.Context, account *UserB
 		account.BrokerID,
 		account.UserID,
 		account.CreatedAt,
+		account.AccessToken,
+		account.LastLoginAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert: %w", err)
@@ -82,11 +84,31 @@ func (r *userBrokerAccountRepository) Update(ctx context.Context, account *UserB
 
 	sql := `
 		UPDATE user_broker_account 
-		SET updated_at = $2, name = $3
+		SET 
+			updated_at = $2,
+			name = $3,
+			broker_id = $4,
+			user_id = $5,
+			oauth_client_id = $6,
+			oauth_client_secret = $7,
+			access_token = $8,
+			last_sync_at = $9,
+			last_login_at = $10
 		WHERE id = $1
 	`
 
-	_, err = tx.Exec(ctx, sql, account.ID, account.UpdatedAt, account.Name)
+	_, err = tx.Exec(ctx, sql,
+		account.ID,
+		account.UpdatedAt,
+		account.Name,
+		account.BrokerID,
+		account.UserID,
+		account.OAuthClientID,
+		account.OAuthClientSecret,
+		account.AccessToken,
+		account.LastSyncAt,
+		account.LastLoginAt,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("update: %w", err)
 	}
@@ -166,8 +188,7 @@ func (r *userBrokerAccountRepository) ExistsByNameAndBrokerIDAndUserID(ctx conte
 func (r *userBrokerAccountRepository) findAccounts(ctx context.Context, f filters) ([]*UserBrokerAccount, error) {
 	baseSQL := `
 		SELECT id, created_at, updated_at, name, broker_id, user_id, 
-		       oauth_client_id, oauth_client_secret, enable_auto_sync,
-		       last_sync_at, last_successful_sync_at, last_sync_status
+		       oauth_client_id, oauth_client_secret, access_token, last_sync_at, last_login_at
 		FROM user_broker_account
 	`
 
@@ -208,14 +229,22 @@ func (r *userBrokerAccountRepository) findAccounts(ctx context.Context, f filter
 			&account.UserID,
 			&account.OAuthClientID,
 			&account.OAuthClientSecret,
-			&account.EnableAutoSync,
+			&account.AccessToken,
 			&account.LastSyncAt,
-			&account.LastSuccessfulSyncAt,
-			&account.LastSyncStatus,
+			&account.LastLoginAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
+
+		if account.OAuthClientID != nil && *account.OAuthClientID != "" && account.OAuthClientSecret != nil && *account.OAuthClientSecret != "" {
+			account.IsConnected = true
+		}
+
+		if account.AccessToken != nil && *account.AccessToken != "" {
+			account.IsAuthenticated = true
+		}
+
 		accounts = append(accounts, &account)
 	}
 

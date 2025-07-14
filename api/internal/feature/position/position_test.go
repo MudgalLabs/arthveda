@@ -1,6 +1,7 @@
 package position_test
 
 import (
+	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
 	"fmt"
@@ -21,12 +22,12 @@ func d(s string) decimal.Decimal {
 func TestComputeSmartTrades_LongPosition(t *testing.T) {
 	pos := position.Position{
 		Trades: []*trade.Trade{
-			{Time: time.Date(2024, 1, 1, 10, 0, 0, 0, time.UTC), Kind: trade.TradeKindBuy, Quantity: d("100"), Price: d("100")},
-			{Time: time.Date(2024, 1, 2, 10, 0, 0, 0, time.UTC), Kind: trade.TradeKindBuy, Quantity: d("50"), Price: d("110")},
-			{Time: time.Date(2024, 1, 3, 10, 0, 0, 0, time.UTC), Kind: trade.TradeKindSell, Quantity: d("80"), Price: d("120")},
-			{Time: time.Date(2024, 1, 4, 10, 0, 0, 0, time.UTC), Kind: trade.TradeKindBuy, Quantity: d("70"), Price: d("115")},
-			{Time: time.Date(2024, 1, 5, 10, 0, 0, 0, time.UTC), Kind: trade.TradeKindSell, Quantity: d("90"), Price: d("125")},
-			{Time: time.Date(2024, 1, 6, 10, 0, 0, 0, time.UTC), Kind: trade.TradeKindSell, Quantity: d("50"), Price: d("130")},
+			{Time: time.Date(2024, 1, 1, 10, 0, 0, 0, time.UTC), Kind: types.TradeKindBuy, Quantity: d("100"), Price: d("100")},
+			{Time: time.Date(2024, 1, 2, 10, 0, 0, 0, time.UTC), Kind: types.TradeKindBuy, Quantity: d("50"), Price: d("110")},
+			{Time: time.Date(2024, 1, 3, 10, 0, 0, 0, time.UTC), Kind: types.TradeKindSell, Quantity: d("80"), Price: d("120")},
+			{Time: time.Date(2024, 1, 4, 10, 0, 0, 0, time.UTC), Kind: types.TradeKindBuy, Quantity: d("70"), Price: d("115")},
+			{Time: time.Date(2024, 1, 5, 10, 0, 0, 0, time.UTC), Kind: types.TradeKindSell, Quantity: d("90"), Price: d("125")},
+			{Time: time.Date(2024, 1, 6, 10, 0, 0, 0, time.UTC), Kind: types.TradeKindSell, Quantity: d("50"), Price: d("130")},
 		},
 	}
 
