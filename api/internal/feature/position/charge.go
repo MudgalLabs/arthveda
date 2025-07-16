@@ -19,6 +19,8 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument types.In
 	charges = make([]decimal.Decimal, len(trades))
 
 	for i, trade := range trades {
+		tradeValue := trade.Quantity.Mul(trade.Price)
+
 		if instrument == types.InstrumentEquity {
 			intraday := EquityTradeIntraday
 			delivery := EquityTradeDelivery
@@ -74,8 +76,18 @@ func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument types.In
 
 			// Apply the charges to the trade.
 			trades[i].ChargesAmount = finalCharges
+		} else if instrument == types.InstrumentFuture {
+			config := getComputeTradeChargesConfig(brokerName, instrument, nil)
+			tradeCharges := getTotalChargesForTrade(tradeValue, trade.Kind, config)
+			charges[i] = tradeCharges
+			trades[i].ChargesAmount = tradeCharges
+		} else if instrument == types.InstrumentOption {
+			config := getComputeTradeChargesConfig(brokerName, instrument, nil)
+			tradeCharges := getTotalChargesForTrade(tradeValue, trade.Kind, config)
+			charges[i] = tradeCharges
+			trades[i].ChargesAmount = tradeCharges
 		} else {
-			// TODO: Handle other instruments if needed.
+			logger.Get().Errorw("CalculateAndApplyChargesToTrades: unknown instrument for trade charges", "instrument", instrument)
 			return charges, false, nil
 		}
 	}
@@ -452,15 +464,9 @@ func getComputeTradeChargesConfig(brokerName broker.Name, instrument types.Instr
 func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk *equityTradeKind) brokerageConfig {
 	config := brokerageConfig{}
 
-	if instrument == types.InstrumentEquity {
+	switch instrument {
+	case types.InstrumentEquity:
 		switch brokerName {
-		case broker.BrokerNameZerodha:
-			// No brokerage for Zerodha on delivery trades.
-			if etk != nil && *etk == EquityTradeIntraday {
-				config.percent = 0.03
-				config.max = 20
-				config.min = 0
-			}
 		case broker.BrokerNameGroww:
 			config.percent = 0.1
 			config.max = 20
@@ -474,37 +480,77 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 				// Flat 20 for delivery trades.
 				config.min = 20
 			}
+		case broker.BrokerNameZerodha:
+			// No brokerage for Zerodha on delivery trades.
+			if etk != nil && *etk == EquityTradeIntraday {
+				config.percent = 0.03
+				config.max = 20
+				config.min = 0
+			}
 		default:
 			logger.Get().Errorw("getBrokerageChargesConfig: unknown broker for equity trade charges config", "broker", brokerName)
 		}
-	} else {
-		// For other instruments, we can define different configs if needed.
-		// Right now, we are not handling other instruments.
-		return config
+	case types.InstrumentFuture:
+		switch brokerName {
+		case broker.BrokerNameGroww:
+			config.min = 20
+			return config
+		case broker.BrokerNameUpstox:
+			config.percent = 0.05
+			config.max = 20
+			return config
+		case broker.BrokerNameZerodha:
+			config.percent = 0.03
+			config.max = 20
+			return config
+		}
+	case types.InstrumentOption:
+		switch brokerName {
+		case broker.BrokerNameGroww:
+			config.min = 20
+			return config
+		case broker.BrokerNameUpstox:
+			config.min = 20
+			return config
+		case broker.BrokerNameZerodha:
+			config.min = 20
+			return config
+		}
 	}
+
+	// For other instruments, we can define different configs if needed.
+	// Right now, we are not handling other instruments.
 
 	return config
 }
 
 func getSttConfig(instrument types.Instrument, etk *equityTradeKind) sttConfig {
 	const (
-		sttPercentOnSellIntraday = 0.025
-		sttPercentOnBuyDelivery  = 0.1
-		sttPercentOnSellDelivery = 0.1
+		sttPercentOnSellEquityIntraday = 0.025
+		sttPercentOnBuyEquityDelivery  = 0.1
+		sttPercentOnSellEquityDelivery = 0.1
+
+		sttPercentOnSellFuture = 0.02
+		sttPercentOnSellOption = 0.1
 	)
 
 	stt := sttConfig{}
 
-	if instrument == types.InstrumentEquity {
+	switch instrument {
+	case types.InstrumentEquity:
 		if etk != nil {
 			switch *etk {
 			case EquityTradeIntraday:
-				stt.percentOnSell = sttPercentOnSellIntraday
+				stt.percentOnSell = sttPercentOnSellEquityIntraday
 			case EquityTradeDelivery:
-				stt.percentOnBuy = sttPercentOnBuyDelivery
-				stt.percentOnSell = sttPercentOnSellDelivery
+				stt.percentOnBuy = sttPercentOnBuyEquityDelivery
+				stt.percentOnSell = sttPercentOnSellEquityDelivery
 			}
 		}
+	case types.InstrumentFuture:
+		stt.percentOnSell = sttPercentOnSellFuture
+	case types.InstrumentOption:
+		stt.percentOnSell = sttPercentOnSellOption
 	}
 
 	return stt
@@ -514,13 +560,28 @@ func getExchangeTransactionChargesConfig(instrument types.Instrument) exchangeTr
 	const (
 		txnEquityChargesPercentForNSE = 0.00297
 		txnEquityChargesPercentForBSE = 0.00375
+
+		txnFutureChargesPercentForNSE = 0.00173
+		txnFutureChargesPercentForBSE = 0.0
+
+		txnOptionChargesPercentForNSE = 0.03503
+		txnOptionChargesPercentForBSE = 0.0325
 	)
 
 	exchangeTransactionCharges := exchangeTransactionChargesConfig{}
 
-	if instrument == types.InstrumentEquity {
+	switch instrument {
+	case types.InstrumentEquity:
 		exchangeTransactionCharges.percentForNSE = txnEquityChargesPercentForNSE
 		exchangeTransactionCharges.percentForBSE = txnEquityChargesPercentForBSE
+	case types.InstrumentFuture:
+		exchangeTransactionCharges.percentForNSE = txnFutureChargesPercentForNSE
+		exchangeTransactionCharges.percentForBSE = txnFutureChargesPercentForBSE
+	case types.InstrumentOption:
+		exchangeTransactionCharges.percentForNSE = txnOptionChargesPercentForNSE
+		exchangeTransactionCharges.percentForBSE = txnOptionChargesPercentForBSE
+	default:
+		logger.Get().Errorw("getExchangeTransactionChargesConfig: unknown instrument for exchange transaction charges config", "instrument", instrument)
 	}
 
 	return exchangeTransactionCharges
@@ -530,6 +591,9 @@ func getStampChargesPercent(instrument types.Instrument, etk *equityTradeKind) f
 	const (
 		stampEquityDeliveryChargesPercentOnBuy = 0.015
 		stampEquityIntradayChargesPercentOnBuy = 0.003
+
+		stampFutureChargesPercentOnBuy = 0.002
+		stampOptionChargesPercentOnBuy = 0.003
 	)
 
 	var stampChargesPercent float64
@@ -543,12 +607,19 @@ func getStampChargesPercent(instrument types.Instrument, etk *equityTradeKind) f
 				stampChargesPercent = stampEquityDeliveryChargesPercentOnBuy
 			}
 		}
+	} else if instrument == types.InstrumentFuture {
+		stampChargesPercent = stampFutureChargesPercentOnBuy
+	} else if instrument == types.InstrumentOption {
+		stampChargesPercent = stampOptionChargesPercentOnBuy
+	} else {
+		logger.Get().Errorw("getStampChargesPercent: unknown instrument for stamp charges", "instrument", instrument)
 	}
 
 	return stampChargesPercent
 }
 
 func getDpChargesAmount(b broker.Name, etk *equityTradeKind) decimal.Decimal {
+	// DP charges are applicable only for Equity trades.
 	if etk == nil {
 		return decimal.Zero
 	}
@@ -574,12 +645,19 @@ func getDpChargesAmount(b broker.Name, etk *equityTradeKind) decimal.Decimal {
 func getNSEInvestorProtectionFundPercentage(instrument types.Instrument) float64 {
 	var (
 		equityNSEInvestorProtectionFundPercentage = 0.0001
+		futureNSEInvestorProtectionFundPercentage = 0.0001
+		optionNSEInvestorProtectionFundPercentage = 0.0005
 	)
 
 	switch instrument {
 	case types.InstrumentEquity:
 		return equityNSEInvestorProtectionFundPercentage
+	case types.InstrumentFuture:
+		return futureNSEInvestorProtectionFundPercentage
+	case types.InstrumentOption:
+		return optionNSEInvestorProtectionFundPercentage
 	default:
+		logger.Get().Errorw("getNSEInvestorProtectionFundPercentage: unknown instrument for NSE Investor Protection Fund percentage", "instrument", instrument)
 		return 0
 	}
 }
