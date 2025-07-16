@@ -293,7 +293,7 @@ func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload File
 		importableTrades = append(importableTrades, importableTrade)
 	}
 
-	options := ImportOptions{
+	options := ImportPayload{
 		UserID:                   userID,
 		UserBrokerAccountID:      payload.UserBrokerAccountID,
 		Broker:                   broker,
@@ -308,7 +308,7 @@ func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload File
 	return s.Import(ctx, importableTrades, options)
 }
 
-type ImportOptions struct {
+type ImportPayload struct {
 	// User ID for whom the trades are being imported.
 	UserID uuid.UUID
 
@@ -350,7 +350,7 @@ type ImportResult struct {
 	ToDate                  time.Time   `json:"to_date"`
 }
 
-func (s *Service) Import(ctx context.Context, importableTrades []*types.ImportableTrade, options ImportOptions) (*ImportResult, service.Error, error) {
+func (s *Service) Import(ctx context.Context, importableTrades []*types.ImportableTrade, payload ImportPayload) (*ImportResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
 	now := time.Now().UTC()
 
@@ -420,9 +420,9 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		return tradesWithOrderIDs[i].Payload.Time.Before(tradesWithOrderIDs[j].Payload.Time)
 	})
 
-	brokerTradeIDs, err := s.tradeRepository.GetAllBrokerTradeIDs(ctx, &options.UserID, &options.Broker.ID)
+	brokerTradeIDs, err := s.tradeRepository.GetAllBrokerTradeIDs(ctx, &payload.UserID, &payload.Broker.ID)
 	if err != nil {
-		l.Errorw("failed to get all broker trade IDs", "error", err, "broker_id", options.Broker.ID)
+		l.Errorw("failed to get all broker trade IDs", "error", err, "broker_id", payload.Broker.ID)
 		// Not returning an error here, as we can still process trades without existing broker trade IDs.
 	}
 
@@ -462,7 +462,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 
 			// Use the compute function to update the position state
 			computePayload := ComputePayload{
-				RiskAmount: options.RiskAmount,
+				RiskAmount: payload.RiskAmount,
 				Trades:     ConvertTradesToCreatePayload(openPosition.Trades),
 			}
 
@@ -493,7 +493,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 
 			// Initialize the position with the first trade
 			computePayload := ComputePayload{
-				RiskAmount: options.RiskAmount,
+				RiskAmount: payload.RiskAmount,
 				Trades:     []trade.CreatePayload{tradePayload},
 			}
 
@@ -518,15 +518,15 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 
 			newPosition := &Position{
 				ID:                  positionID,
-				CreatedBy:           options.UserID,
+				CreatedBy:           payload.UserID,
 				CreatedAt:           now,
 				Symbol:              symbol,
 				Instrument:          instrument,
-				Currency:            options.Currency,
-				RiskAmount:          options.RiskAmount,
+				Currency:            payload.Currency,
+				RiskAmount:          payload.RiskAmount,
 				Trades:              trades,
-				BrokerID:            &options.Broker.ID,
-				UserBrokerAccountID: &options.UserBrokerAccountID,
+				BrokerID:            &payload.Broker.ID,
+				UserBrokerAccountID: &payload.UserBrokerAccountID,
 			}
 
 			ApplyComputeResultToPosition(newPosition, computeResult)
@@ -585,7 +585,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		var svcErr service.Error
 
 		if isDuplicate {
-			existingPosition, svcErr, err = s.Get(ctx, options.UserID, positionIDForTheDuplicateOrderID)
+			existingPosition, svcErr, err = s.Get(ctx, payload.UserID, positionIDForTheDuplicateOrderID)
 			if err != nil {
 				return nil, svcErr, fmt.Errorf("failed to fetch existing position: %w", err)
 			}
@@ -606,9 +606,9 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 			}
 		}
 
-		switch options.ChargesCalculationMethod {
+		switch payload.ChargesCalculationMethod {
 		case ChargesCalculationMethodAuto:
-			_, userErr, err := CalculateAndApplyChargesToTrades(finalizedPos.Trades, options.Instrument, options.Broker.Name)
+			_, userErr, err := CalculateAndApplyChargesToTrades(finalizedPos.Trades, finalizedPos.Instrument, payload.Broker.Name)
 			if err != nil {
 				if userErr {
 					return nil, service.ErrBadRequest, err
@@ -619,7 +619,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 
 		case ChargesCalculationMethodManual:
 			for _, trade := range finalizedPos.Trades {
-				trade.ChargesAmount = options.ManualChargeAmount
+				trade.ChargesAmount = payload.ManualChargeAmount
 			}
 		}
 
@@ -627,7 +627,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		// This is calculated from the trades in the position.
 		finalizedPos.TotalChargesAmount = calculateTotalChargesAmountFromTrades(finalizedPos.Trades)
 
-		riskAmount := options.RiskAmount
+		riskAmount := payload.RiskAmount
 		if isDuplicate && existingPosition.RiskAmount.IsPositive() {
 			// If we are updating an existing position, we should use the risk amount from the existing position.
 			riskAmount = existingPosition.RiskAmount
@@ -649,10 +649,10 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 
 		if isDuplicate {
 			// If the force & confirm flags are true, we will have to delete the existing position and create a new position.
-			if options.Force && options.Confirm {
+			if payload.Force && payload.Confirm {
 				l.Debugw("force importing a duplicate position, deleting existing position", "symbol", finalizedPos.Symbol, "opened_at", finalizedPos.OpenedAt)
 
-				svcErr, err = s.Delete(ctx, options.UserID, positionIDForTheDuplicateOrderID)
+				svcErr, err = s.Delete(ctx, payload.UserID, positionIDForTheDuplicateOrderID)
 				if err != nil {
 					return nil, svcErr, fmt.Errorf("failed to delete existing position: %w", err)
 				}
@@ -685,7 +685,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		}
 
 		// If confirm is true, we will create the positions in the database.
-		if options.Confirm {
+		if payload.Confirm {
 			// Create the position in the database
 			err := s.positionRepository.Create(ctx, finalizedPos)
 			if err != nil {

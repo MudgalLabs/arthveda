@@ -186,7 +186,7 @@ func syncUserBrokerAccountHandler(s *user_broker_account.Service, ps *position.S
 
 		var importResult *position.ImportResult
 		if len(syncResult.ImportableTrades) > 0 {
-			options := position.ImportOptions{
+			options := position.ImportPayload{
 				UserID:                   userID,
 				UserBrokerAccountID:      ubaID,
 				Broker:                   syncResult.Broker,

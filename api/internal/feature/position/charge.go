@@ -13,22 +13,24 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// TODO: We need to also handle if the Future/Options trades are Equity based on Commodity based.
+
 func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument types.Instrument, brokerName broker.Name) (charges []decimal.Decimal, userError bool, err error) {
 	charges = make([]decimal.Decimal, len(trades))
 
-	intraday := EquityTradeIntraday
-	delivery := EquityTradeDelivery
-
-	equityIntradayChargesConfig := getComputeTradeChargesConfig(brokerName, instrument, &intraday)
-	equityDeliveryChargesConfig := getComputeTradeChargesConfig(brokerName, instrument, &delivery)
-
-	chargeContextByTradeID, userError, err := computeEquityTradeChargesContext(trades)
-	if err != nil {
-		return charges, userError, err
-	}
-
 	for i, trade := range trades {
 		if instrument == types.InstrumentEquity {
+			intraday := EquityTradeIntraday
+			delivery := EquityTradeDelivery
+
+			equityIntradayChargesConfig := getComputeTradeChargesConfig(brokerName, instrument, &intraday)
+			equityDeliveryChargesConfig := getComputeTradeChargesConfig(brokerName, instrument, &delivery)
+
+			chargeContextByTradeID, userError, err := computeEquityTradeChargesContext(trades)
+			if err != nil {
+				return charges, userError, err
+			}
+
 			chargeContext, exists := chargeContextByTradeID[trade.ID]
 			if !exists {
 				// If we don't have a charges context for the trade, we skip it.

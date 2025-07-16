@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 import { BROWSER_TIMEZONE, isProd } from "@/lib/utils";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 
 let API_URL = import.meta.env.ARTHVEDA_API_URL;
 

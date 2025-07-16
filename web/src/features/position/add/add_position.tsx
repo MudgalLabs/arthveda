@@ -50,7 +50,7 @@ import {
     useIsEditingPosition,
 } from "@/features/position/position_store";
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 import { useLatest } from "@/hooks/use_latest";
 import { UserBrokerAccountSearch } from "@/features/broker/components/user_broker_account_search";
 import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";

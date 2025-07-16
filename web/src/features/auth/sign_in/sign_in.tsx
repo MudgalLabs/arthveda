@@ -12,7 +12,7 @@ import { Button, Input, Label } from "@/s8ly";
 import { apiHooks } from "@/hooks/api_hooks";
 import { SigninResponse } from "@/lib/api/auth";
 import { toast } from "@/components/toast";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 import { apiErrorHandler } from "@/lib/api";
 import { PasswordInput } from "@/components/input/password_input";
 

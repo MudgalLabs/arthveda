@@ -17,6 +17,9 @@ type Instrument string
 
 const (
 	InstrumentEquity Instrument = "equity"
+	InstrumentFuture Instrument = "future"
+	InstrumentOption Instrument = "option"
+	InstrumentCrypto Instrument = "crypto"
 )
 
 // ImportableTrade represents a standardized trade format that can be imported

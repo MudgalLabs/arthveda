@@ -2,12 +2,20 @@ import { CurrencyCode } from "@/lib/api/currency";
 import { Trade } from "@/features/trade/trade";
 import { DecimalString } from "@/lib/types";
 
-type PositionInstrument = "equity";
+type PositionInstrument = "equity" | "future" | "option" | "crypto";
 
 function positionInstrumentToString(instrument: PositionInstrument): string {
     switch (instrument) {
         case "equity":
             return "Equity";
+        case "future":
+            return "Futures";
+        case "option":
+            return "Options";
+        case "crypto":
+            return "Crypto";
+        default:
+            return "";
     }
 }
 

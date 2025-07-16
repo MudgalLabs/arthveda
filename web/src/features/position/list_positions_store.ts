@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { DEFAULT_DATA_TABLE_STATE, DataTableState, dataTableStateSaveFn } from "@/s8ly/data_table/data_table_state";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 import { loadFromLocalStorage, loadFromURL, saveToLocalStorage, saveToURL } from "@/lib/utils";
 import { defaultPositionSearchFilters, URL_KEY_FILTERS } from "@/features/position/utils";
 import { PositionSearchFilters } from "@/lib/api/position";

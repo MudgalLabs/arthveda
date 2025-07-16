@@ -178,8 +178,20 @@ func (adapter zerodhaFileAdapter) ParseRow(row []string, metadata *importFileMet
 	}
 
 	var instrument types.Instrument
-	if segment == "EQ" {
+	switch segment {
+	case "EQ":
 		instrument = types.InstrumentEquity
+	case "FO", "COM":
+		// FO is Futures and Options, COM is Commodities.
+
+		// CE = Call Option, PE = Put Option & FUT = Future.
+		// Example of Options - NIFTY24DEC25000CE, NIFTY25JAN23500PE
+		// Example of Futures -  NATURALGAS25MAYFUT.
+		if strings.HasSuffix(symbol, "CE") || strings.HasSuffix(symbol, "PE") {
+			instrument = types.InstrumentOption
+		} else if strings.HasSuffix(symbol, "FUT") {
+			instrument = types.InstrumentFuture
+		}
 	}
 
 	return &types.ImportableTrade{

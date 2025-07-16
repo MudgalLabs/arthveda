@@ -14,7 +14,7 @@ import { CurrencyCode } from "@/lib/api/currency";
 import { DecimalString, Setter } from "@/lib/types";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { IconArrowLeft, IconArrowRight, IconCheck, IconInfo } from "@/components/icons";
-import { ROUTES } from "@/routes_constants";
+import { INSTRUMENT_TOGGLE_CONFIG_BY_BROKER, ROUTES } from "@/constants";
 import { MultiStep } from "@/components/multi_step/multi_step";
 import { LoadingScreen } from "@/components/loading_screen";
 import { Broker, BrokerName } from "@/lib/api/broker";
@@ -47,7 +47,7 @@ interface State {
     userBrokerAccount: UserBrokerAccountSearchValue | null;
     brokerName: BrokerName | null;
     file: File | null;
-    instrument: PositionInstrument;
+    instrument: PositionInstrument | "";
     currency: CurrencyCode;
     riskAmount: DecimalString;
     // If "fixed", we use the risk amount provided by the user.
@@ -62,7 +62,7 @@ const INITIAL_STATE: State = {
     userBrokerAccount: null,
     brokerName: null,
     file: null,
-    instrument: "equity",
+    instrument: "",
     currency: "inr",
     riskAmount: "0",
     chargesCalculationMethod: "auto",
@@ -89,7 +89,7 @@ export const ImportPositions = () => {
     });
 
     const handleReviewImport = ({ onSuccess }: { onSuccess?: (data: ImportPositionsResponse) => void }) => {
-        if (!state.file || !state.brokerID || !state.userBrokerAccount) return;
+        if (!state.file || !state.brokerID || !state.userBrokerAccount || !state.instrument) return;
 
         toast.promise(
             importAsync({
@@ -125,6 +125,7 @@ export const ImportPositions = () => {
             !state.file ||
             !state.brokerID ||
             !state.userBrokerAccount ||
+            !state.instrument ||
             importPositionResData?.positions?.length === 0
         )
             return;
@@ -201,6 +202,10 @@ export const ImportPositions = () => {
         }
 
         if (currentStepId === "options-step") {
+            if (state.instrument === "") {
+                disabled = true;
+            }
+
             onClick = () => {
                 handleReviewImport({
                     onSuccess: () => {
@@ -359,11 +364,17 @@ export const ImportPositions = () => {
                     </MultiStep.PreviousStepButton>
 
                     <MultiStep.NextStepButton>
-                        {(props) => (
-                            <Button variant="primary" {...getNextButtonProps(props)}>
-                                {getNextButtonLabel(props)}
-                            </Button>
-                        )}
+                        {(props) => {
+                            const buttonProps = getNextButtonProps(props);
+
+                            return (
+                                <Tooltip content="Some required fields are missing" disabled={!buttonProps.disabled}>
+                                    <Button variant="primary" {...buttonProps}>
+                                        {getNextButtonLabel(props)}
+                                    </Button>
+                                </Tooltip>
+                            );
+                        }}
                     </MultiStep.NextStepButton>
                 </div>
             </MultiStep.Root>
@@ -649,6 +660,8 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
 };
 
 const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
+    const brokerName = state.brokerName;
+
     return (
         <>
             <h2 className="sub-heading">Options</h2>
@@ -657,7 +670,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
             <div className="h-8" />
 
             <div className="flex flex-col gap-x-16 gap-y-8 sm:flex-row">
-                <WithLabel Label={<Label>Instrument type</Label>}>
+                <WithLabel Label={<Label required>Instrument type</Label>}>
                     <InstrumentToggle
                         value={state.instrument}
                         onChange={(v) => {
@@ -668,6 +681,8 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
                                 }));
                             }
                         }}
+                        disableConfig={brokerName ? INSTRUMENT_TOGGLE_CONFIG_BY_BROKER[brokerName].disable : undefined}
+                        hideConfig={brokerName ? INSTRUMENT_TOGGLE_CONFIG_BY_BROKER[brokerName].hide : undefined}
                     />
                 </WithLabel>
 

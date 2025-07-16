@@ -10,7 +10,7 @@ import { toast, ToastProvider } from "@/components/toast";
 import { AuthenticationProvider } from "@/features/auth/auth_context";
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { LoadingScreen } from "@/components/loading_screen";
-import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/routes_constants";
+import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/constants";
 import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 import { BrokerProvider, useBroker } from "./features/broker/broker_context";

@@ -14,7 +14,7 @@ import {
 } from "@/components/icons";
 import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 import {
     DropdownMenu,
     DropdownMenuTrigger,
