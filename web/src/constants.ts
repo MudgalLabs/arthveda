@@ -68,7 +68,7 @@ export const INSTRUMENT_TOGGLE_CONFIG_BY_BROKER: Record<
         disable: {
             equity: false,
             future: false,
-            option: true,
+            option: false,
             crypto: true,
         },
         hide: {
