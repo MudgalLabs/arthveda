@@ -1,18 +1,38 @@
-FROM golang:1.24.1-alpine3.21
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+
+# Build stage
+FROM golang:1.24-alpine3.22 AS builder
+
+# Install git and ca-certificates (needed for fetching dependencies)
+RUN apk add --no-cache git ca-certificates
 
 WORKDIR /app
 
-# Copy the backend directory contents to /app
+# Copy go mod files first for better caching
+COPY ./api/go.mod ./api/go.sum ./
+
+# Download dependencies (cached if go.mod/go.sum haven't changed)
+RUN go mod download
+
+# Copy source code
 COPY ./api .
 
-# Install dependencies
-RUN go get -d -v ./...
+# Build the binary with optimizations
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
+    -ldflags='-w -s -extldflags "-static"' \
+    -o bin/arthveda ./cmd/api
 
-# Build
-RUN go build -o ./bin/arthveda ./cmd/api
+# Runtime stage - use distroless for better security and smaller size
+FROM gcr.io/distroless/static:nonroot
+
+WORKDIR /app
+
+# Copy the binary from builder stage
+COPY --from=builder /app/bin/arthveda .
 
 # Open port
 EXPOSE 1337
 
 # Start API
-CMD ["./bin/arthveda"]
+CMD ["./arthveda"]
