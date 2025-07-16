@@ -1,3 +1,6 @@
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+
 # Build stage
 FROM golang:1.24-alpine3.22 AS builder
 
@@ -16,9 +19,8 @@ RUN go mod download
 COPY ./api .
 
 # Build the binary with optimizations
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags='-w -s -extldflags "-static"' \
-    -a -installsuffix cgo \
     -o bin/arthveda ./cmd/api
 
 # Runtime stage - use distroless for better security and smaller size
