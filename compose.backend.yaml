@@ -13,6 +13,9 @@ services:
             mode: "non-blocking"
         build:
             dockerfile: api.dockerfile
+            args:
+              TARGETOS: ${TARGETOS}
+              TARGETARCH: ${TARGETARCH}
         environment:
             ARTHVEDA_API_ENV: production
             ARTHVEDA_API_LOG_LEVEL: ${ARTHVEDA_API_LOG_LEVEL}
