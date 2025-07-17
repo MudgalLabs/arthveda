@@ -898,7 +898,7 @@ const SyncSummaryModal: FC<SyncSummaryModalProps> = ({ syncSummary, open, setOpe
 
                 <div>
                     {syncSummary.PositionsData.length === 0 ? (
-                        <p className="text-sm">No positions were synced</p>
+                        <p className="text-sm">No new trades found to sync.</p>
                     ) : (
                         <Table>
                             <TableHeader>

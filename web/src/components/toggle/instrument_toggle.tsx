@@ -27,15 +27,7 @@ interface SegmentToggleProps {
     hideConfig?: InstrumentHideConfig;
 }
 
-export function InstrumentToggle({
-    defaultValue,
-    value,
-    onChange,
-    error,
-    errorMsg,
-    disableConfig,
-    hideConfig,
-}: SegmentToggleProps) {
+export function InstrumentToggle({ defaultValue, value, onChange, error, errorMsg }: SegmentToggleProps) {
     return (
         <>
             <ToggleGroup
@@ -48,37 +40,21 @@ export function InstrumentToggle({
                 onValueChange={onChange}
                 size="small"
             >
-                {!hideConfig?.equity && (
-                    <Tooltip content="Equity support is coming soon" disabled={!disableConfig?.equity}>
-                        <ToggleGroupItem value="equity" aria-label="Toggle equity" disabled={disableConfig?.equity}>
-                            Equity
-                        </ToggleGroupItem>
-                    </Tooltip>
-                )}
+                <ToggleGroupItem value="equity" aria-label="Toggle equity">
+                    Equity
+                </ToggleGroupItem>
 
-                {!hideConfig?.future && (
-                    <Tooltip content="Futures support is coming soon" disabled={!disableConfig?.future}>
-                        <ToggleGroupItem value="future" aria-label="Toggle future" disabled={disableConfig?.future}>
-                            Futures
-                        </ToggleGroupItem>
-                    </Tooltip>
-                )}
+                <ToggleGroupItem value="future" aria-label="Toggle future">
+                    Futures
+                </ToggleGroupItem>
 
-                {!hideConfig?.option && (
-                    <Tooltip content="Options support is coming soon" disabled={!disableConfig?.option}>
-                        <ToggleGroupItem value="option" aria-label="Toggle option" disabled={disableConfig?.option}>
-                            Options
-                        </ToggleGroupItem>
-                    </Tooltip>
-                )}
+                <ToggleGroupItem value="option" aria-label="Toggle option">
+                    Options
+                </ToggleGroupItem>
 
-                {!hideConfig?.crypto && (
-                    <Tooltip content="Crypto support is coming soon" disabled={!disableConfig?.crypto}>
-                        <ToggleGroupItem value="crypto" aria-label="Toggle crypto" disabled={disableConfig?.crypto}>
-                            Crypto
-                        </ToggleGroupItem>
-                    </Tooltip>
-                )}
+                <ToggleGroupItem value="crypto" aria-label="Toggle crypto">
+                    Crypto
+                </ToggleGroupItem>
             </ToggleGroup>
 
             {error && errorMsg && <InputErrorMessage errorMsg={errorMsg} />}

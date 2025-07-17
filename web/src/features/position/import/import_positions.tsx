@@ -8,13 +8,13 @@ import { toast } from "@/components/toast";
 import { WithLabel } from "@/components/with_label";
 import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
-import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem, Checkbox, DataTable } from "@/s8ly";
+import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem, Checkbox, DataTable, Tag } from "@/s8ly";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
 import { DecimalString, Setter } from "@/lib/types";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { IconArrowLeft, IconArrowRight, IconCheck, IconInfo } from "@/components/icons";
-import { INSTRUMENT_TOGGLE_CONFIG_BY_BROKER, ROUTES } from "@/constants";
+import { ROUTES } from "@/constants";
 import { MultiStep } from "@/components/multi_step/multi_step";
 import { LoadingScreen } from "@/components/loading_screen";
 import { Broker, BrokerName } from "@/lib/api/broker";
@@ -24,10 +24,10 @@ import {
     Position,
     positionDirectionToString,
     PositionInstrument,
+    positionInstrumentToString,
     positionStatusToString,
     UserBrokerAccountSearchValue,
 } from "@/features/position/position";
-import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { MultiStepProps } from "@/components/multi_step/multi_step_context";
 import {
     ColumnDef,
@@ -47,7 +47,6 @@ interface State {
     userBrokerAccount: UserBrokerAccountSearchValue | null;
     brokerName: BrokerName | null;
     file: File | null;
-    instrument: PositionInstrument | "";
     currency: CurrencyCode;
     riskAmount: DecimalString;
     // If "fixed", we use the risk amount provided by the user.
@@ -62,7 +61,6 @@ const INITIAL_STATE: State = {
     userBrokerAccount: null,
     brokerName: null,
     file: null,
-    instrument: "",
     currency: "inr",
     riskAmount: "0",
     chargesCalculationMethod: "auto",
@@ -89,7 +87,7 @@ export const ImportPositions = () => {
     });
 
     const handleReviewImport = ({ onSuccess }: { onSuccess?: (data: ImportPositionsResponse) => void }) => {
-        if (!state.file || !state.brokerID || !state.userBrokerAccount || !state.instrument) return;
+        if (!state.file || !state.brokerID || !state.userBrokerAccount) return;
 
         toast.promise(
             importAsync({
@@ -98,7 +96,6 @@ export const ImportPositions = () => {
                 user_broker_account_id: state.userBrokerAccount.id,
                 currency: state.currency,
                 risk_amount: state.riskAmount,
-                instrument: state.instrument,
                 charges_calculation_method: state.chargesCalculationMethod,
                 manual_charge_amount: state.manualChargeAmount,
                 confirm: false,
@@ -125,7 +122,6 @@ export const ImportPositions = () => {
             !state.file ||
             !state.brokerID ||
             !state.userBrokerAccount ||
-            !state.instrument ||
             importPositionResData?.positions?.length === 0
         )
             return;
@@ -137,7 +133,6 @@ export const ImportPositions = () => {
                 user_broker_account_id: state.userBrokerAccount.id,
                 currency: state.currency,
                 risk_amount: state.riskAmount,
-                instrument: state.instrument,
                 charges_calculation_method: state.chargesCalculationMethod,
                 manual_charge_amount: state.manualChargeAmount,
                 confirm: true,
@@ -202,10 +197,6 @@ export const ImportPositions = () => {
         }
 
         if (currentStepId === "options-step") {
-            if (state.instrument === "") {
-                disabled = true;
-            }
-
             onClick = () => {
                 handleReviewImport({
                     onSuccess: () => {
@@ -662,6 +653,12 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
 const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
     const brokerName = state.brokerName;
 
+    const supportedInstrumentsByBroker: Record<BrokerName, PositionInstrument[]> = {
+        Groww: ["equity"],
+        Upstox: ["equity"],
+        Zerodha: ["equity", "future", "option"],
+    };
+
     return (
         <>
             <h2 className="sub-heading">Options</h2>
@@ -670,20 +667,14 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
             <div className="h-8" />
 
             <div className="flex flex-col gap-x-16 gap-y-8 sm:flex-row">
-                <WithLabel Label={<Label required>Instrument type</Label>}>
-                    <InstrumentToggle
-                        value={state.instrument}
-                        onChange={(v) => {
-                            if (v) {
-                                setState((prev) => ({
-                                    ...prev,
-                                    instrument: v,
-                                }));
-                            }
-                        }}
-                        disableConfig={brokerName ? INSTRUMENT_TOGGLE_CONFIG_BY_BROKER[brokerName].disable : undefined}
-                        hideConfig={brokerName ? INSTRUMENT_TOGGLE_CONFIG_BY_BROKER[brokerName].hide : undefined}
-                    />
+                <WithLabel Label={<Label>Instruments supported</Label>}>
+                    {brokerName && (
+                        <span className="flex-x">
+                            {supportedInstrumentsByBroker[brokerName]?.map((instrument) => (
+                                <Tag>{positionInstrumentToString(instrument)}</Tag>
+                            ))}
+                        </span>
+                    )}
                 </WithLabel>
 
                 <WithLabel

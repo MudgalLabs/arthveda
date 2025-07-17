@@ -2,7 +2,6 @@ package main
 
 import (
 	"arthveda/internal/domain/currency"
-	"arthveda/internal/domain/types"
 	"arthveda/internal/env"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/user_broker_account"
@@ -194,7 +193,6 @@ func syncUserBrokerAccountHandler(s *user_broker_account.Service, ps *position.S
 				Currency:                 currency.CurrencyINR,
 				ChargesCalculationMethod: position.ChargesCalculationMethodAuto,
 				ManualChargeAmount:       decimal.Zero,
-				Instrument:               types.InstrumentEquity,
 				Confirm:                  true,
 				Force:                    true,
 			}

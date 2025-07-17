@@ -188,7 +188,7 @@ type FileImportPayload struct {
 	RiskAmount decimal.Decimal `json:"risk_amount"`
 
 	// Instrument is the instrument type of the positions being imported.
-	Instrument types.Instrument `json:"instrument"`
+	// Instrument types.Instrument `json:"instrument"`
 
 	// Whether to auto calculate charges or let user provide a manual charge amount.
 	ChargesCalculationMethod ChargesCalculationMethod `json:"charges_calculation_method"`
@@ -301,7 +301,6 @@ func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload File
 		Currency:                 payload.Currency,
 		ChargesCalculationMethod: payload.ChargesCalculationMethod,
 		ManualChargeAmount:       payload.ManualChargeAmount,
-		Instrument:               payload.Instrument,
 		Confirm:                  payload.Confirm,
 		Force:                    payload.Force,
 	}
@@ -328,9 +327,6 @@ type ImportPayload struct {
 	// If ChargesCalculationMethod is Manual, this field will be used to specify the charge amount for each trade.
 	ManualChargeAmount decimal.Decimal
 
-	// Instrument is the Instrument type of the positions being imported.
-	Instrument types.Instrument
-
 	// Confirm is a boolean flag to indicate whether the positions should be created in the database.
 	Confirm bool
 
@@ -349,6 +345,10 @@ type ImportResult struct {
 	FromDate                time.Time   `json:"from_date"`
 	ToDate                  time.Time   `json:"to_date"`
 }
+
+// TOOD: If I'm Syncing my Zerodha account, due to `force` flag being true, a position that
+// had no new trades added to it, is still showing up as "imported". BUT, we should be
+// showing that nothing was imported(synced).
 
 func (s *Service) Import(ctx context.Context, importableTrades []*types.ImportableTrade, payload ImportPayload) (*ImportResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
