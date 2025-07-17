@@ -9,7 +9,7 @@ import { usePositionStore } from "./position_store_context";
 import { useDebounce } from "@/hooks/use_debounce";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 
 interface State {
     initialPosition: Position | null;

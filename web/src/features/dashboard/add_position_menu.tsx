@@ -4,7 +4,7 @@ import { usePostHog } from "posthog-js/react";
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Tooltip } from "@/s8ly";
 import { IconImport, IconPlus, IconScrollText, IconSync } from "@/components/icons";
 import { cn } from "@/lib/utils";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 import { Link } from "@/components/link";
 
 interface AddPositionMenuProps {

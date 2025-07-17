@@ -67,7 +67,7 @@ import { PasswordInput } from "@/components/input/password_input";
 import { Setter } from "@/lib/types";
 import { Position } from "@/features/position/position";
 import { Link } from "@/components/link";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 
 export const BrokerAccounts = () => {
     const [syncSummary, setSyncSummary] = useState<SyncSummary | null>(null);
@@ -467,6 +467,13 @@ export const AddBrokerAccountModal: FC<AddBrokerAccountModalProps> = ({ renderTr
     };
 
     const disableCreate = !name.trim() || !brokerId;
+
+    useEffect(() => {
+        if (open) {
+            setName("");
+            setBrokerId("");
+        }
+    }, [open]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -890,34 +897,38 @@ const SyncSummaryModal: FC<SyncSummaryModalProps> = ({ syncSummary, open, setOpe
                 </DialogHeader>
 
                 <div>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>
-                                    <DataTableColumnHeader title="Symbol" />
-                                </TableHead>
-                                <TableHead>
-                                    <DataTableColumnHeader title="Opened At" />
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {syncSummary.PositionsData.map((position) => (
-                                <TableRow key={position.id}>
-                                    <TableCell className="flex-x gap-x-4">
-                                        <Link to={ROUTES.viewPosition(position.id)} target="_blank">
-                                            <span className="flex-x">
-                                                {position.symbol} <IconArrowUpRight />{" "}
-                                            </span>
-                                        </Link>
-
-                                        {!position.is_duplicate && <Tag size="small">New</Tag>}
-                                    </TableCell>
-                                    <TableCell>{formatDate(new Date(position.opened_at))}</TableCell>
+                    {syncSummary.PositionsData.length === 0 ? (
+                        <p className="text-sm">No positions were synced</p>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>
+                                        <DataTableColumnHeader title="Symbol" />
+                                    </TableHead>
+                                    <TableHead>
+                                        <DataTableColumnHeader title="Opened At" />
+                                    </TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {syncSummary.PositionsData.map((position) => (
+                                    <TableRow key={position.id}>
+                                        <TableCell className="flex-x gap-x-4">
+                                            <Link to={ROUTES.viewPosition(position.id)} target="_blank">
+                                                <span className="flex-x">
+                                                    {position.symbol} <IconArrowUpRight />{" "}
+                                                </span>
+                                            </Link>
+
+                                            {!position.is_duplicate && <Tag size="small">New</Tag>}
+                                        </TableCell>
+                                        <TableCell>{formatDate(new Date(position.opened_at))}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
                 </div>
 
                 <DialogFooter>

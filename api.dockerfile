@@ -27,7 +27,6 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
 FROM gcr.io/distroless/static:nonroot
 
 WORKDIR /app
-
 # Copy the binary from builder stage
 COPY --from=builder /app/bin/arthveda .
 

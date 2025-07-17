@@ -11,7 +11,7 @@ function Card({ children, className, ...props }: CardProps) {
     return (
         <div
             data-slow="card"
-            className={cn("bg-surface-2 border-border-subtle rounded-md border-1 p-3 shadow-2xl", className)}
+            className={cn("bg-surface-2 border-border-subtle rounded-md border-1 p-3 shadow-md", className)}
             {...props}
         >
             {children}

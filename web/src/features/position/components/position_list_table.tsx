@@ -27,7 +27,7 @@ import { DataTableState } from "@/s8ly/data_table/data_table_state";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import Decimal from "decimal.js";
 import { BrokerLogo } from "@/components/broker_logo";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 
 export interface PositionListTable {
     positions: Position[];

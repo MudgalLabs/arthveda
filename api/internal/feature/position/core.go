@@ -268,7 +268,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 
 	computeTradesResult, err := ComputeSmartTrades(trades, direction)
 	if err != nil {
-		l.Errorw("ComputeSmartTrades", "error", err, "trades", trades)
+		l.Debugw("ComputeSmartTrades", "error", err, "trades", trades)
 		return result, ErrInvalidTradeData
 	}
 

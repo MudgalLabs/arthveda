@@ -1,5 +1,5 @@
 import { type RouteObject } from "react-router-dom";
-import { ROUTES } from "@/routes_constants";
+import { ROUTES } from "@/constants";
 
 // Public
 import NotFoundLazy from "@/features/not_found/not_found_lazy";
