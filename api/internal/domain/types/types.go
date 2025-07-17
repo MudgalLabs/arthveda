@@ -30,10 +30,8 @@ type ImportableTrade struct {
 	TradeKind  TradeKind       `json:"trade_kind"`
 	Quantity   decimal.Decimal `json:"quantity"`
 	Price      decimal.Decimal `json:"price"`
+	Time       time.Time       `json:"time"`
 
 	// Unique identifier for the order in the broker's system. There can be multiple trades for the same order.
 	OrderID string `json:"order_id"`
-
-	// Time when the trade was executed. This is the time when the order was filled.
-	Time time.Time `json:"time"`
 }

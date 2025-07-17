@@ -35,11 +35,6 @@ Thumbs.db
 *.swo
 *~
 
-# Environment files
-.env
-.env.local
-.env.*.local
-
 # Test files
 *_test.go
 testdata/

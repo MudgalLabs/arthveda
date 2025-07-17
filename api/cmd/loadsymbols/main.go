@@ -1,68 +1,185 @@
 package main
 
 import (
+	"arthveda/internal/domain/types"
+	"bufio"
 	"encoding/csv"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 )
 
+const (
+	inputFile  = "instruments.csv"
+	outputFile = "../../internal/domain/symbol/generated.go"
+)
+
 func main() {
-	// Open CSV
-	f, err := os.Open("instruments.csv")
+	if err := generateSymbolMap(); err != nil {
+		log.Fatalf("failed to generate symbol map: %v", err)
+	}
+}
+
+func generateSymbolMap() error {
+	// Open and parse CSV file
+	symbolMap, err := parseCSV(inputFile)
 	if err != nil {
-		log.Fatalf("failed to open csv: %v", err)
-	}
-	defer f.Close()
-
-	r := csv.NewReader(f)
-	records, err := r.ReadAll()
-	if err != nil {
-		log.Fatalf("failed to read csv: %v", err)
-	}
-
-	// Find header indexes
-	headers := records[0]
-	colIndex := func(name string) int {
-		for i, h := range headers {
-			if strings.EqualFold(h, name) {
-				return i
-			}
-		}
-		log.Fatalf("column %s not found", name)
-		return -1
-	}
-
-	idxToken := colIndex("exchange_token")
-	idxSymbol := colIndex("tradingsymbol")
-	idxInstrument := colIndex("instrument_type")
-
-	// Build map
-	symbolMap := map[string]string{}
-	for _, row := range records[1:] {
-		if len(row) <= idxInstrument {
-			continue
-		}
-		if strings.ToUpper(row[idxInstrument]) != "EQUITY" {
-			continue
-		}
-		token := row[idxToken]
-		symbol := row[idxSymbol]
-		symbolMap[token] = symbol
+		return fmt.Errorf("failed to parse CSV: %w", err)
 	}
 
 	// Write to Go file
-	out, err := os.Create("../../internal/domain/symbol/generated.go")
-	if err != nil {
-		log.Fatalf("failed to create output file: %v", err)
+	if err := writeGoFile(outputFile, symbolMap); err != nil {
+		return fmt.Errorf("failed to write Go file: %w", err)
 	}
-	defer out.Close()
 
-	fmt.Fprintln(out, "package symbol\n")
-	fmt.Fprintln(out, "var symbolByCode = map[string]string{")
-	for k, v := range symbolMap {
-		fmt.Fprintf(out, "\t\"%s\": \"%s\",\n", k, v)
+	log.Printf("Successfully generated %d symbols to %s", len(symbolMap), outputFile)
+	return nil
+}
+
+func parseCSV(filename string) (map[string]string, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open CSV file: %w", err)
 	}
-	fmt.Fprintln(out, "}")
+	defer f.Close()
+
+	reader := csv.NewReader(f)
+
+	// Read header row
+	headers, err := reader.Read()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read CSV headers: %w", err)
+	}
+
+	// Find column indexes
+	colIndexes, err := findColumnIndexes(headers)
+	if err != nil {
+		return nil, err
+	}
+
+	// Process rows streaming to reduce memory usage
+	symbolMap := make(map[string]string)
+	lineNum := 1 // Header is line 1
+
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to read CSV row %d: %w", lineNum+1, err)
+		}
+		lineNum++
+
+		// Skip rows with insufficient columns
+		if len(row) <= colIndexes.instrument {
+			continue
+		}
+
+		// Filter for EQUITY instruments only using types.InstrumentEquity (case-insensitive)
+		if strings.ToLower(strings.TrimSpace(row[colIndexes.instrument])) != strings.ToLower(string(types.InstrumentEquity)) {
+			continue
+		}
+
+		token := strings.TrimSpace(row[colIndexes.token])
+		symbol := strings.TrimSpace(row[colIndexes.symbol])
+
+		// Skip empty tokens or symbols
+		if token == "" || symbol == "" {
+			continue
+		}
+
+		symbolMap[token] = symbol
+	}
+
+	return symbolMap, nil
+}
+
+type columnIndexes struct {
+	token      int
+	symbol     int
+	instrument int
+}
+
+func findColumnIndexes(headers []string) (*columnIndexes, error) {
+	colIndex := func(name string) int {
+		for i, h := range headers {
+			if strings.EqualFold(strings.TrimSpace(h), name) {
+				return i
+			}
+		}
+		return -1
+	}
+
+	indexes := &columnIndexes{
+		token:      colIndex("exchange_token"),
+		symbol:     colIndex("tradingsymbol"),
+		instrument: colIndex("instrument_type"),
+	}
+
+	if indexes.token == -1 {
+		return nil, fmt.Errorf("column 'exchange_token' not found")
+	}
+	if indexes.symbol == -1 {
+		return nil, fmt.Errorf("column 'tradingsymbol' not found")
+	}
+	if indexes.instrument == -1 {
+		return nil, fmt.Errorf("column 'instrument_type' not found")
+	}
+
+	return indexes, nil
+}
+
+func writeGoFile(filename string, symbolMap map[string]string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %w", err)
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
+
+	// Write package declaration and map start
+	if _, err := writer.WriteString("package symbol\n\n"); err != nil {
+		return err
+	}
+	if _, err := writer.WriteString("var symbolByCode = map[string]string{\n"); err != nil {
+		return err
+	}
+
+	// Sort keys for deterministic output
+	keys := make([]int, 0, len(symbolMap))
+	for k := range symbolMap {
+		kInt, err := strconv.Atoi(k)
+		if err != nil {
+			// Skip invalid integer keys
+			continue
+		}
+		keys = append(keys, kInt)
+	}
+	sort.Ints(keys)
+
+	// Write map entries
+	for _, key := range keys {
+		keyStr := strconv.Itoa(key)
+		value := symbolMap[keyStr]
+		// Escape quotes in key and value
+		escapedKey := strings.ReplaceAll(keyStr, `"`, `\"`)
+		escapedValue := strings.ReplaceAll(value, `"`, `\"`)
+		if _, err := fmt.Fprintf(writer, "\t\"%s\": \"%s\",\n", escapedKey, escapedValue); err != nil {
+			return err
+		}
+	}
+
+	// Write map end
+	if _, err := writer.WriteString("}\n"); err != nil {
+		return err
+	}
+
+	return nil
 }
