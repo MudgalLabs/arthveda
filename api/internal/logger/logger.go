@@ -26,7 +26,7 @@ func Get() *zap.SugaredLogger {
 	once.Do(func() {
 		stdout := zapcore.AddSync(os.Stdout)
 
-		// TODO: Have 2 log levels - development and production seperated.
+		// TODO: Have 2 log levels - development and production separated.
 		level := zap.InfoLevel
 		levelEnv := env.LOG_LEVEL
 		if levelEnv != "" {
@@ -35,9 +35,9 @@ func Get() *zap.SugaredLogger {
 				log.Println(
 					fmt.Errorf("invalid level, defaulting to INFO: %w", err),
 				)
+			} else {
+				level = levelFromEnv
 			}
-
-			level = levelFromEnv
 		}
 
 		logLevel := zap.NewAtomicLevelAt(level)
@@ -53,7 +53,6 @@ func Get() *zap.SugaredLogger {
 		fileEncoder := zapcore.NewJSONEncoder(productionCfg)
 
 		var gitRevision string
-
 		buildInfo, ok := debug.ReadBuildInfo()
 		if ok {
 			for _, v := range buildInfo.Settings {
@@ -64,25 +63,28 @@ func Get() *zap.SugaredLogger {
 			}
 		}
 
-		file := zapcore.AddSync(&lumberjack.Logger{
-			Filename:   env.LOG_FILE,
-			MaxSize:    256, // megabytes
-			MaxBackups: 4,   // Maximum number of old log files to keep
-			MaxAge:     7,   // days
-		})
+		var cores []zapcore.Core
+		cores = append(cores, zapcore.NewCore(consoleEncoder, stdout, logLevel))
 
-		// log to multiple destinations (console and file)
-		// extra fields are added to the JSON output alone
-		core := zapcore.NewTee(
-			zapcore.NewCore(consoleEncoder, stdout, logLevel),
-			zapcore.NewCore(fileEncoder, file, logLevel).
-				With(
-					[]zapcore.Field{
-						zap.String("git_revision", gitRevision),
-					},
-				),
-		)
+		// Only add file logger if env.LOG_FILE is set
+		if env.LOG_FILE != "" {
+			// prepend "/app/logs/" if the file path does not start with it
+			filePath := env.LOG_FILE
+			if filePath[:10] != "/app/logs/" {
+				filePath = "/app/logs/" + filePath
+			}
+			file := zapcore.AddSync(&lumberjack.Logger{
+				Filename:   filePath,
+				MaxSize:    256, // megabytes
+				MaxBackups: 4,   // Maximum number of old log files to keep
+				MaxAge:     7,   // days
+			})
+			cores = append(cores, zapcore.NewCore(fileEncoder, file, logLevel).
+				With([]zapcore.Field{zap.String("git_revision", gitRevision)}),
+			)
+		}
 
+		core := zapcore.NewTee(cores...)
 		logger = zap.New(core, zap.AddCaller()).Sugar()
 	})
 
@@ -95,10 +97,10 @@ func Get() *zap.SugaredLogger {
 func FromCtx(ctx context.Context) *zap.SugaredLogger {
 	if l, ok := ctx.Value(ctxKey{}).(*zap.SugaredLogger); ok {
 		return l
-	} else if l := logger; l != nil {
+	}
+	if l := logger; l != nil {
 		return l
 	}
-
 	return zap.NewNop().Sugar()
 }
 

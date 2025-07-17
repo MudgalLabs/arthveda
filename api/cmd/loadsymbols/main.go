@@ -59,7 +59,7 @@ func main() {
 	}
 	defer out.Close()
 
-	fmt.Fprintln(out, "package symbol\n")
+	fmt.Fprintln(out, "package symbol")
 	fmt.Fprintln(out, "var symbolByCode = map[string]string{")
 	for k, v := range symbolMap {
 		fmt.Fprintf(out, "\t\"%s\": \"%s\",\n", k, v)
