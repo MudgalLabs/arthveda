@@ -355,9 +355,9 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 	now := time.Now().UTC()
 
 	// All the symbols that are found in the `importableTrades`.
-	symbolsBeingImported := make(map[string]bool)
+	isSymbolBeingImported := make(map[string]bool)
 	for _, trade := range importableTrades {
-		symbolsBeingImported[trade.Symbol] = true
+		isSymbolBeingImported[trade.Symbol] = true
 	}
 
 	// Map to store parsed rows by Order ID.
@@ -437,7 +437,9 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 	invalidPositionsByPosID := map[uuid.UUID]bool{}
 	invalidPositions := []*Position{}
 
-	// Map to track open positions by Symbol
+	// Map to track open positions by Symbol.
+	// These open positions are the ones that are being considered for the ones being imported.
+	// These positions are NOT the ones that are already in Arthveda.
 	openPositions := make(map[string]*Position)
 
 	// Fetch open position for this user broker account.
@@ -449,7 +451,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 			UserBrokerAccountID: &payload.UserBrokerAccountID,
 			Status:              &open,
 		},
-		Pagination: common.Pagination{Limit: 100},
+		Pagination: common.Pagination{Limit: 100}, // Surely no one is having more than 100 open positions at a time. Right?
 	}
 
 	existingOpenPositions, _, err := s.positionRepository.Search(ctx, searchPayload, true)
@@ -458,40 +460,19 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		// Not returning error, just log and continue
 	}
 
+	// Map to store existing open positions by Symbol.
+	// These positions are open in Arthveda and will be used to match trades being imported.
+	existingOpenPositionsInArthvedaBySymbol := make(map[string]*Position)
+
+	// Map of existing open positions in Arthveda by Position ID that had some new trades added to them during the import.
+	existingOpenPositionsInArthvedaWasUpdatedByPositionID := make(map[uuid.UUID]bool)
+
 	for _, pos := range existingOpenPositions {
 		// Check if the open position's symbol matches any of the symbols being imported.
-		if !symbolsBeingImported[pos.Symbol] {
+		if !isSymbolBeingImported[pos.Symbol] {
 			continue
 		}
-
-		openPositions[pos.Symbol] = pos
-
-		for _, t := range pos.Trades {
-			orderID := t.BrokerTradeID
-
-			tradesWithOrderIDs = append(tradesWithOrderIDs, TradeWithOrderID{
-				OrderID: *orderID,
-				Payload: trade.CreatePayload{
-					Kind:          t.Kind,
-					Quantity:      t.Quantity,
-					Price:         t.Price,
-					Time:          t.Time,
-					ChargesAmount: t.ChargesAmount,
-				},
-			})
-
-			importableTrade := types.ImportableTrade{
-				Symbol:     pos.Symbol,
-				Instrument: pos.Instrument,
-				TradeKind:  t.Kind,
-				Quantity:   t.Quantity,
-				Price:      t.Price,
-				Time:       t.Time,
-				OrderID:    *orderID,
-			}
-
-			parsedRowByOrderID[*orderID] = &importableTrade
-		}
+		existingOpenPositionsInArthvedaBySymbol[pos.Symbol] = pos
 	}
 
 	// Array to store all finalized positions
@@ -512,6 +493,43 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		if err != nil {
 			l.Errorw("failed to create trade from payload", "error", err, "tradePayload", tradePayload)
 			return nil, service.ErrInternalServerError, fmt.Errorf("failed to create trade from payload: %w", err)
+		}
+
+		if existingOpenPosition, exists := existingOpenPositionsInArthvedaBySymbol[symbol]; exists {
+
+			// We should make sure that the trades being imported are after the position was OPENED AT.
+			if newTrade.Time.After(existingOpenPosition.OpenedAt) || newTrade.Time.Equal(existingOpenPosition.OpenedAt) {
+				if common.ExistsInSet(brokerTradeIDs, orderID) {
+					l.Debugw("skipping trade because it already exists in the open position in Arthveda", "order_id", orderID, "symbol", symbol)
+					continue
+				}
+
+				// If an open position exists in Arthveda for the symbol, we will use that
+				// to update the position with the new trade.
+				newTrade.PositionID = existingOpenPosition.ID
+				newTrade.BrokerTradeID = &orderID
+				existingOpenPosition.Trades = append(existingOpenPosition.Trades, newTrade)
+
+				computePayload := ComputePayload{
+					RiskAmount: existingOpenPosition.RiskAmount,
+					Trades:     ConvertTradesToCreatePayload(existingOpenPosition.Trades),
+				}
+
+				computeResult, err := Compute(computePayload)
+				if err != nil {
+					l.Debugw("failed to compute position that already exists in Arthveda and marking it as invalid", "error", err, "position_id", existingOpenPosition.ID, "symbol", existingOpenPosition.Symbol)
+					invalidPositionsByPosID[existingOpenPosition.ID] = true
+					continue
+				}
+
+				ApplyComputeResultToPosition(existingOpenPosition, computeResult)
+
+				// Update the existing open position with the new trade.
+				existingOpenPositionsInArthvedaBySymbol[symbol] = existingOpenPosition
+				// Mark that this existing open position in Arthveda was updated with new trades.
+				existingOpenPositionsInArthvedaWasUpdatedByPositionID[existingOpenPosition.ID] = true
+				continue
+			}
 		}
 
 		// Check if there is an open position for the Symbol
@@ -606,6 +624,23 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		finalizedPositions = append(finalizedPositions, openPosition)
 	}
 
+	// Add positions that were already in Arthveda but had new trades added to them during the import.
+	for _, existingOpenPosition := range existingOpenPositionsInArthvedaBySymbol {
+		if updated, exists := existingOpenPositionsInArthvedaWasUpdatedByPositionID[existingOpenPosition.ID]; exists && updated {
+			if invalid, exists := invalidPositionsByPosID[existingOpenPosition.ID]; exists && invalid {
+				l.Debugw("skipping invalid position that was updated with new trades", "position_id", existingOpenPosition.ID, "symbol", existingOpenPosition.Symbol)
+				invalidPositions = append(invalidPositions, existingOpenPosition)
+				// Skip invalid positions
+				continue
+			}
+
+			existingOpenPosition.IsDuplicate = true // This position already existed in Arthveda and was updated with new trades.
+			finalizedPositions = append(finalizedPositions, existingOpenPosition)
+		} else {
+			l.Debugw("skipping existing open position in Arthveda that was not updated with new trades", "position_id", existingOpenPosition.ID, "symbol", existingOpenPosition.Symbol)
+		}
+	}
+
 	// Sort finalizedPositions by opened_at in descending order
 	sort.Slice(finalizedPositions, func(i, j int) bool {
 		return finalizedPositions[i].OpenedAt.After(finalizedPositions[j].OpenedAt)
@@ -644,7 +679,16 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		var existingPosition *Position
 		var svcErr service.Error
 
-		if isDuplicate {
+		// When we import trades that belong to an existing open position in Arthveda.
+		isUpdatingPositionAlreadyInArthveda := false
+
+		isPositionAlreadyInArthvedaButHasUpdated, exists := existingOpenPositionsInArthvedaWasUpdatedByPositionID[finalizedPos.ID]
+		if exists && isPositionAlreadyInArthvedaButHasUpdated {
+			isUpdatingPositionAlreadyInArthveda = true
+			existingPosition = existingOpenPositionsInArthvedaBySymbol[finalizedPos.Symbol]
+		}
+
+		if isDuplicate && !isUpdatingPositionAlreadyInArthveda {
 			existingPosition, svcErr, err = s.Get(ctx, payload.UserID, positionIDForTheDuplicateOrderID)
 			if err != nil {
 				return nil, svcErr, fmt.Errorf("failed to fetch existing position: %w", err)
