@@ -24,14 +24,11 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -o bin/arthveda ./cmd/api
 
 # Runtime stage - use distroless for better security and smaller size
-FROM gcr.io/distroless/static:nonroot
+FROM alpine:3.22
 
 WORKDIR /app
 # Copy the binary from builder stage
 COPY --from=builder /app/bin/arthveda .
-
-# Create logs directory and set correct permissions for nonroot user (UID 65532)
-RUN mkdir -p /app/logs && chown 65532:65532 /app/logs
 
 # Open port
 EXPOSE 1337

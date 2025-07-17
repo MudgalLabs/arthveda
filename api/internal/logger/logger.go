@@ -20,6 +20,8 @@ var once sync.Once
 
 var logger *zap.SugaredLogger
 
+const logsDir = "/app/logs"
+
 // Get initializes a zap.SugaredLogger instance if it has not been initialized
 // already and returns the same instance for subsequent calls.
 func Get() *zap.SugaredLogger {
@@ -68,10 +70,16 @@ func Get() *zap.SugaredLogger {
 
 		// Only add file logger if env.LOG_FILE is set
 		if env.LOG_FILE != "" {
-			// prepend "/app/logs/" if the file path does not start with it
+			// check logDir exists, if not create it
+			if _, err := os.Stat(logsDir); os.IsNotExist(err) {
+				if err := os.MkdirAll(logsDir, 0755); err != nil {
+					log.Fatalf("failed to create logs directory: %v", err)
+				}
+			}
+			// prepend logsDir if the file path does not start with it
 			filePath := env.LOG_FILE
-			if filePath[:10] != "/app/logs/" {
-				filePath = "/app/logs/" + filePath
+			if filePath[:9] != logsDir {
+				filePath = logsDir + "/" + filePath
 			}
 			file := zapcore.AddSync(&lumberjack.Logger{
 				Filename:   filePath,

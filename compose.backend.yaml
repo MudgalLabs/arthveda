@@ -19,7 +19,7 @@ services:
         environment:
             ARTHVEDA_API_ENV: production
             ARTHVEDA_API_LOG_LEVEL: ${ARTHVEDA_API_LOG_LEVEL}
-            ARTHVEDA_API_LOG_FILE: ./logs/${ARTHVEDA_API_LOG_FILE}
+            ARTHVEDA_API_LOG_FILE: ${ARTHVEDA_API_LOG_FILE}
             ARTHVEDA_DB_URL: ${ARTHVEDA_DB_URL}
             ARTHVEDA_WEB_URL: ${ARTHVEDA_WEB_URL}
             ARTHVEDA_ENABLE_SIGN_UP: ${ARTHVEDA_ENABLE_SIGN_UP}
