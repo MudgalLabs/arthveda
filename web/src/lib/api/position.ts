@@ -111,7 +111,6 @@ export interface ImportPositionsRequest {
     user_broker_account_id: string;
     currency: CurrencyCode;
     risk_amount: DecimalString;
-    instrument: PositionInstrument;
     charges_calculation_method: ChargesCalculationMethod;
     manual_charge_amount: DecimalString;
     confirm: boolean;
@@ -135,7 +134,6 @@ export function importPositions(body: ImportPositionsRequest) {
     formData.append("user_broker_account_id", body.user_broker_account_id);
     formData.append("currency", body.currency);
     formData.append("risk_amount", body.risk_amount);
-    formData.append("instrument", body.instrument);
     formData.append("charges_calculation_method", body.charges_calculation_method);
     formData.append("manual_charge_amount", body.manual_charge_amount);
     formData.append("confirm", body.confirm === true ? "true" : "false");

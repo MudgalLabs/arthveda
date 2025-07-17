@@ -1,6 +1,3 @@
-import { InstrumentDisableConfig, InstrumentHideConfig } from "./components/toggle/instrument_toggle";
-import { BrokerName } from "./lib/api/broker";
-
 export const ROUTES = {
     // Routes that don't require user to be authenticated.
     index: "/",
@@ -33,46 +30,3 @@ export const ROUTES_PROTECTED = [
     ROUTES.brokerAccounts,
     ROUTES.feedbackAndSupport,
 ];
-
-// Instrument toggle configurations for different brokers.
-// This will be used to determine which instruments are available for selection in the toggle.
-// The `disable` config indicates whether the instrument is disabled, while the `hide` config
-// indicates whether the instrument should be hidden from the toggle.
-export const INSTRUMENT_TOGGLE_CONFIG_BY_BROKER: Record<
-    BrokerName,
-    { disable: InstrumentDisableConfig; hide: InstrumentHideConfig }
-> = {
-    Groww: {
-        disable: {
-            equity: false,
-            future: true,
-            option: true,
-            crypto: true,
-        },
-        hide: {
-            crypto: true,
-        },
-    },
-    Upstox: {
-        disable: {
-            equity: false,
-            future: true,
-            option: true,
-            crypto: true,
-        },
-        hide: {
-            crypto: true,
-        },
-    },
-    Zerodha: {
-        disable: {
-            equity: false,
-            future: false,
-            option: false,
-            crypto: true,
-        },
-        hide: {
-            crypto: true,
-        },
-    },
-};
