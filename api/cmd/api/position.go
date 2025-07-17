@@ -3,7 +3,6 @@ package main
 import (
 	"arthveda/internal/apires"
 	"arthveda/internal/domain/currency"
-	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/logger"
 	"arthveda/internal/service"
@@ -219,13 +218,6 @@ func importHandler(s *position.Service) http.HandlerFunc {
 			}
 		}
 
-		var instrument types.Instrument
-		instrumentStr := r.FormValue("instrument")
-
-		if instrumentStr != "" {
-			instrument = types.Instrument(instrumentStr)
-		}
-
 		var chargesCalculationMethod position.ChargesCalculationMethod
 		chargesCalculationMethodStr := r.FormValue("charges_calculation_method")
 
@@ -284,7 +276,6 @@ func importHandler(s *position.Service) http.HandlerFunc {
 			UserBrokerAccountID:      userBrokerAccountID,
 			Currency:                 currencyCode,
 			RiskAmount:               riskAmount,
-			Instrument:               instrument,
 			ChargesCalculationMethod: chargesCalculationMethod,
 			ManualChargeAmount:       manualChargeAmount,
 			Confirm:                  confirm,
