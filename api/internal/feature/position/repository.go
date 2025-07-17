@@ -297,7 +297,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 				p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
 				p.broker_id, p.user_broker_account_id,
 				uba.id, uba.broker_id, uba.name,
-				t.id, t.position_id, t.created_at, t.updated_at, t.kind, t.time, t.quantity, t.price, t.charges_amount
+				t.id, t.position_id, t.created_at, t.updated_at, t.kind, t.time, t.quantity, t.price, t.charges_amount, t.broker_trade_id
 			FROM
 				position p
 			LEFT JOIN user_broker_account uba ON uba.id = p.user_broker_account_id
@@ -437,7 +437,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 				&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
 				&pos.BrokerID, &pos.UserBrokerAccountID,
 				&ubaID, &ubaBrokerID, &ubaName,
-				&tradeID, &trade.PositionID, &trade.CreatedAt, &trade.UpdatedAt, &trade.Kind, &trade.Time, &trade.Quantity, &trade.Price, &trade.ChargesAmount,
+				&tradeID, &trade.PositionID, &trade.CreatedAt, &trade.UpdatedAt, &trade.Kind, &trade.Time, &trade.Quantity, &trade.Price, &trade.ChargesAmount, &trade.BrokerTradeID,
 			)
 
 			if err != nil {

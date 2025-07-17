@@ -354,6 +354,12 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 	l := logger.FromCtx(ctx)
 	now := time.Now().UTC()
 
+	// All the symbols that are found in the `importableTrades`.
+	symbolsBeingImported := make(map[string]bool)
+	for _, trade := range importableTrades {
+		symbolsBeingImported[trade.Symbol] = true
+	}
+
 	// Map to store parsed rows by Order ID.
 	// This makes it easy to access the parsed row data by Order ID later.
 	parsedRowByOrderID := map[string]*types.ImportableTrade{}
@@ -433,6 +439,60 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 
 	// Map to track open positions by Symbol
 	openPositions := make(map[string]*Position)
+
+	// Fetch open position for this user broker account.
+	// If we are importing trades for a user broker account, we need to check if there are any open positions for that account.
+	// This is to ensure that we do not create duplicate positions for the same symbol.
+	open := StatusOpen
+	searchPayload := SearchPayload{
+		Filters: SearchFilter{
+			UserBrokerAccountID: &payload.UserBrokerAccountID,
+			Status:              &open,
+		},
+		Pagination: common.Pagination{Limit: 100},
+	}
+
+	existingOpenPositions, _, err := s.positionRepository.Search(ctx, searchPayload, true)
+	if err != nil {
+		l.Errorw("failed to fetch open positions for user broker account", "error", err, "user_broker_account_id", payload.UserBrokerAccountID)
+		// Not returning error, just log and continue
+	}
+
+	for _, pos := range existingOpenPositions {
+		// Check if the open position's symbol matches any of the symbols being imported.
+		if !symbolsBeingImported[pos.Symbol] {
+			continue
+		}
+
+		openPositions[pos.Symbol] = pos
+
+		for _, t := range pos.Trades {
+			orderID := t.BrokerTradeID
+
+			tradesWithOrderIDs = append(tradesWithOrderIDs, TradeWithOrderID{
+				OrderID: *orderID,
+				Payload: trade.CreatePayload{
+					Kind:          t.Kind,
+					Quantity:      t.Quantity,
+					Price:         t.Price,
+					Time:          t.Time,
+					ChargesAmount: t.ChargesAmount,
+				},
+			})
+
+			importableTrade := types.ImportableTrade{
+				Symbol:     pos.Symbol,
+				Instrument: pos.Instrument,
+				TradeKind:  t.Kind,
+				Quantity:   t.Quantity,
+				Price:      t.Price,
+				Time:       t.Time,
+				OrderID:    *orderID,
+			}
+
+			parsedRowByOrderID[*orderID] = &importableTrade
+		}
+	}
 
 	// Array to store all finalized positions
 	finalizedPositions := []*Position{}
