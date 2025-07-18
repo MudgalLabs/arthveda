@@ -23,8 +23,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags='-w -s -extldflags "-static"' \
     -o bin/arthveda ./cmd/api
 
-# Runtime stage - use distroless for better security and smaller size
-FROM gcr.io/distroless/static:nonroot
+FROM alpine:3.22
 
 WORKDIR /app
 
