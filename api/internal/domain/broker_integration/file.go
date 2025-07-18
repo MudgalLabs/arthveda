@@ -28,6 +28,17 @@ type importFileMetadata struct {
 	// The segment column index.
 	segmentColumnIdx int
 
+	// The instrument type column index.
+	// This is for Upstox to figure out if the symbol is Future or Option("European Call" or "European Put").
+	instrumentTypeColumnIdx int
+
+	// The expiry type column index.
+	// This is used when we are importing futures or options. This helps us build a "symbol" for the trade.
+	expiryTypeColumnIdx int
+
+	// The strike price column index for options.
+	strikePriceColumnIdx int
+
 	// The trade type column index. Buy or Sell.
 	tradeTypeColumnIdx int
 
@@ -330,7 +341,7 @@ type upstoxFileAdapter struct{}
 
 func (adapter *upstoxFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
 	var headerRowIdx int
-	var symbolColumnIdx, scripCodeColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, timeColumnIdx, dateColumnIdx int
+	var symbolColumnIdx, scripCodeColumnIdx, segmentColumnIdx, instrumentTypeColumnIdx, expiryTypeColumnIdx, strikePriceColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, timeColumnIdx, dateColumnIdx int
 
 	for rowIdx, row := range rows {
 		for columnIdx, colCell := range row {
@@ -347,6 +358,18 @@ func (adapter *upstoxFileAdapter) GetMetadata(rows [][]string) (*importFileMetad
 
 			if strings.Contains(colCell, "Segment") {
 				segmentColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Instrument Type") {
+				instrumentTypeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Expiry") {
+				expiryTypeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Strike Price") {
+				strikePriceColumnIdx = columnIdx
 			}
 
 			if strings.Contains(colCell, "Side") {
@@ -381,16 +404,19 @@ func (adapter *upstoxFileAdapter) GetMetadata(rows [][]string) (*importFileMetad
 	}
 
 	return &importFileMetadata{
-		HeaderRowIdx:       headerRowIdx,
-		symbolColumnIdx:    symbolColumnIdx,
-		scripCodeIdx:       scripCodeColumnIdx,
-		segmentColumnIdx:   segmentColumnIdx,
-		tradeTypeColumnIdx: tradeTypeColumnIdx,
-		quantityColumnIdx:  quantityColumnIdx,
-		priceColumnIdx:     priceColumnIdx,
-		orderIDColumnIdx:   orderIDColumnIdx,
-		dateColumnIdx:      dateColumnIdx,
-		timeColumnIdx:      timeColumnIdx,
+		HeaderRowIdx:            headerRowIdx,
+		symbolColumnIdx:         symbolColumnIdx,
+		scripCodeIdx:            scripCodeColumnIdx,
+		segmentColumnIdx:        segmentColumnIdx,
+		instrumentTypeColumnIdx: instrumentTypeColumnIdx,
+		strikePriceColumnIdx:    strikePriceColumnIdx,
+		expiryTypeColumnIdx:     expiryTypeColumnIdx,
+		tradeTypeColumnIdx:      tradeTypeColumnIdx,
+		quantityColumnIdx:       quantityColumnIdx,
+		priceColumnIdx:          priceColumnIdx,
+		orderIDColumnIdx:        orderIDColumnIdx,
+		dateColumnIdx:           dateColumnIdx,
+		timeColumnIdx:           timeColumnIdx,
 	}, nil
 }
 
@@ -398,12 +424,56 @@ func (adapter *upstoxFileAdapter) ParseRow(row []string, metadata *importFileMet
 	symbolColumnIdx := metadata.symbolColumnIdx
 	scripCodeColumnIdx := metadata.scripCodeIdx
 	segmentColumnIdx := metadata.segmentColumnIdx
+	instrumentTypeColumnIdx := metadata.instrumentTypeColumnIdx
 	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
 	quantityColumnIdx := metadata.quantityColumnIdx
 	priceColumnIdx := metadata.priceColumnIdx
 	orderIDColumnIdx := metadata.orderIDColumnIdx
 	dateColumnIdx := metadata.dateColumnIdx
 	timeColumnIdx := metadata.timeColumnIdx
+
+	segment := row[segmentColumnIdx]
+	if segment == "" {
+		return nil, fmt.Errorf("Segment is empty in row")
+	}
+
+	var instrumentTypeStr string
+	var instrument types.Instrument
+	switch segment {
+	case "EQ":
+		instrument = types.InstrumentEquity
+	case "FO", "COM":
+		instrumentTypeStr = row[instrumentTypeColumnIdx]
+		if segment == "" {
+			return nil, fmt.Errorf("Instrument Type is empty in row")
+		}
+
+		if instrumentTypeStr == "European Call" || instrumentTypeStr == "European Put" {
+			instrument = types.InstrumentOption
+		} else {
+			instrument = types.InstrumentFuture
+		}
+	default:
+		return nil, fmt.Errorf("Segment %s is invalid in row", segment)
+	}
+
+	var expiryStr string
+	if instrument == types.InstrumentOption || instrument == types.InstrumentFuture {
+		expiryStr = row[metadata.expiryTypeColumnIdx]
+		if expiryStr == "" {
+			return nil, fmt.Errorf("Expiry is empty in row")
+		}
+
+		// Parse the expiry date from the expiry string.
+		// The expiry string is in the format "dd-mm-yyyy".
+		expiryDate, err := time.Parse("02-01-2006", expiryStr)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid expiry date in row: %s", expiryStr)
+		}
+
+		// Convert "31-10-2024" to "31OCT" format.
+		expiryStr = expiryDate.Format("02JAN")
+	}
 
 	symbolStr := row[symbolColumnIdx]
 	if symbolStr == "" {
@@ -416,18 +486,32 @@ func (adapter *upstoxFileAdapter) ParseRow(row []string, metadata *importFileMet
 	if scripCode != "" {
 		// If we have a scrip code, we will use it to get the actual symbol.
 		symbol, exists := symbol.GetSymbolFromCode(scripCode)
-
 		// If we do have a symbol, we will use it.
 		if exists {
 			symbolStr = symbol
 		}
 	}
 
-	// We can use the scrip code to get the actual symbol from the exchange.
+	// TODO: Handle Future as well.
+	switch instrument {
+	case types.InstrumentOption:
+		var strikePriceStr string
+		if instrument == types.InstrumentOption {
+			strikePriceStr = row[metadata.strikePriceColumnIdx]
+			if strikePriceStr == "" {
+				return nil, fmt.Errorf("Strike Price is empty in row")
+			}
+		}
 
-	segment := row[segmentColumnIdx]
-	if segment == "" {
-		return nil, fmt.Errorf("Segment is empty in row")
+		var callOptionStr string
+		if instrumentTypeStr == "European Call" {
+			callOptionStr = "CE"
+		}
+		if instrumentTypeStr == "European Put" {
+			callOptionStr = "PE"
+		}
+
+		symbolStr = symbolStr + expiryStr + strikePriceStr + callOptionStr
 	}
 
 	orderID := row[orderIDColumnIdx]
@@ -476,8 +560,6 @@ func (adapter *upstoxFileAdapter) ParseRow(row []string, metadata *importFileMet
 	if err != nil {
 		return nil, fmt.Errorf("Invalid datetime at row : %s", dateTimeStr)
 	}
-
-	instrument := types.InstrumentEquity
 
 	// We will create our own order ID based on the first 3 characters of the order ID and the date.
 	// We need date because using just the first 3 characters of the order ID can lead to collisions.

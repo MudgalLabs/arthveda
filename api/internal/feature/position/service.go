@@ -335,15 +335,17 @@ type ImportPayload struct {
 }
 
 type ImportResult struct {
-	Positions               []*Position `json:"positions"`
-	InvalidPositions        []*Position `json:"invalid_positions"`
-	PositionsCount          int         `json:"positions_count"`
-	DuplicatePositionsCount int         `json:"duplicate_positions_count"`
-	PositionsImportedCount  int         `json:"positions_imported_count"`
-	InvalidPositionsCount   int         `json:"invalid_positions_count"`
-	ForcedPositionsCount    int         `json:"forced_positions_count"`
-	FromDate                time.Time   `json:"from_date"`
-	ToDate                  time.Time   `json:"to_date"`
+	Positions                 []*Position `json:"positions"`
+	InvalidPositions          []*Position `json:"invalid_positions"`
+	UnsupportedPositions      []*Position `json:"unsupported_positions"`
+	PositionsCount            int         `json:"positions_count"`
+	DuplicatePositionsCount   int         `json:"duplicate_positions_count"`
+	PositionsImportedCount    int         `json:"positions_imported_count"`
+	InvalidPositionsCount     int         `json:"invalid_positions_count"`
+	ForcedPositionsCount      int         `json:"forced_positions_count"`
+	UnsupportedPositionsCount int         `json:"unsupported_positions_count"`
+	FromDate                  time.Time   `json:"from_date"`
+	ToDate                    time.Time   `json:"to_date"`
 }
 
 // TOOD: If I'm Syncing my Zerodha account, due to `force` flag being true, a position that
@@ -437,6 +439,10 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 	invalidPositionsByPosID := map[uuid.UUID]bool{}
 	invalidPositions := []*Position{}
 
+	// Number of positions that are of unsupported instruments for the broker.
+	unsupportedPositionsCount := 0
+	unsupportedPositions := []*Position{}
+
 	// Map to track open positions by Symbol.
 	// These open positions are the ones that are being considered for the ones being imported.
 	// These positions are NOT the ones that are already in Arthveda.
@@ -496,7 +502,6 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		}
 
 		if existingOpenPosition, exists := existingOpenPositionsInArthvedaBySymbol[symbol]; exists {
-
 			// We should make sure that the trades being imported are after the position was OPENED AT.
 			if newTrade.Time.After(existingOpenPosition.OpenedAt) || newTrade.Time.Equal(existingOpenPosition.OpenedAt) {
 				if common.ExistsInSet(brokerTradeIDs, orderID) {
@@ -640,6 +645,24 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 			l.Debugw("skipping existing open position in Arthveda that was not updated with new trades", "position_id", existingOpenPosition.ID, "symbol", existingOpenPosition.Symbol)
 		}
 	}
+
+	// Check finalized positions for unsupported instruments.
+	// If the instrument is not supported by the broker, we will mark the position as unsupported.
+	filteredFinalizedPositions := finalizedPositions[:0]
+	for _, finalizedPos := range finalizedPositions {
+		if !payload.Broker.IsInstrumentSupportedForImport(finalizedPos.Instrument) {
+			l.Debugw("unsupported instrument found in finalized position", "position_id", finalizedPos.ID, "symbol", finalizedPos.Symbol, "instrument", finalizedPos.Instrument)
+			unsupportedPositionsCount++
+			unsupportedPositions = append(unsupportedPositions, finalizedPos)
+			// Do not add to filteredFinalizedPositions
+			continue
+		}
+
+		filteredFinalizedPositions = append(filteredFinalizedPositions, finalizedPos)
+	}
+
+	// Reassign filtered positions to finalizedPositions
+	finalizedPositions = filteredFinalizedPositions
 
 	// Sort finalizedPositions by opened_at in descending order
 	sort.Slice(finalizedPositions, func(i, j int) bool {
@@ -809,15 +832,22 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 	}
 
 	l.Debugf("Duplicate positions skipped: %d", duplicatePositionsCount)
+	l.Debugf("Positions imported: %d", positionsImported)
+	l.Debugf("Invalid positions: %d", len(invalidPositionsByPosID))
+	l.Debugf("Unsupported positions: %d", unsupportedPositionsCount)
+
+	allPositionsCount := len(finalizedPositions) + len(invalidPositions) + len(unsupportedPositions)
 
 	result := &ImportResult{
-		Positions:               finalizedPositions,
-		InvalidPositions:        invalidPositions,
-		PositionsCount:          len(finalizedPositions), // Client can check length of positions?
-		DuplicatePositionsCount: duplicatePositionsCount,
-		PositionsImportedCount:  positionsImported,
-		InvalidPositionsCount:   len(invalidPositionsByPosID),
-		ForcedPositionsCount:    forcedPositionCount,
+		Positions:                 finalizedPositions,
+		InvalidPositions:          invalidPositions,
+		UnsupportedPositions:      unsupportedPositions,
+		PositionsCount:            allPositionsCount,
+		DuplicatePositionsCount:   duplicatePositionsCount,
+		PositionsImportedCount:    positionsImported,
+		InvalidPositionsCount:     len(invalidPositionsByPosID),
+		ForcedPositionsCount:      forcedPositionCount,
+		UnsupportedPositionsCount: unsupportedPositionsCount,
 	}
 
 	return result, service.ErrNone, nil
