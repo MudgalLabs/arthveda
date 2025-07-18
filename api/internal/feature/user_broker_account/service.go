@@ -383,8 +383,6 @@ func (s *Service) ZerodhaRedirect(ctx context.Context, userID, ubaID uuid.UUID, 
 		return service.ErrInternalServerError, fmt.Errorf("decrypt client secret: %w", err)
 	}
 
-	fmt.Println("apiKey:", *apiKey, "apiSecretEncypred:", string(apiSecretEncypred), "nonce:", string(clientSecretNonce), "apiSecret:", apiSecret)
-
 	if apiKey == nil || *apiKey == "" || apiSecret == "" {
 		return service.ErrBadRequest, errors.New("Broker account is not connected")
 	}
