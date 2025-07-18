@@ -18,7 +18,7 @@ RUN go mod download
 # Copy source code
 COPY ./api .
 
-# Build the binary with optimizations
+# Build the binary with optimizations and embed timezone data
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags='-w -s -extldflags "-static"' \
     -o bin/arthveda ./cmd/api
@@ -26,6 +26,9 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
 FROM alpine:3.22
 
 WORKDIR /app
+
+# Install tzdata for timezone support. Needed because we are using a Alpine base image.
+RUN apk add --no-cache tzdata
 
 # Copy the binary from builder stage
 COPY --from=builder /app/bin/arthveda .
