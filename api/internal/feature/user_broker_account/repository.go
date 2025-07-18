@@ -51,8 +51,9 @@ func (r *userBrokerAccountRepository) Create(ctx context.Context, account *UserB
 
 	sql := `
 		INSERT INTO user_broker_account (
-			id, name, broker_id, user_id, created_at, access_token, last_login_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7)
+			id, name, broker_id, user_id, created_at, last_login_at, 
+			oauth_client_secret_nonce, oauth_client_secret_bytes, access_token_bytes, access_token_bytes_nonce
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
 
 	_, err = tx.Exec(ctx, sql,
@@ -61,8 +62,11 @@ func (r *userBrokerAccountRepository) Create(ctx context.Context, account *UserB
 		account.BrokerID,
 		account.UserID,
 		account.CreatedAt,
-		account.AccessToken,
 		account.LastLoginAt,
+		account.OAuthClientSecretNonce,
+		account.OAuthClientSecretBytes,
+		account.AccessTokenBytes,
+		account.AccessTokenBytesNonce,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert: %w", err)
@@ -90,10 +94,12 @@ func (r *userBrokerAccountRepository) Update(ctx context.Context, account *UserB
 			broker_id = $4,
 			user_id = $5,
 			oauth_client_id = $6,
-			oauth_client_secret = $7,
-			access_token = $8,
-			last_sync_at = $9,
-			last_login_at = $10
+			last_sync_at = $7,
+			last_login_at = $8,
+			oauth_client_secret_nonce = $9,
+			oauth_client_secret_bytes = $10,
+			access_token_bytes = $11,
+			access_token_bytes_nonce = $12
 		WHERE id = $1
 	`
 
@@ -104,10 +110,12 @@ func (r *userBrokerAccountRepository) Update(ctx context.Context, account *UserB
 		account.BrokerID,
 		account.UserID,
 		account.OAuthClientID,
-		account.OAuthClientSecret,
-		account.AccessToken,
 		account.LastSyncAt,
 		account.LastLoginAt,
+		account.OAuthClientSecretNonce,
+		account.OAuthClientSecretBytes,
+		account.AccessTokenBytes,
+		account.AccessTokenBytesNonce,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("update: %w", err)
@@ -188,7 +196,8 @@ func (r *userBrokerAccountRepository) ExistsByNameAndBrokerIDAndUserID(ctx conte
 func (r *userBrokerAccountRepository) findAccounts(ctx context.Context, f filters) ([]*UserBrokerAccount, error) {
 	baseSQL := `
 		SELECT id, created_at, updated_at, name, broker_id, user_id, 
-		       oauth_client_id, oauth_client_secret, access_token, last_sync_at, last_login_at
+		       oauth_client_id, last_sync_at, last_login_at, 
+		       oauth_client_secret_nonce, oauth_client_secret_bytes, access_token_bytes, access_token_bytes_nonce
 		FROM user_broker_account
 	`
 
@@ -228,20 +237,24 @@ func (r *userBrokerAccountRepository) findAccounts(ctx context.Context, f filter
 			&account.BrokerID,
 			&account.UserID,
 			&account.OAuthClientID,
-			&account.OAuthClientSecret,
-			&account.AccessToken,
 			&account.LastSyncAt,
 			&account.LastLoginAt,
+			&account.OAuthClientSecretNonce,
+			&account.OAuthClientSecretBytes,
+			&account.AccessTokenBytes,
+			&account.AccessTokenBytesNonce,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
 
-		if account.OAuthClientID != nil && *account.OAuthClientID != "" && account.OAuthClientSecret != nil && *account.OAuthClientSecret != "" {
+		// If we have a OAuthClientID and OAuthClientSecretBytes, we are considered connected.
+		if account.OAuthClientID != nil && *account.OAuthClientID != "" && len(account.OAuthClientSecretBytes) > 0 {
 			account.IsConnected = true
 		}
 
-		if account.AccessToken != nil && *account.AccessToken != "" {
+		// If we have an access token bytes, we are considered authenticated.
+		if len(account.AccessTokenBytes) > 0 {
 			account.IsAuthenticated = true
 		}
 
