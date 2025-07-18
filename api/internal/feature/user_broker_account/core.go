@@ -9,17 +9,20 @@ import (
 
 // UserBrokerAccount represents a user's broker account in the system.
 type UserBrokerAccount struct {
-	ID                uuid.UUID  `json:"id" db:"id"`
-	CreatedAt         time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt         *time.Time `json:"updated_at" db:"updated_at"`
-	Name              string     `json:"name" db:"name"`
-	BrokerID          uuid.UUID  `json:"broker_id" db:"broker_id"`
-	UserID            uuid.UUID  `json:"user_id" db:"user_id"`
-	OAuthClientID     *string    `json:"-" db:"oauth_client_id"`
-	OAuthClientSecret *string    `json:"-" db:"oauth_client_secret"`
-	AccessToken       *string    `json:"-" db:"access_token"`
-	LastSyncAt        *time.Time `json:"last_sync_at" db:"last_sync_at"`
-	LastLoginAt       *time.Time `json:"last_login_at" db:"last_login_at"`
+	ID            uuid.UUID  `json:"id" db:"id"`
+	CreatedAt     time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt     *time.Time `json:"updated_at" db:"updated_at"`
+	Name          string     `json:"name" db:"name"`
+	BrokerID      uuid.UUID  `json:"broker_id" db:"broker_id"`
+	UserID        uuid.UUID  `json:"user_id" db:"user_id"`
+	OAuthClientID *string    `json:"-" db:"oauth_client_id"`
+	LastSyncAt    *time.Time `json:"last_sync_at" db:"last_sync_at"`
+	LastLoginAt   *time.Time `json:"last_login_at" db:"last_login_at"`
+
+	OAuthClientSecretBytes []byte `json:"-" db:"oauth_client_secret_bytes"`
+	OAuthClientSecretNonce []byte `json:"-" db:"oauth_client_secret_nonce"`
+	AccessTokenBytes       []byte `json:"-" db:"access_token_bytes"`
+	AccessTokenBytesNonce  []byte `json:"-" db:"access_token_bytes_nonce"`
 
 	// Runtime fields
 

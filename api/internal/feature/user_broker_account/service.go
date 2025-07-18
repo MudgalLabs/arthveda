@@ -5,6 +5,7 @@ import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/broker_integration"
 	"arthveda/internal/domain/types"
+	"arthveda/internal/env"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
@@ -178,10 +179,16 @@ func (s *Service) Connect(ctx context.Context, userID, ubaID uuid.UUID, payload 
 		LoginURL: url,
 	}
 
+	secretEncrypted, nonce, err := common.Encrypt([]byte(payload.ClientSecret), []byte(env.CIPHER_KEY))
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("encrypt client secret: %w", err)
+	}
+
 	now := time.Now().UTC()
 	uba.UpdatedAt = &now
 	uba.OAuthClientID = &payload.ClientID
-	uba.OAuthClientSecret = &payload.ClientSecret
+	uba.OAuthClientSecretBytes = secretEncrypted
+	uba.OAuthClientSecretNonce = nonce
 	uba.IsConnected = false
 
 	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
@@ -201,12 +208,16 @@ func (s *Service) Disconnect(ctx context.Context, userID, ubaID uuid.UUID) (serv
 		return service.ErrInternalServerError, fmt.Errorf("get by id: %w", err)
 	}
 
+	// TODO: Call logout/disconnect API of the broker if supported.
+
 	now := time.Now().UTC()
 
 	uba.UpdatedAt = &now
 	uba.OAuthClientID = nil
-	uba.OAuthClientSecret = nil
-	uba.AccessToken = nil
+	uba.OAuthClientSecretBytes = nil
+	uba.OAuthClientSecretNonce = nil
+	uba.AccessTokenBytes = nil
+	uba.AccessTokenBytesNonce = nil
 
 	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
 	if err != nil {
@@ -251,14 +262,19 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 	}
 
 	clientID := uba.OAuthClientID
-	clientSecret := uba.OAuthClientSecret
-	accessToken := uba.AccessToken
+	secretEncypred := uba.OAuthClientSecretBytes
+	secretNonce := uba.OAuthClientSecretNonce
 
-	if clientID == nil || *clientID == "" || clientSecret == nil || *clientSecret == "" {
+	clientSecret, err := common.Decrypt(secretEncypred, secretNonce, []byte(env.CIPHER_KEY))
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("decrypt client secret: %w", err)
+	}
+
+	if clientID == nil || *clientID == "" || clientSecret == "" {
 		return nil, service.ErrBadRequest, errors.New("Broker account is not connected")
 	}
 
-	adapter, err := broker_integration.GetAPIAdapter(b, *clientID, *clientSecret)
+	adapter, err := broker_integration.GetAPIAdapter(b, *clientID, clientSecret)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("Get API adapter: %w", err)
 	}
@@ -272,20 +288,27 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 	// Create a new Kite connect instance
 	kc := kiteconnect.New(*clientID)
 
-	if accessToken == nil || *accessToken == "" {
+	tokenEncypred := uba.AccessTokenBytes
+	tokenNonce := uba.AccessTokenBytesNonce
+
+	accessToken, err := common.Decrypt(tokenEncypred, tokenNonce, []byte(env.CIPHER_KEY))
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("decrypt client secret: %w", err)
+	}
+
+	if accessToken == "" {
 		return redirectToLoginResult, service.ErrNone, nil
 	}
 
 	// Set access token
-	kc.SetAccessToken(*accessToken)
+	kc.SetAccessToken(accessToken)
 
 	now := time.Now().UTC()
 
 	trades, err := kc.GetTrades()
 	if err != nil {
 		l.Errorw("Failed to get trades", "error", err.Error())
-
-		uba.AccessToken = nil
+		uba.AccessTokenBytes = nil
 		s.userBrokerAccountRepository.Update(ctx, uba)
 		return redirectToLoginResult, service.ErrBadRequest, nil
 	}
@@ -352,16 +375,24 @@ func (s *Service) ZerodhaRedirect(ctx context.Context, userID, ubaID uuid.UUID, 
 	}
 
 	apiKey := uba.OAuthClientID
-	apiSecret := uba.OAuthClientSecret
+	apiSecretEncypred := uba.OAuthClientSecretBytes
+	clientSecretNonce := uba.OAuthClientSecretNonce
 
-	if apiKey == nil || apiSecret == nil || *apiKey == "" || *apiSecret == "" {
+	apiSecret, err := common.Decrypt(apiSecretEncypred, clientSecretNonce, []byte(env.CIPHER_KEY))
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("decrypt client secret: %w", err)
+	}
+
+	fmt.Println("apiKey:", *apiKey, "apiSecretEncypred:", string(apiSecretEncypred), "nonce:", string(clientSecretNonce), "apiSecret:", apiSecret)
+
+	if apiKey == nil || *apiKey == "" || apiSecret == "" {
 		return service.ErrBadRequest, errors.New("Broker account is not connected")
 	}
 
 	kc := kiteconnect.New(*apiKey)
 
 	// Get user details and access token
-	data, err := kc.GenerateSession(requestToken, *apiSecret)
+	data, err := kc.GenerateSession(requestToken, apiSecret)
 	if err != nil {
 		return service.ErrInternalServerError, fmt.Errorf("generate session: %w", err)
 	}
@@ -371,9 +402,16 @@ func (s *Service) ZerodhaRedirect(ctx context.Context, userID, ubaID uuid.UUID, 
 
 	l.Debugw("Zerodha redirect successful", "uba_id", uba.ID, "access_token", accessToken, "refresh_token", refreshToken)
 
+	// Encrypt access token
+	accessTokenEncrypted, accessTokenNonce, err := common.Encrypt([]byte(accessToken), []byte(env.CIPHER_KEY))
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("encrypt access token: %w", err)
+	}
+
 	now := time.Now().UTC()
 	uba.UpdatedAt = &now
-	uba.AccessToken = &accessToken
+	uba.AccessTokenBytes = accessTokenEncrypted
+	uba.AccessTokenBytesNonce = accessTokenNonce
 	uba.LastLoginAt = &now
 
 	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
