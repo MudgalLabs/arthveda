@@ -118,11 +118,14 @@ export interface ImportPositionsRequest {
 }
 export interface ImportPositionsResponse {
     positions: Position[];
+    invalid_positions: Position[];
+    unsupported_positions: Position[];
     positions_count: number;
     duplicate_positions_count: number;
     positions_imported_count: number;
     invalid_positions_count: number;
     forced_positions_count: number;
+    unsupported_positions_count: number;
     from_date: string;
     to_date: string;
 }

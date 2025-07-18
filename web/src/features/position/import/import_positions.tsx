@@ -41,6 +41,7 @@ import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { useBroker } from "@/features/broker/broker_context";
 import { UserBrokerAccountSearch } from "@/features/broker/components/user_broker_account_search";
 import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
+import { ApiRes } from "@/lib/api/client";
 
 interface State {
     brokerID: string;
@@ -103,15 +104,15 @@ export const ImportPositions = () => {
             }),
             {
                 loading: "Parsing file",
-                success: (res: any) => {
-                    const data = res.data.data as ImportPositionsResponse;
-                    onSuccess?.(data);
+                success: (rawRes: any) => {
+                    const res = rawRes.data as ApiRes<ImportPositionsResponse>;
+                    onSuccess?.(res.data);
 
-                    if (data.positions.length > 0) {
-                        setImportPositionResData(data);
+                    if (res.status === "success") {
+                        setImportPositionResData(res.data);
                     }
 
-                    return `Found ${data.positions_count} positions`;
+                    return `Found ${res.data.positions_count} positions`;
                 },
             }
         );
@@ -156,7 +157,7 @@ export const ImportPositions = () => {
 
                         return {
                             type: "success",
-                            message: `Imported ${data.positions_count} positions`,
+                            message: `Imported ${data.positions_imported_count} positions`,
                             action: {
                                 label: "View Positions",
                                 onClick: () => {
@@ -332,6 +333,7 @@ export const ImportPositions = () => {
                                 positionsCount={importPositionResData.positions_count}
                                 duplicateCount={importPositionResData.duplicate_positions_count}
                                 invalidPositionsCount={importPositionResData.invalid_positions_count}
+                                unsupportedPositionsCount={importPositionResData.unsupported_positions_count}
                                 fromDate={importPositionResData.from_date}
                                 toDate={importPositionResData.from_date}
                             />
@@ -655,7 +657,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
 
     const supportedInstrumentsByBroker: Record<BrokerName, PositionInstrument[]> = {
         Groww: ["equity"],
-        Upstox: ["equity"],
+        Upstox: ["equity", "option"],
         Zerodha: ["equity", "future", "option"],
     };
 
@@ -779,6 +781,7 @@ interface ReviewStepProps extends ImportStepProps {
     positionsCount: number;
     duplicateCount: number;
     invalidPositionsCount: number;
+    unsupportedPositionsCount: number;
     fromDate: string;
     toDate: string;
 }
@@ -788,6 +791,7 @@ const ReviewStep: FC<ReviewStepProps> = ({
     positionsCount,
     duplicateCount,
     invalidPositionsCount,
+    unsupportedPositionsCount,
     state,
     setState,
 }) => {
@@ -822,6 +826,16 @@ const ReviewStep: FC<ReviewStepProps> = ({
                         </Tooltip>
                     </div>
                     <p className="heading">{invalidPositionsCount}</p>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                    <div className="flex-x">
+                        <p className="label-muted">Unsupported Positions </p>
+                        <Tooltip content="These positions have been ignored because they belong to an Instrument that Arthveda doesn't support importing yet for the selected Broker.">
+                            <IconInfo />
+                        </Tooltip>
+                    </div>
+                    <p className="heading">{unsupportedPositionsCount}</p>
                 </div>
 
                 <div
@@ -884,6 +898,17 @@ const columns: ColumnDef<Position>[] = [
             <DataTableColumnHeader title="Symbol" column={column} disabled={table.options.meta?.isFetching} />
         ),
         enableSorting: false,
+    },
+    {
+        id: "instrument",
+        meta: {
+            columnVisibilityHeader: "Instrument",
+        },
+        accessorKey: "instrument",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Instrument" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        cell: ({ row }) => positionInstrumentToString(row.original.instrument),
     },
     {
         id: "direction",
