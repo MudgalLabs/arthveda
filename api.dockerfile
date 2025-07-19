@@ -5,8 +5,7 @@ ARG TARGETARCH=amd64
 FROM golang:1.24-alpine3.22 AS builder
 
 # Install git and ca-certificates (needed for fetching dependencies)
-RUN apk add --no-cache git ca-certificates
-
+RUN apk add --no-cache git ca-certificates tzdata
 WORKDIR /app
 
 # Copy go mod files first for better caching
@@ -26,13 +25,11 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
 FROM alpine:3.22
 
 WORKDIR /app
-
-# Install tzdata for timezone support. Needed because we are using a Alpine base image.
-RUN apk add --no-cache tzdata
-
+ENV TZ=UTC
+# Copy timezone data
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 # Copy the binary from builder stage
 COPY --from=builder /app/bin/arthveda .
-
 # Open port
 EXPOSE 1337
 
