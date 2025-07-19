@@ -189,7 +189,6 @@ func (s *Service) Connect(ctx context.Context, userID, ubaID uuid.UUID, payload 
 	uba.OAuthClientID = &payload.ClientID
 	uba.OAuthClientSecretBytes = secretEncrypted
 	uba.OAuthClientSecretNonce = nonce
-	uba.IsConnected = false
 
 	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
 	if err != nil {
@@ -267,9 +266,12 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 
 	clientSecret, err := common.Decrypt(secretEncypred, secretNonce, []byte(env.CIPHER_KEY))
 	if err != nil {
+		l.Warnw("Failed to decrypt client secret. Disconnecting...", "uba_id", uba.ID, "error", err.Error())
+		s.Disconnect(ctx, userID, uba.ID)
 		return nil, service.ErrInternalServerError, fmt.Errorf("decrypt client secret: %w", err)
 	}
 
+	// We checked this above via `uba.IsConnected`, but let's ensure we have valid clientID and secret.
 	if clientID == nil || *clientID == "" || clientSecret == "" {
 		return nil, service.ErrBadRequest, errors.New("Broker account is not connected")
 	}
@@ -293,7 +295,9 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 
 	accessToken, err := common.Decrypt(tokenEncypred, tokenNonce, []byte(env.CIPHER_KEY))
 	if err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("decrypt client secret: %w", err)
+		l.Warnw("Failed to decrypt access token. Disconnecting...", "uba_id", uba.ID, "error", err.Error())
+		s.Disconnect(ctx, userID, uba.ID)
+		return nil, service.ErrInternalServerError, fmt.Errorf("decrypt access token: %w", err)
 	}
 
 	if accessToken == "" {
@@ -371,7 +375,9 @@ func (s *Service) ZerodhaRedirect(ctx context.Context, userID, ubaID uuid.UUID, 
 	}
 
 	if uba.UserID != userID {
-		return service.ErrUnauthorized, errors.New("Unauthorized access to broker account")
+		l.Warnw("Unauthorized access to broker account. Disconnecting...", "uba_id", uba.ID)
+		s.Disconnect(ctx, userID, uba.ID)
+		return service.ErrUnauthorized, fmt.Errorf("Unauthorized access to broker account")
 	}
 
 	apiKey := uba.OAuthClientID
@@ -380,6 +386,8 @@ func (s *Service) ZerodhaRedirect(ctx context.Context, userID, ubaID uuid.UUID, 
 
 	apiSecret, err := common.Decrypt(apiSecretEncypred, clientSecretNonce, []byte(env.CIPHER_KEY))
 	if err != nil {
+		l.Warnw("Failed to decrypt client secret. Disconnecting...", "uba_id", uba.ID, "error", err.Error())
+		s.Disconnect(ctx, userID, uba.ID)
 		return service.ErrInternalServerError, fmt.Errorf("decrypt client secret: %w", err)
 	}
 
