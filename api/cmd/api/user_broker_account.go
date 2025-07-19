@@ -184,24 +184,22 @@ func syncUserBrokerAccountHandler(s *user_broker_account.Service, ps *position.S
 		}
 
 		var importResult *position.ImportResult
-		if len(syncResult.ImportableTrades) > 0 {
-			options := position.ImportPayload{
-				UserID:                   userID,
-				UserBrokerAccountID:      ubaID,
-				Broker:                   syncResult.Broker,
-				RiskAmount:               decimal.Zero,
-				Currency:                 currency.CurrencyINR,
-				ChargesCalculationMethod: position.ChargesCalculationMethodAuto,
-				ManualChargeAmount:       decimal.Zero,
-				Confirm:                  true,
-				Force:                    true,
-			}
+		options := position.ImportPayload{
+			UserID:                   userID,
+			UserBrokerAccountID:      ubaID,
+			Broker:                   syncResult.Broker,
+			RiskAmount:               decimal.Zero,
+			Currency:                 currency.CurrencyINR,
+			ChargesCalculationMethod: position.ChargesCalculationMethodAuto,
+			ManualChargeAmount:       decimal.Zero,
+			Confirm:                  true,
+			Force:                    true,
+		}
 
-			importResult, errKind, err = ps.Import(ctx, syncResult.ImportableTrades, options)
-			if err != nil {
-				serviceErrResponse(w, r, errKind, err)
-				return
-			}
+		importResult, errKind, err = ps.Import(ctx, syncResult.ImportableTrades, options)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
 		}
 
 		result := finalResult{

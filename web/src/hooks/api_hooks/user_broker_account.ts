@@ -93,14 +93,18 @@ export function useDisconnect(options: AnyUseMutationOptions = {}) {
 
 export function useSync(options: AnyUseMutationOptions = {}) {
     const queryClient = useQueryClient();
-    const { onSuccess, ...restOptions } = options;
+    const { onSuccess, onSettled, ...restOptions } = options;
 
     return useMutation({
         mutationFn: (id: string) => api.userBrokerAccount.sync(id),
         onSuccess: (...args) => {
-            queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
             queryClient.invalidateQueries({ queryKey: ["useGetDashboard"] });
             onSuccess?.(...args);
+        },
+        onSettled: (...args) => {
+            // We can succeed or fail, but we always want to invalidate the list.
+            queryClient.invalidateQueries({ queryKey: ["useUserBrokerAccountList"] });
+            onSettled?.(...args);
         },
         ...restOptions,
     });

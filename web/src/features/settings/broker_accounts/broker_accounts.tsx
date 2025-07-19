@@ -250,9 +250,9 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                     const data = res.data.data as SyncUserBrokerAccountResult;
 
                     if (data.login_required && data.login_url) {
-                        toast.warning("Broker connect has expired", {
+                        toast.warning("Broker login has expired", {
                             duration: 10000,
-                            description: "Login to reconnect your broker account",
+                            description: "Login to your broker account",
                             action: {
                                 label: "Login",
                                 onClick: () => {

@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"errors"
 	"io"
 )
 
@@ -30,6 +31,10 @@ func Encrypt(plaintext, key []byte) (ciphertext []byte, nonce []byte, err error)
 
 // Decrypt decrypts ciphertext using AES-256-GCM with the given key and nonce
 func Decrypt(ciphertext, nonce, key []byte) (string, error) {
+	if len(nonce) != 12 {
+		return "", errors.New("nonce length must be 12 bytes")
+	}
+
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", err
