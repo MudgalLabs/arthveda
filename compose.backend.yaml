@@ -29,6 +29,7 @@ services:
             ARTHVEDA_GOOGLE_CLIENT_ID: ${ARTHVEDA_GOOGLE_CLIENT_ID}
             ARTHVEDA_GOOGLE_CLIENT_SECRET: ${ARTHVEDA_GOOGLE_CLIENT_SECRET}
             ARTHVEDA_API_CIPHER_KEY: ${ARTHVEDA_API_CIPHER_KEY}
+            TZ: ${TZ}
         ports:
             - 1337:1337
         networks:

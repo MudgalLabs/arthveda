@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime/debug"
 	"sync"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -19,6 +20,15 @@ type ctxKey struct{}
 var once sync.Once
 
 var logger *zap.SugaredLogger
+
+func istTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	ist, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		enc.AppendString(t.UTC().Format("2006-01-02 15:04:05.000 UTC"))
+		return
+	}
+	enc.AppendString(t.In(ist).Format("2006-01-02 15:04:05.000 MST"))
+}
 
 // Get initializes a zap.SugaredLogger instance if it has not been initialized
 // already and returns the same instance for subsequent calls.
@@ -44,11 +54,12 @@ func Get() *zap.SugaredLogger {
 
 		developmentCfg := zap.NewDevelopmentEncoderConfig()
 		developmentCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		developmentCfg.EncodeTime = istTimeEncoder
 		consoleEncoder := zapcore.NewConsoleEncoder(developmentCfg)
 
 		productionCfg := zap.NewProductionEncoderConfig()
 		productionCfg.TimeKey = "timestamp"
-		productionCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+		productionCfg.EncodeTime = istTimeEncoder
 
 		fileEncoder := zapcore.NewJSONEncoder(productionCfg)
 
