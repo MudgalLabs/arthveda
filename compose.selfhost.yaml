@@ -1,14 +1,13 @@
 services:
     web:
-        container_name: arthveda_demo_web
-        image: ceoshikhar/arthveda_web:beta
+        container_name: arthveda_web
+        image: arthveda_web
         build:
             dockerfile: web.dockerfile
         ports:
             - 6970:6969
         networks:
-            - arthveda_demo_network
-            - caddy_net
+            - arthveda_network
         restart: unless-stopped
         depends_on:
             api:
@@ -16,8 +15,8 @@ services:
                 restart: true
 
     api:
-        container_name: arthveda_demo_api
-        image: ceoshikhar/arthveda_api:beta
+        container_name: arthveda_api
+        image: arthveda_api
         build:
             dockerfile: api.dockerfile
         environment:
@@ -37,8 +36,7 @@ services:
         ports:
             - 1338:1337
         networks:
-            - arthveda_demo_network
-            - caddy_net
+            - arthveda_network
         volumes:
             - ./volumes/api_logs:/app/logs
         restart: unless-stopped
@@ -48,7 +46,7 @@ services:
                 restart: true
 
     db:
-        container_name: arthveda_demo_db
+        container_name: arthveda_db
         image: postgres:17.4-alpine
         environment:
             PGPORT: 42070
@@ -58,8 +56,7 @@ services:
         ports:
             - 42070:42070
         networks:
-            - arthveda_demo_network
-            - caddy_net
+            - arthveda_network
         volumes:
             - ./volumes/db_data:/var/lib/postgresql/data
         restart: unless-stopped
@@ -74,7 +71,5 @@ services:
             retries: 5
 
 networks:
-    arthveda_demo_network:
-        name: arthveda_demo_network
-    caddy_net:
-        external: true
+    arthveda_network:
+        name: arthveda_network
