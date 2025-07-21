@@ -172,6 +172,9 @@ func syncUserBrokerAccountHandler(s *user_broker_account.Service, ps *position.S
 			return
 		}
 
+		syncResult := &user_broker_account.SyncResult{}
+		importResult := &position.ImportResult{}
+
 		type finalResult struct {
 			*user_broker_account.SyncResult
 			*position.ImportResult
@@ -183,7 +186,16 @@ func syncUserBrokerAccountHandler(s *user_broker_account.Service, ps *position.S
 			return
 		}
 
-		var importResult *position.ImportResult
+		if syncResult.LoginRequired {
+			result := finalResult{
+				SyncResult:   syncResult,
+				ImportResult: importResult,
+			}
+
+			successResponse(w, r, http.StatusOK, "Broker login has expired. Login to your broker account.", result)
+			return
+		}
+
 		options := position.ImportPayload{
 			UserID:                   userID,
 			UserBrokerAccountID:      ubaID,
