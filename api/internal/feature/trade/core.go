@@ -83,6 +83,46 @@ type UpdatePayload struct {
 	Trade
 }
 
+var FnOSeries = []string{"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"}
+
+// IsSymbolFuture checks if the given symbol represents a Futures contract.
+func IsSymbolFuture(symbol string) bool {
+	if symbol == "" {
+		return false
+	}
+	lowercaseSymbol := strings.ToLower(symbol)
+	hasMonthSeries := false
+	for _, series := range FnOSeries {
+		if strings.Contains(lowercaseSymbol, series) {
+			hasMonthSeries = true
+			break
+		}
+	}
+	if hasMonthSeries && strings.Contains(lowercaseSymbol, "fut") {
+		return true
+	}
+	return false
+}
+
+// IsSymbolOption checks if the given symbol represents an Option contract.
+func IsSymbolOption(symbol string) bool {
+	if symbol == "" {
+		return false
+	}
+	lowercaseSymbol := strings.ToLower(symbol)
+	hasMonthSeries := false
+	for _, series := range FnOSeries {
+		if strings.Contains(lowercaseSymbol, series) {
+			hasMonthSeries = true
+			break
+		}
+	}
+	if hasMonthSeries && (strings.Contains(lowercaseSymbol, "ce") || strings.Contains(lowercaseSymbol, "pe")) {
+		return true
+	}
+	return false
+}
+
 // MakeSureSymbolIsEquity validates that a given trading symbol represents an equity instrument
 // rather than a Futures & Options (F&O) instrument.
 //
@@ -108,34 +148,25 @@ func MakeSureSymbolIsEquity(symbol string) error {
 		return fmt.Errorf("trading symbol cannot be empty")
 	}
 
-	lowercaseSymbol := strings.ToLower(symbol)
-
-	fnoInstrument := []string{"fut", "ce", "pe"}
-	fnoSeries := []string{"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"}
-
-	// Check if symbol contains both month series AND F&O instrument types (typical F&O pattern)
-	hasMonthSeries := false
-	hasFnoInstrument := false
-
-	for _, series := range fnoSeries {
-		if strings.Contains(lowercaseSymbol, series) {
-			hasMonthSeries = true
-			break
-		}
+	if IsSymbolFuture(symbol) {
+		return fmt.Errorf("symbol '%s' appears to be a Futures contract, not equity", symbol)
 	}
 
-	for _, instrument := range fnoInstrument {
-		if strings.Contains(lowercaseSymbol, instrument) {
-			hasFnoInstrument = true
-			break
-		}
-	}
-
-	// If both patterns exist together, it's likely an F&O instrument
-	if hasMonthSeries && hasFnoInstrument {
-		return fmt.Errorf("symbol '%s' appears to be a F&O instrument, not equity", symbol)
+	if IsSymbolOption(symbol) {
+		return fmt.Errorf("symbol '%s' appears to be an Option contract, not equity", symbol)
 	}
 
 	// If no F&O patterns found, assume it's equity
 	return nil
+}
+
+// GetInstrumentFromSymbol returns the types.Instrument (equity, future, option) for a given symbol string.
+func GetInstrumentFromSymbol(symbol string) types.Instrument {
+	if IsSymbolFuture(symbol) {
+		return types.InstrumentFuture
+	}
+	if IsSymbolOption(symbol) {
+		return types.InstrumentOption
+	}
+	return types.InstrumentEquity
 }

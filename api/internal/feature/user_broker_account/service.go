@@ -320,11 +320,7 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 	importableTrades := []*types.ImportableTrade{}
 	for _, t := range trades {
 		symbol := t.TradingSymbol
-		err := trade.MakeSureSymbolIsEquity(symbol)
-		if err != nil {
-			l.Debugw("Trade symbol is not equity", "symbol", symbol, "error", err.Error())
-			continue
-		}
+		instrument := trade.GetInstrumentFromSymbol(symbol)
 
 		// NOTE: Fetch exchange timezone. Using NSE because we only suport sync for Indian brokers.
 		tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
@@ -338,7 +334,7 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 
 		importableTrade := types.ImportableTrade{
 			Symbol:     symbol,
-			Instrument: types.InstrumentEquity,
+			Instrument: instrument,
 			TradeKind:  tradeKind,
 			Quantity:   decimal.NewFromFloat(t.Quantity),
 			Price:      decimal.NewFromFloat(t.AveragePrice),
