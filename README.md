@@ -6,11 +6,11 @@
   <img src="./.github/screenshots/dashboard.png" alt="analytics dashboard" />
 <p>
 
-# Arthveda
+# arthveda
 
-[Arthveda](http://arthveda.app) is a trading analytics platform with seamless broker integrations built exclusively for Indian traders.
+[arthveda](http://arthveda.app) is a trading analytics platform with seamless broker integrations built exclusively for Indian traders.
 
-**Arthveda is in open beta right now!**
+**arthveda is in open beta right now!**
 
 ## Goals for release
 
@@ -59,7 +59,7 @@ I aim to support as many brokers as I can but until then this screen will help y
 
 ## License
 
-Arthveda is licensed under the **GNU AGPLv3**.  
+arthveda is licensed under the **GNU AGPLv3**.  
 This means you are free to use, modify, and self-host it, as long as you share your changes if you offer it as a web service.
 
 🔗 [Read the full license](./LICENSE)
