@@ -3,6 +3,7 @@ import { Card, CardContent, CardTitle } from "@/components/card";
 import { IconTrendingDown, IconTrendingUp } from "@/components/icons";
 import { DecimalString } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
+import { Tooltip } from "@/s8ly";
 
 interface Props {
     isWinning: boolean; // Indicates if the card is for winning or losing
@@ -11,6 +12,7 @@ interface Props {
     max: DecimalString;
     avg: DecimalString;
     streak: number;
+    count: number;
 }
 
 export const WidgetGeneralStats: FC<Props> = (props) => {
@@ -18,11 +20,20 @@ export const WidgetGeneralStats: FC<Props> = (props) => {
         <Card className="flex h-full w-full flex-col gap-y-2">
             <CardTitle className="flex items-center justify-between gap-x-2">
                 <div className="flex items-center gap-x-2">
-                    {props.isWinning ? "Winning" : "Losing"}
-                    {props.isWinning ? <IconTrendingUp size={24} /> : <IconTrendingDown size={24} />}
+                    <p>{props.isWinning ? "Winning" : "Losing"}</p>
                 </div>
 
-                <div>{props.rate.toFixed(2)}%</div>
+                <div className="text-text-muted flex gap-x-1 text-sm">
+                    <Tooltip content={props.isWinning ? "Number of winning positions" : "Number of losing positions"}>
+                        <p>{props.count}</p>
+                    </Tooltip>
+
+                    <p>•</p>
+
+                    <Tooltip content={props.isWinning ? "Win Rate" : "Loss Rate"}>
+                        <p>{props.rate.toFixed(2)}%</p>
+                    </Tooltip>
+                </div>
             </CardTitle>
 
             <CardContent className="flex-y h-full flex-col justify-between">

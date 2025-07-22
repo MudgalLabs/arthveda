@@ -241,6 +241,7 @@ export const Dashboard = () => {
                             max={data.max_win}
                             avg={data.avg_win}
                             streak={data.win_streak}
+                            count={data.wins_count}
                         />
                     </WidgetContainer>
                 </div>
@@ -254,6 +255,7 @@ export const Dashboard = () => {
                             max={data.max_loss}
                             avg={data.avg_loss}
                             streak={data.loss_streak}
+                            count={data.losses_count}
                         />
                     </WidgetContainer>
                 </div>

@@ -30,6 +30,9 @@ type generalStats struct {
 
 	WinStreak  int `json:"win_streak"`
 	LossStreak int `json:"loss_streak"`
+
+	WinsCount   int `json:"wins_count"`
+	LossesCount int `json:"losses_count"`
 }
 
 func getGeneralStats(positions []*position.Position) generalStats {
@@ -140,6 +143,8 @@ func getGeneralStats(positions []*position.Position) generalStats {
 		AvgLossRFactor: avgLossRFactor.StringFixed(2),
 		WinStreak:      maxWinStreak,
 		LossStreak:     maxLossStreak,
+		WinsCount:      winTradesCount,
+		LossesCount:    lossTradesCount,
 	}
 
 	return result

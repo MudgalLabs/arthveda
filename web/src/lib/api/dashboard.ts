@@ -17,6 +17,8 @@ interface GeneralStats {
     max_loss: DecimalString;
     win_streak: number;
     loss_streak: number;
+    wins_count: number;
+    losses_count: number;
 }
 
 interface PnLBucket {
