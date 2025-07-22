@@ -38,29 +38,41 @@ type GetDashboardReponse struct {
 }
 
 func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location, payload GetDashboardPayload) (*GetDashboardReponse, service.Error, error) {
+	now := time.Now().UTC()
 	from := time.Time{}
 	to := time.Time{}
 
-	if payload.DateRange.From != nil {
+	if payload.DateRange.From != nil && !payload.DateRange.From.IsZero() {
 		from = *payload.DateRange.From
 	}
 
-	if payload.DateRange.To != nil {
+	if payload.DateRange.To != nil && !payload.DateRange.To.IsZero() {
 		to = *payload.DateRange.To
 	}
 
 	startUTC, endUTC, err := common.NormalizeDateRangeFromTimezone(from, to, loc)
 
-	if err != nil {
+	if err == nil {
 		payload.DateRange.From = &startUTC
 		payload.DateRange.To = &endUTC
+	}
+
+	tradeTimeRange := &common.DateRangeFilter{
+		// Defualt to current time.
+		To: &now,
+	}
+
+	if !startUTC.IsZero() {
+		tradeTimeRange.From = &startUTC
+	}
+	if !endUTC.IsZero() {
+		tradeTimeRange.To = &endUTC
 	}
 
 	searchPositionPayload := position.SearchPayload{
 		Filters: position.SearchFilter{
 			CreatedBy: &userID,
-			// Opened:    payload.DateRange,
-			TradeTime: payload.DateRange,
+			TradeTime: tradeTimeRange,
 		},
 		Sort: common.Sorting{
 			Field: "opened_at",

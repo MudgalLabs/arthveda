@@ -42,7 +42,7 @@ func NormalizeDateRangeFromTimezone(from, to time.Time, loc *time.Location) (tim
 	}
 
 	if !to.IsZero() {
-		// Snap to midnight in user's local timezone and add 24 hours to include the full day.
+		// Snap to midnight of the day after 'to' in user's local timezone
 		toLocal = time.Date(to.In(loc).Year(), to.In(loc).Month(), to.In(loc).Day(), 0, 0, 0, 0, loc).Add(24 * time.Hour)
 	} else {
 		toLocal = to
