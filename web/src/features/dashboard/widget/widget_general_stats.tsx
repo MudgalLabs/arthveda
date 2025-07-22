@@ -1,6 +1,5 @@
 import { FC } from "react";
 import { Card, CardContent, CardTitle } from "@/components/card";
-import { IconTrendingDown, IconTrendingUp } from "@/components/icons";
 import { DecimalString } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Tooltip } from "@/s8ly";
