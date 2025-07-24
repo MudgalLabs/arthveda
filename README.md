@@ -2,23 +2,15 @@
   <img src="./.github/screenshots/banner.png"  alt="arthveda banner" />
 </p>
 
+# Arthveda
+
+[Arthveda](http://arthveda.app) is an open-source trading journal built exclusively for Indian traders that imports your trades, reveals powerful analytics, and helps you improve.
+
+**Arthveda is in open beta right now!**
+
 <p align="center">
   <img src="./.github/screenshots/dashboard.png" alt="analytics dashboard" />
 <p>
-
-# arthveda
-
-[arthveda](http://arthveda.app) is a trading analytics platform with seamless broker integrations built exclusively for Indian traders.
-
-**arthveda is in open beta right now!**
-
-## Goals for release
-
--   To have a dashboard with core analytics - performance metrics (R Factor, Win Rate, etc), Cumulative PnL analytics from start till today and Net PnL analytics grouped by monthly/year at minimum.
--   Be able to search and sort your positions. Brokers like Zerodha, Groww, Upstox and mostly others as well provide no separation of different positions in the PnL statement. They end up aggregating all the trades you took for any given ticker.
--   Be able to import historical positions from an excel file of a supported brokers.
--   Be able to add a position manually if import integration is missing for a certain broker.
--   Be able to enable auto sync so that your positions are auto imported at the end of the day or run it manually. This feature will depend on if Brokers allow us a way to interact with their APIs.
 
 ## ⭐ Features
 
@@ -57,9 +49,10 @@ I aim to support as many brokers as I can but until then this screen will help y
 <img src="./.github/screenshots/position.png" alt="position details" />
 </p>
 
-## License
+## 📜 License
 
-arthveda is licensed under the **GNU AGPLv3**.  
-This means you are free to use, modify, and self-host it, as long as you share your changes if you offer it as a web service.
+[AGPL v3](LICENSE) because open tools build better traders and a better ecosystem.
 
-🔗 [Read the full license](./LICENSE)
+<p align="center">
+  Built with ❤️ by <a href="https://mudgallabs.com" target="_blank">Mudgal Labs</a>
+</p>
