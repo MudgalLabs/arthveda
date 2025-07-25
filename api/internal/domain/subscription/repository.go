@@ -13,12 +13,14 @@ import (
 
 type Reader interface {
 	FindUserSubscriptionByUserID(ctx context.Context, userID uuid.UUID) (*UserSubscription, error)
+	FindUserSubscriptionByExternalRef(ctx context.Context, provider PaymentProvider, externalRef string) (*UserSubscription, error)
 }
 
 type Writer interface {
 	UpsertUserSubscription(ctx context.Context, us *UserSubscription) error
 	UpsertPaymentProviderProfile(ctx context.Context, email string, profile *UserPaymentProviderProfile) error
 	UpsertUserSubscriptionInvoice(ctx context.Context, invoice *UserSubscriptionInvoice) error
+	CreateUserSubscriptionEvent(ctx context.Context, event *UserSubscriptionEvent) error
 }
 
 type ReadWriter interface {
@@ -35,42 +37,47 @@ func NewRepository(db *pgxpool.Pool) *subscriptionRepository {
 }
 
 type subscriptionFilter struct {
-	UserID *uuid.UUID
+	UserID      *uuid.UUID
+	Provider    *PaymentProvider
+	ExternalRef *string
 }
 
 func (r *subscriptionRepository) FindUserSubscriptionByUserID(ctx context.Context, userID uuid.UUID) (*UserSubscription, error) {
-	subs, err := r.findSubscriptions(ctx, &subscriptionFilter{UserID: &userID})
-	if err != nil {
-		return nil, err
-	}
-	if len(subs) == 0 {
-		return nil, repository.ErrNotFound
-	}
-	return subs[0], nil
+	return r.findUserSubscription(ctx, &subscriptionFilter{UserID: &userID})
 }
 
-func (r *subscriptionRepository) findSubscriptions(ctx context.Context, filter *subscriptionFilter) ([]*UserSubscription, error) {
+func (r *subscriptionRepository) FindUserSubscriptionByExternalRef(ctx context.Context, provider PaymentProvider, externalRef string) (*UserSubscription, error) {
+	return r.findUserSubscription(ctx, &subscriptionFilter{Provider: &provider, ExternalRef: &externalRef})
+}
+
+func (r *subscriptionRepository) findUserSubscription(ctx context.Context, filter *subscriptionFilter) (*UserSubscription, error) {
 	baseSQL := `
-		SELECT user_id, plan_id, status, valid_from, valid_until, billing_interval, provider, external_ref, created_at, updated_at
+		SELECT user_id, plan_id, status, valid_from, valid_until, billing_interval, provider, external_ref, cancel_at_period_end, created_at, updated_at
 		FROM user_subscription
 	`
 	sqlb := dbx.NewSQLBuilder(baseSQL)
-	if filter != nil && filter.UserID != nil {
-		sqlb.AddCompareFilter("user_id", dbx.OperatorEQ, *filter.UserID)
+	if filter != nil {
+		if filter.UserID != nil {
+			sqlb.AddCompareFilter("user_id", dbx.OperatorEQ, *filter.UserID)
+		}
+		if filter.Provider != nil {
+			sqlb.AddCompareFilter("provider", dbx.OperatorEQ, *filter.Provider)
+		}
+		if filter.ExternalRef != nil {
+			sqlb.AddCompareFilter("external_ref", dbx.OperatorEQ, *filter.ExternalRef)
+		}
 	}
 	sqlb.AddSorting("created_at", "DESC")
-
 	sql, args := sqlb.Build()
 
 	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("find subscriptions query: %w", err)
+		return nil, fmt.Errorf("find user subscription query: %w", err)
 	}
 	defer rows.Close()
 
-	var results []*UserSubscription
-	for rows.Next() {
-		us := UserSubscription{}
+	if rows.Next() {
+		us := &UserSubscription{}
 		err := rows.Scan(
 			&us.UserID,
 			&us.PlanID,
@@ -80,21 +87,21 @@ func (r *subscriptionRepository) findSubscriptions(ctx context.Context, filter *
 			&us.BillingInterval,
 			&us.Provider,
 			&us.ExternalRef,
+			&us.CancelAtPeriodEnd,
 			&us.CreatedAt,
 			&us.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("find subscriptions scan: %w", err)
+			return nil, fmt.Errorf("find user subscription scan: %w", err)
 		}
-
-		results = append(results, &us)
+		return us, nil
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("rows: %w", err)
 	}
 
-	return results, nil
+	return nil, repository.ErrNotFound
 }
 
 func (r *subscriptionRepository) UpsertUserSubscription(ctx context.Context, us *UserSubscription) error {
@@ -192,5 +199,21 @@ func (r *subscriptionRepository) UpsertUserSubscriptionInvoice(ctx context.Conte
 			metadata = EXCLUDED.metadata,
 			created_at = EXCLUDED.created_at
 	`, invoice.ID, invoice.UserID, invoice.Provider, invoice.ExternalID, invoice.PlanID, invoice.BillingInterval, invoice.AmountPaid, invoice.Currency, invoice.PaidAt, invoice.HostedInvoiceURL, invoice.ReceiptURL, invoice.Metadata, invoice.CreatedAt)
+	return err
+}
+
+func (r *subscriptionRepository) CreateUserSubscriptionEvent(ctx context.Context, event *UserSubscriptionEvent) error {
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO user_subscription_event (
+			id,
+			user_id,
+			event_type,
+			provider,
+			occurred_at
+		)
+		VALUES (
+			$1, $2, $3, $4, $5
+		)
+	`, event.ID, event.UserID, event.EventType, event.Provider, event.OccurredAt)
 	return err
 }

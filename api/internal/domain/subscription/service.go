@@ -33,6 +33,7 @@ type CreatePayload struct {
 }
 
 func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
+	l := logger.FromCtx(ctx)
 	now := time.Now().UTC()
 
 	sub := &UserSubscription{
@@ -52,10 +53,25 @@ func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
 		return fmt.Errorf("failed to upsert user subscription: %w", err)
 	}
 
+	event := &UserSubscriptionEvent{
+		ID:         uuid.New(),
+		UserID:     payload.UserID,
+		EventType:  EventSubscribed,
+		Provider:   ProviderPaddle,
+		OccurredAt: now,
+	}
+
+	err = s.subscriptionRepository.CreateUserSubscriptionEvent(ctx, event)
+	if err != nil {
+		l.Errorw("failed to create user subscription event", "error", err)
+	}
+
 	return nil
 }
 
 func (s *Service) Cancelled(ctx context.Context, userID uuid.UUID) error {
+	l := logger.FromCtx(ctx)
+
 	subscription, err := s.subscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to find user subscription: %w", err)
@@ -69,6 +85,19 @@ func (s *Service) Cancelled(ctx context.Context, userID uuid.UUID) error {
 	err = s.subscriptionRepository.UpsertUserSubscription(ctx, subscription)
 	if err != nil {
 		return fmt.Errorf("failed to update user subscription status: %w", err)
+	}
+
+	event := &UserSubscriptionEvent{
+		ID:         uuid.New(),
+		UserID:     userID,
+		EventType:  EventCanceled,
+		Provider:   ProviderPaddle,
+		OccurredAt: now,
+	}
+
+	err = s.subscriptionRepository.CreateUserSubscriptionEvent(ctx, event)
+	if err != nil {
+		l.Errorw("failed to create user subscription event", "error", err)
 	}
 
 	return nil
@@ -149,6 +178,40 @@ func (s *Service) CreateOrUpdatePaymentProviderProfileForUser(ctx context.Contex
 	err := s.subscriptionRepository.UpsertPaymentProviderProfile(ctx, payload.Email, profile)
 	if err != nil {
 		return fmt.Errorf("failed to upsert payment provider profile: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Service) Expired(ctx context.Context, provider PaymentProvider, externalRef string) error {
+	l := logger.FromCtx(ctx)
+
+	subscription, err := s.subscriptionRepository.FindUserSubscriptionByExternalRef(ctx, provider, externalRef)
+	if err != nil {
+		return fmt.Errorf("failed to find the existing user subscription that expired: %w", err)
+	}
+
+	now := time.Now().UTC()
+
+	subscription.Status = StatusExpired
+	subscription.ValidUntil = now
+	subscription.UpdatedAt = &now
+	err = s.subscriptionRepository.UpsertUserSubscription(ctx, subscription)
+	if err != nil {
+		return fmt.Errorf("failed to update user subscription status: %w", err)
+	}
+
+	event := &UserSubscriptionEvent{
+		ID:         uuid.New(),
+		UserID:     subscription.UserID,
+		EventType:  EventExpired,
+		Provider:   ProviderPaddle,
+		OccurredAt: now,
+	}
+
+	err = s.subscriptionRepository.CreateUserSubscriptionEvent(ctx, event)
+	if err != nil {
+		l.Errorw("failed to create user subscription event", "error", err)
 	}
 
 	return nil

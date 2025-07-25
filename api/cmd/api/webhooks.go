@@ -177,7 +177,7 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				return
 			}
 
-			l.Infow("paddle webhook transaction paid", "transaction", transaction)
+			// l.Infow("paddle webhook transaction paid", "transaction", transaction)
 
 			userID, err := getUserIDFromCustomData(transaction.Data.CustomData)
 			if err != nil {
@@ -237,6 +237,21 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 			if err != nil {
 				l.Errorw("failed to create or update user subscription invoice", "error", err)
 				http.Error(w, "Failed to create or update user subscription invoice", http.StatusInternalServerError)
+				return
+			}
+
+		case paddlenotification.EventTypeNameSubscriptionPastDue:
+			paddleSubscription := &paddlenotification.SubscriptionPastDue{}
+			if err := json.Unmarshal(rawBody, paddleSubscription); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			subscriptionID := paddleSubscription.Data.ID
+			err = s.Expired(ctx, subscription.ProviderPaddle, subscriptionID)
+			if err != nil {
+				l.Errorw("failed to mark subscription as expired", "error", err)
+				http.Error(w, "Failed to mark subscription as expired", http.StatusInternalServerError)
 				return
 			}
 

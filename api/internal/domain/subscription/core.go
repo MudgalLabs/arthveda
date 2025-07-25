@@ -64,18 +64,15 @@ type UserSubscription struct {
 	UpdatedAt         *time.Time         `db:"updated_at" json:"updated_at"`
 }
 
-// UserSubscriptionEvent represents an event related to a user's subscription.
-// This is used to track changes in subscription status - created, canceled or expired.
-type UserSubscriptionEvent struct {
-	ID          uuid.UUID             `db:"id"`
-	UserID      uuid.UUID             `db:"user_id"`
-	EventType   SubscriptionEventType `db:"event_type"`
-	FromPlan    *PlanID               `db:"from_plan"`
-	ToPlan      *PlanID               `db:"to_plan"`
-	Provider    PaymentProvider       `db:"provider"`
-	ExternalRef *string               `db:"external_ref"`
-	OccurredAt  time.Time             `db:"occurred_at"`
-	Metadata    json.RawMessage       `db:"metadata"`
+// UserPaymentProviderProfile represents a user's payment provider configuration.
+// When a Paddle customer is created, we store the provider and customer ID (external_id).
+type UserPaymentProviderProfile struct {
+	ID         uuid.UUID       `db:"id"`
+	UserID     uuid.UUID       `db:"user_id"`
+	Provider   PaymentProvider `db:"provider"`
+	ExternalID string          `db:"external_id"`
+	Metadata   json.RawMessage `db:"metadata"`
+	CreatedAt  time.Time       `db:"created_at"`
 }
 
 // UserSubscriptionInvoice represents an invoice for a user's subscription.
@@ -96,13 +93,12 @@ type UserSubscriptionInvoice struct {
 	CreatedAt        time.Time       `db:"created_at"`
 }
 
-// UserPaymentProviderProfile represents a user's payment provider configuration.
-// When a Paddle customer is created, we store the provider and customer ID (external_id).
-type UserPaymentProviderProfile struct {
-	ID         uuid.UUID       `db:"id"`
-	UserID     uuid.UUID       `db:"user_id"`
-	Provider   PaymentProvider `db:"provider"`
-	ExternalID string          `db:"external_id"`
-	Metadata   json.RawMessage `db:"metadata"`
-	CreatedAt  time.Time       `db:"created_at"`
+// UserSubscriptionEvent represents an event related to a user's subscription.
+// This is used to track changes in subscription status - created, canceled or expired.
+type UserSubscriptionEvent struct {
+	ID         uuid.UUID             `db:"id"`
+	UserID     uuid.UUID             `db:"user_id"`
+	EventType  SubscriptionEventType `db:"event_type"`
+	Provider   PaymentProvider       `db:"provider"`
+	OccurredAt time.Time             `db:"occurred_at"`
 }
