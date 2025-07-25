@@ -36,9 +36,7 @@ CREATE TABLE IF NOT EXISTS user_subscription_invoice (
     amount_paid          NUMERIC(8, 2) NOT NULL,                 
     currency             TEXT NOT NULL DEFAULT 'INR',
     paid_at              TIMESTAMPTZ NOT NULL,
-    hosted_invoice_url   TEXT,                                   -- link to view invoice (optional)
-    receipt_url          TEXT,                                   -- link to receipt download (optional)
-    metadata             JSONB,                                  -- raw webhook or provider data
+    metadata             JSONB,                                  -- raw webhook or irovider data
     created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     UNIQUE(user_id, provider, external_id) -- e.g., unique Paddle invoice ID

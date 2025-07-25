@@ -124,7 +124,7 @@ func (s *Service) CancelAtPeriodEnd(ctx context.Context, userID uuid.UUID) (serv
 		return service.ErrNone, nil
 	}
 
-	paddleClient, err := getPaddleClient()
+	paddleClient, err := GetPaddleClient()
 	if err != nil {
 		return service.ErrInternalServerError, fmt.Errorf("failed to get paddle client: %w", err)
 	}
@@ -215,4 +215,47 @@ func (s *Service) Expired(ctx context.Context, provider PaymentProvider, externa
 	}
 
 	return nil
+}
+
+func (s *Service) ListUserSubscriptionInvoices(ctx context.Context, userID uuid.UUID) ([]*UserSubscriptionInvoice, service.Error, error) {
+	invoices, err := s.subscriptionRepository.ListUserSubscriptionInvoicesByUserID(ctx, userID)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("list user subscription invoices: %w", err)
+	}
+	return invoices, service.ErrNone, nil
+}
+
+func (s *Service) GetUserSubscriptionInvoiceDownloadLink(ctx context.Context, invoiceID uuid.UUID) (string, service.Error, error) {
+	l := logger.FromCtx(ctx)
+
+	invoice, err := s.subscriptionRepository.FindUserSubscriptionInvoiceByID(ctx, invoiceID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return "", service.ErrNotFound, fmt.Errorf("Invoice not found")
+		}
+		return "", service.ErrInternalServerError, fmt.Errorf("find user subscription invoice by id: %w", err)
+	}
+
+	if invoice.Provider != ProviderPaddle {
+		return "", service.ErrInternalServerError, fmt.Errorf("unsupported payment provider: %s", invoice.Provider)
+	}
+
+	client, err := GetPaddleClient()
+	if err != nil {
+		l.Errorw("failed to get paddle client", "error", err)
+		return "", service.ErrInternalServerError, err
+	}
+
+	req := &paddle.GetTransactionInvoiceRequest{
+		TransactionID: invoice.ExternalID,
+	}
+
+	res, err := client.GetTransactionInvoice(ctx, req)
+	if err != nil {
+		l.Errorw("failed to get transaction invoice", "error", err)
+		return "", service.ErrInternalServerError, err
+	}
+
+	downloadLink := res.URL
+	return downloadLink, service.ErrNone, nil
 }

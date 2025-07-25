@@ -18,7 +18,3 @@ export interface UserMeResponse extends User {}
 export function me() {
     return client.get(API_ROUTES.user.me);
 }
-
-export function cancelSubscriptionAtPeriodEnd() {
-    return client.post(API_ROUTES.user.cancelSubscriptionAtPeriodEnd);
-}

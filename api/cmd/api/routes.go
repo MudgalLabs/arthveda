@@ -111,7 +111,14 @@ func initRouter(a *app) http.Handler {
 			r.Use(authMiddleware)
 
 			r.Get("/me", getMeHandler(a.service.UserProfileService))
-			r.Post("/me/subscription/cancel-at-period-end", cancelSubscriptionAtPeriodEndHandler(a.service.SubscriptionService))
+		})
+
+		r.Route("/subscriptions", func(r chi.Router) {
+			r.Use(authMiddleware)
+
+			r.Post("/me/cancel-at-period-end", cancelSubscriptionAtPeriodEndHandler(a.service.SubscriptionService))
+			r.Get("/me/invoices", listUserSubscriptionInvoices(a.service.SubscriptionService))
+			r.Get("/me/invoices/{id}/download-link", getUserSubscriptionInvoiceDownloadLink(a.service.SubscriptionService))
 		})
 
 		r.Route("/user-broker-accounts", func(r chi.Router) {

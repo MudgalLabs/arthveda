@@ -67,38 +67,36 @@ type UserSubscription struct {
 // UserPaymentProviderProfile represents a user's payment provider configuration.
 // When a Paddle customer is created, we store the provider and customer ID (external_id).
 type UserPaymentProviderProfile struct {
-	ID         uuid.UUID       `db:"id"`
-	UserID     uuid.UUID       `db:"user_id"`
-	Provider   PaymentProvider `db:"provider"`
-	ExternalID string          `db:"external_id"`
-	Metadata   json.RawMessage `db:"metadata"`
-	CreatedAt  time.Time       `db:"created_at"`
+	ID         uuid.UUID       `db:"id" json:"id"`
+	UserID     uuid.UUID       `db:"user_id" json:"user_id"`
+	Provider   PaymentProvider `db:"provider" json:"provider"`
+	ExternalID string          `db:"external_id" json:"external_id"`
+	Metadata   json.RawMessage `db:"metadata" json:"metadata"`
+	CreatedAt  time.Time       `db:"created_at" json:"created_at"`
 }
 
 // UserSubscriptionInvoice represents an invoice for a user's subscription.
 // When a Paddle subscription.created, we store the invoice details.
 type UserSubscriptionInvoice struct {
-	ID               uuid.UUID       `db:"id"`
-	UserID           uuid.UUID       `db:"user_id"`
-	Provider         PaymentProvider `db:"provider"`
-	ExternalID       string          `db:"external_id"` // e.g. Paddle transaction ID
-	PlanID           PlanID          `db:"plan_id"`
-	BillingInterval  BillingInterval `db:"billing_interval"`
-	AmountPaid       decimal.Decimal `db:"amount_paid"`
-	Currency         string          `db:"currency"`
-	PaidAt           time.Time       `db:"paid_at"`
-	HostedInvoiceURL *string         `db:"hosted_invoice_url"`
-	ReceiptURL       *string         `db:"receipt_url"`
-	Metadata         json.RawMessage `db:"metadata"`
-	CreatedAt        time.Time       `db:"created_at"`
+	ID              uuid.UUID       `db:"id" json:"id"`
+	UserID          uuid.UUID       `db:"user_id" json:"user_id"`
+	Provider        PaymentProvider `db:"provider" json:"provider"`
+	ExternalID      string          `db:"external_id" json:"external_id"` // e.g. Paddle transaction ID
+	PlanID          PlanID          `db:"plan_id" json:"plan_id"`
+	BillingInterval BillingInterval `db:"billing_interval" json:"billing_interval"`
+	AmountPaid      decimal.Decimal `db:"amount_paid" json:"amount_paid"`
+	Currency        string          `db:"currency" json:"currency"`
+	PaidAt          time.Time       `db:"paid_at" json:"paid_at"`
+	Metadata        json.RawMessage `db:"metadata" json:"metadata"`
+	CreatedAt       time.Time       `db:"created_at" json:"created_at"`
 }
 
 // UserSubscriptionEvent represents an event related to a user's subscription.
 // This is used to track changes in subscription status - created, canceled or expired.
 type UserSubscriptionEvent struct {
-	ID         uuid.UUID             `db:"id"`
-	UserID     uuid.UUID             `db:"user_id"`
-	EventType  SubscriptionEventType `db:"event_type"`
-	Provider   PaymentProvider       `db:"provider"`
-	OccurredAt time.Time             `db:"occurred_at"`
+	ID         uuid.UUID             `db:"id" json:"id"`
+	UserID     uuid.UUID             `db:"user_id" json:"user_id"`
+	EventType  SubscriptionEventType `db:"event_type" json:"event_type"`
+	Provider   PaymentProvider       `db:"provider" json:"provider"`
+	OccurredAt time.Time             `db:"occurred_at" json:"occurred_at"`
 }

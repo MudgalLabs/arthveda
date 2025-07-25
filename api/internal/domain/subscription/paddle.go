@@ -6,7 +6,7 @@ import (
 	"github.com/PaddleHQ/paddle-go-sdk"
 )
 
-func getPaddleClient() (*paddle.SDK, error) {
+func GetPaddleClient() (*paddle.SDK, error) {
 	var option paddle.Option
 	if env.IsProd() {
 		option = paddle.WithBaseURL(paddle.ProductionBaseURL)

@@ -14,6 +14,8 @@ import (
 type Reader interface {
 	FindUserSubscriptionByUserID(ctx context.Context, userID uuid.UUID) (*UserSubscription, error)
 	FindUserSubscriptionByExternalRef(ctx context.Context, provider PaymentProvider, externalRef string) (*UserSubscription, error)
+	ListUserSubscriptionInvoicesByUserID(ctx context.Context, userID uuid.UUID) ([]*UserSubscriptionInvoice, error)
+	FindUserSubscriptionInvoiceByID(ctx context.Context, id uuid.UUID) (*UserSubscriptionInvoice, error)
 }
 
 type Writer interface {
@@ -180,13 +182,11 @@ func (r *subscriptionRepository) UpsertUserSubscriptionInvoice(ctx context.Conte
 			amount_paid,
 			currency,
 			paid_at,
-			hosted_invoice_url,
-			receipt_url,
 			metadata,
 			created_at
 		)
 		VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 		)
 		ON CONFLICT (user_id, provider, external_id) DO UPDATE SET
 			plan_id = EXCLUDED.plan_id,
@@ -194,11 +194,9 @@ func (r *subscriptionRepository) UpsertUserSubscriptionInvoice(ctx context.Conte
 			amount_paid = EXCLUDED.amount_paid,
 			currency = EXCLUDED.currency,
 			paid_at = EXCLUDED.paid_at,
-			hosted_invoice_url = EXCLUDED.hosted_invoice_url,
-			receipt_url = EXCLUDED.receipt_url,
 			metadata = EXCLUDED.metadata,
 			created_at = EXCLUDED.created_at
-	`, invoice.ID, invoice.UserID, invoice.Provider, invoice.ExternalID, invoice.PlanID, invoice.BillingInterval, invoice.AmountPaid, invoice.Currency, invoice.PaidAt, invoice.HostedInvoiceURL, invoice.ReceiptURL, invoice.Metadata, invoice.CreatedAt)
+	`, invoice.ID, invoice.UserID, invoice.Provider, invoice.ExternalID, invoice.PlanID, invoice.BillingInterval, invoice.AmountPaid, invoice.Currency, invoice.PaidAt, invoice.Metadata, invoice.CreatedAt)
 	return err
 }
 
@@ -216,4 +214,81 @@ func (r *subscriptionRepository) CreateUserSubscriptionEvent(ctx context.Context
 		)
 	`, event.ID, event.UserID, event.EventType, event.Provider, event.OccurredAt)
 	return err
+}
+
+type subscriptionInvoiceFilter struct {
+	UserID *uuid.UUID
+	ID     *uuid.UUID
+}
+
+func (r *subscriptionRepository) findUserSubscriptionInvoices(ctx context.Context, filter *subscriptionInvoiceFilter) ([]*UserSubscriptionInvoice, error) {
+	baseSQL := `
+		SELECT id, user_id, provider, external_id, plan_id, billing_interval, amount_paid, currency, paid_at, metadata, created_at
+		FROM user_subscription_invoice
+	`
+	sqlb := dbx.NewSQLBuilder(baseSQL)
+	if filter != nil {
+		if filter.UserID != nil {
+			sqlb.AddCompareFilter("user_id", dbx.OperatorEQ, *filter.UserID)
+		}
+		if filter.ID != nil {
+			sqlb.AddCompareFilter("id", dbx.OperatorEQ, *filter.ID)
+		}
+	}
+	sqlb.AddSorting("paid_at", "DESC")
+
+	sql, args := sqlb.Build()
+
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("find user subscription invoices query: %w", err)
+	}
+	defer rows.Close()
+
+	var invoices []*UserSubscriptionInvoice
+	for rows.Next() {
+		inv := &UserSubscriptionInvoice{}
+		err := rows.Scan(
+			&inv.ID,
+			&inv.UserID,
+			&inv.Provider,
+			&inv.ExternalID,
+			&inv.PlanID,
+			&inv.BillingInterval,
+			&inv.AmountPaid,
+			&inv.Currency,
+			&inv.PaidAt,
+			&inv.Metadata,
+			&inv.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("find user subscription invoices scan: %w", err)
+		}
+		invoices = append(invoices, inv)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows: %w", err)
+	}
+	return invoices, nil
+}
+
+func (r *subscriptionRepository) ListUserSubscriptionInvoicesByUserID(ctx context.Context, userID uuid.UUID) ([]*UserSubscriptionInvoice, error) {
+	filter := &subscriptionInvoiceFilter{
+		UserID: &userID,
+	}
+	return r.findUserSubscriptionInvoices(ctx, filter)
+}
+
+func (r *subscriptionRepository) FindUserSubscriptionInvoiceByID(ctx context.Context, id uuid.UUID) (*UserSubscriptionInvoice, error) {
+	filter := &subscriptionInvoiceFilter{
+		ID: &id,
+	}
+	invoices, err := r.findUserSubscriptionInvoices(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	if len(invoices) == 0 {
+		return nil, repository.ErrNotFound
+	}
+	return invoices[0], nil
 }

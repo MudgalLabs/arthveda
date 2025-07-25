@@ -22,12 +22,16 @@ export const API_ROUTES = {
         import: "/v1/positions/import",
         search: "/v1/positions/search",
     },
+    subscription: {
+        cancelSubscriptionAtPeriodEnd: "/v1/subscriptions/me/cancel-at-period-end",
+        listUserSubscriptionInvoices: "/v1/subscriptions/me/invoices",
+        invoiceDownloadLink: (id: string) => `/v1/subscriptions/me/invoices/${id}/download-link`,
+    },
     symbol: {
         search: "/v1/symbols/search",
     },
     user: {
         me: "/v1/users/me",
-        cancelSubscriptionAtPeriodEnd: "/v1/users/me/subscription/cancel-at-period-end",
     },
     userBrokerAccount: {
         list: "/v1/user-broker-accounts",

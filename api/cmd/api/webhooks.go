@@ -220,7 +220,15 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				break
 			}
 
+			id, err := uuid.NewV7()
+			if err != nil {
+				l.Errorw("failed to generate UUID", "error", err)
+				http.Error(w, "Failed to generate UUID", http.StatusInternalServerError)
+				return
+			}
+
 			invoice := &subscription.UserSubscriptionInvoice{
+				ID:              id,
 				UserID:          userID,
 				Provider:        subscription.ProviderPaddle,
 				ExternalID:      transaction.Data.ID,

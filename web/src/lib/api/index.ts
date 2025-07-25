@@ -7,6 +7,7 @@ import * as broker from "@/lib/api/broker";
 import * as currency from "@/lib/api/currency";
 import * as dashboard from "@/lib/api/dashboard";
 import * as position from "@/lib/api/position";
+import * as subscription from "@/lib/api/subscription";
 import * as symbol from "@/lib/api/symbol";
 import * as user from "@/lib/api/user";
 import * as userBrokerAccount from "@/lib/api/user_broker_account";
@@ -17,6 +18,7 @@ export const api = {
     currency,
     dashboard,
     position,
+    subscription,
     symbol,
     user,
     userBrokerAccount,
