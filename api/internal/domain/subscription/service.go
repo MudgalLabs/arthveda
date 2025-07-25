@@ -5,6 +5,7 @@ import (
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -32,7 +33,6 @@ type CreatePayload struct {
 }
 
 func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
-	l := logger.FromCtx(ctx)
 	now := time.Now().UTC()
 
 	sub := &UserSubscription{
@@ -47,8 +47,6 @@ func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
 		CreatedAt:       now,
 	}
 
-	l.Infow("Creating User Subscription:", "subscription", sub)
-
 	err := s.subscriptionRepository.UpsertUserSubscription(ctx, sub)
 	if err != nil {
 		return fmt.Errorf("failed to upsert user subscription: %w", err)
@@ -58,10 +56,6 @@ func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
 }
 
 func (s *Service) Cancelled(ctx context.Context, userID uuid.UUID) error {
-	l := logger.FromCtx(ctx)
-
-	l.Infow("Cancelling User Subscription for user", "user_id", userID)
-
 	subscription, err := s.subscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to find user subscription: %w", err)
@@ -82,8 +76,6 @@ func (s *Service) Cancelled(ctx context.Context, userID uuid.UUID) error {
 
 func (s *Service) CancelAtPeriodEnd(ctx context.Context, userID uuid.UUID) (service.Error, error) {
 	l := logger.FromCtx(ctx)
-
-	l.Infow("Cancelling User Subscription at period end for user", "user_id", userID)
 
 	subscription, err := s.subscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
 	if err != nil {
@@ -108,8 +100,12 @@ func (s *Service) CancelAtPeriodEnd(ctx context.Context, userID uuid.UUID) (serv
 		return service.ErrInternalServerError, fmt.Errorf("failed to get paddle client: %w", err)
 	}
 
+	// !!!!!!! REMOVE THIS AFTER TESTING !!!!!!! //
+	effectiveFrom := paddle.EffectiveFromImmediately
 	req := &paddle.CancelSubscriptionRequest{
 		SubscriptionID: subscription.ExternalRef,
+		// !!!!!!! REMOVE THIS AFTER TESTING !!!!!!! //
+		EffectiveFrom: &effectiveFrom,
 	}
 	_, err = paddleClient.CancelSubscription(ctx, req)
 	if err != nil {
@@ -125,4 +121,35 @@ func (s *Service) CancelAtPeriodEnd(ctx context.Context, userID uuid.UUID) (serv
 	}
 
 	return service.ErrNone, nil
+}
+
+func (s *Service) CreateOrUpdateUserSubscriptionInvoice(ctx context.Context, invoice *UserSubscriptionInvoice) error {
+	err := s.subscriptionRepository.UpsertUserSubscriptionInvoice(ctx, invoice)
+	if err != nil {
+		return fmt.Errorf("failed to upsert user subscription invoice: %w", err)
+	}
+	return nil
+}
+
+type CreatePaymentProviderProfilePayload struct {
+	Email      string
+	Provider   PaymentProvider
+	ExternalID string
+	RawData    json.RawMessage
+}
+
+func (s *Service) CreateOrUpdatePaymentProviderProfileForUser(ctx context.Context, payload *CreatePaymentProviderProfilePayload) error {
+	profile := &UserPaymentProviderProfile{
+		UserID:     uuid.Nil, // Will be set later by UpsertPaymentProviderProfile.
+		Provider:   payload.Provider,
+		ExternalID: payload.ExternalID,
+		Metadata:   payload.RawData,
+		CreatedAt:  time.Now().UTC(),
+	}
+	err := s.subscriptionRepository.UpsertPaymentProviderProfile(ctx, payload.Email, profile)
+	if err != nil {
+		return fmt.Errorf("failed to upsert payment provider profile: %w", err)
+	}
+
+	return nil
 }

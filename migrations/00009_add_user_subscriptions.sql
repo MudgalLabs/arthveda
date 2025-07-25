@@ -39,16 +39,18 @@ CREATE TABLE IF NOT EXISTS user_subscription_invoice (
     external_id          TEXT NOT NULL,                          -- Invoice or payment ID from provider
     plan_id              TEXT NOT NULL,                          -- e.g. 'pro'
     billing_interval     TEXT NOT NULL CHECK (billing_interval IN ('monthly', 'yearly')),
-    amount_paid          INTEGER NOT NULL,                       -- in smallest currency unit (e.g. paise)
+    amount_paid          NUMERIC(14, 2) NOT NULL,                       -- in smallest currency unit (e.g. paise)
     currency             TEXT NOT NULL DEFAULT 'INR',
     paid_at              TIMESTAMPTZ NOT NULL,
     hosted_invoice_url   TEXT,                                   -- link to view invoice (optional)
     receipt_url          TEXT,                                   -- link to receipt download (optional)
     metadata             JSONB,                                  -- raw webhook or provider data
-    created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE(user_id, provider, external_id) -- e.g., unique Paddle invoice ID
 );
 
-CREATE TABLE IF NOT EXISTS user_payment_provider (
+CREATE TABLE IF NOT EXISTS user_payment_provider_profile (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id         UUID NOT NULL REFERENCES user_profile(user_id) ON DELETE CASCADE,
     provider        TEXT NOT NULL CHECK (provider IN ('paddle')),

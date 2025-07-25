@@ -13,6 +13,7 @@ import (
 	paddle "github.com/PaddleHQ/paddle-go-sdk"
 	"github.com/PaddleHQ/paddle-go-sdk/pkg/paddlenotification"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
@@ -65,7 +66,7 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				return
 			}
 
-			l.Infow("paddle webhook subscription created", "subscription", paddleSubscription)
+			// l.Infow("paddle webhook subscription created", "subscription", paddleSubscription)
 
 			userID, err := getUserIDFromCustomData(paddleSubscription.Data.CustomData)
 			if err != nil {
@@ -112,7 +113,7 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				return
 			}
 
-			l.Infow("paddle webhook subscription canceled", "subscription", paddleSubscription)
+			// l.Infow("paddle webhook subscription canceled", "subscription", paddleSubscription)
 
 			userID, err := getUserIDFromCustomData(paddleSubscription.Data.CustomData)
 			if err != nil {
@@ -127,6 +128,118 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				return
 			}
 
+		case paddlenotification.EventTypeNameCustomerCreated:
+			paddleCustomer := &paddlenotification.CustomerCreated{}
+			if err := json.Unmarshal(rawBody, paddleCustomer); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			// l.Infow("paddle webhook customer created", "customer", paddleCustomer)
+
+			payload := &subscription.CreatePaymentProviderProfilePayload{
+				Email:      paddleCustomer.Data.Email,
+				Provider:   subscription.ProviderPaddle,
+				ExternalID: paddleCustomer.Data.ID,
+				RawData:    json.RawMessage(rawBody),
+			}
+
+			err := s.CreateOrUpdatePaymentProviderProfileForUser(ctx, payload)
+			if err != nil {
+				l.Errorw("failed to create payment provider profile for user", "error", err)
+			}
+
+		case paddlenotification.EventTypeNameCustomerUpdated:
+			paddleCustomer := &paddlenotification.CustomerUpdated{}
+			if err := json.Unmarshal(rawBody, paddleCustomer); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			payload := &subscription.CreatePaymentProviderProfilePayload{
+				Email:      paddleCustomer.Data.Email,
+				Provider:   subscription.ProviderPaddle,
+				ExternalID: paddleCustomer.Data.ID,
+				RawData:    json.RawMessage(rawBody),
+			}
+
+			// l.Infow("paddle webhook customer updated", "customer", paddleCustomer)
+
+			err := s.CreateOrUpdatePaymentProviderProfileForUser(ctx, payload)
+			if err != nil {
+				l.Errorw("failed to create payment provider profile for user", "error", err)
+			}
+
+		case paddlenotification.EventTypeNameTransactionPaid:
+			transaction := &paddlenotification.TransactionPaid{}
+			if err := json.Unmarshal(rawBody, transaction); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			l.Infow("paddle webhook transaction paid", "transaction", transaction)
+
+			userID, err := getUserIDFromCustomData(transaction.Data.CustomData)
+			if err != nil {
+				l.Errorw("failed to get user ID from custom data", "error", err)
+				break
+			}
+
+			if len(transaction.Data.Items) != 1 {
+				l.Error("expected exactly one item in transaction, found", "count", len(transaction.Data.Items))
+				http.Error(w, "expected exactly one item in transaction", http.StatusBadRequest)
+				return
+			}
+
+			item := transaction.Data.Items[0]
+			var interval subscription.BillingInterval
+			switch item.Price.BillingCycle.Interval {
+			case "month":
+				interval = subscription.IntervalMonthly
+			case "year":
+				interval = subscription.IntervalYearly
+			default:
+				l.Error("unknown billing interval", "interval", item.Price.BillingCycle.Interval)
+				http.Error(w, "unknown billing interval", http.StatusBadRequest)
+				return
+			}
+
+			// Amount will be in smallest currency. So for INR, 199 -> 19900 paise.
+			amountPaid, err := decimal.NewFromString(transaction.Data.Details.Totals.Total)
+			if err != nil {
+				l.Errorw("failed to parse amount", "error", err)
+				http.Error(w, "failed to parse amount", http.StatusBadRequest)
+				return
+			}
+
+			amountPaid = amountPaid.Div(decimal.NewFromInt(100)) // Convert to main currency unit
+
+			paidAt, err := time.Parse(time.RFC3339Nano, transaction.Data.CreatedAt)
+			if err != nil {
+				l.Errorw("invalid created_at format", "error", err)
+				break
+			}
+
+			invoice := &subscription.UserSubscriptionInvoice{
+				UserID:          userID,
+				Provider:        subscription.ProviderPaddle,
+				ExternalID:      transaction.Data.ID,
+				PlanID:          subscription.PlanPro,
+				BillingInterval: interval,
+				AmountPaid:      amountPaid,
+				Currency:        string(transaction.Data.Details.Totals.CurrencyCode),
+				PaidAt:          paidAt,
+				Metadata:        json.RawMessage(rawBody),
+				CreatedAt:       time.Now().UTC(),
+			}
+
+			err = s.CreateOrUpdateUserSubscriptionInvoice(ctx, invoice)
+			if err != nil {
+				l.Errorw("failed to create or update user subscription invoice", "error", err)
+				http.Error(w, "Failed to create or update user subscription invoice", http.StatusInternalServerError)
+				return
+			}
+
 		default:
 			generic := &paddlenotification.GenericNotificationEvent{}
 			if err := json.Unmarshal(rawBody, generic); err != nil {
@@ -135,7 +248,7 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 			}
 		}
 
-		successResponse(w, r, http.StatusOK, "Paddle webhook processed", nil)
+		successResponse(w, r, http.StatusOK, "paddle webhook processed", nil)
 	}
 }
 

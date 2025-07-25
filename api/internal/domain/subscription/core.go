@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 // SubscriptionStatus enum
@@ -83,10 +84,10 @@ type UserSubscriptionInvoice struct {
 	ID               uuid.UUID       `db:"id"`
 	UserID           uuid.UUID       `db:"user_id"`
 	Provider         PaymentProvider `db:"provider"`
-	ExternalID       string          `db:"external_id"`
+	ExternalID       string          `db:"external_id"` // e.g. Paddle transaction ID
 	PlanID           PlanID          `db:"plan_id"`
 	BillingInterval  BillingInterval `db:"billing_interval"`
-	AmountPaid       int64           `db:"amount_paid"`
+	AmountPaid       decimal.Decimal `db:"amount_paid"`
 	Currency         string          `db:"currency"`
 	PaidAt           time.Time       `db:"paid_at"`
 	HostedInvoiceURL *string         `db:"hosted_invoice_url"`
@@ -95,9 +96,9 @@ type UserSubscriptionInvoice struct {
 	CreatedAt        time.Time       `db:"created_at"`
 }
 
-// UserPaymentProvider represents a user's payment provider configuration.
+// UserPaymentProviderProfile represents a user's payment provider configuration.
 // When a Paddle customer is created, we store the provider and customer ID (external_id).
-type UserPaymentProvider struct {
+type UserPaymentProviderProfile struct {
 	ID         uuid.UUID       `db:"id"`
 	UserID     uuid.UUID       `db:"user_id"`
 	Provider   PaymentProvider `db:"provider"`

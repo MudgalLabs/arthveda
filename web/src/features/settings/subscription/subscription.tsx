@@ -1,4 +1,5 @@
 import { PageHeading } from "@/components/page_heading";
+import { toast } from "@/components/toast";
 import { UpgradeToPro } from "@/components/upgrade_to_pro";
 import { useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
 import { apiHooks } from "@/hooks/api_hooks";
@@ -10,6 +11,11 @@ export const Subscription = () => {
     const hasPro = useUserHasProSubscription();
 
     const { mutate: cancelSubscription } = apiHooks.user.useCancelSubscriptionAtPeriodEnd({
+        onSuccess: () => {
+            toast.success("Subscription scheduled to cancel", {
+                description: "Your subscription will be cancelled at the end of the current period.",
+            });
+        },
         onError: apiErrorHandler,
     });
 

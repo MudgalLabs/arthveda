@@ -42,11 +42,15 @@ export const UpgradeToPro = () => {
                 },
             ],
             settings: {
+                allowLogout: false,
                 displayMode: "overlay",
                 theme: "dark",
                 successUrl: isProd()
                     ? "https://web.arthveda.app" + ROUTES.subscription
                     : "http://localhost:6969" + ROUTES.subscription,
+            },
+            customer: {
+                email: data.email,
             },
             customData: {
                 user_id: data.user_id,

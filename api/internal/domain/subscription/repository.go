@@ -17,6 +17,8 @@ type Reader interface {
 
 type Writer interface {
 	UpsertUserSubscription(ctx context.Context, us *UserSubscription) error
+	UpsertPaymentProviderProfile(ctx context.Context, email string, profile *UserPaymentProviderProfile) error
+	UpsertUserSubscriptionInvoice(ctx context.Context, invoice *UserSubscriptionInvoice) error
 }
 
 type ReadWriter interface {
@@ -126,5 +128,69 @@ func (r *subscriptionRepository) UpsertUserSubscription(ctx context.Context, us 
 			updated_at = EXCLUDED.updated_at
 	`, us.UserID, us.PlanID, us.Status, us.ValidFrom, us.ValidUntil, us.BillingInterval, us.Provider, us.ExternalRef, us.CancelAtPeriodEnd, us.CreatedAt, us.UpdatedAt)
 
+	return err
+}
+
+func (r *subscriptionRepository) UpsertPaymentProviderProfile(ctx context.Context, email string, profile *UserPaymentProviderProfile) error {
+	userID := profile.UserID
+
+	if userID == uuid.Nil {
+		err := r.db.QueryRow(ctx, `SELECT user_id FROM user_profile WHERE email = $1`, email).Scan(&userID)
+		if err != nil {
+			return fmt.Errorf("failed to find user by email: %w", err)
+		}
+	}
+
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO user_payment_provider_profile (
+			user_id,
+			provider,
+			external_id,
+			metadata,
+			created_at
+		)
+		VALUES (
+			$1, $2, $3, $4, $5
+		)
+		ON CONFLICT (user_id, provider) DO UPDATE SET
+			external_id = EXCLUDED.external_id,
+			metadata = EXCLUDED.metadata,
+			created_at = EXCLUDED.created_at
+	`, userID, profile.Provider, profile.ExternalID, profile.Metadata, profile.CreatedAt)
+
+	return err
+}
+
+func (r *subscriptionRepository) UpsertUserSubscriptionInvoice(ctx context.Context, invoice *UserSubscriptionInvoice) error {
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO user_subscription_invoice (
+			id,
+			user_id,
+			provider,
+			external_id,
+			plan_id,
+			billing_interval,
+			amount_paid,
+			currency,
+			paid_at,
+			hosted_invoice_url,
+			receipt_url,
+			metadata,
+			created_at
+		)
+		VALUES (
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+		)
+		ON CONFLICT (user_id, provider, external_id) DO UPDATE SET
+			plan_id = EXCLUDED.plan_id,
+			billing_interval = EXCLUDED.billing_interval,
+			amount_paid = EXCLUDED.amount_paid,
+			currency = EXCLUDED.currency,
+			paid_at = EXCLUDED.paid_at,
+			hosted_invoice_url = EXCLUDED.hosted_invoice_url,
+			receipt_url = EXCLUDED.receipt_url,
+			metadata = EXCLUDED.metadata,
+			created_at = EXCLUDED.created_at
+	`, invoice.ID, invoice.UserID, invoice.Provider, invoice.ExternalID, invoice.PlanID, invoice.BillingInterval, invoice.AmountPaid, invoice.Currency, invoice.PaidAt, invoice.HostedInvoiceURL, invoice.ReceiptURL, invoice.Metadata, invoice.CreatedAt)
 	return err
 }
