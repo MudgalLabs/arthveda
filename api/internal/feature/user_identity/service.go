@@ -1,7 +1,7 @@
 package user_identity
 
 import (
-	"arthveda/internal/feature/user_profile"
+	"arthveda/internal/feature/userprofile"
 	"arthveda/internal/oauth"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
@@ -14,17 +14,17 @@ import (
 
 type Service struct {
 	userIdentityRepository ReadWriter
-	userProfileRepository  user_profile.ReadWriter
+	userProfileRepository  userprofile.ReadWriter
 }
 
-func NewService(uir ReadWriter, upr user_profile.ReadWriter) *Service {
+func NewService(uir ReadWriter, upr userprofile.ReadWriter) *Service {
 	return &Service{
 		userIdentityRepository: uir,
 		userProfileRepository:  upr,
 	}
 }
 
-func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*user_profile.UserProfile, service.Error, error) {
+func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*userprofile.UserProfile, service.Error, error) {
 	// Exchanging the code for an access token
 	googleOAuthToken, err := oauth.GoogleConfig.Exchange(context.Background(), code)
 	if err != nil {
@@ -61,7 +61,7 @@ func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*user_p
 		}
 	}
 
-	var userProfile *user_profile.UserProfile
+	var userProfile *userprofile.UserProfile
 
 	// No user found with the email, create a new user profile.
 	if userIdentity == nil {
@@ -108,7 +108,7 @@ type SignUpPayload struct {
 	Password string `json:"password"`
 }
 
-func (s *Service) SignUp(ctx context.Context, payload SignUpPayload) (*user_profile.UserProfile, service.Error, error) {
+func (s *Service) SignUp(ctx context.Context, payload SignUpPayload) (*userprofile.UserProfile, service.Error, error) {
 	userIdentity, err := s.userIdentityRepository.FindUserIdentityByEmail(ctx, payload.Email)
 	if err != nil && err != repository.ErrNotFound {
 		return nil, service.ErrInternalServerError, fmt.Errorf("find user identity by email: %w", err)
@@ -136,7 +136,7 @@ type SignInPayload struct {
 	Password string `json:"password"`
 }
 
-func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*user_profile.UserProfile, service.Error, error) {
+func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*userprofile.UserProfile, service.Error, error) {
 	userIdentity, err := s.userIdentityRepository.FindUserIdentityByEmail(ctx, payload.Email)
 	if err != nil {
 		if err == repository.ErrNotFound {

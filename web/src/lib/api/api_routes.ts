@@ -27,6 +27,7 @@ export const API_ROUTES = {
     },
     user: {
         me: "/v1/users/me",
+        cancelSubscriptionAtPeriodEnd: "/v1/users/me/subscription/cancel-at-period-end",
     },
     userBrokerAccount: {
         list: "/v1/user-broker-accounts",

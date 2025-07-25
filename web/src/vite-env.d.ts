@@ -39,6 +39,11 @@ interface ImportMetaEnv {
      * The PostHog host URL.
      */
     readonly ARTHVEDA_POSTHOG_HOST: string;
+
+    /**
+     * The Paddle client token for payment processing.
+     */
+    readonly ARTHVEDA_PADDLE_CLIENT_TOKEN: string;
 }
 
 interface ImportMeta {

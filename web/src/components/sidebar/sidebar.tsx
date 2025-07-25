@@ -9,7 +9,7 @@ import { IconCandlestick, IconDashboard, IconType } from "@/components/icons";
 import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/constants";
-import { ProfileMenu } from "@/components/topbar";
+import { ProfileMenu } from "@/components/profile_menu";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";

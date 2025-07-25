@@ -7,18 +7,20 @@ import (
 )
 
 var (
-	API_ENV              string
-	LOG_LEVEL            string
-	LOG_FILE             string
-	DB_URL               string
-	WEB_URL              string
-	ENABLE_SIGN_UP       bool
-	ENABLE_SIGN_IN       bool
-	ENABLE_GOOGLE_OAUTH  bool
-	GOOGLE_REDIRECT_URL  string
-	GOOGLE_CLIENT_ID     string
-	GOOGLE_CLIENT_SECRET string
-	CIPHER_KEY           string
+	API_ENV               string
+	LOG_LEVEL             string
+	LOG_FILE              string
+	DB_URL                string
+	WEB_URL               string
+	ENABLE_SIGN_UP        bool
+	ENABLE_SIGN_IN        bool
+	ENABLE_GOOGLE_OAUTH   bool
+	GOOGLE_REDIRECT_URL   string
+	GOOGLE_CLIENT_ID      string
+	GOOGLE_CLIENT_SECRET  string
+	CIPHER_KEY            string
+	PADDLE_WEBHOOK_SECRET string
+	PADDLE_API_KEY        string
 )
 
 func IsProd() bool {
@@ -44,6 +46,8 @@ func Init(path string) {
 	GOOGLE_CLIENT_ID = os.Getenv("ARTHVEDA_GOOGLE_CLIENT_ID")
 	GOOGLE_CLIENT_SECRET = os.Getenv("ARTHVEDA_GOOGLE_CLIENT_SECRET")
 	CIPHER_KEY = os.Getenv("ARTHVEDA_API_CIPHER_KEY")
+	PADDLE_WEBHOOK_SECRET = os.Getenv("ARTHVEDA_PADDLE_WEBHOOK_SECRET")
+	PADDLE_API_KEY = os.Getenv("ARTHVEDA_PADDLE_API_KEY")
 
 	// TODO: We should validate the environment variables here to ensure they are set correctly.
 

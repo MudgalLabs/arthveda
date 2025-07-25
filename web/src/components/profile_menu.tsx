@@ -1,18 +1,14 @@
 import { FC, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 
-import { Button, Tooltip } from "@/s8ly";
-import { useSidebar } from "@/components/sidebar/sidebar_context";
+import { Button } from "@/s8ly";
 import {
-    IconPanelLeftOpen,
-    IconPanelLeftClose,
     IconLogout,
-    // IconCreditCard,
+    IconCreditCard,
     // IconLifeBuoy,
     IconPlug,
     IconChevronDown,
 } from "@/components/icons";
-import { Branding } from "@/components/branding";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
 import {
@@ -23,59 +19,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuLabel,
 } from "@/s8ly/dropdown_menu/dropdown_menu";
-import { useAuthentication } from "@/features/auth/auth_context";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
 import { apiErrorHandler } from "@/lib/api";
-import { useIsMobile } from "@/hooks/use_is_mobile";
 import { cn } from "@/lib/utils";
-
-export const Topbar = () => {
-    const { data } = useAuthentication();
-    const isMobile = useIsMobile();
-    const { isOpen, toggleSidebar } = useSidebar();
-
-    return (
-        <div className="border-b-border flex h-full w-full items-center justify-between border-b-1">
-            <div className="mr-4 flex w-full items-baseline justify-start">
-                <Tooltip
-                    content={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-                    delayDuration={0}
-                    contentProps={{ side: "right" }}
-                >
-                    <Button
-                        // The 6 margin on the left comes from the Sidebar where the Icon
-                        // is rendered at 6 margin from the left.
-                        className="mr-8 ml-6"
-                        variant="secondary"
-                        size="icon"
-                        type="button"
-                        onClick={toggleSidebar}
-                    >
-                        {isOpen ? <IconPanelLeftClose size={20} /> : <IconPanelLeftOpen size={20} />}
-                    </Button>
-                </Tooltip>
-
-                <Link to={ROUTES.dashboard} variant="unstyled">
-                    <Branding size="small" hideText={isMobile} />
-                </Link>
-            </div>
-
-            {data && (
-                <div className="mr-6">
-                    <ProfileMenu
-                        sidebarOpen={isOpen}
-                        email={data.email}
-                        displayName={data.name}
-                        profileImageURL={data.avatar_url}
-                        isMobile={isMobile}
-                    />
-                </div>
-            )}
-        </div>
-    );
-};
 
 interface ProfileMenuProps {
     sidebarOpen: boolean;
@@ -159,12 +107,12 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
 
                 <DropdownMenuSeparator />
 
-                {/* <Link to={ROUTES.planAndBilling} variant="unstyled">
+                <Link to={ROUTES.subscription} variant="unstyled">
                     <DropdownMenuItem>
                         <IconCreditCard size={18} />
-                        Plan & Billing
+                        Manage Subscription
                     </DropdownMenuItem>
-                </Link> */}
+                </Link>
 
                 <Link to={ROUTES.brokerAccounts} variant="unstyled">
                     <DropdownMenuItem>

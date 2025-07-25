@@ -12,6 +12,7 @@ import ViewPositionLazy from "@/features/position/view/view_position_lazy";
 import AddPositionLazy from "@/features/position/add/add_position_lazy";
 import ImportPositionsLazy from "@/features/position/import/import_positions_lazy";
 import BrokerAccountsLazy from "@/features/settings/broker_accounts/broker_accounts_lazy";
+import SubscriptionLazy from "@/features/settings/subscription/subscription_lazy";
 
 export const routes: Array<RouteObject> = [
     /**
@@ -57,6 +58,10 @@ export const routes: Array<RouteObject> = [
     {
         path: ROUTES.brokerAccounts,
         element: <BrokerAccountsLazy />,
+    },
+    {
+        path: ROUTES.subscription,
+        element: <SubscriptionLazy />,
     },
 ];
 

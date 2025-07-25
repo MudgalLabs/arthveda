@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { GetDashboardRequest, GetDashboardResponse } from "@/lib/api/dashboard";
 
-export function useGet(body: GetDashboardRequest) {
+export function useGetDashboard(body: GetDashboardRequest) {
     return useQuery({
         queryKey: ["useGetDashboard", body],
         queryFn: () => api.dashboard.get(body),

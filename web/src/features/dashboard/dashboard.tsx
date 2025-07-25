@@ -6,16 +6,18 @@ import "react-resizable/css/styles.css";
 
 import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
-import { useAuthentication } from "@/features/auth/auth_context";
+import { useAuthentication, useUserHasProSubscription } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cumulative_pnl_graph";
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
-import { IconSearch } from "@/components/icons";
+import { IconBadgeInfo, IconSearch } from "@/components/icons";
 import { Button, DatePicker } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
+import { Link } from "@/components/link";
+import { ROUTES } from "@/constants";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -128,7 +130,9 @@ export const Dashboard = () => {
     const [dates, setDates] = useState<Date[]>([]);
     const [appliedDates, setAppliedDates] = useState<Date[]>([]);
 
-    const { data, isFetching, isError } = apiHooks.dashboard.useGet({
+    const hasPro = useUserHasProSubscription();
+
+    const { data, isFetching, isError } = apiHooks.dashboard.useGetDashboard({
         date_range: datesArrayToDateRangeFilter(appliedDates),
     });
 
@@ -280,26 +284,38 @@ export const Dashboard = () => {
             <PageHeading heading="Dashboard" />
 
             {!isNewUser && (
-                <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row">
-                    <div className="flex-x">
-                        <DatePicker
-                            className="w-full sm:w-fit"
-                            placeholder="Select date range"
-                            mode="range"
-                            dates={dates}
-                            onDatesChange={setDates}
-                            config={{
-                                dates: {
-                                    toggle: true,
-                                    maxDate: new Date(),
-                                },
-                            }}
-                            popoverContentProps={{ align: "start" }}
-                        />
+                <div className="space-y-2">
+                    {!hasPro && (
+                        <div className="flex-x text-text-muted">
+                            <IconBadgeInfo />
+                            <p>
+                                Limited to last 12 months. <Link to={ROUTES.subscription}>Upgrade</Link> to see full
+                                analytics.
+                            </p>
+                        </div>
+                    )}
 
-                        <Button variant="secondary" disabled={isFetching} onClick={() => applyFilters()}>
-                            <IconSearch size={18} />
-                        </Button>
+                    <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row">
+                        <div className="flex-x">
+                            <DatePicker
+                                className="w-full sm:w-fit"
+                                placeholder="Select date range"
+                                mode="range"
+                                dates={dates}
+                                onDatesChange={setDates}
+                                config={{
+                                    dates: {
+                                        toggle: true,
+                                        maxDate: new Date(),
+                                    },
+                                }}
+                                popoverContentProps={{ align: "start" }}
+                            />
+
+                            <Button variant="secondary" disabled={isFetching} onClick={() => applyFilters()}>
+                                <IconSearch size={18} />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -5,6 +5,10 @@ import { PositionListTable } from "@/features/position/components/position_list_
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import { prepareFilters } from "@/features/position/utils";
 import { apiHooks } from "@/hooks/api_hooks";
+import { useUserHasProSubscription } from "@/features/auth/auth_context";
+import { IconBadgeInfo } from "@/components/icons";
+import { Link } from "@/components/link";
+import { ROUTES } from "@/constants";
 
 export const ExplorePositions = () => {
     const tableState = useListPositionsStore((s) => s.tableState);
@@ -34,9 +38,20 @@ export const ExplorePositions = () => {
         return [];
     }, [queryResult]);
 
+    const hasPro = useUserHasProSubscription();
+
     return (
         <>
             <PageHeading heading="Explore Positions" loading={queryResult?.isFetching} />
+
+            {!hasPro && (
+                <div className="flex-x text-text-muted">
+                    <IconBadgeInfo />
+                    <p>
+                        Limited to last 12 months. <Link to={ROUTES.subscription}>Upgrade</Link> for complete history.
+                    </p>
+                </div>
+            )}
 
             {queryResult?.data && (
                 <>

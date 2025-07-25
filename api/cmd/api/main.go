@@ -3,6 +3,7 @@ package main
 import (
 	"arthveda/internal/dbx"
 	"arthveda/internal/domain/currency"
+	"arthveda/internal/domain/subscription"
 	"arthveda/internal/env"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/dashboard"
@@ -11,7 +12,7 @@ import (
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/feature/user_broker_account"
 	"arthveda/internal/feature/user_identity"
-	"arthveda/internal/feature/user_profile"
+	"arthveda/internal/feature/userprofile"
 	"arthveda/internal/logger"
 	"arthveda/internal/oauth"
 	"arthveda/internal/session"
@@ -37,10 +38,11 @@ type services struct {
 	CurrencyService          *currency.Service
 	DashboardService         *dashboard.Service
 	PositionService          *position.Service
+	SubscriptionService      *subscription.Service
 	SymbolService            *symbol.Service
 	UserBrokerAccountService *user_broker_account.Service
 	UserIdentityService      *user_identity.Service
-	UserProfileService       *user_profile.Service
+	UserProfileService       *userprofile.Service
 }
 
 // Access to all repositories for reading.
@@ -49,9 +51,10 @@ type repositories struct {
 	Broker            broker.Reader
 	Dashboard         dashboard.Reader
 	Position          position.Reader
+	Subscription      subscription.Reader
 	UserBrokerAccount user_broker_account.Reader
 	UserIdentity      user_identity.Reader
-	UserProfile       user_profile.Reader
+	UserProfile       userprofile.Reader
 }
 
 func main() {
@@ -75,28 +78,30 @@ func main() {
 	}
 
 	brokerRepository := broker.NewRepository(db)
-	userBrokerAccountRepository := user_broker_account.NewRepository(db)
 	dashboardRepository := dashboard.NewRepository(db)
-	userProfileRepository := user_profile.NewRepository(db)
-	userIdentityRepository := user_identity.NewRepository(db)
-	tradeRepository := trade.NewRepository(db)
 	positionRepository := position.NewRepository(db)
+	subscriptionRepository := subscription.NewRepository(db)
+	tradeRepository := trade.NewRepository(db)
+	userProfileRepository := userprofile.NewRepository(db)
+	userBrokerAccountRepository := user_broker_account.NewRepository(db)
+	userIdentityRepository := user_identity.NewRepository(db)
 
 	brokerService := broker.NewService(brokerRepository)
-	userBrokerAccountService := user_broker_account.NewService(userBrokerAccountRepository, brokerRepository)
 	currencyService := currency.NewService()
 	dashboardService := dashboard.NewService(dashboardRepository, positionRepository, tradeRepository)
 	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository, userBrokerAccountRepository)
+	subcriptionService := subscription.NewService(subscriptionRepository)
 	symbolService := symbol.NewService(positionRepository)
-	// tradeService := trade.NewService(tradeRepository)
+	userBrokerAccountService := user_broker_account.NewService(userBrokerAccountRepository, brokerRepository)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
-	userProfileService := user_profile.NewService(userProfileRepository)
+	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository)
 
 	services := services{
 		BrokerService:            brokerService,
 		CurrencyService:          currencyService,
 		DashboardService:         dashboardService,
 		PositionService:          positionService,
+		SubscriptionService:      subcriptionService,
 		SymbolService:            symbolService,
 		UserBrokerAccountService: userBrokerAccountService,
 		UserIdentityService:      userIdentityService,
@@ -107,6 +112,7 @@ func main() {
 		Broker:            brokerRepository,
 		Dashboard:         dashboardRepository,
 		Position:          positionRepository,
+		Subscription:      subscriptionRepository,
 		UserBrokerAccount: userBrokerAccountRepository,
 		UserIdentity:      userIdentityRepository,
 		UserProfile:       userProfileRepository,

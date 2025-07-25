@@ -3,6 +3,7 @@ import { usePostHog } from "posthog-js/react";
 
 import { apiHooks } from "@/hooks/api_hooks";
 import { UserMeResponse } from "@/lib/api/user";
+import { Subscription } from "@/lib/api/subscription";
 
 interface AuthenticationContextType {
     isLoading: boolean;
@@ -56,4 +57,15 @@ export function useAuthentication(): AuthenticationContextType {
     }
 
     return context;
+}
+
+export function useSubscription(): Subscription | null | undefined {
+    const { data } = useAuthentication();
+    return data?.subscription;
+}
+
+export function useUserHasProSubscription(): boolean {
+    const subscription = useSubscription();
+    if (!subscription) return false;
+    return subscription.status === "active" && subscription.plan_id === "pro";
 }

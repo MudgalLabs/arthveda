@@ -1,4 +1,5 @@
-package user_profile
+// Package userprofile defines the UserProfile struct and its methods.
+package userprofile
 
 import (
 	"time"

@@ -1,4 +1,4 @@
-package user_profile
+package userprofile
 
 import (
 	"arthveda/internal/repository"

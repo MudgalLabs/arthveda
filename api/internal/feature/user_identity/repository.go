@@ -1,7 +1,7 @@
 package user_identity
 
 import (
-	"arthveda/internal/feature/user_profile"
+	"arthveda/internal/feature/userprofile"
 	"arthveda/internal/repository"
 	"context"
 	"fmt"
@@ -17,7 +17,7 @@ type Reader interface {
 }
 
 type Writer interface {
-	SignUp(ctx context.Context, name string, userIdentity *UserIdentity) (*user_profile.UserProfile, error)
+	SignUp(ctx context.Context, name string, userIdentity *UserIdentity) (*userprofile.UserProfile, error)
 	Update(ctx context.Context, userIdentity *UserIdentity) error
 }
 
@@ -126,7 +126,7 @@ func (r *userIdentityRepository) findUserIdentities(ctx context.Context, tx pgx.
 	return userIdentities, nil
 }
 
-func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userIdentity *UserIdentity) (*user_profile.UserProfile, error) {
+func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userIdentity *UserIdentity) (*userprofile.UserProfile, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin: %w", err)
@@ -152,7 +152,7 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 		return nil, fmt.Errorf("user identity sql exec: %w", err)
 	}
 
-	userProfile := user_profile.NewUserProfile(userIdentity.ID, userIdentity.Email, name)
+	userProfile := userprofile.NewUserProfile(userIdentity.ID, userIdentity.Email, name)
 
 	profileSQL := `
 	INSERT INTO user_profile (user_id, email, name, avatar_url, created_at, updated_at)

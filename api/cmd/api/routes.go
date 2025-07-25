@@ -111,6 +111,7 @@ func initRouter(a *app) http.Handler {
 			r.Use(authMiddleware)
 
 			r.Get("/me", getMeHandler(a.service.UserProfileService))
+			r.Post("/me/subscription/cancel-at-period-end", cancelSubscriptionAtPeriodEndHandler(a.service.SubscriptionService))
 		})
 
 		r.Route("/user-broker-accounts", func(r chi.Router) {
@@ -123,6 +124,10 @@ func initRouter(a *app) http.Handler {
 			r.Post("/{id}/connect", connectUserBrokerAccountHandler(a.service.UserBrokerAccountService))
 			r.Post("/{id}/disconnect", disconnectUserBrokerAccountHandler(a.service.UserBrokerAccountService))
 			r.Post("/{id}/sync", syncUserBrokerAccountHandler(a.service.UserBrokerAccountService, a.service.PositionService))
+		})
+
+		r.Route("/webhooks", func(r chi.Router) {
+			r.Post("/paddle", paddleWebhookHandler(a.service.SubscriptionService))
 		})
 	})
 
