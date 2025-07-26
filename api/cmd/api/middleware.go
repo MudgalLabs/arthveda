@@ -1,7 +1,9 @@
 package main
 
 import (
+	"arthveda/internal/domain/subscription"
 	"arthveda/internal/logger"
+	"arthveda/internal/repository"
 	"arthveda/internal/session"
 	"context"
 	"errors"
@@ -19,6 +21,7 @@ type contextKey string
 
 const ctxUserIDKey contextKey = "user_id"
 const ctxUserTimezoneKey contextKey = "user_timezone"
+const ctxPlanEnforcerKey contextKey = "plan_enforcer"
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -159,4 +162,33 @@ func getUserTimezoneFromCtx(ctx context.Context) *time.Location {
 		return time.UTC
 	}
 	return loc
+}
+
+func planEnforcerMiddleware(subscriptionService *subscription.Service) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			userID := getUserIDFromContext(ctx)
+			us, err := subscriptionService.SubscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
+			if err != nil {
+				if err != repository.ErrNotFound {
+					internalServerErrorResponse(w, r, err)
+					return
+				}
+				us = nil // User is on FREE plan
+			}
+
+			planEnforcer := subscription.NewPlanEnforcer(us)
+			updatedCtx := context.WithValue(r.Context(), ctxPlanEnforcerKey, planEnforcer)
+			next.ServeHTTP(w, r.WithContext(updatedCtx))
+		})
+	}
+}
+
+func getPlanEnforcerFromCtx(ctx context.Context) *subscription.PlanEnforcer {
+	enforcer, ok := ctx.Value(ctxPlanEnforcerKey).(*subscription.PlanEnforcer)
+	if !ok {
+		panic("plan enforcer not found in context")
+	}
+	return enforcer
 }

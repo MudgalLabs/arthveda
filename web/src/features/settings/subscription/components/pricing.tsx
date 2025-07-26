@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button, Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow, Tag } from "@/s8ly";
 import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
+import { PADDLE_PRICE_ID_MONTHLY, PADDLE_PRICE_ID_YEARLY } from "@/constants";
 
 interface PricingProps {
     closePricingDialog?: () => void;
@@ -97,7 +98,7 @@ export function Pricing(props: PricingProps) {
                         </p>
                         <UpgradeToPro
                             className="mt-4 w-full px-4 py-2"
-                            priceId="pri_01k0z1y4d8yeynhnr589j02x7k"
+                            priceId={yearly ? PADDLE_PRICE_ID_YEARLY : PADDLE_PRICE_ID_MONTHLY}
                             onClick={closePricingDialog}
                         />
                     </div>

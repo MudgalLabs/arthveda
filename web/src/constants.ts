@@ -30,3 +30,6 @@ export const ROUTES_PROTECTED = [
     ROUTES.brokerAccounts,
     ROUTES.feedbackAndSupport,
 ];
+
+export const PADDLE_PRICE_ID_MONTHLY = import.meta.env.ARTHVEDA_PADDLE_PRICE_ID_MONTHLY;
+export const PADDLE_PRICE_ID_YEARLY = import.meta.env.ARTHVEDA_PADDLE_PRICE_ID_YEARLY;

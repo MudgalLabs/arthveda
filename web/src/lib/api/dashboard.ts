@@ -38,6 +38,7 @@ export interface GetDashboardResponse extends GeneralStats {
     positions_count: number;
     cumulative_pnl_buckets: PnLBucket[];
     pnl_buckets: PnLBucket[];
+    found_trade_older_than_twelve_months: boolean;
 }
 
 export function get(body: GetDashboardRequest) {

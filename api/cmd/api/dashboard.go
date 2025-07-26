@@ -10,6 +10,7 @@ func getDashboardHandler(s *dashboard.Service) http.HandlerFunc {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
 		tz := getUserTimezoneFromCtx(ctx)
+		enforcer := getPlanEnforcerFromCtx(ctx)
 
 		var payload dashboard.GetDashboardPayload
 		if err := decodeJSONRequest(&payload, r); err != nil {
@@ -17,7 +18,7 @@ func getDashboardHandler(s *dashboard.Service) http.HandlerFunc {
 			return
 		}
 
-		result, errKind, err := s.Get(ctx, userID, tz, payload)
+		result, errKind, err := s.Get(ctx, userID, tz, enforcer, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

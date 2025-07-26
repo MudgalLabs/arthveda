@@ -84,6 +84,7 @@ func initRouter(a *app) http.Handler {
 
 		r.Route("/dashboard", func(r chi.Router) {
 			r.Use(authMiddleware)
+			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
 
 			r.Post("/", getDashboardHandler(a.service.DashboardService))
 		})

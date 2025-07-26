@@ -11,13 +11,14 @@ import { LoadingScreen } from "@/components/loading_screen";
 import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cumulative_pnl_graph";
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
-import { IconBadgeInfo, IconSearch } from "@/components/icons";
-import { Button, DatePicker } from "@/s8ly";
+import { IconSearch } from "@/components/icons";
+import { Button, DatePicker, Tooltip } from "@/s8ly";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
+import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -284,14 +285,24 @@ export const Dashboard = () => {
             <PageHeading heading="Dashboard" />
 
             {!isNewUser && !isFetching && (
-                <div className="space-y-2">
-                    {!hasPro && (
-                        <div className="flex-x text-text-muted">
-                            <IconBadgeInfo />
-                            <p>
-                                Limited to last 12 months. <Link to={ROUTES.subscription}>Upgrade</Link> to see full
-                                analytics.
-                            </p>
+                <div className="space-y-4">
+                    {!hasPro && data?.found_trade_older_than_twelve_months && (
+                        <div className="text-text-muted flex flex-col gap-2 sm:flex-row">
+                            <Tooltip
+                                contentProps={{ align: "start" }}
+                                content={
+                                    <div className="space-y-2">
+                                        <p>Some of your trades are older than 12 months and have been hidden.</p>
+                                        <p>
+                                            <Link to={ROUTES.subscription}>Upgrade</Link> to see full analytics.
+                                        </p>
+                                    </div>
+                                }
+                            >
+                                <span>
+                                    <FreePlanLimitTag />
+                                </span>
+                            </Tooltip>
                         </div>
                     )}
 

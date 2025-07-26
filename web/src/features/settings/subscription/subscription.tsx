@@ -43,24 +43,20 @@ export const Subscription = () => {
         (deps) => !!deps.isPaddleSuccess
     );
 
-    if (!subscription) {
-        return null;
-    }
-
     return (
         <div>
             <PageHeading heading="Subscription" />
 
             <Card>
                 <CardTitle className="flex-x justify-between">
-                    <p className="text-text-muted! heading!">{hasPro ? "Pro" : "Free forever"}</p>
-                    <div>{hasPro && !subscription.cancel_at_period_end ? <CancelAutoRenew /> : <ShowPricing />}</div>
+                    <p className="text-text-muted! heading!">{hasPro ? "Pro" : "Free"}</p>
+                    <div>{hasPro && !subscription?.cancel_at_period_end ? <CancelAutoRenew /> : <ShowPricing />}</div>
                 </CardTitle>
 
                 <CardContent className="mt-2">
                     {hasPro ? (
                         <div className="space-y-2">
-                            {subscription.cancel_at_period_end ? (
+                            {subscription?.cancel_at_period_end ? (
                                 <p className="text-text-primary">
                                     Your subscription is set to cancel and will end on{" "}
                                     {formatDate(new Date(subscription.valid_until))}.
@@ -70,15 +66,15 @@ export const Subscription = () => {
                                     <p className="text-text-primary">
                                         Your subscription is active. You can cancel it at any time.
                                     </p>
-                                    <p>Renewing on {formatDate(new Date(subscription.valid_until))}</p>
+                                    <p>Renewing on {formatDate(new Date(subscription!.valid_until))}</p>
                                 </>
                             )}
                         </div>
                     ) : (
                         <p className="text-text-muted">
                             You are currently on the free plan.{" "}
-                            <span className="text-text-primary font-medium">Click on Upgrade</span> to learm more and
-                            upgrade to Pro.
+                            <span className="text-text-primary font-medium">Click on Upgrade</span> to learn more about
+                            Pro.
                         </p>
                     )}
                 </CardContent>

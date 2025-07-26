@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"arthveda/internal/common"
+	"arthveda/internal/domain/subscription"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
@@ -32,13 +33,15 @@ type GetDashboardPayload struct {
 
 type GetDashboardReponse struct {
 	generalStats
-	PositionsCount       int         `json:"positions_count"`
-	CumulativePnLBuckets []pnlBucket `json:"cumulative_pnl_buckets"`
-	PnLBuckets           []pnlBucket `json:"pnl_buckets"`
+	PositionsCount                  int         `json:"positions_count"`
+	CumulativePnLBuckets            []pnlBucket `json:"cumulative_pnl_buckets"`
+	PnLBuckets                      []pnlBucket `json:"pnl_buckets"`
+	FoundTradeOlderThanTwelveMonths bool        `json:"found_trade_older_than_twelve_months"`
 }
 
-func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location, payload GetDashboardPayload) (*GetDashboardReponse, service.Error, error) {
+func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location, enforcer *subscription.PlanEnforcer, payload GetDashboardPayload) (*GetDashboardReponse, service.Error, error) {
 	now := time.Now().UTC()
+	twelveMonthsAgo := time.Now().In(loc).AddDate(-1, 0, 0)
 	from := time.Time{}
 	to := time.Time{}
 
@@ -69,6 +72,11 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 		tradeTimeRange.To = &endUTC
 	}
 
+	// If the user is not a Pro user, we limit the trade time range to the last 12 months.
+	if !enforcer.CanSeeAnalyticsUnlimited() {
+		tradeTimeRange.From = &twelveMonthsAgo
+	}
+
 	searchPositionPayload := position.SearchPayload{
 		Filters: position.SearchFilter{
 			CreatedBy: &userID,
@@ -93,6 +101,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 			if start.IsZero() || trade.Time.Before(start) {
 				start = trade.Time
 			}
+
 			if end.IsZero() || trade.Time.After(end) {
 				end = trade.Time
 			}
@@ -109,6 +118,13 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 	}
 	if !endUTC.IsZero() {
 		end = endUTC
+	}
+
+	var foundTradeOlderThanTwelveMonths bool
+
+	if !enforcer.CanSeeAnalyticsUnlimited() && start.Before(twelveMonthsAgo) {
+		start = twelveMonthsAgo
+		foundTradeOlderThanTwelveMonths = true
 	}
 
 	// Dynamically select bucket period based on date range
@@ -138,10 +154,11 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 	cumulativePnLBuckets := getCumulativePnLBuckets(positionsFiltered, bucketPeriod, start, end, loc)
 
 	result := &GetDashboardReponse{
-		PositionsCount:       len(positionsFiltered),
-		generalStats:         generalStats,
-		CumulativePnLBuckets: cumulativePnLBuckets,
-		PnLBuckets:           pnlBuckets,
+		PositionsCount:                  len(positionsFiltered),
+		generalStats:                    generalStats,
+		CumulativePnLBuckets:            cumulativePnLBuckets,
+		PnLBuckets:                      pnlBuckets,
+		FoundTradeOlderThanTwelveMonths: foundTradeOlderThanTwelveMonths,
 	}
 
 	return result, service.ErrNone, nil

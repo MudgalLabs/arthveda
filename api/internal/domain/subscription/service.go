@@ -15,12 +15,12 @@ import (
 )
 
 type Service struct {
-	subscriptionRepository ReadWriter
+	SubscriptionRepository ReadWriter
 }
 
 func NewService(sr ReadWriter) *Service {
 	return &Service{
-		subscriptionRepository: sr,
+		SubscriptionRepository: sr,
 	}
 }
 
@@ -48,7 +48,7 @@ func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
 		CreatedAt:       now,
 	}
 
-	err := s.subscriptionRepository.UpsertUserSubscription(ctx, sub)
+	err := s.SubscriptionRepository.UpsertUserSubscription(ctx, sub)
 	if err != nil {
 		return fmt.Errorf("failed to upsert user subscription: %w", err)
 	}
@@ -61,7 +61,7 @@ func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
 		OccurredAt: now,
 	}
 
-	err = s.subscriptionRepository.CreateUserSubscriptionEvent(ctx, event)
+	err = s.SubscriptionRepository.CreateUserSubscriptionEvent(ctx, event)
 	if err != nil {
 		l.Errorw("failed to create user subscription event", "error", err)
 	}
@@ -72,7 +72,7 @@ func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
 func (s *Service) Cancelled(ctx context.Context, userID uuid.UUID) error {
 	l := logger.FromCtx(ctx)
 
-	subscription, err := s.subscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
+	subscription, err := s.SubscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to find user subscription: %w", err)
 	}
@@ -82,7 +82,7 @@ func (s *Service) Cancelled(ctx context.Context, userID uuid.UUID) error {
 	subscription.Status = StatusCanceled
 	subscription.ValidUntil = now
 	subscription.UpdatedAt = &now
-	err = s.subscriptionRepository.UpsertUserSubscription(ctx, subscription)
+	err = s.SubscriptionRepository.UpsertUserSubscription(ctx, subscription)
 	if err != nil {
 		return fmt.Errorf("failed to update user subscription status: %w", err)
 	}
@@ -95,7 +95,7 @@ func (s *Service) Cancelled(ctx context.Context, userID uuid.UUID) error {
 		OccurredAt: now,
 	}
 
-	err = s.subscriptionRepository.CreateUserSubscriptionEvent(ctx, event)
+	err = s.SubscriptionRepository.CreateUserSubscriptionEvent(ctx, event)
 	if err != nil {
 		l.Errorw("failed to create user subscription event", "error", err)
 	}
@@ -106,7 +106,7 @@ func (s *Service) Cancelled(ctx context.Context, userID uuid.UUID) error {
 func (s *Service) CancelAtPeriodEnd(ctx context.Context, userID uuid.UUID) (service.Error, error) {
 	l := logger.FromCtx(ctx)
 
-	subscription, err := s.subscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
+	subscription, err := s.SubscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
 	if err != nil {
 		if err == repository.ErrNotFound {
 			return service.ErrNotFound, errors.New("Subscription not found")
@@ -140,7 +140,7 @@ func (s *Service) CancelAtPeriodEnd(ctx context.Context, userID uuid.UUID) (serv
 	now := time.Now().UTC()
 	subscription.CancelAtPeriodEnd = true
 	subscription.UpdatedAt = &now
-	err = s.subscriptionRepository.UpsertUserSubscription(ctx, subscription)
+	err = s.SubscriptionRepository.UpsertUserSubscription(ctx, subscription)
 	if err != nil {
 		return service.ErrInternalServerError, fmt.Errorf("failed to update user subscription status: %w", err)
 	}
@@ -149,7 +149,7 @@ func (s *Service) CancelAtPeriodEnd(ctx context.Context, userID uuid.UUID) (serv
 }
 
 func (s *Service) CreateOrUpdateUserSubscriptionInvoice(ctx context.Context, invoice *UserSubscriptionInvoice) error {
-	err := s.subscriptionRepository.UpsertUserSubscriptionInvoice(ctx, invoice)
+	err := s.SubscriptionRepository.UpsertUserSubscriptionInvoice(ctx, invoice)
 	if err != nil {
 		return fmt.Errorf("failed to upsert user subscription invoice: %w", err)
 	}
@@ -171,7 +171,7 @@ func (s *Service) CreateOrUpdatePaymentProviderProfileForUser(ctx context.Contex
 		Metadata:   payload.RawData,
 		CreatedAt:  time.Now().UTC(),
 	}
-	err := s.subscriptionRepository.UpsertPaymentProviderProfile(ctx, payload.Email, profile)
+	err := s.SubscriptionRepository.UpsertPaymentProviderProfile(ctx, payload.Email, profile)
 	if err != nil {
 		return fmt.Errorf("failed to upsert payment provider profile: %w", err)
 	}
@@ -182,7 +182,7 @@ func (s *Service) CreateOrUpdatePaymentProviderProfileForUser(ctx context.Contex
 func (s *Service) Expired(ctx context.Context, provider PaymentProvider, externalRef string) error {
 	l := logger.FromCtx(ctx)
 
-	subscription, err := s.subscriptionRepository.FindUserSubscriptionByExternalRef(ctx, provider, externalRef)
+	subscription, err := s.SubscriptionRepository.FindUserSubscriptionByExternalRef(ctx, provider, externalRef)
 	if err != nil {
 		return fmt.Errorf("failed to find the existing user subscription that expired: %w", err)
 	}
@@ -192,7 +192,7 @@ func (s *Service) Expired(ctx context.Context, provider PaymentProvider, externa
 	subscription.Status = StatusExpired
 	subscription.ValidUntil = now
 	subscription.UpdatedAt = &now
-	err = s.subscriptionRepository.UpsertUserSubscription(ctx, subscription)
+	err = s.SubscriptionRepository.UpsertUserSubscription(ctx, subscription)
 	if err != nil {
 		return fmt.Errorf("failed to update user subscription status: %w", err)
 	}
@@ -205,7 +205,7 @@ func (s *Service) Expired(ctx context.Context, provider PaymentProvider, externa
 		OccurredAt: now,
 	}
 
-	err = s.subscriptionRepository.CreateUserSubscriptionEvent(ctx, event)
+	err = s.SubscriptionRepository.CreateUserSubscriptionEvent(ctx, event)
 	if err != nil {
 		l.Errorw("failed to create user subscription event", "error", err)
 	}
@@ -214,7 +214,7 @@ func (s *Service) Expired(ctx context.Context, provider PaymentProvider, externa
 }
 
 func (s *Service) ListUserSubscriptionInvoices(ctx context.Context, userID uuid.UUID) ([]*UserSubscriptionInvoice, service.Error, error) {
-	invoices, err := s.subscriptionRepository.ListUserSubscriptionInvoicesByUserID(ctx, userID)
+	invoices, err := s.SubscriptionRepository.ListUserSubscriptionInvoicesByUserID(ctx, userID)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("list user subscription invoices: %w", err)
 	}
@@ -224,7 +224,7 @@ func (s *Service) ListUserSubscriptionInvoices(ctx context.Context, userID uuid.
 func (s *Service) GetUserSubscriptionInvoiceDownloadLink(ctx context.Context, invoiceID uuid.UUID) (string, service.Error, error) {
 	l := logger.FromCtx(ctx)
 
-	invoice, err := s.subscriptionRepository.FindUserSubscriptionInvoiceByID(ctx, invoiceID)
+	invoice, err := s.SubscriptionRepository.FindUserSubscriptionInvoiceByID(ctx, invoiceID)
 	if err != nil {
 		if err == repository.ErrNotFound {
 			return "", service.ErrNotFound, fmt.Errorf("Invoice not found")

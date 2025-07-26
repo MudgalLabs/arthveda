@@ -30,10 +30,6 @@ export function CancelAutoRenew() {
         onError: apiErrorHandler,
     });
 
-    if (!subscription) {
-        return null;
-    }
-
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -49,7 +45,7 @@ export function CancelAutoRenew() {
                 <p>
                     Plan will remain active until{" "}
                     <span className="text-text-primary font-medium">
-                        {formatDate(new Date(subscription.valid_until))}
+                        {formatDate(new Date(subscription!.valid_until))}
                     </span>
                     , after which it will not renew and your plan will be downgraded to Free.
                 </p>

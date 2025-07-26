@@ -44,6 +44,16 @@ interface ImportMetaEnv {
      * The Paddle client token for payment processing.
      */
     readonly ARTHVEDA_PADDLE_CLIENT_TOKEN: string;
+
+    /**
+     * The Paddle price ID for the monthly subscription.
+     */
+    readonly ARTHVEDA_PADDLE_PRICE_ID_MONTHLY: string;
+    J;
+    /**
+     * The Paddle price ID for the yearly subscription.
+     */
+    readonly ARTHVEDA_PADDLE_PRICE_ID_YEARLY: string;
 }
 
 interface ImportMeta {
