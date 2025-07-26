@@ -129,12 +129,8 @@ func (s *Service) CancelAtPeriodEnd(ctx context.Context, userID uuid.UUID) (serv
 		return service.ErrInternalServerError, fmt.Errorf("failed to get paddle client: %w", err)
 	}
 
-	// !!!!!!! REMOVE THIS AFTER TESTING !!!!!!! //
-	effectiveFrom := paddle.EffectiveFromImmediately
 	req := &paddle.CancelSubscriptionRequest{
 		SubscriptionID: subscription.ExternalRef,
-		// !!!!!!! REMOVE THIS AFTER TESTING !!!!!!! //
-		EffectiveFrom: &effectiveFrom,
 	}
 	_, err = paddleClient.CancelSubscription(ctx, req)
 	if err != nil {

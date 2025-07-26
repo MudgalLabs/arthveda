@@ -58,3 +58,4 @@ export { LuPencil as IconEdit } from "react-icons/lu";
 export { LuBadgeInfo as IconBadgeInfo } from "react-icons/lu";
 export { LuBadgeAlert as IconBadgeAlert } from "react-icons/lu";
 export { LuBadgeCheck as IconBadgeCheck } from "react-icons/lu";
+export { LuCloudDownload as IconDownload } from "react-icons/lu";

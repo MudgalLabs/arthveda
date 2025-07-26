@@ -4,10 +4,19 @@ import { initializePaddle, Paddle } from "@paddle/paddle-js";
 import { Button } from "@/s8ly";
 import { isProd } from "@/lib/utils";
 import { ROUTES } from "@/constants";
-import { useAuthentication } from "@/features/auth/auth_context";
+import { useAuthentication, useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
 
-export const UpgradeToPro = () => {
+interface UpgradeToProProps {
+    priceId: string;
+    className?: string;
+    onClick?: () => void;
+}
+
+export function UpgradeToPro(props: UpgradeToProProps) {
+    const { priceId, className, onClick } = props;
     const { data } = useAuthentication();
+    const hasPro = useUserHasProSubscription();
+    const subscription = useSubscription();
 
     if (!data) {
         return null;
@@ -24,20 +33,22 @@ export const UpgradeToPro = () => {
                 setPaddle(paddleInstance);
             })
             .catch((error) => {
-                console.error("Failed to initialize Paddle:", error);
+                console.error("failed to initialize paddle:", error);
             });
     }, []);
 
     const handleCheckout = () => {
+        onClick?.();
+
         if (!paddle) {
-            console.error("Paddle is not initialized");
+            console.error("paddle is not initialized");
             return;
         }
 
         paddle.Checkout.open({
             items: [
                 {
-                    priceId: "pri_01k0z1y4d8yeynhnr589j02x7k",
+                    priceId: priceId,
                     quantity: 1,
                 },
             ],
@@ -59,5 +70,9 @@ export const UpgradeToPro = () => {
         });
     };
 
-    return <Button onClick={handleCheckout}>Updgrade</Button>;
-};
+    return (
+        <Button className={className} onClick={handleCheckout} disabled={hasPro && !subscription?.cancel_at_period_end}>
+            Upgrade to Pro
+        </Button>
+    );
+}

@@ -283,7 +283,7 @@ export const Dashboard = () => {
         <div>
             <PageHeading heading="Dashboard" />
 
-            {!isNewUser && (
+            {!isNewUser && !isFetching && (
                 <div className="space-y-2">
                     {!hasPro && (
                         <div className="flex-x text-text-muted">

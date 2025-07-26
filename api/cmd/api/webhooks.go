@@ -275,7 +275,7 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 	}
 }
 
-func getUserIDFromCustomData(customData map[string]interface{}) (uuid.UUID, error) {
+func getUserIDFromCustomData(customData map[string]any) (uuid.UUID, error) {
 	userIDRaw := customData["user_id"]
 
 	userIDStr, ok := userIDRaw.(string)

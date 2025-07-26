@@ -215,6 +215,7 @@
     --color-text-subtle: hsl(215, 15%, 50%);
     --color-text-placeholder: hsl(215, 13%, 45%);
     --color-text-destructive: lch(80 80 29);
+    --color-text-success: hsl(158, 64%, 50%);
 
     /* === Accent Layers (from your Azure palette) === */
     /* For brand accents */
