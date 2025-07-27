@@ -26,7 +26,7 @@ export function UpgradeToPro(props: UpgradeToProProps) {
 
     useEffect(() => {
         initializePaddle({
-            environment: "sandbox",
+            environment: isProd() ? "production" : "sandbox",
             token: import.meta.env.ARTHVEDA_PADDLE_CLIENT_TOKEN,
         })
             .then((paddleInstance) => {
