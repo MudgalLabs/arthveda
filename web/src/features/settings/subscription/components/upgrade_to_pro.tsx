@@ -45,6 +45,8 @@ export function UpgradeToPro(props: UpgradeToProProps) {
             return;
         }
 
+        paddle.Environment.set("production");
+
         paddle.Checkout.open({
             items: [
                 {
