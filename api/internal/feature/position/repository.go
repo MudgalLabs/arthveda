@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -20,6 +21,7 @@ type Reader interface {
 	GetByID(ctx context.Context, createdBy, positionID uuid.UUID) (*Position, error)
 	Search(ctx context.Context, payload SearchPayload, attachTrades bool) ([]*Position, int, error)
 	SearchSymbols(ctx context.Context, userID uuid.UUID, query string) ([]string, error)
+	NoOfPositionsOlderThanTwelveMonths(ctx context.Context, userID uuid.UUID) (int, error)
 }
 
 type Writer interface {
@@ -571,4 +573,22 @@ func (r *positionRepository) SearchSymbols(ctx context.Context, userID uuid.UUID
 	}
 
 	return symbols, nil
+}
+
+func (r *positionRepository) NoOfPositionsOlderThanTwelveMonths(ctx context.Context, userID uuid.UUID) (int, error) {
+	twelveMonthsAgo := time.Now().UTC().AddDate(-1, 0, 0)
+
+	const sql = `
+		SELECT COUNT(id)
+		FROM position
+		WHERE created_by = $1 AND opened_at < $2
+	`
+
+	var count int
+	err := r.db.QueryRow(ctx, sql, userID, twelveMonthsAgo).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("query: %w", err)
+	}
+
+	return count, nil
 }

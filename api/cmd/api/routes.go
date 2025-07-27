@@ -91,6 +91,7 @@ func initRouter(a *app) http.Handler {
 
 		r.Route("/positions", func(r chi.Router) {
 			r.Use(authMiddleware)
+			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
 
 			r.Post("/", createPositionHandler(a.service.PositionService))
 			r.Get("/{id}", getPositionHandler(a.service.PositionService))

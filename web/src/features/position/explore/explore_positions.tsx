@@ -6,9 +6,10 @@ import { useListPositionsStore } from "@/features/position/list_positions_store"
 import { prepareFilters } from "@/features/position/utils";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
-import { IconBadgeInfo } from "@/components/icons";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
+import { Tooltip } from "@/s8ly";
+import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
 
 export const ExplorePositions = () => {
     const tableState = useListPositionsStore((s) => s.tableState);
@@ -44,12 +45,26 @@ export const ExplorePositions = () => {
         <>
             <PageHeading heading="Explore Positions" loading={queryResult?.isFetching} />
 
-            {!hasPro && (
-                <div className="flex-x text-text-muted">
-                    <IconBadgeInfo />
-                    <p>
-                        Limited to last 12 months. <Link to={ROUTES.subscription}>Upgrade</Link> for complete history.
-                    </p>
+            {!hasPro && !!queryResult?.data?.data.no_of_positions_hidden && (
+                <div className="text-text-muted flex flex-col gap-2 sm:flex-row">
+                    <Tooltip
+                        contentProps={{ align: "start" }}
+                        content={
+                            <div className="space-y-2">
+                                <p>
+                                    {queryResult?.data?.data.no_of_positions_hidden} positions are older than 12 months
+                                    and have been hidden.
+                                </p>
+                                <p>
+                                    <Link to={ROUTES.subscription}>Upgrade</Link> for complete history.
+                                </p>
+                            </div>
+                        }
+                    >
+                        <span>
+                            <FreePlanLimitTag />
+                        </span>
+                    </Tooltip>
                 </div>
             )}
 

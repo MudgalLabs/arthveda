@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/broker_integration"
 	"arthveda/internal/domain/currency"
+	"arthveda/internal/domain/subscription"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/trade"
@@ -145,12 +146,35 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePa
 }
 
 type SearchPayload = common.SearchPayload[SearchFilter]
-type SearchResult = common.SearchResult[[]*Position]
+type SearchResult struct {
+	common.SearchResult[[]*Position]
 
-func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchResult, service.Error, error) {
+	NoOfPositionsHidden int `json:"no_of_positions_hidden"`
+}
+
+func (s *Service) Search(ctx context.Context, userID uuid.UUID, enforcer *subscription.PlanEnforcer, payload SearchPayload) (*SearchResult, service.Error, error) {
 	err := payload.Init(allowedSortFields)
 	if err != nil {
 		return nil, service.ErrInvalidInput, err
+	}
+
+	twelveMonthsAgo := time.Now().AddDate(-1, 0, 0)
+
+	positionsExistOlderThanTwelveMonths, err := s.positionRepository.NoOfPositionsOlderThanTwelveMonths(ctx, userID)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("UserHasPositionsOlderThanTwelveMonths: %w", err)
+	}
+
+	var noOfPositionsHidden int
+
+	// If the user is not a Pro user, we limit the time range to the last 12 months.
+	if !enforcer.CanAccessFullAnalytics() {
+		// If no time range is specified or if the time range is specified,
+		// we check if it is more than 12 months ago.
+		if payload.Filters.Opened.From == nil || (payload.Filters.Opened.From != nil && payload.Filters.Opened.From.Before(twelveMonthsAgo)) {
+			payload.Filters.Opened.From = &twelveMonthsAgo
+			noOfPositionsHidden = positionsExistOlderThanTwelveMonths
+		}
 	}
 
 	positions, totalItems, err := s.positionRepository.Search(ctx, payload, false)
@@ -160,7 +184,10 @@ func (s *Service) Search(ctx context.Context, payload SearchPayload) (*SearchRes
 
 	result := common.NewSearchResult(positions, payload.Pagination.GetMeta(totalItems))
 
-	return result, service.ErrNone, nil
+	return &SearchResult{
+		SearchResult:        *result,
+		NoOfPositionsHidden: noOfPositionsHidden,
+	}, service.ErrNone, nil
 }
 
 type ChargesCalculationMethod string

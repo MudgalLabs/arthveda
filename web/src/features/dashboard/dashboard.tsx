@@ -286,13 +286,16 @@ export const Dashboard = () => {
 
             {!isNewUser && !isFetching && (
                 <div className="space-y-4">
-                    {!hasPro && data?.found_trade_older_than_twelve_months && (
+                    {!hasPro && !!data?.no_of_positions_hidden && (
                         <div className="text-text-muted flex flex-col gap-2 sm:flex-row">
                             <Tooltip
                                 contentProps={{ align: "start" }}
                                 content={
                                     <div className="space-y-2">
-                                        <p>Some of your trades are older than 12 months and have been hidden.</p>
+                                        <p>
+                                            {data.no_of_positions_hidden} positions are older than 12 months and have
+                                            been hidden.
+                                        </p>
                                         <p>
                                             <Link to={ROUTES.subscription}>Upgrade</Link> to see full analytics.
                                         </p>
