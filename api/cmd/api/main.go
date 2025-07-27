@@ -10,8 +10,8 @@ import (
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/symbol"
 	"arthveda/internal/feature/trade"
-	"arthveda/internal/feature/user_broker_account"
 	"arthveda/internal/feature/user_identity"
+	"arthveda/internal/feature/userbrokeraccount"
 	"arthveda/internal/feature/userprofile"
 	"arthveda/internal/logger"
 	"arthveda/internal/oauth"
@@ -40,7 +40,7 @@ type services struct {
 	PositionService          *position.Service
 	SubscriptionService      *subscription.Service
 	SymbolService            *symbol.Service
-	UserBrokerAccountService *user_broker_account.Service
+	UserBrokerAccountService *userbrokeraccount.Service
 	UserIdentityService      *user_identity.Service
 	UserProfileService       *userprofile.Service
 }
@@ -52,7 +52,7 @@ type repositories struct {
 	Dashboard         dashboard.Reader
 	Position          position.Reader
 	Subscription      subscription.Reader
-	UserBrokerAccount user_broker_account.Reader
+	UserBrokerAccount userbrokeraccount.Reader
 	UserIdentity      user_identity.Reader
 	UserProfile       userprofile.Reader
 }
@@ -83,7 +83,7 @@ func main() {
 	subscriptionRepository := subscription.NewRepository(db)
 	tradeRepository := trade.NewRepository(db)
 	userProfileRepository := userprofile.NewRepository(db)
-	userBrokerAccountRepository := user_broker_account.NewRepository(db)
+	userBrokerAccountRepository := userbrokeraccount.NewRepository(db)
 	userIdentityRepository := user_identity.NewRepository(db)
 
 	brokerService := broker.NewService(brokerRepository)
@@ -92,7 +92,7 @@ func main() {
 	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository, userBrokerAccountRepository)
 	subcriptionService := subscription.NewService(subscriptionRepository)
 	symbolService := symbol.NewService(positionRepository)
-	userBrokerAccountService := user_broker_account.NewService(userBrokerAccountRepository, brokerRepository)
+	userBrokerAccountService := userbrokeraccount.NewService(userBrokerAccountRepository, brokerRepository)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
 	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository)
 

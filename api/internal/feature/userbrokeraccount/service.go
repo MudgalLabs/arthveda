@@ -1,9 +1,10 @@
-package user_broker_account
+package userbrokeraccount
 
 import (
 	"arthveda/internal/apires"
 	"arthveda/internal/common"
 	"arthveda/internal/domain/broker_integration"
+	"arthveda/internal/domain/subscription"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/env"
 	"arthveda/internal/feature/broker"
@@ -34,13 +35,22 @@ func NewService(ubar ReadWriter, br broker.Reader) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePayload) (*UserBrokerAccount, service.Error, error) {
+func (s *Service) Create(ctx context.Context, userID uuid.UUID, enforcer *subscription.PlanEnforcer, payload CreatePayload) (*UserBrokerAccount, service.Error, error) {
+	accounts, err := s.userBrokerAccountRepository.ListByUserID(ctx, userID)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("list: %w", err)
+	}
+
+	if !enforcer.CanAddUserBrokerAccount(len(accounts)) {
+		return nil, service.ErrPlanLimitExceeded, subscription.NewPlanLimitError(subscription.FeatureAddUserBrokerAccount)
+	}
+
 	if err := validateBrokerAccountName(payload.Name); err != nil {
 		return nil, service.ErrInvalidInput, service.NewInputValidationErrorsWithError(apires.NewApiError("", "Broker account name must be between 1 and 63 characters", "name", payload.Name))
 	}
 
 	// Validate broker exists
-	_, err := s.brokerRepository.GetByID(ctx, payload.BrokerID)
+	_, err = s.brokerRepository.GetByID(ctx, payload.BrokerID)
 	if err != nil {
 		if err == repository.ErrNotFound {
 			return nil, service.ErrBadRequest, fmt.Errorf("Broker not found")

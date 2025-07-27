@@ -28,8 +28,9 @@ function createAPIClient(baseURL: string) {
         },
         async (err: AxiosError) => {
             const status = err.response ? err.response.status : null;
+            const data: any = err.response?.data;
 
-            if (status === 401 || status === 403) {
+            if (status === 401 || (status === 403 && data?.data.code !== "plan_limit_exceeded")) {
                 if (window.location.pathname !== ROUTES.signIn) {
                     // Redirect to sign-in page if the user is not authenticated.
                     window.history.pushState({}, "", ROUTES.signIn);

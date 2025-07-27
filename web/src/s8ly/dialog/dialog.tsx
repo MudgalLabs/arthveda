@@ -48,7 +48,7 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<t
                 {...props}
             >
                 {children}
-                <DialogPrimitive.Close className="absolute top-4 right-4" asChild>
+                <DialogPrimitive.Close className="absolute top-2 right-2" asChild>
                     <Button variant="ghost" size="icon">
                         <IconCross size={16} />
                     </Button>

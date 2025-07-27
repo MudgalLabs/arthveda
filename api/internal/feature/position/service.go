@@ -8,7 +8,7 @@ import (
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/trade"
-	"arthveda/internal/feature/user_broker_account"
+	"arthveda/internal/feature/userbrokeraccount"
 	"arthveda/internal/logger"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
@@ -30,11 +30,11 @@ type Service struct {
 	brokerRepository            broker.ReadWriter
 	positionRepository          ReadWriter
 	tradeRepository             trade.ReadWriter
-	userBrokerAccountRepository user_broker_account.Reader
+	userBrokerAccountRepository userbrokeraccount.Reader
 }
 
 func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWriter, tradeRepository trade.ReadWriter,
-	userBrokerAccountRepository user_broker_account.Reader,
+	userBrokerAccountRepository userbrokeraccount.Reader,
 ) *Service {
 	return &Service{
 		brokerRepository,
@@ -171,9 +171,11 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, enforcer *subscr
 	if !enforcer.CanAccessFullAnalytics() {
 		// If no time range is specified or if the time range is specified,
 		// we check if it is more than 12 months ago.
-		if payload.Filters.Opened.From == nil || (payload.Filters.Opened.From != nil && payload.Filters.Opened.From.Before(twelveMonthsAgo)) {
-			payload.Filters.Opened.From = &twelveMonthsAgo
-			noOfPositionsHidden = positionsExistOlderThanTwelveMonths
+		if payload.Filters.Opened != nil {
+			if payload.Filters.Opened.From == nil || (payload.Filters.Opened.From != nil && payload.Filters.Opened.From.Before(twelveMonthsAgo)) {
+				payload.Filters.Opened.From = &twelveMonthsAgo
+				noOfPositionsHidden = positionsExistOlderThanTwelveMonths
+			}
 		}
 	}
 

@@ -11,6 +11,7 @@ import * as subscription from "@/lib/api/subscription";
 import * as symbol from "@/lib/api/symbol";
 import * as user from "@/lib/api/user";
 import * as userBrokerAccount from "@/lib/api/user_broker_account";
+import { useUpgradeModalStore } from "@/components/plan_limit_exceeded_modal";
 
 export const api = {
     auth,
@@ -42,8 +43,16 @@ export function apiErrorHandler(err: any) {
 
             // We don't want to leak(to UI) anything if the server messed up.
             if (_err.status >= 300 && _err.status < 500) {
+                const data: any = _err.response?.data.data;
+
                 if (_err.response?.data.message) {
                     message = _err.response.data.message;
+                }
+
+                if (_err.status === 403 && data.code === "plan_limit_exceeded") {
+                    const showUpgradeModal = useUpgradeModalStore.getState().showUpgradeModal;
+                    showUpgradeModal(data.feature);
+                    return;
                 }
 
                 if (_err.status === 429) {

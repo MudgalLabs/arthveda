@@ -13,7 +13,8 @@ import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/constants";
 import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
-import { BrokerProvider, useBroker } from "./features/broker/broker_context";
+import { BrokerProvider, useBroker } from "@/features/broker/broker_context";
+import PlanLimitExceededModal from "@/components/plan_limit_exceeded_modal";
 
 const AppLayout = lazy(() => import("@/app_layout"));
 
@@ -109,6 +110,7 @@ export default function App() {
                             >
                                 <RouteHandler>
                                     <Outlet />
+                                    <PlanLimitExceededModal />
                                 </RouteHandler>
                             </Suspense>
                         </TooltipPrimitive.TooltipProvider>

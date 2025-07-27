@@ -1,8 +1,10 @@
 package service
 
-import "arthveda/internal/apires"
+import (
+	"arthveda/internal/apires"
+)
 
-// Kind of errors that any service may return.
+// Error is an error that any service may return.
 type Error string
 
 const (
@@ -14,9 +16,11 @@ const (
 	ErrInvalidInput        Error = "input is missing required fields or has bad values for parameters"
 	ErrInternalServerError Error = "internal server error"
 	ErrNotFound            Error = "resource does not exist"
+	ErrPlanLimitExceeded   Error = "plan limit exceeded"
 )
 
 // A service must return this as `error` if `ErrKind` is `ErrInvalidInput`.
+
 type InputValidationErrors []apires.ApiError
 
 func (errs *InputValidationErrors) Add(err apires.ApiError) {

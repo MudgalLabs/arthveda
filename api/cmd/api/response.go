@@ -2,6 +2,7 @@ package main
 
 import (
 	"arthveda/internal/apires"
+	"arthveda/internal/domain/subscription"
 	"arthveda/internal/logger"
 	"arthveda/internal/service"
 	"net/http"
@@ -11,7 +12,7 @@ func successResponse(w http.ResponseWriter, r *http.Request, statusCode int, mes
 	l := logger.FromCtx(r.Context())
 	// Not logging data to avoid unnecessary exposure and log size increase.
 	l.Debugw("success response", "message", message)
-	writeJSONResponse(w, statusCode, apires.Success(statusCode, message, data))
+	writeJSONResponse(w, statusCode, apires.WithData(statusCode, message, data))
 }
 
 func internalServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
@@ -23,7 +24,7 @@ func internalServerErrorResponse(w http.ResponseWriter, r *http.Request, err err
 func badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
 	l.Debugw("bad request response", "error", err)
-	writeJSONResponse(w, http.StatusBadRequest, apires.Error(http.StatusBadRequest, err.Error(), nil))
+	writeJSONResponse(w, http.StatusBadRequest, apires.WithErrors(http.StatusBadRequest, err.Error(), nil))
 }
 
 func malformedJSONResponse(w http.ResponseWriter, r *http.Request, err error) {
@@ -41,13 +42,13 @@ func invalidInputResponse(w http.ResponseWriter, r *http.Request, errs service.I
 func conflictResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
 	l.Debugw("conflict response", "error", err)
-	writeJSONResponse(w, http.StatusConflict, apires.Error(http.StatusConflict, err.Error(), nil))
+	writeJSONResponse(w, http.StatusConflict, apires.WithErrors(http.StatusConflict, err.Error(), nil))
 }
 
 func notFoundResponse(w http.ResponseWriter, r *http.Request, err error) {
 	l := logger.FromCtx(r.Context())
 	l.Debugw("not found response", "error", err)
-	writeJSONResponse(w, http.StatusNotFound, apires.Error(http.StatusNotFound, err.Error(), nil))
+	writeJSONResponse(w, http.StatusNotFound, apires.WithErrors(http.StatusNotFound, err.Error(), nil))
 }
 
 func unauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, message string, err error) {
@@ -59,7 +60,7 @@ func unauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, message s
 		msg = message
 	}
 
-	writeJSONResponse(w, http.StatusUnauthorized, apires.Error(http.StatusUnauthorized, msg, nil))
+	writeJSONResponse(w, http.StatusUnauthorized, apires.WithErrors(http.StatusUnauthorized, msg, nil))
 }
 
 // A helper function that translates Service.ErrKind and error to an HTTP response.
@@ -102,6 +103,13 @@ func serviceErrResponse(w http.ResponseWriter, r *http.Request, errKind service.
 	case errKind == service.ErrInternalServerError:
 		internalServerErrorResponse(w, r, err)
 		return
+
+	case errKind == service.ErrPlanLimitExceeded:
+		planLimitError, ok := err.(*subscription.PlanLimitError)
+		if !ok {
+			planLimitError = subscription.NewPlanLimitError("unknown")
+		}
+		writeJSONResponse(w, http.StatusForbidden, apires.WithData(http.StatusForbidden, "", planLimitError))
 
 	default:
 		l.DPanicw("reached an unreachable switch-case", "error", err, "errKind", errKind)

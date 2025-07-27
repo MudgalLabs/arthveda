@@ -1,4 +1,4 @@
-package user_broker_account
+package userbrokeraccount
 
 import (
 	"fmt"

@@ -69,11 +69,11 @@ func new(status ApiStatus, statusCode int, message string, data any, errors []Ap
 	}
 }
 
-func Success(statusCode int, message string, data any) ApiRes {
+func WithData(statusCode int, message string, data any) ApiRes {
 	return new(ApiResStatusSuccess, statusCode, message, data, nil)
 }
 
-func Error(statusCode int, message string, errors []ApiError) ApiRes {
+func WithErrors(statusCode int, message string, errors []ApiError) ApiRes {
 	return new(ApiResStatusError, statusCode, message, nil, errors)
 }
 

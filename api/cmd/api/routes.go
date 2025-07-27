@@ -125,6 +125,7 @@ func initRouter(a *app) http.Handler {
 
 		r.Route("/user-broker-accounts", func(r chi.Router) {
 			r.Use(authMiddleware)
+			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
 
 			r.Post("/", createUserBrokerAccountHandler(a.service.UserBrokerAccountService))
 			r.Get("/", listUserBrokerAccountsHandler(a.service.UserBrokerAccountService))

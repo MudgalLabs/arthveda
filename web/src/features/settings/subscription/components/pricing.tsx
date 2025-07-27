@@ -7,6 +7,7 @@ import { Button, Table, TableBody, TableCaption, TableCell, TableHead, TableHead
 import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { PADDLE_PRICE_ID_MONTHLY, PADDLE_PRICE_ID_YEARLY } from "@/constants";
+import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
 
 interface PricingProps {
     closePricingDialog?: () => void;
@@ -186,16 +187,20 @@ export function Pricing(props: PricingProps) {
                             </TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell className="px-6 py-3">Connect broker</TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
-                                    <IconBadgeCheck className="text-accent" />1 broker
+                                    Broker accounts <BrokerAccountInfoTooltip />
+                                </div>
+                            </TableCell>
+                            <TableCell className="px-6 py-3">
+                                <div className="flex-x">
+                                    <IconBadgeCheck className="text-accent" />1 account
                                 </div>
                             </TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-text-success" />
-                                    Unlimited
+                                    10 accounts
                                 </div>
                             </TableCell>
                         </TableRow>

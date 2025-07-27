@@ -6,7 +6,7 @@ export const BrokerAccountInfoTooltip = () => {
         <Tooltip
             content={
                 <>
-                    <p>A Broker Account represents your account with a broker (e.g., Zerodha - Personal).</p>
+                    <p>Broker account represents your account with a broker (e.g., Zerodha - Personal).</p>
                     <p>Positions you import or sync are to be associated to a broker account.</p>
                 </>
             }

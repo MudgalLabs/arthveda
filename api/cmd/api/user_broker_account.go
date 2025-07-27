@@ -4,7 +4,7 @@ import (
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/env"
 	"arthveda/internal/feature/position"
-	"arthveda/internal/feature/user_broker_account"
+	"arthveda/internal/feature/userbrokeraccount"
 	"arthveda/internal/logger"
 	"errors"
 	"net/http"
@@ -14,18 +14,19 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func createUserBrokerAccountHandler(s *user_broker_account.Service) http.HandlerFunc {
+func createUserBrokerAccountHandler(s *userbrokeraccount.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
+		enforcer := getPlanEnforcerFromCtx(ctx)
 
-		var payload user_broker_account.CreatePayload
+		var payload userbrokeraccount.CreatePayload
 		if err := decodeJSONRequest(&payload, r); err != nil {
 			malformedJSONResponse(w, r, err)
 			return
 		}
 
-		account, errKind, err := s.Create(ctx, userID, payload)
+		account, errKind, err := s.Create(ctx, userID, enforcer, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return
@@ -35,7 +36,7 @@ func createUserBrokerAccountHandler(s *user_broker_account.Service) http.Handler
 	}
 }
 
-func listUserBrokerAccountsHandler(s *user_broker_account.Service) http.HandlerFunc {
+func listUserBrokerAccountsHandler(s *userbrokeraccount.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
@@ -50,7 +51,7 @@ func listUserBrokerAccountsHandler(s *user_broker_account.Service) http.HandlerF
 	}
 }
 
-func updateUserBrokerAccountHandler(s *user_broker_account.Service) http.HandlerFunc {
+func updateUserBrokerAccountHandler(s *userbrokeraccount.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		l := logger.FromCtx(ctx)
@@ -64,7 +65,7 @@ func updateUserBrokerAccountHandler(s *user_broker_account.Service) http.Handler
 			return
 		}
 
-		var payload user_broker_account.UpdatePayload
+		var payload userbrokeraccount.UpdatePayload
 		if err := decodeJSONRequest(&payload, r); err != nil {
 			malformedJSONResponse(w, r, err)
 			return
@@ -80,7 +81,7 @@ func updateUserBrokerAccountHandler(s *user_broker_account.Service) http.Handler
 	}
 }
 
-func deleteUserBrokerAccountHandler(s *user_broker_account.Service) http.HandlerFunc {
+func deleteUserBrokerAccountHandler(s *userbrokeraccount.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		l := logger.FromCtx(ctx)
@@ -104,7 +105,7 @@ func deleteUserBrokerAccountHandler(s *user_broker_account.Service) http.Handler
 	}
 }
 
-func connectUserBrokerAccountHandler(s *user_broker_account.Service) http.HandlerFunc {
+func connectUserBrokerAccountHandler(s *userbrokeraccount.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		l := logger.FromCtx(ctx)
@@ -118,7 +119,7 @@ func connectUserBrokerAccountHandler(s *user_broker_account.Service) http.Handle
 			return
 		}
 
-		var payload user_broker_account.ConnectPayload
+		var payload userbrokeraccount.ConnectPayload
 		if err := decodeJSONRequest(&payload, r); err != nil {
 			malformedJSONResponse(w, r, err)
 			return
@@ -134,7 +135,7 @@ func connectUserBrokerAccountHandler(s *user_broker_account.Service) http.Handle
 	}
 }
 
-func disconnectUserBrokerAccountHandler(s *user_broker_account.Service) http.HandlerFunc {
+func disconnectUserBrokerAccountHandler(s *userbrokeraccount.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		l := logger.FromCtx(ctx)
@@ -158,7 +159,7 @@ func disconnectUserBrokerAccountHandler(s *user_broker_account.Service) http.Han
 	}
 }
 
-func syncUserBrokerAccountHandler(s *user_broker_account.Service, ps *position.Service) http.HandlerFunc {
+func syncUserBrokerAccountHandler(s *userbrokeraccount.Service, ps *position.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		l := logger.FromCtx(ctx)
@@ -172,11 +173,11 @@ func syncUserBrokerAccountHandler(s *user_broker_account.Service, ps *position.S
 			return
 		}
 
-		syncResult := &user_broker_account.SyncResult{}
+		syncResult := &userbrokeraccount.SyncResult{}
 		importResult := &position.ImportResult{}
 
 		type finalResult struct {
-			*user_broker_account.SyncResult
+			*userbrokeraccount.SyncResult
 			*position.ImportResult
 		}
 
@@ -223,7 +224,7 @@ func syncUserBrokerAccountHandler(s *user_broker_account.Service, ps *position.S
 	}
 }
 
-func zerodhaRedirectHandler(s *user_broker_account.Service) http.HandlerFunc {
+func zerodhaRedirectHandler(s *userbrokeraccount.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
