@@ -26,7 +26,7 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 
 		ok, err := verifier.Verify(r)
 		if err != nil || !ok {
-			l.Error("failed to verify paddle webhook signature", "error", err)
+			l.Errorw("failed to verify paddle webhook signature", "error", err)
 			unauthorizedErrorResponse(w, r, "invalid paddle webhook signature", nil)
 			return
 		}
