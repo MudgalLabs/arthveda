@@ -180,7 +180,7 @@ export function SignIn() {
             <div className="flex-center py-6 md:py-10">
                 <div className="space-y-2 text-center">
                     <p className="text-foreground inline-block text-sm sm:text-base">
-                        Built with 🤍️ by{" "}
+                        Built with 💙️ by{" "}
                         <a
                             href="https://github.com/MudgalLabs"
                             target="_blank"

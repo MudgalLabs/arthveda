@@ -161,6 +161,7 @@
     /* === Misc === */
     --color-logo: var(--color-azure-500);
     --color-logo: #0095ff;
+    --color-logo: #5a86c3;
 
     /* === Surface Hierarchy === */
     /* Background of the entire app. Left sidebar uses this. */

@@ -4,7 +4,7 @@
 
 # Arthveda
 
-[Arthveda](http://arthveda.app) is an open-source trading journal built exclusively for Indian traders that imports your trades, reveals powerful analytics, and helps you improve.
+[Arthveda](http://arthveda.app) is an open-source trading journal for the Indian markets that offers seamless broker imports, reveals powerful analytics, and helps you improve.
 
 **Arthveda is in open beta right now!**
 
@@ -54,5 +54,5 @@ I aim to support as many brokers as I can but until then this screen will help y
 [AGPL v3](LICENSE) because open tools build better traders and a better ecosystem.
 
 <p align="center">
-  Built with ❤️ by <a href="https://mudgallabs.com" target="_blank">Mudgal Labs</a>
+  Built with 💙️ by <a href="https://mudgallabs.com" target="_blank">Mudgal Labs</a>
 </p>
