@@ -1,6 +1,11 @@
-<p align="center">
+<div align="center">
   <img src="./.github/screenshots/banner.png"  alt="arthveda banner" />
-</p>
+
+### Open source trading journal for Indian markets
+
+[Discord](https://discord.gg/RB89u64cWH) | [Website](https://arthveda.app) | [App](https://web.arthveda.app)
+
+</div>
 
 # Arthveda
 
