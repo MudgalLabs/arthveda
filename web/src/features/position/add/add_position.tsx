@@ -156,7 +156,7 @@ function AddPosition() {
 
         const data = {
             risk_amount: position.risk_amount || "0",
-            symbol: position.symbol,
+            symbol: position.symbol.toUpperCase(),
             instrument: position.instrument,
             currency: position.currency,
             notes: position.notes,

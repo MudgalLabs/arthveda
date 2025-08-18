@@ -156,7 +156,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"created_by":                       position.CreatedBy,
 		"created_at":                       position.CreatedAt,
 		"updated_at":                       position.UpdatedAt,
-		"symbol":                           position.Symbol,
+		"symbol":                           strings.ToUpper(position.Symbol),
 		"instrument":                       position.Instrument,
 		"currency":                         position.Currency,
 		"risk_amount":                      position.RiskAmount,
@@ -458,6 +458,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 					pos.UserBrokerAccount = &ubaSummary
 				}
 
+				pos.Symbol = strings.ToUpper(pos.Symbol)
 				positionMap[pos.ID] = &pos
 				positions = append(positions, &pos)
 			}
@@ -515,6 +516,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 				pos.UserBrokerAccount = &ubaSummary
 			}
 
+			pos.Symbol = strings.ToUpper(pos.Symbol)
 			positions = append(positions, &pos)
 		}
 	}
