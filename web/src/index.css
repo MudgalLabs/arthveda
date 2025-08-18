@@ -19,6 +19,13 @@
     src: url("./assets/fonts/Inter.ttf");
 }
 
+@font-face {
+    font-family: "Geist Variable";
+    src: url("./assets/fonts/GeistVariable.woff2") format("woff2");
+    font-weight: 100 900;
+    font-display: swap;
+}
+
 /* Theme*/
 
 @theme {
@@ -226,6 +233,8 @@
     --font-logo: Museo Sans;
     --font-heading: Inter;
     --font-content: Inter;
+    --font-heading: "Geist Variable";
+    --font-content: "Geist Variable";
 }
 
 /* Global */
