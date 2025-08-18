@@ -182,7 +182,7 @@ export function SignIn() {
                     <p className="text-foreground inline-block text-sm sm:text-base">
                         Built with 💙️ by{" "}
                         <a
-                            href="https://github.com/MudgalLabs"
+                            href="https://mudgallabs.com"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center text-sm! sm:text-base!"
