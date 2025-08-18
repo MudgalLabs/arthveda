@@ -728,7 +728,6 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 			}
 		}
 
-		var existingPosition *Position
 		var svcErr service.Error
 
 		// When we import trades that belong to an existing open position in Arthveda.
@@ -737,19 +736,25 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		isPositionAlreadyInArthvedaButHasUpdated, exists := existingOpenPositionsInArthvedaWasUpdatedByPositionID[finalizedPos.ID]
 		if exists && isPositionAlreadyInArthvedaButHasUpdated {
 			isUpdatingPositionAlreadyInArthveda = true
-			existingPosition = existingOpenPositionsInArthvedaBySymbol[finalizedPos.Symbol]
 		}
 
 		if isDuplicate && !isUpdatingPositionAlreadyInArthveda {
-			existingPosition, svcErr, err = s.Get(ctx, payload.UserID, positionIDForTheDuplicateOrderID)
+			existingPosition, svcErr, err := s.Get(ctx, payload.UserID, positionIDForTheDuplicateOrderID)
 			if err != nil {
 				return nil, svcErr, fmt.Errorf("failed to fetch existing position: %w", err)
 			}
 
+			finalizedPos.RiskAmount = payload.RiskAmount
+
 			// We should copy some fields from the existing position to the new position.
 			// This helps us keep the risk amount of the existing position.
 			// Also the URL for the existing position will be the same as the new position.
-			finalizedPos.RiskAmount = existingPosition.RiskAmount
+
+			// If the existing position has a risk amount, we will use that.
+			// If the payload has a risk amount, we will use that.
+			if existingPosition.RiskAmount.IsPositive() && payload.RiskAmount.IsZero() {
+				finalizedPos.RiskAmount = existingPosition.RiskAmount
+			}
 
 			// So that the existing URL to view the position remains the same.
 			finalizedPos.ID = existingPosition.ID
@@ -783,15 +788,9 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		// This is calculated from the trades in the position.
 		finalizedPos.TotalChargesAmount = calculateTotalChargesAmountFromTrades(finalizedPos.Trades)
 
-		riskAmount := payload.RiskAmount
-		if isDuplicate && existingPosition.RiskAmount.IsPositive() {
-			// If we are updating an existing position, we should use the risk amount from the existing position.
-			riskAmount = existingPosition.RiskAmount
-		}
-
 		// As we have updated the trades with charges, we need to recompute the position.
 		computePayload := ComputePayload{
-			RiskAmount: riskAmount,
+			RiskAmount: finalizedPos.RiskAmount,
 			Trades:     ConvertTradesToCreatePayload(finalizedPos.Trades),
 		}
 

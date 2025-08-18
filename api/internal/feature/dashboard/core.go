@@ -42,7 +42,7 @@ func getGeneralStats(positions []*position.Position) generalStats {
 
 	var winRate float64
 	var grossPnL, netPnL, charges, avgRFactor, avgWinRFactor, avgLossRFactor, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
-	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount int
+	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount, tradesWithRiskAmountCount int
 	var maxWinStreak, maxLossStreak, currentWin, currentLoss int
 
 	for _, p := range positions {
@@ -63,6 +63,7 @@ func getGeneralStats(positions []*position.Position) generalStats {
 		charges = charges.Add(p.TotalChargesAmount)
 
 		if p.RiskAmount.GreaterThan(decimal.Zero) {
+			tradesWithRiskAmountCount++
 			avgRFactor = avgRFactor.Add(p.RFactor)
 
 			switch p.Status {
@@ -111,9 +112,12 @@ func getGeneralStats(positions []*position.Position) generalStats {
 	// Trades that are settled and not winning are considered losing.
 	lossTradesCount = settledTradesCount - winTradesCount
 
+	if tradesWithRiskAmountCount > 0 {
+		avgRFactor = avgRFactor.Div(decimal.NewFromInt(int64(tradesWithRiskAmountCount)))
+	}
+
 	if settledTradesCount > 0 {
 		winRate = (float64(winTradesCount) / float64(settledTradesCount)) * 100.0
-		avgRFactor = avgRFactor.Div(decimal.NewFromInt(int64(settledTradesCount)))
 	}
 
 	if winTradesCount > 0 {
