@@ -6,12 +6,10 @@ import { BrokerLogo } from "@/components/broker_logo";
 import {
     IconArrowUpRight,
     IconBadgeAlert,
-    IconBadgeCheck,
     IconBadgeInfo,
     IconEdit,
     IconEllipsis,
     IconInfo,
-    IconPlug,
     IconPlus,
     IconSync,
     IconTrash,
@@ -142,59 +140,45 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
         enableHiding: false,
         enableSorting: false,
     },
-    {
-        accessorKey: "last_login_at",
-        header: ({ column }) => <DataTableColumnHeader title="Last Login" column={column} />,
-        cell: ({ row }) => {
-            if (row.original.last_login_at === null) {
-                return "Never";
-            }
+    // {
+    //     accessorKey: "is_connected",
+    //     header: ({ column }) => (
+    //         <DataTableColumnHeader
+    //             title={
+    //                 <Tooltip content="You connect your broker account via OAuth to sync positions from your broker.">
+    //                     <span className="flex-x">
+    //                         OAuth Connect <IconInfo />
+    //                     </span>
+    //                 </Tooltip>
+    //             }
+    //             column={column}
+    //         />
+    //     ),
+    //     cell: ({ row }) => {
+    //         const { getBrokerById } = useBroker();
+    //         const broker = getBrokerById(row.original.broker_id);
 
-            const date = new Date(row.original.last_login_at);
-            return formatDate(date, { time: true });
-        },
-        enableHiding: false,
-        enableSorting: false,
-    },
-    {
-        accessorKey: "is_connected",
-        header: ({ column }) => (
-            <DataTableColumnHeader
-                title={
-                    <Tooltip content="You connect your broker account via OAuth to sync positions from your broker.">
-                        <span className="flex-x">
-                            OAuth Connect <IconInfo />
-                        </span>
-                    </Tooltip>
-                }
-                column={column}
-            />
-        ),
-        cell: ({ row }) => {
-            const { getBrokerById } = useBroker();
-            const broker = getBrokerById(row.original.broker_id);
+    //         if (!broker) {
+    //             return "";
+    //         }
 
-            if (!broker) {
-                return "";
-            }
+    //         if (row.original.is_connected) {
+    //             return (
+    //                 <span className="flex-x">
+    //                     <IconBadgeCheck size={16} className="text-success-foreground" /> Connected
+    //                 </span>
+    //             );
+    //         }
 
-            if (row.original.is_connected) {
-                return (
-                    <span className="flex-x">
-                        <IconBadgeCheck size={16} className="text-success-foreground" /> Connected
-                    </span>
-                );
-            }
-
-            return (
-                <span className="flex-x">
-                    <IconBadgeAlert size={16} className="text-text-destructive" /> Not connected
-                </span>
-            );
-        },
-        enableHiding: false,
-        enableSorting: false,
-    },
+    //         return (
+    //             <span className="flex-x">
+    //                 <IconBadgeAlert size={16} className="text-text-destructive" /> Not connected
+    //             </span>
+    //         );
+    //     },
+    //     enableHiding: false,
+    //     enableSorting: false,
+    // },
     {
         accessorKey: "is_authenticated",
         header: ({ column }) => (
@@ -202,48 +186,18 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                 title={
                     <Tooltip content="For security reasons, brokers requires users to login everyday to grant access.">
                         <span className="flex-x">
-                            OAuth Login <IconInfo />
+                            Sync <IconInfo />
                         </span>
                     </Tooltip>
                 }
                 column={column}
             />
         ),
-        cell: ({ row }) => {
+        cell: ({ row, table }) => {
             const { getBrokerById } = useBroker();
             const broker = getBrokerById(row.original.broker_id);
-
-            if (!broker) {
-                return "";
-            }
-
-            if (row.original.is_authenticated) {
-                return (
-                    <span className="flex-x">
-                        <IconBadgeCheck size={16} className="text-success-foreground" /> Authenticated
-                    </span>
-                );
-            }
-
-            return (
-                <span className="flex-x">
-                    <IconBadgeAlert size={16} className="text-text-destructive" /> Not Authenticated
-                </span>
-            );
-        },
-        enableHiding: false,
-        enableSorting: false,
-    },
-    {
-        id: "actions",
-        header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
-        cell: ({ table, row }) => {
             const setSyncSummary = table.options.meta?.extra?.setSyncSummary;
             const setSyncSummaryModalOpen = table.options.meta?.extra?.setSyncSummaryModalOpen;
-
-            const { getBrokerById, getBrokerNameById } = useBroker();
-            const broker = getBrokerById(row.original.broker_id);
-            const brokerName = getBrokerNameById(row.original.broker_id);
 
             const { mutate: sync, isPending: isSyncing } = apiHooks.userBrokerAccount.useSync({
                 onSuccess: (res) => {
@@ -265,7 +219,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
 
                     if (setSyncSummary && setSyncSummaryModalOpen) {
                         setSyncSummary({
-                            BrokerName: brokerName,
+                            BrokerName: broker?.name,
                             BrokerAccountName: row.original.name,
                             NewPositionsCount: data.positions_imported_count - data.forced_positions_count,
                             UpdatedPositionsCount: data.forced_positions_count,
@@ -278,6 +232,79 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                 },
                 onError: apiErrorHandler,
             });
+
+            if (!broker) {
+                return "";
+            }
+
+            if (broker.name === "Zerodha") {
+                return (
+                    <Button variant="secondary" onClick={() => sync(row.original.id)} disabled={isSyncing}>
+                        <IconSync size={16} />
+                        Sync
+                    </Button>
+                );
+            } else {
+                return (
+                    <span className="flex-x">
+                        <IconBadgeAlert size={16} className="text-text-destructive" /> Broker not supported
+                    </span>
+                );
+            }
+        },
+        enableHiding: false,
+        enableSorting: false,
+    },
+    {
+        id: "actions",
+        header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
+        cell: ({
+            // table,
+            row,
+        }) => {
+            // const setSyncSummary = table.options.meta?.extra?.setSyncSummary;
+            // const setSyncSummaryModalOpen = table.options.meta?.extra?.setSyncSummaryModalOpen;
+
+            const {
+                getBrokerById,
+                // getBrokerNameById
+            } = useBroker();
+            const broker = getBrokerById(row.original.broker_id);
+            // const brokerName = getBrokerNameById(row.original.broker_id);
+
+            // const { mutate: sync, isPending: isSyncing } = apiHooks.userBrokerAccount.useSync({
+            //     onSuccess: (res) => {
+            //         const data = res.data.data as SyncUserBrokerAccountResult;
+
+            //         if (data.login_required && data.login_url) {
+            //             toast.warning("Broker login has expired", {
+            //                 duration: 10000,
+            //                 description: "Login to your broker account",
+            //                 action: {
+            //                     label: "Login",
+            //                     onClick: () => {
+            //                         window.location.assign(data.login_url!);
+            //                     },
+            //                 },
+            //             });
+            //             return;
+            //         }
+
+            //         if (setSyncSummary && setSyncSummaryModalOpen) {
+            //             setSyncSummary({
+            //                 BrokerName: brokerName,
+            //                 BrokerAccountName: row.original.name,
+            //                 NewPositionsCount: data.positions_imported_count - data.forced_positions_count,
+            //                 UpdatedPositionsCount: data.forced_positions_count,
+            //                 PositionsData: data.positions,
+            //             });
+            //             setSyncSummaryModalOpen(true);
+            //         }
+
+            //         toast.success(`${row.original.name} synced successfully`);
+            //     },
+            //     onError: apiErrorHandler,
+            // });
 
             if (!broker) {
                 return null;
@@ -299,15 +326,15 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                 setDeleteOpen(true);
             };
 
-            const handleConnectOpen = () => {
-                setDropdownOpen(false);
-                setConnectOpen(true);
-            };
+            // const handleConnectOpen = () => {
+            //     setDropdownOpen(false);
+            //     setConnectOpen(true);
+            // };
 
-            const handleDisconnectOpen = () => {
-                setDropdownOpen(false);
-                setDisconnectOpen(true);
-            };
+            // const handleDisconnectOpen = () => {
+            //     setDropdownOpen(false);
+            //     setDisconnectOpen(true);
+            // };
 
             return (
                 <>
@@ -317,8 +344,8 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                                 <IconEllipsis size={16} />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="flex w-35 flex-col">
-                            <Tooltip content="Broker must be connected to sync" disabled={row.original.is_connected}>
+                        <DropdownMenuContent className="flex w-35 flex-col">
+                            {/* <Tooltip content="Broker must be connected to sync" disabled={row.original.is_connected}>
                                 <DropdownMenuItem asChild>
                                     <Button
                                         variant="ghost"
@@ -358,7 +385,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                                         </Button>
                                     )}
                                 </DropdownMenuItem>
-                            </Tooltip>
+                            </Tooltip> */}
 
                             <DropdownMenuItem asChild>
                                 <Button variant="ghost" className="w-full! justify-start" onClick={handleEditOpen}>

@@ -21,6 +21,8 @@ var (
 	CIPHER_KEY            string
 	PADDLE_WEBHOOK_SECRET string
 	PADDLE_API_KEY        string
+	ZERODHA_API_KEY       string // ClientID
+	ZERODHA_API_SECRET    string // ClientSecret
 )
 
 func IsProd() bool {
@@ -48,6 +50,8 @@ func Init(path string) {
 	CIPHER_KEY = os.Getenv("ARTHVEDA_API_CIPHER_KEY")
 	PADDLE_WEBHOOK_SECRET = os.Getenv("ARTHVEDA_PADDLE_WEBHOOK_SECRET")
 	PADDLE_API_KEY = os.Getenv("ARTHVEDA_PADDLE_API_KEY")
+	ZERODHA_API_KEY = os.Getenv("ARTHVEDA_ZERODHA_API_KEY")
+	ZERODHA_API_SECRET = os.Getenv("ARTHVEDA_ZERODHA_API_SECRET")
 
 	// TODO: We should validate the environment variables here to ensure they are set correctly.
 

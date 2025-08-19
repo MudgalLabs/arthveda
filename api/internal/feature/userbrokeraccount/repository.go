@@ -2,6 +2,7 @@ package userbrokeraccount
 
 import (
 	"arthveda/internal/dbx"
+	"arthveda/internal/feature/broker"
 	"arthveda/internal/repository"
 	"context"
 	"fmt"
@@ -197,7 +198,8 @@ func (r *userBrokerAccountRepository) findAccounts(ctx context.Context, f filter
 	baseSQL := `
 		SELECT id, created_at, updated_at, name, broker_id, user_id, 
 		       oauth_client_id, last_sync_at, last_login_at, 
-		       oauth_client_secret_nonce, oauth_client_secret_bytes, access_token_bytes, access_token_bytes_nonce
+		       oauth_client_secret_nonce, oauth_client_secret_bytes, access_token_bytes, 
+			   access_token_bytes_nonce
 		FROM user_broker_account
 	`
 
@@ -250,6 +252,20 @@ func (r *userBrokerAccountRepository) findAccounts(ctx context.Context, f filter
 
 		// If we have a OAuthClientID and OAuthClientSecretBytes, we are considered connected.
 		if account.OAuthClientID != nil && *account.OAuthClientID != "" && len(account.OAuthClientSecretBytes) > 0 {
+			account.IsConnected = true
+		}
+
+		var brokerName broker.Name
+
+		brokerNameSQL := `SELECT name FROM broker WHERE id = $1`
+		err = r.db.QueryRow(ctx, brokerNameSQL, account.BrokerID).Scan(&brokerName)
+		if err != nil {
+			return nil, fmt.Errorf("scan broker name: %w", err)
+		}
+
+		// Zerodha is considered connected always because we provide the clientID
+		// and secret instead of the user.
+		if brokerName != "" && brokerName == broker.BrokerNameZerodha {
 			account.IsConnected = true
 		}
 
