@@ -194,7 +194,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
             />
         ),
         cell: ({ row, table }) => {
-            const { getBrokerById } = useBroker();
+            const { getBrokerById, getBrokerLogoById } = useBroker();
             const broker = getBrokerById(row.original.broker_id);
             const setSyncSummary = table.options.meta?.extra?.setSyncSummary;
             const setSyncSummaryModalOpen = table.options.meta?.extra?.setSyncSummaryModalOpen;
@@ -204,16 +204,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                     const data = res.data.data as SyncUserBrokerAccountResult;
 
                     if (data.login_required && data.login_url) {
-                        toast.warning("Broker login has expired", {
-                            duration: 10000,
-                            description: "Login to your broker account",
-                            action: {
-                                label: "Login",
-                                onClick: () => {
-                                    window.location.assign(data.login_url!);
-                                },
-                            },
-                        });
+                        window.location.assign(data.login_url!);
                         return;
                     }
 
@@ -237,20 +228,33 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                 return "";
             }
 
-            if (broker.name === "Zerodha") {
-                return (
-                    <Button variant="secondary" onClick={() => sync(row.original.id)} disabled={isSyncing}>
-                        <IconSync size={16} />
-                        Sync
-                    </Button>
-                );
-            } else {
+            if (broker.name !== "Zerodha") {
                 return (
                     <span className="flex-x">
                         <IconBadgeAlert size={16} className="text-text-destructive" /> Broker not supported
                     </span>
                 );
             }
+
+            if (!row.original.is_authenticated) {
+                return (
+                    <Button variant="secondary" onClick={() => sync(row.original.id)} loading={isSyncing}>
+                        <img
+                            src={getBrokerLogoById(row.original.broker_id)}
+                            alt={broker.name}
+                            className="mr-2 h-4 w-4"
+                        />
+                        Connect
+                    </Button>
+                );
+            }
+
+            return (
+                <Button variant="secondary" onClick={() => sync(row.original.id)} loading={isSyncing}>
+                    <IconSync size={16} />
+                    Sync
+                </Button>
+            );
         },
         enableHiding: false,
         enableSorting: false,
@@ -267,6 +271,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
 
             const {
                 getBrokerById,
+                getBrokerLogoById,
                 // getBrokerNameById
             } = useBroker();
             const broker = getBrokerById(row.original.broker_id);
@@ -331,10 +336,10 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
             //     setConnectOpen(true);
             // };
 
-            // const handleDisconnectOpen = () => {
-            //     setDropdownOpen(false);
-            //     setDisconnectOpen(true);
-            // };
+            const handleDisconnectOpen = () => {
+                setDropdownOpen(false);
+                setDisconnectOpen(true);
+            };
 
             return (
                 <>
@@ -386,6 +391,28 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                                     )}
                                 </DropdownMenuItem>
                             </Tooltip> */}
+
+                            <Tooltip
+                                content="Connect is not supported for this broker"
+                                disabled={broker.supports_trade_sync}
+                            >
+                                <DropdownMenuItem asChild>
+                                    {row.original.is_connected && (
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full! justify-start"
+                                            onClick={handleDisconnectOpen}
+                                        >
+                                            <img
+                                                src={getBrokerLogoById(row.original.broker_id)}
+                                                alt={broker.name}
+                                                className="mr-2 h-4 w-4"
+                                            />
+                                            Disconnect
+                                        </Button>
+                                    )}
+                                </DropdownMenuItem>
+                            </Tooltip>
 
                             <DropdownMenuItem asChild>
                                 <Button variant="ghost" className="w-full! justify-start" onClick={handleEditOpen}>
