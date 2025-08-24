@@ -33,7 +33,7 @@ export function CancelAutoRenew() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="destructive">Cancel Auto-Renew</Button>
+                <Button variant="destructive">Cancel auto renew</Button>
             </DialogTrigger>
 
             <DialogContent>

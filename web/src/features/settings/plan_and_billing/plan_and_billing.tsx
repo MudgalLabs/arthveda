@@ -4,7 +4,18 @@ import { PageHeading } from "@/components/page_heading";
 import { toast } from "@/components/toast";
 import { useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
 import { apiHooks } from "@/hooks/api_hooks";
-import { Button, Dialog, DialogContent, DialogTrigger, IconCreditCard, Tooltip, useDocumentTitle } from "netra";
+import {
+    Alert,
+    AlertDescription,
+    Button,
+    Dialog,
+    DialogContent,
+    DialogTrigger,
+    IconCreditCard,
+    IconInfo,
+    Tooltip,
+    useDocumentTitle,
+} from "netra";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
@@ -52,41 +63,40 @@ export const PlanAndBilling = () => {
                 <h1>Plan and billing</h1>
             </PageHeading>
 
-            <Card>
-                <CardTitle className="flex-x justify-between">
-                    <p className="text-text-muted! heading!">{hasPro ? "Pro" : "Free"}</p>
-                    <div>{hasPro && !subscription?.cancel_at_period_end ? <CancelAutoRenew /> : <ShowPricing />}</div>
-                </CardTitle>
+            <Alert>
+                <IconInfo />
 
-                <CardContent className="mt-2">
-                    {hasPro ? (
-                        <div className="space-y-2">
-                            {subscription?.cancel_at_period_end ? (
-                                <p className="text-text-primary">
-                                    Your subscription is set to cancel and will end on{" "}
-                                    {formatDate(new Date(subscription.valid_until))}.
-                                </p>
-                            ) : (
-                                <>
-                                    <p className="text-text-primary">
-                                        Your subscription is active. You can cancel it at any time.
+                <div className="flex-x items-start justify-between">
+                    <div className="space-y-2">
+                        <p className="font-semibold">You are currently on the {hasPro ? "Pro" : "Free"} plan.</p>
+
+                        {hasPro ? (
+                            <div className="text-text-muted space-y-2">
+                                {subscription?.cancel_at_period_end ? (
+                                    <p>
+                                        Your subscription is set to cancel and will end on{" "}
+                                        {formatDate(new Date(subscription.valid_until))}.
                                     </p>
-                                    <p>Renewing on {formatDate(new Date(subscription!.valid_until))}</p>
-                                </>
-                            )}
-                        </div>
-                    ) : (
-                        <p className="text-text-muted">
-                            You are currently on the free plan.{" "}
-                            <span className="text-text-primary font-medium">Click on Upgrade</span> to learn more about
-                            Pro.
-                        </p>
-                    )}
-                </CardContent>
-            </Card>
+                                ) : (
+                                    <p>
+                                        Renewing on {formatDate(new Date(subscription!.valid_until))}. You can cancel it
+                                        at any time.
+                                    </p>
+                                )}
+                            </div>
+                        ) : (
+                            <p className="text-text-muted">
+                                You are currently on the free plan.{" "}
+                                <span className="font-semibold">Click on Upgrade</span> to learn more about Pro.
+                            </p>
+                        )}
+                    </div>
+                    <div>{hasPro && !subscription?.cancel_at_period_end ? <CancelAutoRenew /> : <ShowPricing />}</div>
+                </div>
+            </Alert>
 
             <div className="my-8">
-                <PastInvoices />
+                <Invoices />
             </div>
         </div>
     );
@@ -101,6 +111,7 @@ function ShowPricing() {
             <DialogTrigger asChild>
                 <Button>Upgrade</Button>
             </DialogTrigger>
+
             <DialogContent className="max-h-screen! max-w-screen! overflow-y-auto">
                 <Pricing closePricingDialog={() => setIsOpen(false)} />
             </DialogContent>
@@ -108,7 +119,7 @@ function ShowPricing() {
     );
 }
 
-function PastInvoices() {
+function Invoices() {
     const {
         data: invoicesData,
         isLoading: invoicesLoading,
