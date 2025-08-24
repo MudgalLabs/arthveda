@@ -247,6 +247,7 @@ function NewPosition() {
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
+
                 {isComputing && <Loading />}
             </PageHeading>
 

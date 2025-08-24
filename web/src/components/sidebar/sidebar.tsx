@@ -14,7 +14,7 @@ import { useAuthentication } from "@/features/auth/auth_context";
 import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
 
-const sidebarRoutes = [ROUTES.dashboard, ROUTES.listPositions, ROUTES.newPositions, ROUTES.importPositions];
+const SIDEBAR_ROUTES = [ROUTES.dashboard, ROUTES.listPositions, ROUTES.newPositions, ROUTES.importPositions];
 
 export const Sidebar = () => {
     const { pathname } = useLocation();
@@ -24,7 +24,7 @@ export const Sidebar = () => {
 
     const [activeRoute, setActiveRoute] = useState("");
     useEffect(() => {
-        setActiveRoute(sidebarRoutes.includes(pathname) ? pathname : "");
+        setActiveRoute(SIDEBAR_ROUTES.includes(pathname) ? pathname : "");
 
         if (isMobile) {
             // Close sidebar on route change in mobile view.
@@ -55,9 +55,7 @@ export const Sidebar = () => {
         >
             <div className="mt-6 flex flex-col gap-y-2 pb-2">
                 <div className="mb-4">
-                    <Link to={ROUTES.dashboard} variant="unstyled" className="cursor-pointer!">
-                        <Branding size="small" hideText={!isOpen || isMobile} hideBetaTag={!isOpen || isMobile} />
-                    </Link>
+                    <Branding size="small" hideText={!isOpen || isMobile} hideBetaTag={!isOpen || isMobile} />
                 </div>
 
                 <AddPositionMenu sidebarOpen={isOpen} />
