@@ -258,6 +258,10 @@ const columns: ColumnDef<Position>[] = [
         header: ({ column, table }) => (
             <DataTableColumnHeader title="R Factor" column={column} disabled={table.options.meta?.isFetching} />
         ),
+        cell: ({ row }) => {
+            const value = Number(row.original.r_factor);
+            return <span className={value < 0 ? "text-text-destructive" : "text-text-success"}>{value}</span>;
+        },
     },
     {
         id: "gross_pnl",
@@ -286,8 +290,8 @@ const columns: ColumnDef<Position>[] = [
             <span
                 className={
                     new Decimal(row.original.net_pnl_amount).isNegative()
-                        ? "text-foreground-red"
-                        : "text-foreground-green"
+                        ? "text-text-destructive"
+                        : "text-text-success"
                 }
             >
                 {formatCurrency(row.original.net_pnl_amount, {
@@ -327,6 +331,11 @@ const columns: ColumnDef<Position>[] = [
         header: ({ column, table }) => (
             <DataTableColumnHeader title="Net Return %" disabled={table.options.meta?.isFetching} column={column} />
         ),
-        cell: ({ row }) => `${Number(row.original.net_return_percentage).toFixed(2)}%`,
+        cell: ({ row }) => {
+            const value = Number(row.original.net_return_percentage);
+            return (
+                <span className={value < 0 ? "text-text-destructive" : "text-text-success"}>{value.toFixed(2)}%</span>
+            );
+        },
     },
 ];

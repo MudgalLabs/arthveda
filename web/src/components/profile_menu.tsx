@@ -1,8 +1,8 @@
 import { FC, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 
-import { Button, useIsMobile } from "netra";
-import { IconLogout, IconCreditCard, IconPlug } from "@/components/icons";
+import { Button, useIsMobile, IconZap } from "netra";
+import { IconLogout, IconCreditCard } from "@/components/icons";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
 import {
@@ -108,17 +108,17 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
 
                 <DropdownMenuSeparator />
 
+                <Link to={ROUTES.brokerAccounts} variant="unstyled">
+                    <DropdownMenuItem>
+                        <IconZap size={18} />
+                        Broker Accounts
+                    </DropdownMenuItem>
+                </Link>
+
                 <Link to={ROUTES.planAndBilling} variant="unstyled">
                     <DropdownMenuItem>
                         <IconCreditCard size={18} />
                         Plan and Billing
-                    </DropdownMenuItem>
-                </Link>
-
-                <Link to={ROUTES.brokerAccounts} variant="unstyled">
-                    <DropdownMenuItem>
-                        <IconPlug size={18} />
-                        Broker Accounts
                     </DropdownMenuItem>
                 </Link>
 

@@ -333,8 +333,6 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 	// Set access token
 	kc.SetAccessToken(accessToken)
 
-	now := time.Now().UTC()
-
 	trades, err := kc.GetTrades()
 	if err != nil {
 		l.Errorw("Failed to get trades", "error", err.Error())
@@ -370,6 +368,7 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 		importableTrades = append(importableTrades, &importableTrade)
 	}
 
+	now := time.Now().UTC()
 	uba.LastSyncAt = &now
 
 	_, err = s.userBrokerAccountRepository.Update(ctx, uba)
