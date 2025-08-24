@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/s8ly";
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "netra";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,7 @@ const dialogDataByFeature: Record<Feature, DialogData> = {
     [Feature.AddUserBrokerAccount]: {
         title: "Add more broker accounts",
         messageFreePlan:
-            "You have reached your limit for adding broker accounts. Need more? You can upgrade your plan add more.",
+            "You have reached your limit for adding broker accounts. Need more? You can upgrade your plan to add more.",
         messageProPlan:
             "You have reached your limit for adding broker accounts. Please delete old broker accounts to add new ones.",
         freePlanLimit: 1,

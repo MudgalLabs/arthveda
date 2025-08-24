@@ -1,4 +1,4 @@
-import { Select, SelectProps } from "@/s8ly";
+import { Select, SelectProps } from "netra";
 import { cn } from "@/lib/utils";
 
 export const enum CompareOperator {

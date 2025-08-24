@@ -8,7 +8,7 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
-import { Tooltip } from "@/s8ly";
+import { Separator, Tooltip } from "netra";
 import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
 
 export const ExplorePositions = () => {
@@ -44,6 +44,8 @@ export const ExplorePositions = () => {
     return (
         <>
             <PageHeading heading="Explore Positions" loading={queryResult?.isFetching} />
+
+            <Separator className="mt-2 mb-3" />
 
             {!hasPro && !!queryResult?.data?.data.no_of_positions_hidden && (
                 <div className="text-text-muted flex flex-col gap-2 sm:flex-row">

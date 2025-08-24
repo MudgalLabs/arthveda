@@ -1,6 +1,6 @@
 import type { Meta } from "@storybook/react";
 
-import { Progress as ProgressComp } from "@/s8ly";
+import { Progress as ProgressComp } from "netra";
 import { useEffect, useState } from "react";
 
 const meta = {

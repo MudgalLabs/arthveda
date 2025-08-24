@@ -1,5 +1,5 @@
 import { TradeKind } from "@/features/trade/trade";
-import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
+import { ToggleGroup, ToggleGroupItem } from "netra";
 
 interface OrderKindToggleProps {
     defaultValue?: TradeKind;

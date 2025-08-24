@@ -12,7 +12,7 @@ import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cum
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
 import { IconSearch } from "@/components/icons";
-import { Button, DatePicker, Tooltip } from "@/s8ly";
+import { Button, DatePicker, Separator, Tooltip } from "netra";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
@@ -284,6 +284,8 @@ export const Dashboard = () => {
         <div>
             <PageHeading heading="Dashboard" />
 
+            <Separator className="mt-2 mb-3" />
+
             {!isNewUser && !isFetching && (
                 <div className="space-y-4">
                     {!hasPro && !!data?.no_of_positions_hidden && (
@@ -333,7 +335,6 @@ export const Dashboard = () => {
                     </div>
                 </div>
             )}
-
             {content}
         </div>
     );

@@ -272,8 +272,6 @@ func (s *Service) Sync(ctx context.Context, userID, ubaID uuid.UUID) (*SyncResul
 
 	var clientID, clientSecret string
 
-	fmt.Println("Broker Name:", ubaBroker.Name)
-
 	if ubaBroker.Name == broker.BrokerNameZerodha {
 		// For Zerodha, we don't need users to provide clientID and secret.
 		clientID = env.ZERODHA_API_KEY

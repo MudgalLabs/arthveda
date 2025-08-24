@@ -3,7 +3,7 @@ import { IconBadgeCheck } from "@/components/icons";
 import { UpgradeToPro } from "@/features/settings/subscription/components/upgrade_to_pro";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 import { cn } from "@/lib/utils";
-import { Button, Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow, Tag } from "@/s8ly";
+import { Button, Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow, Tag } from "netra";
 import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { PADDLE_PRICE_ID_MONTHLY, PADDLE_PRICE_ID_YEARLY } from "@/constants";

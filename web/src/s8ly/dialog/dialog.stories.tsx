@@ -11,7 +11,7 @@ import {
     DialogTrigger,
     Input,
     Label,
-} from "@/s8ly";
+} from "netra";
 
 const meta = {
     title: "s8ly/Dialog",

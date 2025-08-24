@@ -16,7 +16,7 @@ import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
 import { PositionListFilters } from "@/features/position/components/position_list_filters";
-import { Tag, Button, Popover, PopoverTrigger, PopoverContent, Tooltip } from "@/s8ly";
+import { Tag, Button, Popover, PopoverTrigger, PopoverContent, Tooltip } from "netra";
 import { IconArrowUpRight, IconCross, IconNotebookPen } from "@/components/icons";
 import {
     defaultPositionSearchFilters,

@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { usePostHog } from "posthog-js/react";
 
-import { Button, ButtonProps } from "@/s8ly";
+import { Button, ButtonProps } from "netra";
 import { Google } from "@/components/google";
 import { cn, isProd } from "@/lib/utils";
 

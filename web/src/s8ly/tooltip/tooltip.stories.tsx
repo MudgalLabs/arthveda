@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Tooltip as TooltipComp } from "@/s8ly";
+import { Tooltip as TooltipComp } from "netra";
 
 const meta = {
     title: "s8ly/Tooltip",

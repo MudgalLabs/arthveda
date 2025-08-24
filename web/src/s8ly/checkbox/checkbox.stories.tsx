@@ -1,6 +1,6 @@
 import type { Meta } from "@storybook/react";
 
-import { Checkbox as CheckboxComp, Label } from "@/s8ly";
+import { Checkbox as CheckboxComp, Label } from "netra";
 
 const meta = {
     title: "s8ly/Checkbox",

@@ -8,7 +8,7 @@ import { toast } from "@/components/toast";
 import { WithLabel } from "@/components/with_label";
 import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
-import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem, Checkbox, DataTable, Tag } from "@/s8ly";
+import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem, Checkbox, DataTable, Tag, Separator } from "netra";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
 import { DecimalString, Setter } from "@/lib/types";
@@ -289,6 +289,8 @@ export const ImportPositions = () => {
     return (
         <>
             <PageHeading heading="Import Positions" />
+
+            <Separator className="mt-2 mb-3" />
 
             <div className="h-4" />
 

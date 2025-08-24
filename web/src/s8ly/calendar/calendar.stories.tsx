@@ -1,7 +1,7 @@
 import type { Meta } from "@storybook/react";
 import { useState } from "react";
 
-import { Calendar as CalendarComp } from "@/s8ly";
+import { Calendar as CalendarComp } from "netra";
 import { formatDate } from "@/lib/utils";
 
 const meta = {
@@ -19,14 +19,8 @@ export const Single = () => {
 
     return (
         <>
-            <p className="mb-4">
-                {dates.length > 0 ? formatDate(dates[0]) : "Select a date"}
-            </p>
-            <CalendarComp
-                mode="single"
-                dates={dates}
-                onDatesChange={setDates}
-            />
+            <p className="mb-4">{dates.length > 0 ? formatDate(dates[0]) : "Select a date"}</p>
+            <CalendarComp mode="single" dates={dates} onDatesChange={setDates} />
         </>
     );
 };

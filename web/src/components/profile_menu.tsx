@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 
-import { Button } from "@/s8ly";
+import { Button } from "netra";
 import {
     IconLogout,
     IconCreditCard,
@@ -110,7 +110,7 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                 <Link to={ROUTES.subscription} variant="unstyled">
                     <DropdownMenuItem>
                         <IconCreditCard size={18} />
-                        Manage Subscription
+                        Subscription
                     </DropdownMenuItem>
                 </Link>
 

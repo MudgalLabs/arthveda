@@ -19,7 +19,7 @@ import {
     DropdownMenuCheckboxItem,
     DropdownMenuRadioGroup,
     DropdownMenuRadioItem,
-} from "@/s8ly";
+} from "netra";
 
 const meta = {
     title: "s8ly/DropdownMenu",
@@ -62,9 +62,7 @@ export function Demo() {
                     <DropdownMenuGroup>
                         <DropdownMenuItem>Team</DropdownMenuItem>
                         <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                                Invite users
-                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubTrigger>Invite users</DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
                                 <DropdownMenuSubContent>
                                     <DropdownMenuItem>Email</DropdownMenuItem>
@@ -109,23 +107,13 @@ export function Checkboxes() {
             <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>Appearance</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem
-                    checked={showStatusBar}
-                    onCheckedChange={setShowStatusBar}
-                >
+                <DropdownMenuCheckboxItem checked={showStatusBar} onCheckedChange={setShowStatusBar}>
                     Status Bar
                 </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                    checked={showActivityBar}
-                    onCheckedChange={setShowActivityBar}
-                    disabled
-                >
+                <DropdownMenuCheckboxItem checked={showActivityBar} onCheckedChange={setShowActivityBar} disabled>
                     Activity Bar
                 </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                    checked={showPanel}
-                    onCheckedChange={setShowPanel}
-                >
+                <DropdownMenuCheckboxItem checked={showPanel} onCheckedChange={setShowPanel}>
                     Panel
                 </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
@@ -144,19 +132,10 @@ export function RadioGroup() {
             <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>Panel Position</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                    value={position}
-                    onValueChange={setPosition}
-                >
-                    <DropdownMenuRadioItem value="top">
-                        Top
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="bottom">
-                        Bottom
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="right">
-                        Right
-                    </DropdownMenuRadioItem>
+                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+                    <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
             </DropdownMenuContent>
         </DropdownMenu>

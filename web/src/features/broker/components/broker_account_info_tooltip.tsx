@@ -1,5 +1,5 @@
 import { IconInfo } from "@/components/icons";
-import { Tooltip } from "@/s8ly";
+import { Tooltip } from "netra";
 
 export const BrokerAccountInfoTooltip = () => {
     return (

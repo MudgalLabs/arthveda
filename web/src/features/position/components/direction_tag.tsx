@@ -1,6 +1,6 @@
 import { FC, memo } from "react";
 
-import { Tag } from "@/s8ly";
+import { Tag } from "netra";
 import { PositionDirection, positionDirectionToString } from "@/features/position/position";
 
 interface DirectionTagProps {

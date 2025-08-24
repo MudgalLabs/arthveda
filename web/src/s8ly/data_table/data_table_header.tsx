@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Column } from "@tanstack/react-table";
 
-import { Button } from "@/s8ly";
+import { Button } from "netra";
 import { cn } from "@/lib/utils";
 import { IconArrowDown } from "@/components/icons";
 
@@ -19,7 +19,7 @@ export function DataTableColumnHeader<TData, TValue>({
     disabled = false,
 }: DataTableColumnHeaderProps<TData, TValue>) {
     if (!column || !column.getCanSort()) {
-        return <div className={cn("px-4 py-2", className)}>{title}</div>;
+        return <div className={cn("text-text-muted px-4 py-2", className)}>{title}</div>;
     }
 
     return (

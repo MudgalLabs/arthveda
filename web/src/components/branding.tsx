@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
-import { Tag, Tooltip } from "@/s8ly";
+import { Tag, Tooltip } from "netra";
 
 interface BrandingProps {
     className?: string;

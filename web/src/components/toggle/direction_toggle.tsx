@@ -1,5 +1,5 @@
 import { PositionDirection } from "@/features/position/position";
-import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
+import { ToggleGroup, ToggleGroupItem } from "netra";
 
 interface DirectionToggleProps {
     defaultValue?: PositionDirection | "";

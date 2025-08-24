@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Label as LabelComp } from "@/s8ly";
+import { Label as LabelComp } from "netra";
 
 const meta = {
     title: "s8ly/Label",

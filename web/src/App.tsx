@@ -1,9 +1,10 @@
 import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
 import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { TooltipProvider } from "netra";
 import { usePostHog } from "posthog-js/react";
 
 import "@/index.css";
+import "netra/styles.css";
 
 import { useAuthentication } from "@/features/auth/auth_context";
 import { toast, ToastProvider } from "@/components/toast";
@@ -100,7 +101,8 @@ export default function App() {
             <AuthenticationProvider>
                 <BrokerProvider>
                     <SidebarProvider>
-                        <TooltipPrimitive.TooltipProvider>
+                        {/* <TooltipPrimitive.Provider> */}
+                        <TooltipProvider>
                             <Suspense
                                 fallback={
                                     <div className="h-screen w-screen">
@@ -113,7 +115,8 @@ export default function App() {
                                     <PlanLimitExceededModal />
                                 </RouteHandler>
                             </Suspense>
-                        </TooltipPrimitive.TooltipProvider>
+                        </TooltipProvider>
+                        {/* </TooltipPrimitive.Provider> */}
                     </SidebarProvider>
                 </BrokerProvider>
             </AuthenticationProvider>

@@ -1,6 +1,6 @@
 import { Table } from "@tanstack/react-table";
 
-import { Button } from "@/s8ly";
+import { Button } from "netra";
 import { IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -101,7 +101,7 @@ export function DataTablePagination<TData>({ table, total }: DataTablePagination
                                 key={pageSize}
                                 variant="ghost"
                                 size="icon"
-                                className={cn("text-foreground-muted", {
+                                className={cn("text-text-muted", {
                                     "text-foreground font-semibold": table.getState().pagination.pageSize === pageSize,
                                 })}
                                 onClick={() => table.setPageSize(pageSize)}

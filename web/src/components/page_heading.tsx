@@ -1,5 +1,6 @@
 import { FC, memo } from "react";
-import { Button, Separator, Tooltip } from "@/s8ly";
+import { Button, Separator, Tooltip } from "netra";
+
 import { Loading } from "@/components/loading";
 import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { IconPanelLeftClose, IconPanelLeftOpen } from "@/components/icons";
@@ -13,32 +14,22 @@ const PageHeading: FC<PageHeadingProps> = memo(({ heading, loading }) => {
     const { isOpen, toggleSidebar } = useSidebar();
 
     return (
-        <div>
-            <div className="flex items-center gap-x-2">
-                <Tooltip
-                    content={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
-                    delayDuration={500}
-                    contentProps={{ side: "right" }}
-                >
-                    <Button
-                        className="text-text-subtle"
-                        variant="ghost"
-                        size="icon"
-                        type="button"
-                        onClick={toggleSidebar}
-                    >
-                        {isOpen ? <IconPanelLeftClose size={18} /> : <IconPanelLeftOpen size={18} />}
-                    </Button>
-                </Tooltip>
+        <div className="flex-x">
+            <Tooltip
+                content={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+                delayDuration={500}
+                contentProps={{ side: "right" }}
+            >
+                <Button className="text-text-subtle" variant="ghost" size="icon" type="button" onClick={toggleSidebar}>
+                    {isOpen ? <IconPanelLeftClose size={20} /> : <IconPanelLeftOpen size={20} />}
+                </Button>
+            </Tooltip>
 
-                <h1 className="heading text-foreground leading-none">{heading}</h1>
+            <Separator orientation="vertical" className="mr-1 h-8!" />
 
-                <div>{loading && <Loading />}</div>
-            </div>
+            <h1 className="sub-heading">{heading}</h1>
 
-            <div className="h-4" />
-            <Separator />
-            <div className="h-4" />
+            <div>{loading && <Loading />}</div>
         </div>
     );
 });

@@ -8,7 +8,7 @@ import { Branding } from "@/components/branding";
 import { IconArrowUpRight } from "@/components/icons";
 import { Card, CardContent } from "@/components/card";
 import { WithLabel } from "@/components/with_label";
-import { Button, Input, Label } from "@/s8ly";
+import { Button, Input, Label } from "netra";
 import { apiHooks } from "@/hooks/api_hooks";
 import { SigninResponse } from "@/lib/api/auth";
 import { toast } from "@/components/toast";

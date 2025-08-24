@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import { axisDefaults, ChartConfig, ChartContainer, ChartTooltipContent, Checkbox, Label } from "@/s8ly";
+import { axisDefaults, ChartConfig, ChartContainer, ChartTooltipContent, Checkbox, Label } from "netra";
 
 import { Card, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";

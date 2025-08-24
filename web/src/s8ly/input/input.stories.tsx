@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Input as InputComp, Label } from "@/s8ly";
+import { Input as InputComp, Label } from "netra";
 
 import { WithLabel as WithLabelComp } from "@/components/with_label";
 import { WithCompare as WithCompareComp } from "@/components/with_compare";

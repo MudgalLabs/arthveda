@@ -1,7 +1,7 @@
 import { memo, useState, useCallback } from "react";
 import { Drawer } from "vaul";
 
-import { Button, DatePicker, Input, Label } from "@/s8ly";
+import { Button, DatePicker, Input, Label } from "netra";
 import { IconCross, IconListFilter } from "@/components/icons";
 import { cn, dateRangeFilterToDatesArray } from "@/lib/utils";
 import { WithLabel } from "@/components/with_label";

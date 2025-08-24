@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { Tooltip } from "@/s8ly/tooltip/tooltip";
+import { Tooltip } from "netra";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
 import { IconCandlestick, IconDashboard, IconType } from "@/components/icons";

@@ -1,6 +1,6 @@
 import { PositionStatus } from "@/features/position/position";
 import { cn } from "@/lib/utils";
-import { Select, SelectOptionItem, SelectProps } from "@/s8ly";
+import { Select, SelectOptionItem, SelectProps } from "netra";
 
 export type PositionStatusFilterValue = PositionStatus | "all";
 
@@ -10,11 +10,7 @@ interface PositionStatusSelectProps extends Omit<SelectProps, "options"> {
     onValueChange?: (value: PositionStatusFilterValue) => void;
 }
 
-export function PositionStatusSelect({
-    defaultValue = "open",
-    classNames,
-    ...props
-}: PositionStatusSelectProps) {
+export function PositionStatusSelect({ defaultValue = "open", classNames, ...props }: PositionStatusSelectProps) {
     const options: SelectOptionItem<PositionStatusFilterValue>[] = [
         {
             label: "All",

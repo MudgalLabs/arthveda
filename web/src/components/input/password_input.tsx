@@ -1,9 +1,9 @@
 import { FC, useState } from "react";
 
 import { IconEyeClose, IconEyeOpen } from "@/components/icons";
-import { Button, Input, InputProps } from "@/s8ly";
+import { Button, Input, InputProps } from "netra";
 
-import { Tooltip } from "@/s8ly/tooltip/tooltip";
+import { Tooltip } from "netra";
 
 interface PasswordProps extends InputProps {}
 

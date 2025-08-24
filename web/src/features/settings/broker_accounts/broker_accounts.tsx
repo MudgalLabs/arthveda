@@ -54,7 +54,9 @@ import {
     TableRow,
     TableCell,
     Tag,
-} from "@/s8ly";
+    Separator,
+    IconBadgeCheck,
+} from "netra";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";
 import { toast } from "@/components/toast";
@@ -73,19 +75,21 @@ export const BrokerAccounts = () => {
 
     return (
         <>
-            <PageHeading heading="Broker Accounts" />
+            <div className="flex-x justify-between">
+                <PageHeading heading="Broker Accounts" />
 
-            <div className="flex justify-end gap-x-4">
-                <AddBrokerAccountModal
-                    renderTrigger={() => (
-                        <Button>
-                            <IconPlus size={16} /> New
-                        </Button>
-                    )}
-                />
+                <div className="flex justify-end gap-x-4">
+                    <AddBrokerAccountModal
+                        renderTrigger={() => (
+                            <Button className="h-8">
+                                <IconPlus size={16} /> New
+                            </Button>
+                        )}
+                    />
+                </div>
             </div>
 
-            <div className="h-4" />
+            <Separator className="mt-2 mb-3" />
 
             <BrokerAccountsTable setSyncSummary={setSyncSummary} setSyncSummaryModalOpen={setSyncSummaryModalOpen} />
 
@@ -184,11 +188,12 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
         header: ({ column }) => (
             <DataTableColumnHeader
                 title={
-                    <Tooltip content="For security reasons, brokers requires users to login everyday to grant access.">
-                        <span className="flex-x">
-                            Sync <IconInfo />
-                        </span>
-                    </Tooltip>
+                    <span className="flex-x">
+                        Sync
+                        <Tooltip content="For security reasons, brokers requires users to login everyday to grant access.">
+                            <IconInfo />
+                        </Tooltip>
+                    </span>
                 }
                 column={column}
             />
@@ -231,7 +236,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
             if (broker.name !== "Zerodha") {
                 return (
                     <span className="flex-x">
-                        <IconBadgeAlert size={16} className="text-text-destructive" /> Broker not supported
+                        <IconBadgeAlert size={16} className="text-text-warning" /> Broker not supported
                     </span>
                 );
             }
@@ -392,16 +397,17 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                                 </DropdownMenuItem>
                             </Tooltip> */}
 
-                            <Tooltip
-                                content="Connect is not supported for this broker"
-                                disabled={broker.supports_trade_sync}
-                            >
-                                <DropdownMenuItem asChild>
-                                    {row.original.is_connected && (
+                            {row.original.is_connected && (
+                                <Tooltip
+                                    content="Connect is not supported for this broker"
+                                    disabled={broker.supports_trade_sync}
+                                >
+                                    <DropdownMenuItem asChild>
                                         <Button
                                             variant="ghost"
                                             className="w-full! justify-start"
                                             onClick={handleDisconnectOpen}
+                                            disabled={!row.original.is_authenticated}
                                         >
                                             <img
                                                 src={getBrokerLogoById(row.original.broker_id)}
@@ -410,9 +416,9 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                                             />
                                             Disconnect
                                         </Button>
-                                    )}
-                                </DropdownMenuItem>
-                            </Tooltip>
+                                    </DropdownMenuItem>
+                                </Tooltip>
+                            )}
 
                             <DropdownMenuItem asChild>
                                 <Button variant="ghost" className="w-full! justify-start" onClick={handleEditOpen}>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Input, InputProps, Popover, PopoverContent, PopoverTrigger } from "@/s8ly";
+import { Input, InputProps, Popover, PopoverContent, PopoverTrigger } from "netra";
 import { CurrencyCode } from "@/features/position/position";
 import { cn, formatCurrency, getCurrencySymbol } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";

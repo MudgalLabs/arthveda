@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { WithLabel as WithLabelComp } from "@/components/with_label";
 import { WithCompare as WithCompareComp } from "@/components/with_compare";
 
-import { Select as SelectComp, Label } from "@/s8ly";
+import { Select as SelectComp, Label } from "netra";
 import { CompareSelect } from "@/components/select/compare_select";
 
 const meta = {

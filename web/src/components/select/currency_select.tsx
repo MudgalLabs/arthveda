@@ -1,4 +1,4 @@
-import { Select, SelectOptionItem, SelectProps } from "@/s8ly";
+import { Select, SelectOptionItem, SelectProps } from "netra";
 
 import { apiHooks } from "@/hooks/api_hooks";
 import { CurrencyCode } from "@/lib/api/currency";

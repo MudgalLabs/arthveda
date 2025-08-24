@@ -21,7 +21,7 @@ import {
 
 import { cn, deepMerge } from "@/lib/utils";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
-import { Button } from "@/s8ly";
+import { Button } from "netra";
 
 // CSS for range picker styles.
 import "@/s8ly/calendar/calendar.css";

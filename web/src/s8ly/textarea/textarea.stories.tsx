@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Textarea as TextareaComp } from "@/s8ly";
+import { Textarea as TextareaComp } from "netra";
 
 const meta = {
     title: "s8ly/Textarea",

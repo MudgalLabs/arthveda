@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { DecimalString } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
-import { Tooltip } from "@/s8ly";
+import { Tooltip } from "netra";
 
 interface Props {
     isWinning: boolean; // Indicates if the card is for winning or losing

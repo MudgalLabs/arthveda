@@ -1,4 +1,4 @@
-import { Tag } from "@/s8ly";
+import { Tag } from "netra";
 import { IconInfo } from "./icons";
 
 export function FreePlanLimitTag() {

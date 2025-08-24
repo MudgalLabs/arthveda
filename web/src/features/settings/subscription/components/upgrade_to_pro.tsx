@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
 
-import { Button } from "@/s8ly";
+import { Button } from "netra";
 import { isProd } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 import { useAuthentication, useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";

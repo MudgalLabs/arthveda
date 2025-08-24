@@ -1,6 +1,6 @@
 import { Table } from "@tanstack/react-table";
 
-import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuContent } from "@/s8ly";
+import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuContent } from "netra";
 import { IconColumns } from "@/components/icons";
 
 interface DataTableVisibilityProps<TData> {

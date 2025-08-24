@@ -12,7 +12,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/s8ly";
+} from "netra";
 import { useSubscription } from "@/features/auth/auth_context";
 import { formatDate } from "@/lib/utils";
 

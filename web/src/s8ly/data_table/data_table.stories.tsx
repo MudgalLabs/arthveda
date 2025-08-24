@@ -12,13 +12,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import {
-    LuCircleHelp,
-    LuCircle,
-    LuTimer,
-    LuCircleCheck,
-    LuCircleOff,
-} from "react-icons/lu";
+import { LuCircleHelp, LuCircle, LuTimer, LuCircleCheck, LuCircleOff } from "react-icons/lu";
 
 import {
     Table,
@@ -37,7 +31,7 @@ import {
     Input,
     DropdownMenuCheckboxItem,
     DataTable,
-} from "@/s8ly";
+} from "netra";
 import {
     IconArrowDown,
     IconArrowRight,
@@ -108,28 +102,19 @@ const columns: ColumnDef<Payment>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => (
-            <div className="capitalize">{row.getValue("status")}</div>
-        ),
+        cell: ({ row }) => <div className="capitalize">{row.getValue("status")}</div>,
     },
     {
         accessorKey: "email",
         header: ({ column }) => {
             return (
-                <Button
-                    variant="ghost"
-                    onClick={() =>
-                        column.toggleSorting(column.getIsSorted() === "asc")
-                    }
-                >
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
                     Email
                     <IconArrowUpDown />
                 </Button>
             );
         },
-        cell: ({ row }) => (
-            <div className="lowercase">{row.getValue("email")}</div>
-        ),
+        cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
     },
     {
         accessorKey: "amount",
@@ -162,18 +147,12 @@ const columns: ColumnDef<Payment>[] = [
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                            onClick={() =>
-                                navigator.clipboard.writeText(payment.id)
-                            }
-                        >
+                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(payment.id)}>
                             Copy payment ID
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>View customer</DropdownMenuItem>
-                        <DropdownMenuItem>
-                            View payment details
-                        </DropdownMenuItem>
+                        <DropdownMenuItem>View payment details</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             );
@@ -184,9 +163,7 @@ const columns: ColumnDef<Payment>[] = [
 export function Simple() {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-        {}
-    );
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
     const table = useReactTable({
@@ -213,16 +190,8 @@ export function Simple() {
             <div className="flex items-center py-4">
                 <Input
                     placeholder="Filter emails..."
-                    value={
-                        (table
-                            .getColumn("email")
-                            ?.getFilterValue() as string) ?? ""
-                    }
-                    onChange={(event) =>
-                        table
-                            .getColumn("email")
-                            ?.setFilterValue(event.target.value)
-                    }
+                    value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+                    onChange={(event) => table.getColumn("email")?.setFilterValue(event.target.value)}
                     className="max-w-sm"
                 />
                 <DropdownMenu>
@@ -241,9 +210,7 @@ export function Simple() {
                                         key={column.id}
                                         className="capitalize"
                                         checked={column.getIsVisible()}
-                                        onCheckedChange={(value) =>
-                                            column.toggleVisibility(!!value)
-                                        }
+                                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                     >
                                         {column.id}
                                     </DropdownMenuCheckboxItem>
@@ -262,11 +229,7 @@ export function Simple() {
                                         <TableHead key={header.id}>
                                             {header.isPlaceholder
                                                 ? null
-                                                : flexRender(
-                                                      header.column.columnDef
-                                                          .header,
-                                                      header.getContext()
-                                                  )}
+                                                : flexRender(header.column.columnDef.header, header.getContext())}
                                         </TableHead>
                                     );
                                 })}
@@ -276,28 +239,17 @@ export function Simple() {
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={
-                                        row.getIsSelected() && "selected"
-                                    }
-                                >
+                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
                                     ))}
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center"
-                                >
+                                <TableCell colSpan={columns.length} className="h-24 text-center">
                                     No results.
                                 </TableCell>
                             </TableRow>
@@ -307,8 +259,8 @@ export function Simple() {
             </div>
             <div className="flex items-center justify-end space-x-2 py-4">
                 <div className="text-muted-foreground flex-1 text-sm">
-                    {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                    {table.getFilteredRowModel().rows.length} row(s) selected.
+                    {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length}{" "}
+                    row(s) selected.
                 </div>
                 <div className="space-x-2">
                     <Button
@@ -1110,44 +1062,30 @@ export function Complex() {
         getDataTableSelectColumnDef(),
         {
             accessorKey: "id",
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Task" />
-            ),
-            cell: ({ row }) => (
-                <div className="w-[80px]">{row.getValue("id")}</div>
-            ),
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Task" />,
+            cell: ({ row }) => <div className="w-[80px]">{row.getValue("id")}</div>,
             enableSorting: false,
             enableHiding: false,
         },
         {
             accessorKey: "title",
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Title" />
-            ),
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Title" />,
             cell: ({ row }) => {
-                const label = labels.find(
-                    (label) => label.value === row.original.label
-                );
+                const label = labels.find((label) => label.value === row.original.label);
 
                 return (
                     <div className="flex space-x-2">
                         {label && <p>{label.label}</p>}
-                        <span className="max-w-[500px] truncate font-medium">
-                            {row.getValue("title")}
-                        </span>
+                        <span className="max-w-[500px] truncate font-medium">{row.getValue("title")}</span>
                     </div>
                 );
             },
         },
         {
             accessorKey: "status",
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Status" />
-            ),
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
             cell: ({ row }) => {
-                const status = statuses.find(
-                    (status) => status.value === row.getValue("status")
-                );
+                const status = statuses.find((status) => status.value === row.getValue("status"));
 
                 if (!status) {
                     return null;
@@ -1155,9 +1093,7 @@ export function Complex() {
 
                 return (
                     <div className="flex w-[100px] items-center">
-                        {status.icon && (
-                            <status.icon className="text-muted-foreground mr-2 h-4 w-4" />
-                        )}
+                        {status.icon && <status.icon className="text-muted-foreground mr-2 h-4 w-4" />}
                         <span>{status.label}</span>
                     </div>
                 );
@@ -1168,13 +1104,9 @@ export function Complex() {
         },
         {
             accessorKey: "priority",
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Priority" />
-            ),
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Priority" />,
             cell: ({ row }) => {
-                const priority = priorities.find(
-                    (priority) => priority.value === row.getValue("priority")
-                );
+                const priority = priorities.find((priority) => priority.value === row.getValue("priority"));
 
                 if (!priority) {
                     return null;
@@ -1182,9 +1114,7 @@ export function Complex() {
 
                 return (
                     <div className="flex items-center">
-                        {priority.icon && (
-                            <priority.icon className="text-muted-foreground mr-2 h-4 w-4" />
-                        )}
+                        {priority.icon && <priority.icon className="text-muted-foreground mr-2 h-4 w-4" />}
                         <span>{priority.label}</span>
                     </div>
                 );
@@ -1215,10 +1145,7 @@ export function Complex() {
 
                         <DataTable table={table} />
 
-                        <DataTablePagination
-                            table={table}
-                            total={data.length}
-                        />
+                        <DataTablePagination table={table} total={data.length} />
                     </div>
                 </>
             )}

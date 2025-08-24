@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { MdOutlineSettings as IconSettings } from "react-icons/md";
 
-import { Button } from "@/s8ly";
+import { Button } from "netra";
 
 /**
  * Leaving storybook boiler template comments in here so that we can later come back here if we need it.

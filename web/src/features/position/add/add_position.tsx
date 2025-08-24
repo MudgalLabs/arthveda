@@ -18,7 +18,8 @@ import {
     DialogClose,
     Checkbox,
     Textarea,
-} from "@/s8ly";
+    Separator,
+} from "netra";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
 import { OrderKindToggle } from "@/components/toggle/trade_kind_toggle";
@@ -218,6 +219,8 @@ function AddPosition() {
     return (
         <>
             <PageHeading heading={isCreatingPosition ? "Add Position" : "View Position"} loading={isComputing} />
+
+            <Separator className="mt-2 mb-3" />
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:h-44 sm:flex-row">
                 <OverviewCard

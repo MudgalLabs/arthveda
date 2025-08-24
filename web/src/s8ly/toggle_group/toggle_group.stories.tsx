@@ -1,7 +1,7 @@
 import type { Meta } from "@storybook/react";
 import { LuBold, LuItalic, LuUnderline } from "react-icons/lu";
 
-import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
+import { ToggleGroup, ToggleGroupItem } from "netra";
 
 const meta = {
     title: "s8ly/ToggleGroup",
@@ -21,10 +21,7 @@ export const IconSingle = () => {
             <ToggleGroupItem value="italic" aria-label="Toggle italic">
                 <LuItalic className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem
-                value="strikethrough"
-                aria-label="Toggle strikethrough"
-            >
+            <ToggleGroupItem value="strikethrough" aria-label="Toggle strikethrough">
                 <LuUnderline className="h-4 w-4" />
             </ToggleGroupItem>
         </ToggleGroup>
@@ -40,10 +37,7 @@ export const Segment = () => {
             <ToggleGroupItem value="italic" aria-label="Toggle italic">
                 Future
             </ToggleGroupItem>
-            <ToggleGroupItem
-                value="strikethrough"
-                aria-label="Toggle strikethrough"
-            >
+            <ToggleGroupItem value="strikethrough" aria-label="Toggle strikethrough">
                 Option
             </ToggleGroupItem>
         </ToggleGroup>

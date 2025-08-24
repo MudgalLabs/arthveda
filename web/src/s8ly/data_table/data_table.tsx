@@ -1,6 +1,6 @@
 import { Table as TableProp, flexRender } from "@tanstack/react-table";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/s8ly";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "netra";
 
 interface DataTableProps<TData> {
     table: TableProp<TData>;

@@ -1,7 +1,7 @@
 import { memo, ReactNode } from "react";
 import Decimal from "decimal.js";
 
-import { Progress, Tooltip } from "@/s8ly";
+import { Progress, Tooltip } from "netra";
 import { IconTrendingDown, IconTrendingUp } from "@/components/icons";
 import { CurrencyCode } from "@/features/position/position";
 import { Card, CardContent, CardTitle } from "@/components/card";

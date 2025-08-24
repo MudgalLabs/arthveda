@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-import { Checkbox } from "@/s8ly";
+import { Checkbox } from "netra";
 
 const DATA_TABLE_SELECT_COLUMN_ID = "__select__";
 
@@ -11,13 +11,8 @@ function getDataTableSelectColumnDef<T>(): ColumnDef<T> {
         header: ({ table }) => (
             <div className="px-4 py-2">
                 <Checkbox
-                    checked={
-                        table.getIsAllPageRowsSelected() ||
-                        (table.getIsSomePageRowsSelected() && "indeterminate")
-                    }
-                    onCheckedChange={(value) =>
-                        table.toggleAllPageRowsSelected(!!value)
-                    }
+                    checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
                     aria-label="Select all"
                 />
             </div>

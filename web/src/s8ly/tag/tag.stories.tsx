@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Tag as TagComp } from "@/s8ly";
+import { Tag as TagComp } from "netra";
 
 const meta = {
     title: "s8ly/Tag",

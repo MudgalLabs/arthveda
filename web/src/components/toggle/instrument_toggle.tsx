@@ -1,5 +1,5 @@
 import { PositionInstrument } from "@/features/position/position";
-import { ToggleGroup, ToggleGroupItem } from "@/s8ly";
+import { ToggleGroup, ToggleGroupItem } from "netra";
 import { InputErrorMessage } from "@/components/input_error_message";
 import { cn } from "@/lib/utils";
 

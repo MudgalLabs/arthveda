@@ -9,7 +9,7 @@ import {
     TableRow,
     TableCell,
     TableCaption,
-} from "@/s8ly";
+} from "netra";
 
 const meta = {
     title: "s8ly/Table",
@@ -69,9 +69,7 @@ export const Table = () => {
 
     return (
         <TableComp>
-            <TableCaption>
-                A list of your recent invoices in a simple table.
-            </TableCaption>
+            <TableCaption>A list of your recent invoices in a simple table.</TableCaption>
             <TableHeader>
                 <TableRow>
                     <TableHead className="w-[100px]">Invoice</TableHead>
@@ -83,14 +81,10 @@ export const Table = () => {
             <TableBody>
                 {invoices.map((invoice) => (
                     <TableRow key={invoice.invoice}>
-                        <TableCell className="font-medium">
-                            {invoice.invoice}
-                        </TableCell>
+                        <TableCell className="font-medium">{invoice.invoice}</TableCell>
                         <TableCell>{invoice.paymentStatus}</TableCell>
                         <TableCell>{invoice.paymentMethod}</TableCell>
-                        <TableCell className="text-right">
-                            {invoice.totalAmount}
-                        </TableCell>
+                        <TableCell className="text-right">{invoice.totalAmount}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>

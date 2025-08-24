@@ -1,7 +1,7 @@
 import { FC, memo, useEffect, useMemo, useState } from "react";
 import Autocomplete from "@mui/material/Autocomplete";
 
-import { Input, InputProps } from "@/s8ly";
+import { Input, InputProps } from "netra";
 import { apiHooks } from "@/hooks/api_hooks";
 import { BrokerLogo } from "@/components/broker_logo";
 import { useControlled } from "@/hooks/use_controlled";

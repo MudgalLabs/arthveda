@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Toggle as ToggleComp } from "@/s8ly";
+import { Toggle as ToggleComp } from "netra";
 import { IconEyeClose } from "@/components/icons";
 
 const meta = {

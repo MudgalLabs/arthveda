@@ -3,7 +3,7 @@ import { ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 import { useControlled } from "@/hooks/use_controlled";
 import { IconCalendarRange, IconCalendarSingle } from "@/components/icons";
 import { cn, formatDate } from "@/lib/utils";
-import { Calendar, CalendarProps, Popover, PopoverContent, PopoverTrigger, PopoverContentProps, Button } from "@/s8ly";
+import { Calendar, CalendarProps, Popover, PopoverContent, PopoverTrigger, PopoverContentProps, Button } from "netra";
 
 interface DatePickerProps extends Omit<CalendarProps, "dates" | "onDatesChange"> {
     popoverContentProps?: PopoverContentProps;

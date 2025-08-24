@@ -1,6 +1,6 @@
 import type { Meta } from "@storybook/react";
 
-import { DatePicker } from "@/s8ly";
+import { DatePicker } from "netra";
 import { useState } from "react";
 
 const meta = {
@@ -21,14 +21,10 @@ export function Range() {
 
 export function SingleWithTime() {
     const [dates, setDates] = useState<Date[]>([]);
-    return (
-        <DatePicker mode="single" time dates={dates} onDatesChange={setDates} />
-    );
+    return <DatePicker mode="single" time dates={dates} onDatesChange={setDates} />;
 }
 
 export function RangeWithTime() {
     const [dates, setDates] = useState<Date[]>([]);
-    return (
-        <DatePicker mode="range" time dates={dates} onDatesChange={setDates} />
-    );
+    return <DatePicker mode="range" time dates={dates} onDatesChange={setDates} />;
 }

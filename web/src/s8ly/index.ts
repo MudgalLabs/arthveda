@@ -47,4 +47,4 @@ export * from "@/s8ly/toggle/toggle";
 // ToggleGroup
 export * from "@/s8ly/toggle_group/toggle_group";
 // Tooltip
-export * from "@/s8ly/tooltip/tooltip";
+// export * from "@/s8ly/tooltip/tooltip";

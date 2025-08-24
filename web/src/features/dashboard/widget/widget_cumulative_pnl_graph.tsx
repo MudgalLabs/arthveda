@@ -10,7 +10,7 @@ import {
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { Card, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";
-import { ChartConfig, ChartContainer, ChartTooltipContent, tooltipCursor, axisDefaults, Checkbox, Label } from "@/s8ly";
+import { ChartConfig, ChartContainer, ChartTooltipContent, tooltipCursor, axisDefaults, Checkbox, Label } from "netra";
 import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 
 interface DataItem {
