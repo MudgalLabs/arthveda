@@ -250,8 +250,8 @@ export function usePositionCanBeSaved(): boolean {
 
 export function useIsCreatingPosition(): boolean {
     const location = useLocation();
-    // If the current path is the add position route, then we are creating a new position.
-    return location.pathname === ROUTES.addPosition;
+    // If the current path is the new position route, then we are creating a new position.
+    return location.pathname === ROUTES.newPositions;
 }
 
 export function useIsEditingPosition(): boolean {

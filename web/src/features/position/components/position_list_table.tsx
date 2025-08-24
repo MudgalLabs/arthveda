@@ -137,7 +137,7 @@ const columns: ColumnDef<Position>[] = [
         cell: ({ row }) => {
             return (
                 <div className="flex-x">
-                    <Link to={`/position/${row.original.id}`}>
+                    <Link to={ROUTES.viewPosition(row.original.id)}>
                         <Tooltip content="View Position" delayDuration={300}>
                             <Button variant="ghost" size="icon">
                                 <IconArrowUpRight size={18} />

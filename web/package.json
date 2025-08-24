@@ -39,7 +39,7 @@
         "decimal.js": "^10.5.0",
         "ldrs": "^1.1.7",
         "lodash": "^4.17.21",
-        "netra": "^0.1.2",
+        "netra": "file:../../netra/netra-0.1.2.tgz",
         "posthog-js": "^1.255.1",
         "qs": "^6.14.0",
         "react": "^19.0.0",

@@ -12,7 +12,7 @@ import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cum
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
 import { IconSearch } from "@/components/icons";
-import { Button, DatePicker, Separator, Tooltip } from "netra";
+import { Button, DatePicker, Separator, Tooltip, useDocumentTitle } from "netra";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
@@ -124,6 +124,8 @@ const smLayout: Layout[] = [
 ];
 
 export const Dashboard = () => {
+    useDocumentTitle("Dashboard");
+
     const [layouts, setLayouts] = useState<Record<DashboardLayoutSize, Layout[]>>({
         lg: lgLayout,
         sm: smLayout,
@@ -299,7 +301,7 @@ export const Dashboard = () => {
                                             been hidden.
                                         </p>
                                         <p>
-                                            <Link to={ROUTES.subscription}>Upgrade</Link> to see full analytics.
+                                            <Link to={ROUTES.plan & billing}>Upgrade</Link> to see full analytics.
                                         </p>
                                     </div>
                                 }

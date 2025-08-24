@@ -72,7 +72,7 @@ export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
                 inputValue={inputValue}
                 onInputChange={(_, newInputValue) => {
                     setInputValue(newInputValue.toUpperCase());
-                    handleChange(newInputValue);
+                    handleChange(newInputValue.toUpperCase());
                 }}
                 value={value}
                 onChange={(_, newValue) => handleChange(newValue ?? "")}

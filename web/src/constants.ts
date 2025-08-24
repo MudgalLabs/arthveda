@@ -7,13 +7,13 @@ export const ROUTES = {
     // App routes that will be accessible if a user is signed in.
     dashboard: "/dashboard",
     // All routes related to Position.
-    explorePositions: "/position/explore",
-    addPosition: "/position/add",
-    importPositions: "/position/import",
+    listPositions: "/positions",
+    newPositions: "/positions/new",
+    importPositions: "/positions/import",
     // Using a function so that we can pass the `":id"` only in rendering route.
     // But for ROUTES_PROTECTED and RouteHandler, we don't pass `id`.
-    viewPosition: (id = "") => `/position/${id}`,
-    subscription: "/settings/subscription",
+    viewPosition: (id = "") => `/positions/${id}`,
+    planAndBilling: "/settings/plan-and-billing",
     brokerAccounts: "/settings/broker-accounts",
     feedbackAndSupport: "/settings/feedback-and-support",
 };
@@ -21,12 +21,12 @@ export const ROUTES = {
 export const ROUTES_PUBLIC = [ROUTES.index, ROUTES.notFound, ROUTES.signIn];
 
 export const ROUTES_PROTECTED = [
-    ROUTES.addPosition,
+    ROUTES.newPositions,
     ROUTES.dashboard,
-    ROUTES.explorePositions,
+    ROUTES.listPositions,
     ROUTES.importPositions,
     ROUTES.viewPosition(),
-    ROUTES.subscription,
+    ROUTES.planAndBilling,
     ROUTES.brokerAccounts,
     ROUTES.feedbackAndSupport,
 ];

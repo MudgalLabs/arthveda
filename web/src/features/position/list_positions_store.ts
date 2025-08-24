@@ -21,12 +21,12 @@ const initial = loadFromURL(URL_KEY_FILTERS, defaultPositionSearchFilters);
 export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
     ...initial,
 
-    tableState: loadFromLocalStorage(ROUTES.explorePositions) ?? DEFAULT_DATA_TABLE_STATE,
+    tableState: loadFromLocalStorage(ROUTES.listPositions) ?? DEFAULT_DATA_TABLE_STATE,
 
     appliedFilters: { ...initial },
 
     setTableState: (state) => {
-        saveToLocalStorage(ROUTES.explorePositions, JSON.stringify(dataTableStateSaveFn(state)));
+        saveToLocalStorage(ROUTES.listPositions, JSON.stringify(dataTableStateSaveFn(state)));
         set({ tableState: state });
     },
 

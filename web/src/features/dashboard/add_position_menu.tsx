@@ -1,8 +1,18 @@
 import { FC, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Tooltip } from "netra";
-import { IconImport, IconPlus, IconScrollText, IconSync } from "@/components/icons";
+import {
+    Button,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    Tooltip,
+    IconImport,
+    IconPlus,
+    IconSync,
+    IconSquarePen,
+} from "netra";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 import { Link } from "@/components/link";
@@ -39,13 +49,13 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
 
             <DropdownMenuContent side="right" align="end" className="ml-1 min-w-[180px]">
                 <Link
-                    to={ROUTES.addPosition}
+                    to={ROUTES.newPositions}
                     variant="unstyled"
                     onClick={() => posthog?.capture("Clicked Add Position Manually On Dashboard")}
                 >
                     <DropdownMenuItem>
-                        <IconScrollText size={18} />
-                        Add manually
+                        <IconSquarePen size={18} />
+                        Manually
                     </DropdownMenuItem>
                 </Link>
 

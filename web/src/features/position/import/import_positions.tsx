@@ -8,7 +8,19 @@ import { toast } from "@/components/toast";
 import { WithLabel } from "@/components/with_label";
 import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
-import { Button, Input, Label, Tooltip, RadioGroup, RadioGroupItem, Checkbox, DataTable, Tag, Separator } from "netra";
+import {
+    Button,
+    Input,
+    Label,
+    Tooltip,
+    RadioGroup,
+    RadioGroupItem,
+    Checkbox,
+    DataTable,
+    Tag,
+    Separator,
+    useDocumentTitle,
+} from "netra";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
 import { DecimalString, Setter } from "@/lib/types";
@@ -70,6 +82,7 @@ const INITIAL_STATE: State = {
 };
 
 export const ImportPositions = () => {
+    useDocumentTitle("Import Positions");
     const [state, setState] = useState<State>(INITIAL_STATE);
     const [importPositionResData, setImportPositionResData] = useState<ImportPositionsResponse | null>(null);
 
@@ -161,7 +174,7 @@ export const ImportPositions = () => {
                             action: {
                                 label: "View Positions",
                                 onClick: () => {
-                                    navigate(ROUTES.explorePositions);
+                                    navigate(ROUTES.listPositions);
                                 },
                             },
                         };

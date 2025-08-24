@@ -57,8 +57,8 @@ export function UpgradeToPro(props: UpgradeToProProps) {
                 displayMode: "overlay",
                 theme: "dark",
                 successUrl: isProd()
-                    ? "https://web.arthveda.app" + ROUTES.subscription + "?paddle_success=true"
-                    : "http://localhost:6969" + ROUTES.subscription + "?paddle_success=true",
+                    ? ("https://web.arthveda.app" + ROUTES.plan) & (billing + "?paddle_success=true")
+                    : ("http://localhost:6969" + ROUTES.plan) & (billing + "?paddle_success=true"),
             },
             customer: {
                 email: data.email,

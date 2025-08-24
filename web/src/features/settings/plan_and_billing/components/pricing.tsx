@@ -1,6 +1,6 @@
 import { Card } from "@/components/card";
 import { IconBadgeCheck } from "@/components/icons";
-import { UpgradeToPro } from "@/features/settings/subscription/components/upgrade_to_pro";
+import { UpgradeToPro } from "@/features/settings/plan_and_billing/components/upgrade_to_pro";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 import { cn } from "@/lib/utils";
 import { Button, Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow, Tag } from "netra";

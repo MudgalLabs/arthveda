@@ -8,10 +8,12 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
-import { Separator, Tooltip } from "netra";
+import { Separator, Tooltip, useDocumentTitle } from "netra";
 import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
 
-export const ExplorePositions = () => {
+export const Positions = () => {
+    useDocumentTitle("Positions");
+
     const tableState = useListPositionsStore((s) => s.tableState);
     const setTableState = useListPositionsStore((s) => s.setTableState);
     const appliedFilters = useListPositionsStore((s) => s.appliedFilters);
@@ -43,7 +45,7 @@ export const ExplorePositions = () => {
 
     return (
         <>
-            <PageHeading heading="Explore Positions" loading={queryResult?.isFetching} />
+            <PageHeading heading="Positions" loading={queryResult?.isFetching} />
 
             <Separator className="mt-2 mb-3" />
 
@@ -58,7 +60,7 @@ export const ExplorePositions = () => {
                                     and have been hidden.
                                 </p>
                                 <p>
-                                    <Link to={ROUTES.subscription}>Upgrade</Link> for complete history.
+                                    <Link to={ROUTES.plan & billing}>Upgrade</Link> for complete history.
                                 </p>
                             </div>
                         }
@@ -87,4 +89,4 @@ export const ExplorePositions = () => {
     );
 };
 
-export default ExplorePositions;
+export default Positions;

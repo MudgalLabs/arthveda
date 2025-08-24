@@ -55,6 +55,7 @@ import {
     TableCell,
     Tag,
     Separator,
+    useDocumentTitle,
 } from "netra";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";
@@ -69,6 +70,7 @@ import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
 
 export const BrokerAccounts = () => {
+    useDocumentTitle("Broker Accounts");
     const [syncSummary, setSyncSummary] = useState<SyncSummary | null>(null);
     const [syncSummaryModalOpen, setSyncSummaryModalOpen] = useState(false);
 

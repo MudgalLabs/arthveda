@@ -1,7 +1,7 @@
-import AddPosition from "@/features/position/add/add_position";
+import NewPosition from "@/features/position/new/new_position";
 
 const ViewPosition = () => {
-    return <AddPosition />;
+    return <NewPosition />;
 };
 
 export default ViewPosition;

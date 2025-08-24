@@ -14,7 +14,7 @@ import { useAuthentication } from "@/features/auth/auth_context";
 import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
 
-const sidebarRoutes = [ROUTES.dashboard, ROUTES.explorePositions, ROUTES.addPosition, ROUTES.importPositions];
+const sidebarRoutes = [ROUTES.dashboard, ROUTES.listPositions, ROUTES.newPositions, ROUTES.importPositions];
 
 export const Sidebar = () => {
     const { pathname } = useLocation();
@@ -83,13 +83,13 @@ export const Sidebar = () => {
                         />
                     </Link>
 
-                    <Link to={ROUTES.explorePositions} variant="unstyled">
+                    <Link to={ROUTES.listPositions} variant="unstyled">
                         <SidebarNavItem
-                            label="Explore Positions"
+                            label="Positions"
                             Icon={IconCandlestick}
                             open={isOpen}
-                            isActive={activeRoute === ROUTES.explorePositions}
-                            onClick={() => handleClick(ROUTES.explorePositions)}
+                            isActive={activeRoute === ROUTES.listPositions}
+                            onClick={() => handleClick(ROUTES.listPositions)}
                         />
                     </Link>
                 </div>

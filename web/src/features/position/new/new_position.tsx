@@ -19,6 +19,7 @@ import {
     Checkbox,
     Textarea,
     Separator,
+    useDocumentTitle,
 } from "netra";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
@@ -56,7 +57,7 @@ import { useLatest } from "@/hooks/use_latest";
 import { UserBrokerAccountSearch } from "@/features/broker/components/user_broker_account_search";
 import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
 
-function AddPosition() {
+function NewPosition() {
     const isCreatingPosition = useIsCreatingPosition();
     const isEditingPosition = useIsEditingPosition();
 
@@ -111,7 +112,7 @@ function AddPosition() {
             queryClient.invalidateQueries({
                 queryKey: ["usePositionsSearch"],
             });
-            navigate(ROUTES.explorePositions);
+            navigate(ROUTES.listPositions);
         },
         onError: apiErrorHandler,
     });
@@ -157,7 +158,7 @@ function AddPosition() {
 
         const data = {
             risk_amount: position.risk_amount || "0",
-            symbol: position.symbol.toUpperCase(),
+            symbol: position.symbol,
             instrument: position.instrument,
             currency: position.currency,
             notes: position.notes,
@@ -216,9 +217,13 @@ function AddPosition() {
 
     const disablePrimaryButton = (isEditingPosition && !hasPositionDataChanged) || !canSave;
 
+    const title = isCreatingPosition ? "New Position" : position.symbol;
+    useDocumentTitle(title);
+
+    // TODO: Show a breadcrumb in the page heading.
     return (
         <>
-            <PageHeading heading={isCreatingPosition ? "Add Position" : "View Position"} loading={isComputing} />
+            <PageHeading heading={title} loading={isComputing} />
 
             <Separator className="mt-2 mb-3" />
 
@@ -422,7 +427,7 @@ function AddPosition() {
     );
 }
 
-export default AddPosition;
+export default NewPosition;
 
 const columns: ColumnDef<CreateTrade>[] = [
     {

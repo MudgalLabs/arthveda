@@ -2,14 +2,14 @@ import React, { lazy, Suspense } from "react";
 import { LoadingScreen } from "@/components/loading_screen";
 import { PositionStoreProvider } from "@/features/position/position_store_context";
 
-const AddPosition = lazy(() => import("@/features/position/add/add_position"));
+const NewPosition = lazy(() => import("@/features/position/new/new_position"));
 
-const AddPositionLazy: React.FC = () => (
+const NewPositionLazy: React.FC = () => (
     <Suspense fallback={<LoadingScreen />}>
         <PositionStoreProvider>
-            <AddPosition />
+            <NewPosition />
         </PositionStoreProvider>
     </Suspense>
 );
 
-export default AddPositionLazy;
+export default NewPositionLazy;

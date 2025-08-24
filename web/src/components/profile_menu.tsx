@@ -107,10 +107,10 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
 
                 <DropdownMenuSeparator />
 
-                <Link to={ROUTES.subscription} variant="unstyled">
+                <Link to={ROUTES.planAndBilling} variant="unstyled">
                     <DropdownMenuItem>
                         <IconCreditCard size={18} />
-                        Subscription
+                        Plan and Billing
                     </DropdownMenuItem>
                 </Link>
 
