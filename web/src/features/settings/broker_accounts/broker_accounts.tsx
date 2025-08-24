@@ -55,7 +55,6 @@ import {
     TableCell,
     Tag,
     Separator,
-    IconBadgeCheck,
 } from "netra";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";
