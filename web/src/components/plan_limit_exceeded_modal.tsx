@@ -80,7 +80,7 @@ export default function PlanLimitExceededModal() {
                         </div>
 
                         <DialogFooter>
-                            <Link to={ROUTES.plan & billing} onClick={hideUpgradeModal}>
+                            <Link to={ROUTES.planAndBilling} onClick={hideUpgradeModal}>
                                 <Button>Upgrade now</Button>
                             </Link>
                         </DialogFooter>

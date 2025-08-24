@@ -18,8 +18,14 @@ import {
     DialogClose,
     Checkbox,
     Textarea,
-    Separator,
     useDocumentTitle,
+    Loading,
+    Breadcrumb,
+    BreadcrumbList,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbSeparator,
+    BreadcrumbPage,
 } from "netra";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
@@ -56,6 +62,7 @@ import { ROUTES } from "@/constants";
 import { useLatest } from "@/hooks/use_latest";
 import { UserBrokerAccountSearch } from "@/features/broker/components/user_broker_account_search";
 import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
+import { Link } from "@/components/link";
 
 function NewPosition() {
     const isCreatingPosition = useIsCreatingPosition();
@@ -217,15 +224,31 @@ function NewPosition() {
 
     const disablePrimaryButton = (isEditingPosition && !hasPositionDataChanged) || !canSave;
 
-    const title = isCreatingPosition ? "New Position" : position.symbol;
+    const title = isCreatingPosition ? "New" : position.symbol;
     useDocumentTitle(title);
 
-    // TODO: Show a breadcrumb in the page heading.
     return (
         <>
-            <PageHeading heading={title} loading={isComputing} />
+            <PageHeading>
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink asChild>
+                                <Link className="text-[16px]! font-medium!" to={ROUTES.listPositions}>
+                                    Positions
+                                </Link>
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
 
-            <Separator className="mt-2 mb-3" />
+                        <BreadcrumbSeparator />
+
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>{title}</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+                {isComputing && <Loading />}
+            </PageHeading>
 
             <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:h-44 sm:flex-row">
                 <OverviewCard

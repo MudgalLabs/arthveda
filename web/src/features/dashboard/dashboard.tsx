@@ -12,7 +12,7 @@ import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cum
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
 import { IconSearch } from "@/components/icons";
-import { Button, DatePicker, Separator, Tooltip, useDocumentTitle } from "netra";
+import { Button, DatePicker, Tooltip, useDocumentTitle } from "netra";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
@@ -284,9 +284,9 @@ export const Dashboard = () => {
 
     return (
         <div>
-            <PageHeading heading="Dashboard" />
-
-            <Separator className="mt-2 mb-3" />
+            <PageHeading>
+                <h1>Dashboard</h1>
+            </PageHeading>
 
             {!isNewUser && !isFetching && (
                 <div className="space-y-4">
@@ -301,7 +301,7 @@ export const Dashboard = () => {
                                             been hidden.
                                         </p>
                                         <p>
-                                            <Link to={ROUTES.plan & billing}>Upgrade</Link> to see full analytics.
+                                            <Link to={ROUTES.planAndBilling}>Upgrade</Link> to see full analytics.
                                         </p>
                                     </div>
                                 }

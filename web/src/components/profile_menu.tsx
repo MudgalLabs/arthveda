@@ -1,14 +1,8 @@
 import { FC, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 
-import { Button } from "netra";
-import {
-    IconLogout,
-    IconCreditCard,
-    // IconLifeBuoy,
-    IconPlug,
-    IconChevronDown,
-} from "@/components/icons";
+import { Button, useIsMobile } from "netra";
+import { IconLogout, IconCreditCard, IconPlug } from "@/components/icons";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
 import {
@@ -30,11 +24,11 @@ interface ProfileMenuProps {
     email: string;
     profileImageURL?: string;
     displayName?: string;
-    isMobile?: boolean;
 }
 
 export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
     const posthog = usePostHog();
+    const isMobile = useIsMobile();
 
     const { sidebarOpen, email, displayName = "", profileImageURL = "" } = props;
 
@@ -63,26 +57,33 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                     variant="ghost"
                     className={cn("flex h-auto w-fit items-start justify-between p-1 enabled:active:scale-[1]!", {
                         "bg-secondary-hover text-text-primary": open,
-                        "flex-center": sidebarOpen,
+                        "flex-center w-full": sidebarOpen && !isMobile,
                     })}
                 >
                     {!error && profileImageURL ? (
                         <img
                             className="rounded-sm p-0"
-                            height={28}
-                            width={28}
+                            height={32}
+                            width={32}
                             src={profileImageURL}
                             onError={() => setError(true)}
                         />
                     ) : (
-                        <DefaultProfileAvatar height={28} />
+                        <DefaultProfileAvatar height={32} />
                     )}
 
-                    {sidebarOpen && <IconChevronDown size={16} />}
+                    {sidebarOpen && !isMobile && (
+                        <div className="flex-x">
+                            <div className="flex flex-col items-start">
+                                <p className="max-w-[140px] truncate text-sm font-normal">{displayName}</p>
+                                <p className="label-muted max-w-[140px] truncate text-xs">{email}</p>
+                            </div>
+                        </div>
+                    )}
                 </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent side="bottom" align="start" className="mt-1 min-w-[240px]">
+            <DropdownMenuContent side="right" align="end" className="ml-2 min-w-[240px]">
                 <DropdownMenuLabel>
                     <div className="flex-x">
                         <div>

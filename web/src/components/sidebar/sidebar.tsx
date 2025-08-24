@@ -49,54 +49,51 @@ export const Sidebar = () => {
     return (
         <div
             className={cn("relative flex h-full flex-col justify-between px-3", {
-                "w-[220px]!": isOpen,
+                "w-[220px]!": isOpen && !isMobile,
                 hidden: !isOpen && isMobile,
             })}
         >
-            <div>
-                <div className="mt-6 flex flex-col gap-y-2 pb-2">
-                    <div className="flex-x mb-8 ml-1 justify-between">
-                        {isOpen && (
-                            <Link to={ROUTES.dashboard} variant="unstyled" className="cursor-pointer!">
-                                <Branding size="small" hideText />
-                            </Link>
-                        )}
-
-                        {data && (
-                            <ProfileMenu
-                                sidebarOpen={isOpen}
-                                email={data.email}
-                                displayName={data.name}
-                                profileImageURL={data.avatar_url}
-                                isMobile={isMobile}
-                            />
-                        )}
-                    </div>
-
-                    <Link to={ROUTES.dashboard} variant="unstyled">
-                        <SidebarNavItem
-                            label="Dashboard"
-                            Icon={IconDashboard}
-                            open={isOpen}
-                            isActive={activeRoute === ROUTES.dashboard}
-                            onClick={() => handleClick(ROUTES.dashboard)}
-                        />
-                    </Link>
-
-                    <Link to={ROUTES.listPositions} variant="unstyled">
-                        <SidebarNavItem
-                            label="Positions"
-                            Icon={IconCandlestick}
-                            open={isOpen}
-                            isActive={activeRoute === ROUTES.listPositions}
-                            onClick={() => handleClick(ROUTES.listPositions)}
-                        />
+            <div className="mt-6 flex flex-col gap-y-2 pb-2">
+                <div className="mb-4">
+                    <Link to={ROUTES.dashboard} variant="unstyled" className="cursor-pointer!">
+                        <Branding size="small" hideText={!isOpen || isMobile} hideBetaTag={!isOpen || isMobile} />
                     </Link>
                 </div>
+
+                <AddPositionMenu sidebarOpen={isOpen} />
+
+                <div className="h-4" />
+
+                <Link to={ROUTES.dashboard} variant="unstyled">
+                    <SidebarNavItem
+                        label="Dashboard"
+                        Icon={IconDashboard}
+                        open={isOpen}
+                        isActive={activeRoute === ROUTES.dashboard}
+                        onClick={() => handleClick(ROUTES.dashboard)}
+                    />
+                </Link>
+
+                <Link to={ROUTES.listPositions} variant="unstyled">
+                    <SidebarNavItem
+                        label="Positions"
+                        Icon={IconCandlestick}
+                        open={isOpen}
+                        isActive={activeRoute === ROUTES.listPositions}
+                        onClick={() => handleClick(ROUTES.listPositions)}
+                    />
+                </Link>
             </div>
 
             <div className="mb-4 space-y-2">
-                <AddPositionMenu sidebarOpen={isOpen} />
+                {data && (
+                    <ProfileMenu
+                        sidebarOpen={isOpen}
+                        email={data.email}
+                        displayName={data.name}
+                        profileImageURL={data.avatar_url}
+                    />
+                )}
             </div>
         </div>
     );
@@ -108,10 +105,12 @@ interface SidebarNavItemProps {
     open: boolean;
     isActive: boolean;
     onClick?: () => void;
+    isMobile?: boolean;
 }
 
 const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
     const { label, Icon, open, isActive, onClick } = props;
+    const isMobile = useIsMobile();
 
     const content = (
         <div
@@ -120,14 +119,14 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
                 {
                     "bg-secondary-hover text-text-primary": isActive,
                     "hover:bg-secondary-hover hover:text-text-primary": !isActive,
-                    "flex items-center gap-2 text-base": open,
-                    "mx-auto flex h-9 w-9 items-center justify-center": !open,
+                    "flex items-center gap-2 text-base": open && !isMobile,
+                    "mx-auto flex h-9 w-9 items-center justify-center": !open || isMobile,
                 }
             )}
             onClick={onClick}
         >
             <Icon size={20} />
-            {open && <p className="text-sm">{label}</p>}
+            {open && !isMobile && <p className="text-sm">{label}</p>}
         </div>
     );
 

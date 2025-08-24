@@ -12,6 +12,7 @@ import {
     IconPlus,
     IconSync,
     IconSquarePen,
+    useIsMobile,
 } from "netra";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants";
@@ -23,6 +24,7 @@ interface AddPositionMenuProps {
 }
 
 export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, className }) => {
+    const isMobile = useIsMobile();
     const [open, setOpen] = useState(false);
 
     const posthog = usePostHog();
@@ -33,21 +35,21 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
                 <DropdownMenuTrigger asChild>
                     <Button
                         className={cn(
-                            "w-full rounded-sm p-2 enabled:active:scale-[1]!",
+                            "scale-100!", // Disable the scale effect.
                             {
-                                "bg-primary-hover": open,
-                                "flex-center! h-9 w-9": !sidebarOpen,
+                                "w-full rounded-sm p-2": sidebarOpen && !isMobile,
+                                "mx-auto flex h-9 w-9 items-center justify-center": !sidebarOpen || isMobile,
                             },
                             className
                         )}
                     >
                         <IconPlus size={18} />
-                        {sidebarOpen ? "Add Position" : ""}
+                        {sidebarOpen && !isMobile ? "Add Position" : ""}
                     </Button>
                 </DropdownMenuTrigger>
             </Tooltip>
 
-            <DropdownMenuContent side="right" align="end" className="ml-1 min-w-[180px]">
+            <DropdownMenuContent side="right" align="start" className="ml-2 min-w-[180px]">
                 <Link
                     to={ROUTES.newPositions}
                     variant="unstyled"

@@ -8,7 +8,7 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
-import { Separator, Tooltip, useDocumentTitle } from "netra";
+import { Tooltip, useDocumentTitle } from "netra";
 import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
 
 export const Positions = () => {
@@ -45,9 +45,9 @@ export const Positions = () => {
 
     return (
         <>
-            <PageHeading heading="Positions" loading={queryResult?.isFetching} />
-
-            <Separator className="mt-2 mb-3" />
+            <PageHeading>
+                <h1>Positions</h1>
+            </PageHeading>
 
             {!hasPro && !!queryResult?.data?.data.no_of_positions_hidden && (
                 <div className="text-text-muted flex flex-col gap-2 sm:flex-row">
@@ -60,7 +60,7 @@ export const Positions = () => {
                                     and have been hidden.
                                 </p>
                                 <p>
-                                    <Link to={ROUTES.plan & billing}>Upgrade</Link> for complete history.
+                                    <Link to={ROUTES.planAndBilling}>Upgrade</Link> for complete history.
                                 </p>
                             </div>
                         }

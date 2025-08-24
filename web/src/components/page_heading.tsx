@@ -1,36 +1,42 @@
 import { FC, memo } from "react";
 import { Button, Separator, Tooltip } from "netra";
 
-import { Loading } from "@/components/loading";
 import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { IconPanelLeftClose, IconPanelLeftOpen } from "@/components/icons";
 
 interface PageHeadingProps {
-    heading: string;
-    loading?: boolean;
+    children?: React.ReactNode;
 }
 
-const PageHeading: FC<PageHeadingProps> = memo(({ heading, loading }) => {
+const PageHeading: FC<PageHeadingProps> = memo(({ children }) => {
     const { isOpen, toggleSidebar } = useSidebar();
 
     return (
-        <div className="flex-x">
-            <Tooltip
-                content={isOpen ? "Collapse sidebar" : "Expand sidebar"}
-                delayDuration={500}
-                contentProps={{ side: "right" }}
-            >
-                <Button className="text-text-subtle" variant="ghost" size="icon" type="button" onClick={toggleSidebar}>
-                    {isOpen ? <IconPanelLeftClose size={20} /> : <IconPanelLeftOpen size={20} />}
-                </Button>
-            </Tooltip>
+        <>
+            <div className="flex-x text-[16px] font-medium">
+                <Tooltip
+                    content={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+                    delayDuration={500}
+                    contentProps={{ side: "right" }}
+                >
+                    <Button
+                        className="text-text-subtle"
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        onClick={toggleSidebar}
+                    >
+                        {isOpen ? <IconPanelLeftClose size={18} /> : <IconPanelLeftOpen size={18} />}
+                    </Button>
+                </Tooltip>
 
-            <Separator orientation="vertical" className="mr-1 h-8!" />
+                <Separator orientation="vertical" className="mr-1 h-6!" />
 
-            <h1 className="sub-heading">{heading}</h1>
+                {children}
+            </div>
 
-            <div>{loading && <Loading />}</div>
-        </div>
+            <Separator className="mt-2 mb-3" />
+        </>
     );
 });
 

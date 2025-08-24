@@ -18,7 +18,6 @@ import {
     Checkbox,
     DataTable,
     Tag,
-    Separator,
     useDocumentTitle,
 } from "netra";
 import { ImportPositionsResponse } from "@/lib/api/position";
@@ -301,9 +300,9 @@ export const ImportPositions = () => {
 
     return (
         <>
-            <PageHeading heading="Import Positions" />
-
-            <Separator className="mt-2 mb-3" />
+            <PageHeading>
+                <h1>Import Positions</h1>
+            </PageHeading>
 
             <div className="h-4" />
 

@@ -4,7 +4,7 @@ import { PageHeading } from "@/components/page_heading";
 import { toast } from "@/components/toast";
 import { useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
 import { apiHooks } from "@/hooks/api_hooks";
-import { Button, Dialog, DialogContent, DialogTrigger, Separator, Tooltip, useDocumentTitle } from "netra";
+import { Button, Dialog, DialogContent, DialogTrigger, Tooltip, useDocumentTitle } from "netra";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
@@ -46,9 +46,9 @@ export const PlanAndBilling = () => {
 
     return (
         <div>
-            <PageHeading heading="Plan and Billing" />
-
-            <Separator className="mt-2 mb-3" />
+            <PageHeading>
+                <h1>Plan and Billing</h1>
+            </PageHeading>
 
             <Card>
                 <CardTitle className="flex-x justify-between">

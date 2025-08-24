@@ -54,7 +54,6 @@ import {
     TableRow,
     TableCell,
     Tag,
-    Separator,
     useDocumentTitle,
 } from "netra";
 import { WithLabel } from "@/components/with_label";
@@ -76,21 +75,21 @@ export const BrokerAccounts = () => {
 
     return (
         <>
-            <div className="flex-x justify-between">
-                <PageHeading heading="Broker Accounts" />
+            <PageHeading>
+                <div className="flex-x w-full justify-between">
+                    <h1>Broker Accounts</h1>
 
-                <div className="flex justify-end gap-x-4">
-                    <AddBrokerAccountModal
-                        renderTrigger={() => (
-                            <Button className="h-8">
-                                <IconPlus size={16} /> New
-                            </Button>
-                        )}
-                    />
+                    <div className="flex justify-end gap-x-4">
+                        <AddBrokerAccountModal
+                            renderTrigger={() => (
+                                <Button className="h-8">
+                                    <IconPlus size={16} /> New
+                                </Button>
+                            )}
+                        />
+                    </div>
                 </div>
-            </div>
-
-            <Separator className="mt-2 mb-3" />
+            </PageHeading>
 
             <BrokerAccountsTable setSyncSummary={setSyncSummary} setSyncSummaryModalOpen={setSyncSummaryModalOpen} />
 
