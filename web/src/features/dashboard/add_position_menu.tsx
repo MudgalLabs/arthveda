@@ -31,7 +31,7 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
-            <Tooltip content="Add Position" contentProps={{ side: "right" }} disabled={sidebarOpen}>
+            <Tooltip content="Add position" contentProps={{ side: "right" }} disabled={sidebarOpen}>
                 <DropdownMenuTrigger asChild>
                     <Button
                         className={cn(
@@ -44,7 +44,7 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
                         )}
                     >
                         <IconPlus size={18} />
-                        {sidebarOpen && !isMobile ? "Add Position" : ""}
+                        {sidebarOpen && !isMobile ? "Add position" : ""}
                     </Button>
                 </DropdownMenuTrigger>
             </Tooltip>
@@ -57,7 +57,7 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
                 >
                     <DropdownMenuItem>
                         <IconSquarePen size={18} />
-                        Manually
+                        Add manually
                     </DropdownMenuItem>
                 </Link>
 

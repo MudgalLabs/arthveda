@@ -4,7 +4,7 @@ import { PageHeading } from "@/components/page_heading";
 import { toast } from "@/components/toast";
 import { useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
 import { apiHooks } from "@/hooks/api_hooks";
-import { Button, Dialog, DialogContent, DialogTrigger, Tooltip, useDocumentTitle } from "netra";
+import { Button, Dialog, DialogContent, DialogTrigger, IconCreditCard, Tooltip, useDocumentTitle } from "netra";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
@@ -19,7 +19,7 @@ import { Card, CardContent, CardTitle } from "@/components/card";
 import { CancelAutoRenew } from "./components/cancel_auto_renew";
 
 export const PlanAndBilling = () => {
-    useDocumentTitle("Plan and Billing");
+    useDocumentTitle("Plan and billing");
     const subscription = useSubscription();
     const hasPro = useUserHasProSubscription();
 
@@ -47,7 +47,9 @@ export const PlanAndBilling = () => {
     return (
         <div>
             <PageHeading>
-                <h1>Plan and Billing</h1>
+                <IconCreditCard size={18} />
+
+                <h1>Plan and billing</h1>
             </PageHeading>
 
             <Card>

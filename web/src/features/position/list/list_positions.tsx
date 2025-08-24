@@ -8,7 +8,7 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
-import { Tooltip, useDocumentTitle } from "netra";
+import { IconCandlestick, Tooltip, useDocumentTitle } from "netra";
 import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
 
 export const Positions = () => {
@@ -46,6 +46,7 @@ export const Positions = () => {
     return (
         <>
             <PageHeading>
+                <IconCandlestick size={18} />
                 <h1>Positions</h1>
             </PageHeading>
 

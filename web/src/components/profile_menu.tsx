@@ -111,14 +111,14 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                 <Link to={ROUTES.brokerAccounts} variant="unstyled">
                     <DropdownMenuItem>
                         <IconZap size={18} />
-                        Broker Accounts
+                        Broker accounts
                     </DropdownMenuItem>
                 </Link>
 
                 <Link to={ROUTES.planAndBilling} variant="unstyled">
                     <DropdownMenuItem>
                         <IconCreditCard size={18} />
-                        Plan and Billing
+                        Plan and billing
                     </DropdownMenuItem>
                 </Link>
 
@@ -139,7 +139,7 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                     disabled={isSignoutPending}
                 >
                     <IconLogout size={18} />
-                    Sign Out
+                    Sign out
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

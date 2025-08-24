@@ -25,6 +25,8 @@ import {
     DataTable,
     Tag,
     useDocumentTitle,
+    IconCandlestick,
+    IconImport,
 } from "netra";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
@@ -88,7 +90,7 @@ const INITIAL_STATE: State = {
 };
 
 export const ImportPositions = () => {
-    useDocumentTitle("Import Positions");
+    useDocumentTitle("Import positions");
     const [state, setState] = useState<State>(INITIAL_STATE);
     const [importPositionResData, setImportPositionResData] = useState<ImportPositionsResponse | null>(null);
 
@@ -308,23 +310,8 @@ export const ImportPositions = () => {
     return (
         <>
             <PageHeading>
-                <Breadcrumb>
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbLink asChild>
-                                <Link className="text-[16px]! font-medium!" to={ROUTES.listPositions}>
-                                    Positions
-                                </Link>
-                            </BreadcrumbLink>
-                        </BreadcrumbItem>
-
-                        <BreadcrumbSeparator />
-
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>Import</BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </BreadcrumbList>
-                </Breadcrumb>
+                <IconImport size={18} />
+                <h1>Import positions</h1>
             </PageHeading>
 
             <div className="h-4" />

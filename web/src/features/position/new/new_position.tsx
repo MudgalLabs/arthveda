@@ -26,6 +26,8 @@ import {
     BreadcrumbLink,
     BreadcrumbSeparator,
     BreadcrumbPage,
+    IconCandlestick,
+    IconSquarePen,
 } from "netra";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
@@ -224,29 +226,39 @@ function NewPosition() {
 
     const disablePrimaryButton = (isEditingPosition && !hasPositionDataChanged) || !canSave;
 
-    const title = isCreatingPosition ? "New" : position.symbol;
+    const title = isCreatingPosition ? "New position" : position.symbol;
     useDocumentTitle(title);
 
     return (
         <>
             <PageHeading>
-                <Breadcrumb>
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbLink asChild>
-                                <Link className="text-[16px]! font-medium!" to={ROUTES.listPositions}>
-                                    Positions
-                                </Link>
-                            </BreadcrumbLink>
-                        </BreadcrumbItem>
+                {isCreatingPosition ? (
+                    <>
+                        <IconSquarePen size={18} />
+                        <h1>{title}</h1>
+                    </>
+                ) : (
+                    <>
+                        <IconCandlestick size={18} />
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink asChild>
+                                        <Link className="text-[16px]! font-medium!" to={ROUTES.listPositions}>
+                                            Positions
+                                        </Link>
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
 
-                        <BreadcrumbSeparator />
+                                <BreadcrumbSeparator />
 
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>{title}</BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </BreadcrumbList>
-                </Breadcrumb>
+                                <BreadcrumbItem>
+                                    <BreadcrumbPage>{title}</BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb>
+                    </>
+                )}
 
                 {isComputing && <Loading />}
             </PageHeading>

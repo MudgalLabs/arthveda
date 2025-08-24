@@ -55,6 +55,7 @@ import {
     TableCell,
     Tag,
     useDocumentTitle,
+    IconZap,
 } from "netra";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";
@@ -69,15 +70,17 @@ import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
 
 export const BrokerAccounts = () => {
-    useDocumentTitle("Broker Accounts");
+    useDocumentTitle("Broker accounts");
     const [syncSummary, setSyncSummary] = useState<SyncSummary | null>(null);
     const [syncSummaryModalOpen, setSyncSummaryModalOpen] = useState(false);
 
     return (
         <>
             <PageHeading>
+                <IconZap size={18} />
+
                 <div className="flex-x w-full justify-between">
-                    <h1>Broker Accounts</h1>
+                    <h1>Broker accounts</h1>
 
                     <div className="flex justify-end gap-x-4">
                         <AddBrokerAccountModal

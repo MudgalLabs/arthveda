@@ -12,7 +12,7 @@ import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cum
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
 import { IconSearch } from "@/components/icons";
-import { Button, DatePicker, Tooltip, useDocumentTitle } from "netra";
+import { Button, DatePicker, IconDashboard, Tooltip, useDocumentTitle } from "netra";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
@@ -285,6 +285,7 @@ export const Dashboard = () => {
     return (
         <div>
             <PageHeading>
+                <IconDashboard size={18} />
                 <h1>Dashboard</h1>
             </PageHeading>
 
