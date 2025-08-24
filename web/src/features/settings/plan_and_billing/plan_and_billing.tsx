@@ -6,7 +6,6 @@ import { useSubscription, useUserHasProSubscription } from "@/features/auth/auth
 import { apiHooks } from "@/hooks/api_hooks";
 import {
     Alert,
-    AlertDescription,
     Button,
     Dialog,
     DialogContent,
@@ -26,8 +25,7 @@ import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 import { Pricing } from "./components/pricing";
 import { IconDownload } from "@/components/icons";
-import { Card, CardContent, CardTitle } from "@/components/card";
-import { CancelAutoRenew } from "./components/cancel_auto_renew";
+import { CancelAutoRenew } from "@/features/settings/plan_and_billing/components/cancel_auto_renew";
 
 export const PlanAndBilling = () => {
     useDocumentTitle("Plan and billing");
