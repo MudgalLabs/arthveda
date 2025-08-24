@@ -8,7 +8,7 @@ import { Branding } from "@/components/branding";
 import { IconArrowUpRight } from "@/components/icons";
 import { Card, CardContent } from "@/components/card";
 import { WithLabel } from "@/components/with_label";
-import { Button, Input, Label } from "netra";
+import { Button, Input, Label, useDocumentTitle } from "netra";
 import { apiHooks } from "@/hooks/api_hooks";
 import { SigninResponse } from "@/lib/api/auth";
 import { toast } from "@/components/toast";
@@ -17,6 +17,7 @@ import { apiErrorHandler } from "@/lib/api";
 import { PasswordInput } from "@/components/input/password_input";
 
 export function SignIn() {
+    useDocumentTitle("Sign in to Arthveda");
     const posthog = usePostHog();
 
     const isPasswordAuthEnabled = import.meta.env.ARTHVEDA_ENABLE_SIGN_IN === "true";

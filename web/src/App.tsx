@@ -101,7 +101,6 @@ export default function App() {
             <AuthenticationProvider>
                 <BrokerProvider>
                     <SidebarProvider>
-                        {/* <TooltipPrimitive.Provider> */}
                         <TooltipProvider>
                             <Suspense
                                 fallback={
@@ -116,7 +115,6 @@ export default function App() {
                                 </RouteHandler>
                             </Suspense>
                         </TooltipProvider>
-                        {/* </TooltipPrimitive.Provider> */}
                     </SidebarProvider>
                 </BrokerProvider>
             </AuthenticationProvider>
