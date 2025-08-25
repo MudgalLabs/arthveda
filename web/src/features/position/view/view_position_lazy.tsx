@@ -12,7 +12,7 @@ const ViewPositionLazy = () => {
     const { data, isLoading, isError } = apiHooks.position.useGetPosition(id!);
 
     if (isError) {
-        return <p className="text-foreground-red">Error loading position</p>;
+        return <p className="text-text-destructive">Error loading position</p>;
     }
 
     if (isLoading) {
@@ -38,7 +38,7 @@ const ViewPositionLazy = () => {
         );
     }
 
-    return <p className="text-foreground-red">Failed to fetch position</p>;
+    return <p className="text-text-destructive">Failed to fetch position</p>;
 };
 
 export default ViewPositionLazy;
