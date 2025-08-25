@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { Tooltip } from "netra";
+import { Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent, Button } from "netra";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
 import { IconCandlestick, IconDashboard, IconType } from "@/components/icons";
@@ -21,6 +21,8 @@ export const Sidebar = () => {
     const { data } = useAuthentication();
     const { isOpen, setIsOpen } = useSidebar();
     const isMobile = useIsMobile();
+
+    const [showNotifications, setShowNotifications] = useState(false);
 
     const [activeRoute, setActiveRoute] = useState("");
     useEffect(() => {
@@ -84,6 +86,24 @@ export const Sidebar = () => {
             </div>
 
             <div className="mb-4 space-y-2">
+                <Popover open={showNotifications} onOpenChange={setShowNotifications}>
+                    <PopoverTrigger className="w-full">
+                        <SidebarNavItem
+                            label="Notifications"
+                            Icon={IconBell}
+                            open={isOpen}
+                            isActive={showNotifications}
+                            onClick={() => setShowNotifications((prev) => !prev)}
+                        />
+                    </PopoverTrigger>
+
+                    <PopoverContent side="right" align="end" sideOffset={8}>
+                        <div className="flex-center h-120 w-100 overflow-y-auto">
+                            <p className="text-text-subtle text-sm">No notifications yet, stay tuned!</p>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+
                 {data && (
                     <ProfileMenu
                         sidebarOpen={isOpen}
