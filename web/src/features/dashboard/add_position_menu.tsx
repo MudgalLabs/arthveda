@@ -29,22 +29,24 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
 
     const posthog = usePostHog();
 
+    const label = "Add or import position";
+
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
-            <Tooltip content="Add position" contentProps={{ side: "right" }} disabled={sidebarOpen}>
+            <Tooltip content={label} contentProps={{ side: "right" }} disabled={sidebarOpen}>
                 <DropdownMenuTrigger asChild>
                     <Button
                         className={cn(
                             "scale-100!", // Disable the scale effect.
                             {
-                                "w-full rounded-sm p-2": sidebarOpen && !isMobile,
+                                "w-full justify-start! rounded-sm p-2": sidebarOpen && !isMobile,
                                 "mx-auto flex h-9 w-9 items-center justify-center": !sidebarOpen || isMobile,
                             },
                             className
                         )}
                     >
                         <IconPlus size={18} />
-                        {sidebarOpen && !isMobile ? "Add position" : ""}
+                        {sidebarOpen && !isMobile ? label : ""}
                     </Button>
                 </DropdownMenuTrigger>
             </Tooltip>
