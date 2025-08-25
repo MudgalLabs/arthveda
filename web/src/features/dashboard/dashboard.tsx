@@ -174,7 +174,7 @@ export const Dashboard = () => {
 
     const content = useMemo(() => {
         if (isError) {
-            return <p className="text-foreground-red">Error loading dashboard data.</p>;
+            return <p className="text-text-destructive">Error loading dashboard data.</p>;
         }
 
         if (isFetching) {

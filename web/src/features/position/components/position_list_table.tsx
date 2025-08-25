@@ -63,7 +63,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
         );
 
         if (isError) {
-            return <p className="text-foreground-red">Failed to fetch positions</p>;
+            return <p className="text-text-destructive">Failed to fetch positions</p>;
         }
 
         if (isLoading) {

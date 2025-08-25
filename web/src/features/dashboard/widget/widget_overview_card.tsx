@@ -40,10 +40,10 @@ export const OverviewCard = memo(
 
         if (!netPnL.isZero() && netPnL.isPositive()) {
             trendingIcon = <IconTrendingUp size={20} />;
-            netPnLColor = "text-foreground-green";
+            netPnLColor = "text-text-success";
         } else if (netPnL.isNegative()) {
             trendingIcon = <IconTrendingDown />;
-            netPnLColor = "text-foreground-red";
+            netPnLColor = "text-text-destructive";
         }
 
         let chargesAsPercentageOfNetPnL = new Decimal(charges_as_percentage_of_net_pnl || "0");
@@ -109,8 +109,8 @@ export const OverviewCard = memo(
                                 <p className="text-foreground text-base">
                                     <span
                                         className={cn("font-semibold", {
-                                            // "text-foreground-green": grossPnL.isPositive(),
-                                            // "text-foreground-red": grossPnL.isNegative(),
+                                            // "text-text-destructive": grossPnL.isPositive(),
+                                            // "text-text-success": grossPnL.isNegative(),
                                         })}
                                     >
                                         {formatCurrency(grossPnL.toFixed(2).toString(), {

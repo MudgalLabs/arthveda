@@ -608,7 +608,7 @@ const ZerodhaTradingHistoryDirections: FC = () => {
 const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
     // If broker is not selected, we don't show the file upload step.
     if (state.brokerName === null || state.brokerID === "") {
-        return <p className="text-foreground-red">You need to select a Broker first before performing this step.</p>;
+        return <p className="text-text-destructive">You need to select a Broker first before performing this step.</p>;
     }
 
     const { getBrokerLogoByName } = useBroker();
@@ -654,7 +654,7 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
             ) : name === "Zerodha" ? (
                 <ZerodhaTradingHistoryDirections />
             ) : (
-                <p className="text-foreground-red">Unsupported broker for file import</p>
+                <p className="text-text-destructive">Unsupported broker for file import</p>
             )}
 
             <div className="h-8" />
@@ -990,8 +990,8 @@ const columns: ColumnDef<Position>[] = [
             <span
                 className={
                     new Decimal(row.original.net_pnl_amount).isNegative()
-                        ? "text-foreground-red"
-                        : "text-foreground-green"
+                        ? "text-text-destructive"
+                        : "text-text-success"
                 }
             >
                 {formatCurrency(row.original.net_pnl_amount, {

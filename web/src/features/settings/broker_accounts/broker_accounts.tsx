@@ -482,7 +482,7 @@ const BrokerAccountsTable = ({
     }
 
     if (isError || !data) {
-        return <p className="text-foreground-red">Failed to fetch broker accounts</p>;
+        return <p className="text-text-destructive">Failed to fetch broker accounts</p>;
     }
 
     return (
