@@ -200,6 +200,10 @@ a {
     @apply text-link font-content text-sm font-medium underline-offset-4 hover:underline;
 }
 
+@utility link-unstyled {
+    @apply cursor-default! text-base! font-normal! text-inherit! no-underline!;
+}
+
 input,
 textarea,
 [contenteditable] {

@@ -1,10 +1,10 @@
-import { FC, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent, Button } from "netra";
+import { Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent } from "netra";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
-import { IconCandlestick, IconDashboard, IconType } from "@/components/icons";
+import { IconCandlestick, IconDashboard } from "@/components/icons";
 
 import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { useIsMobile } from "@/hooks/use_is_mobile";
@@ -13,6 +13,8 @@ import { ProfileMenu } from "@/components/profile_menu";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
+import { NotificationsInbox } from "@/components/notification/notifications_inbox";
+import { useUnreadCount } from "@/bodhveda/react";
 
 const SIDEBAR_ROUTES = [ROUTES.dashboard, ROUTES.listPositions, ROUTES.newPositions, ROUTES.importPositions];
 
@@ -48,6 +50,11 @@ export const Sidebar = () => {
         setActiveRoute(route);
     };
 
+    const { data: unreadCountData } = useUnreadCount();
+    const unreadCount = unreadCountData?.unread_count ?? 0;
+
+    const notificationUnreadCountDot = <div className="bg-accent text-foreground flex-center size-2 rounded-full" />;
+
     return (
         <div
             className={cn("relative flex h-full flex-col justify-between px-3", {
@@ -67,7 +74,7 @@ export const Sidebar = () => {
                 <Link to={ROUTES.dashboard} variant="unstyled">
                     <SidebarNavItem
                         label="Dashboard"
-                        Icon={IconDashboard}
+                        icon={<IconDashboard size={20} />}
                         open={isOpen}
                         isActive={activeRoute === ROUTES.dashboard}
                         onClick={() => handleClick(ROUTES.dashboard)}
@@ -77,7 +84,7 @@ export const Sidebar = () => {
                 <Link to={ROUTES.listPositions} variant="unstyled">
                     <SidebarNavItem
                         label="Positions"
-                        Icon={IconCandlestick}
+                        icon={<IconCandlestick size={20} />}
                         open={isOpen}
                         isActive={activeRoute === ROUTES.listPositions}
                         onClick={() => handleClick(ROUTES.listPositions)}
@@ -87,20 +94,39 @@ export const Sidebar = () => {
 
             <div className="mb-4 space-y-2">
                 <Popover open={showNotifications} onOpenChange={setShowNotifications}>
-                    <PopoverTrigger className="w-full">
+                    <PopoverTrigger className="w-full" onClick={() => setShowNotifications((prev) => !prev)}>
                         <SidebarNavItem
-                            label="Notifications"
-                            Icon={IconBell}
+                            label={
+                                <span className="flex-x w-full justify-between">
+                                    Notifications {isOpen && unreadCount > 0 && notificationUnreadCountDot}
+                                </span>
+                            }
+                            icon={
+                                <div className="relative">
+                                    {(!isOpen || isMobile) && unreadCount > 0 && (
+                                        <span
+                                            className={cn({
+                                                "absolute -top-0 -right-0": unreadCount > 0 && !isOpen,
+                                            })}
+                                        >
+                                            {notificationUnreadCountDot}
+                                        </span>
+                                    )}
+                                    <IconBell size={20} />
+                                </div>
+                            }
                             open={isOpen}
                             isActive={showNotifications}
-                            onClick={() => setShowNotifications((prev) => !prev)}
                         />
                     </PopoverTrigger>
 
-                    <PopoverContent side="right" align="end" sideOffset={8}>
-                        <div className="flex-center h-120 w-100 overflow-y-auto">
-                            <p className="text-text-subtle text-sm">No notifications yet, stay tuned!</p>
-                        </div>
+                    <PopoverContent
+                        side="right"
+                        align="end"
+                        sideOffset={8}
+                        className="h-120 w-[calc(100vw-72px)] max-w-110 p-0"
+                    >
+                        <NotificationsInbox closeNotifications={() => setShowNotifications(false)} />
                     </PopoverContent>
                 </Popover>
 
@@ -118,8 +144,8 @@ export const Sidebar = () => {
 };
 
 interface SidebarNavItemProps {
-    label: string;
-    Icon: IconType;
+    label: ReactNode;
+    icon: ReactNode;
     open: boolean;
     isActive: boolean;
     onClick?: () => void;
@@ -127,13 +153,13 @@ interface SidebarNavItemProps {
 }
 
 const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
-    const { label, Icon, open, isActive, onClick } = props;
+    const { label, icon, open, isActive, onClick } = props;
     const isMobile = useIsMobile();
 
     const content = (
         <div
             className={cn(
-                "peer text-text-muted [&_svg]:text-text-muted hover:[&_svg]:text-text-primary w-full rounded-sm bg-transparent p-2 transition-colors",
+                "peer text-text-muted [&_svg]:text-text-muted hover:[&_svg]:text-text-primary w-full rounded-sm bg-transparent p-2 text-sm! transition-colors",
                 {
                     "bg-secondary-hover text-text-primary": isActive,
                     "hover:bg-secondary-hover hover:text-text-primary": !isActive,
@@ -143,8 +169,8 @@ const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
             )}
             onClick={onClick}
         >
-            <Icon size={20} />
-            {open && !isMobile && <p className="text-sm">{label}</p>}
+            {icon}
+            {open && !isMobile && label}
         </div>
     );
 

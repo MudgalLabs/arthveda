@@ -13,6 +13,7 @@ import NewPositionLazy from "@/features/position/new/new_position_lazy";
 import ImportPositionsLazy from "@/features/position/import/import_positions_lazy";
 import BrokerAccountsLazy from "@/features/settings/broker_accounts/broker_accounts_lazy";
 import PlanAndBillingLazy from "@/features/settings/plan_and_billing/plan_and_billing_lazy";
+import NotificationPreferencesLazy from "@/features/settings/notification_preferences/notification_preferences_lazy";
 
 export const routes: Array<RouteObject> = [
     /**
@@ -62,6 +63,10 @@ export const routes: Array<RouteObject> = [
     {
         path: ROUTES.planAndBilling,
         element: <PlanAndBillingLazy />,
+    },
+    {
+        path: ROUTES.notificationsPreferences,
+        element: <NotificationPreferencesLazy />,
     },
 ];
 

@@ -6,9 +6,8 @@ import { usePostHog } from "posthog-js/react";
 import "@/index.css";
 import "netra/styles.css";
 
-import { useAuthentication } from "@/features/auth/auth_context";
 import { toast, ToastProvider } from "@/components/toast";
-import { AuthenticationProvider } from "@/features/auth/auth_context";
+import { useAuthentication } from "@/features/auth/auth_context";
 import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/constants";
@@ -16,6 +15,8 @@ import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 import { BrokerProvider, useBroker } from "@/features/broker/broker_context";
 import PlanLimitExceededModal from "@/components/plan_limit_exceeded_modal";
+import { BodhvedaProvider } from "@/bodhveda/react";
+import { Bodhveda } from "@/bodhveda";
 
 const AppLayout = lazy(() => import("@/app_layout"));
 
@@ -90,7 +91,13 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     return <div className="h-screen w-screen">{children}</div>;
 };
 
+const bodhveda = new Bodhveda(import.meta.env.ARTHVEDA_BODHVEDA_API_KEY, {
+    apiURL: "http://localhost:1338",
+});
+
 export default function App() {
+    const { data } = useAuthentication();
+
     return (
         <Fragment>
             {/* Putting ToastProvider here instead of in main.tsx
@@ -98,10 +105,10 @@ export default function App() {
                 hooks and state. */}
             <ToastProvider />
 
-            <AuthenticationProvider>
-                <BrokerProvider>
-                    <SidebarProvider>
-                        <TooltipProvider>
+            <BrokerProvider>
+                <SidebarProvider>
+                    <TooltipProvider>
+                        <BodhvedaProvider bodhveda={bodhveda} recipientID={data?.user_id || ""}>
                             <Suspense
                                 fallback={
                                     <div className="h-screen w-screen">
@@ -114,10 +121,11 @@ export default function App() {
                                     <PlanLimitExceededModal />
                                 </RouteHandler>
                             </Suspense>
-                        </TooltipProvider>
-                    </SidebarProvider>
-                </BrokerProvider>
-            </AuthenticationProvider>
+                        </BodhvedaProvider>
+                    </TooltipProvider>
+                </SidebarProvider>
+            </BrokerProvider>
+
             <ScrollRestoration />
         </Fragment>
     );

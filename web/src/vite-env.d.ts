@@ -49,11 +49,16 @@ interface ImportMetaEnv {
      * The Paddle price ID for the monthly subscription.
      */
     readonly ARTHVEDA_PADDLE_PRICE_ID_MONTHLY: string;
-    J;
+
     /**
      * The Paddle price ID for the yearly subscription.
      */
     readonly ARTHVEDA_PADDLE_PRICE_ID_YEARLY: string;
+
+    /**
+     * The Bodhveda API key for notifications.
+     */
+    readonly ARTHVEDA_BODHVEDA_API_KEY: string;
 }
 
 interface ImportMeta {

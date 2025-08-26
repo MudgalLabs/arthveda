@@ -67,7 +67,7 @@ export const OverviewCard = memo(
                         <div>
                             <span className="label-muted">Net</span>
                             <div className={`flex items-end gap-x-2 ${netPnLColor}`}>
-                                <p className={`heading leading-none ${netPnLColor}`}>
+                                <p className={`heading leading-none ${netPnLColor}!`}>
                                     {formatCurrency(netPnL.toFixed(2).toString(), { currency })}
                                 </p>
                                 {net_return_percentage && <p>{netReturnPercentage.toFixed(2).toString()}%</p>}

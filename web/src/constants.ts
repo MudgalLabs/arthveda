@@ -16,19 +16,21 @@ export const ROUTES = {
     planAndBilling: "/settings/plan-and-billing",
     brokerAccounts: "/settings/broker-accounts",
     feedbackAndSupport: "/settings/feedback-and-support",
+    notificationsPreferences: "/settings/notifications",
 };
 
 export const ROUTES_PUBLIC = [ROUTES.index, ROUTES.notFound, ROUTES.signIn];
 
 export const ROUTES_PROTECTED = [
-    ROUTES.newPositions,
     ROUTES.dashboard,
     ROUTES.listPositions,
+    ROUTES.newPositions,
     ROUTES.importPositions,
     ROUTES.viewPosition(),
     ROUTES.planAndBilling,
     ROUTES.brokerAccounts,
     ROUTES.feedbackAndSupport,
+    ROUTES.notificationsPreferences,
 ];
 
 export const PADDLE_PRICE_ID_MONTHLY = import.meta.env.ARTHVEDA_PADDLE_PRICE_ID_MONTHLY;

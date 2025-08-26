@@ -2,13 +2,14 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider, QueryCache } from "@tanstack/react-query";
+import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 
+import { AuthenticationProvider } from "@/features/auth/auth_context";
 import { Error } from "@/features/error/error";
 import routes from "@/routes";
 import App from "@/App";
-import { apiErrorHandler } from "./lib/api";
-import posthog from "posthog-js";
+import { apiErrorHandler } from "@/lib/api";
 
 const container = document.getElementById("root") as HTMLElement;
 
@@ -47,7 +48,9 @@ root.render(
     <StrictMode>
         <PostHogProvider client={posthog}>
             <QueryClientProvider client={queryClient}>
-                <RouterProvider router={router} />
+                <AuthenticationProvider>
+                    <RouterProvider router={router} />
+                </AuthenticationProvider>
             </QueryClientProvider>
         </PostHogProvider>
     </StrictMode>
