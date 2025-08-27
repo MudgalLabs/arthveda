@@ -4,11 +4,11 @@ export interface Target {
     event: string;
 }
 
-interface PreferenceTarget extends Target {
+export interface PreferenceTarget extends Target {
     label?: string;
 }
 
-interface PreferenceState {
+export interface PreferenceState {
     enabled: boolean;
     inherited: boolean;
 }
@@ -30,17 +30,74 @@ export interface Notification {
     payload: unknown;
     target: Target;
     state: NotificationState;
+    broadcast_id: number | null;
     created_at: string;
     updated_at: string;
 }
 
-export interface BodhvedaAPI {
-    recipients: RecipientsAPI;
+export interface Broadcast {
+    id: number;
+    payload: unknown;
+    target: Target;
+    created_at: string;
+    updated_at: string;
 }
 
-export interface RecipientsAPI {
-    preferences: RecipientsPreferencesAPI;
-    notifications: RecipientsNotificationsAPI;
+export interface Recipient {
+    id: string;
+    name: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateRecipientRequest {
+    id: string;
+    name?: string;
+}
+
+export interface CreateRecipientResponse extends Recipient {}
+
+export interface CreateRecipientsBatchRequest {
+    recipients: CreateRecipientRequest[];
+}
+
+interface BatchCreateRecipientResultItem {
+    id: string;
+}
+
+interface BatchCreatereRecicpientResultItemWithError extends BatchCreateRecipientResultItem {
+    batch_index: number;
+    errors: {
+        message: string;
+        description: string;
+        property_path?: string;
+        invalid_value?: unknown;
+    }[];
+}
+
+export interface CreateRecipientsBatchResponse {
+    created: BatchCreateRecipientResultItem[];
+    updated: BatchCreateRecipientResultItem[];
+    failed: BatchCreatereRecicpientResultItemWithError[];
+}
+
+export interface GetRecipientResponse extends Recipient {}
+
+export interface UpdateRecipientRequest {
+    name?: string;
+}
+
+export interface UpdateRecipientResponse extends Recipient {}
+
+export interface SendNotificationRequest {
+    payload: unknown;
+    recipient_id?: string;
+    target?: Target;
+}
+
+export interface SendNotificationResponse {
+    notification: Notification | null;
+    broadcast: Broadcast | null;
 }
 
 export interface ListNotificationsRequest {
@@ -74,13 +131,6 @@ export interface DeleteNotificationsResponse {
     deleted_count: number;
 }
 
-export interface RecipientsNotificationsAPI {
-    list(recipientID: string, req?: ListNotificationsRequest): Promise<ListNotificationsResponse>;
-    unreadCount(recipientID: string): Promise<UnreadCountResponse>;
-    updateState(recipientID: string, req: UpdateNotificationsStateRequest): Promise<UpdateNotificationsStateResponse>;
-    delete(recipientID: string, req: DeleteNotificationsRequest): Promise<DeleteNotificationsResponse>;
-}
-
 export interface ListPreferencesResponse {
     preferences: Preference[];
 }
@@ -104,10 +154,4 @@ export interface CheckPreferenceRequest {
 export interface CheckPreferenceResponse {
     target: Target;
     state: PreferenceState;
-}
-
-export interface RecipientsPreferencesAPI {
-    list(recipientID: string): Promise<ListPreferencesResponse>;
-    set(recipientID: string, req: SetPreferenceRequest): Promise<SetPreferenceResponse>;
-    check(recipientID: string, req: CheckPreferenceRequest): Promise<CheckPreferenceResponse>;
 }

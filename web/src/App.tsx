@@ -15,8 +15,8 @@ import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 import { BrokerProvider, useBroker } from "@/features/broker/broker_context";
 import PlanLimitExceededModal from "@/components/plan_limit_exceeded_modal";
-import { BodhvedaProvider } from "@/bodhveda/react";
 import { Bodhveda } from "@/bodhveda";
+import { BodhvedaProvider } from "@/bodhveda/react";
 
 const AppLayout = lazy(() => import("@/app_layout"));
 

@@ -1,1 +1,1 @@
-export * from "./bodhveda";
+export * from "./core";

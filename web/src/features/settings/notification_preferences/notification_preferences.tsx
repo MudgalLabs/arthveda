@@ -1,4 +1,4 @@
-import { useListPreferences, useSetPreference } from "@/bodhveda/react";
+import { usePreferences, useUpdatePreference } from "@/bodhveda/react/hooks";
 
 import { PageHeading } from "@/components/page_heading";
 import {
@@ -15,8 +15,24 @@ import {
 import { useMemo } from "react";
 
 export default function NotificationPreferences() {
-    const { data, isFetching: isFetchingPreferences, isError } = useListPreferences();
-    const { mutate: setPreference, isPending: isSettingPreference } = useSetPreference();
+    const { data, isFetching: isFetchingPreferences, isError } = usePreferences();
+    const { mutate: setPreference, isPending: isSettingPreference } = useUpdatePreference();
+
+    // const bodhveda = useBodhveda();
+    // const handleSendNotification = () => {
+    //     bodhveda.notifications.send({
+    //         payload: {
+    //             title: "New Feature Released!",
+    //             description: "Check out our latest feature that will enhance your experience.",
+    //             url: "https://example.com/new-feature",
+    //         },
+    //         target: {
+    //             channel: "announcements",
+    //             topic: "product",
+    //             event: "new_feature",
+    //         },
+    //     });
+    // };
 
     const renderPreferences = useMemo(() => {
         if (isError) {
@@ -76,6 +92,10 @@ export default function NotificationPreferences() {
             <div className="h-4" />
 
             {renderPreferences}
+
+            {/* <div className="flex-center mt-12">
+                <Button onClick={handleSendNotification}>Send Test Notification</Button>
+            </div> */}
         </>
     );
 }

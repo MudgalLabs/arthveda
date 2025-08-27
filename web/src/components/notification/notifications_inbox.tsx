@@ -3,7 +3,7 @@ import { Button, IconCheckCheck, IconSettings, LoadingScreen } from "netra";
 
 import { ROUTES } from "@/constants";
 import { Link } from "@/components/link";
-import { useListNotifications, useUpdateNotificationsState } from "@/bodhveda/react";
+import { useNotifications, useNotificationsUnreadCount, useUpdateNotificationsState } from "@/bodhveda/react/hooks";
 import { NotificationItem } from "./notification_item";
 
 interface NotificationsInboxProps {
@@ -12,7 +12,8 @@ interface NotificationsInboxProps {
 
 export function NotificationsInbox(props: NotificationsInboxProps) {
     const { closeNotifications } = props;
-    const { data, isLoading, isError } = useListNotifications();
+    useNotificationsUnreadCount();
+    const { data, isLoading, isError } = useNotifications();
     const { mutate: updateNotificationState, isPending: isUpdatingNotificationState } = useUpdateNotificationsState();
 
     const handleMarkAllAsRead = useCallback(() => {

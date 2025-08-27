@@ -1,8 +1,8 @@
-import { Button, cn, formatTimeAgo, IconCross, IconMegaphone } from "netra";
+import { cn, formatTimeAgo, IconMegaphone } from "netra";
 
-import { Notification, Target } from "@/bodhveda/types";
+import { Notification, Target } from "@/bodhveda/core/types";
 import { useMemo } from "react";
-import { useDeleteNotifications, useUpdateNotificationsState } from "@/bodhveda/react";
+import { useUpdateNotificationsState } from "@/bodhveda/react/hooks";
 
 const enum NotificationKind {
     ANNOUNECEMENT_NEW_FEATURE = "announcement_new_feature",
@@ -34,7 +34,6 @@ function getNotificationKind(notification: Notification): NotificationKind | nul
 export function NotificationItem({ notification }: { notification: Notification }) {
     const kind = useMemo(() => getNotificationKind(notification), [notification]);
     const { mutate: updateNotificationState } = useUpdateNotificationsState();
-    const { mutate: deleteNotifications, isPending: isDeleting } = useDeleteNotifications();
 
     const notificationContent = useMemo(() => {
         switch (kind) {
@@ -59,19 +58,6 @@ export function NotificationItem({ notification }: { notification: Notification 
         >
             {!notification.state.read && <div className="bg-accent absolute top-2 left-1 size-2 rounded-full" />}
 
-            <Button
-                className="absolute top-2 right-1 size-5 rounded-full p-0"
-                variant="secondary"
-                onClick={() =>
-                    deleteNotifications({
-                        ids: [notification.id],
-                    })
-                }
-                disabled={isDeleting}
-            >
-                <IconCross size={12} />
-            </Button>
-
             {notificationContent}
         </div>
     );
@@ -94,8 +80,12 @@ function AnnouncementNewFeatureNotification({ notification }: { notification: No
                         <IconMegaphone size={24} />
                     </div>
 
-                    <div className="space-y-2 pl-4">
-                        <p className="text-sm font-medium">{payload.title}</p>
+                    <div className="pl-4">
+                        <p className="mb-1 text-sm font-medium">{payload.title}</p>
+
+                        <p className="text-text-muted mb-2 text-xs">
+                            {formatTimeAgo(new Date(notification.created_at))}
+                        </p>
 
                         <p className="bg-azure-900 rounded-md px-2 py-3 text-[13px]">{payload.description}</p>
                     </div>

@@ -14,7 +14,7 @@ import { useAuthentication } from "@/features/auth/auth_context";
 import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
 import { NotificationsInbox } from "@/components/notification/notifications_inbox";
-import { useUnreadCount } from "@/bodhveda/react";
+import { useNotificationsUnreadCount } from "@/bodhveda/react/hooks";
 
 const SIDEBAR_ROUTES = [ROUTES.dashboard, ROUTES.listPositions, ROUTES.newPositions, ROUTES.importPositions];
 
@@ -50,7 +50,7 @@ export const Sidebar = () => {
         setActiveRoute(route);
     };
 
-    const { data: unreadCountData } = useUnreadCount();
+    const { data: unreadCountData } = useNotificationsUnreadCount();
     const unreadCount = unreadCountData?.unread_count ?? 0;
 
     const notificationUnreadCountDot = <div className="bg-accent text-foreground flex-center size-2 rounded-full" />;

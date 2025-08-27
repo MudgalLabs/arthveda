@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { useContext } from "react";
 import {
     AnyUseMutationOptions,
     AnyUseQueryOptions,
@@ -9,7 +9,6 @@ import {
 } from "@tanstack/react-query";
 
 import {
-    BodhvedaAPI,
     ListNotificationsResponse,
     ListPreferencesResponse,
     UpdateNotificationsStateRequest,
@@ -19,35 +18,19 @@ import {
     DeleteNotificationsResponse,
     DeleteNotificationsRequest,
     Target,
-} from "@/bodhveda/types";
+    CheckPreferenceResponse,
+} from "@/bodhveda/core/types";
+import { BodhvedaContext } from "@/bodhveda/react/context";
 
 type QueryOptions = Omit<AnyUseQueryOptions, "queryKey">;
 type MutationOptions = AnyUseMutationOptions;
 
 const QUERY_KEYS = {
-    useListNotifications: ["useListNotifications"],
-    useUnreadCount: ["useUnreadCount"],
-    useListPreferences: ["useListPreferences"],
+    useNotifications: ["useNotifications"],
+    useNotificationsUnreadCount: ["useNotificationsUnreadCount"],
+    useCheckPreference: ["useCheckPreference"],
+    usePreferences: ["usePreferences"],
 };
-
-interface BodhvedaContextType {
-    bodhveda: BodhvedaAPI;
-    recipientID: string;
-}
-
-const BodhvedaContext = createContext<BodhvedaContextType | null>(null);
-
-export function BodhvedaProvider({
-    children,
-    bodhveda,
-    recipientID,
-}: {
-    children: React.ReactNode;
-    bodhveda: BodhvedaAPI;
-    recipientID: string;
-}) {
-    return <BodhvedaContext.Provider value={{ bodhveda, recipientID }}>{children}</BodhvedaContext.Provider>;
-}
 
 export function useBodhveda() {
     const context = useContext(BodhvedaContext);
@@ -59,7 +42,7 @@ export function useBodhveda() {
     return context.bodhveda;
 }
 
-function useRecipientID() {
+export function useRecipientID() {
     const context = useContext(BodhvedaContext);
 
     if (!context) {
@@ -69,23 +52,23 @@ function useRecipientID() {
     return context.recipientID;
 }
 
-export function useListNotifications(options: QueryOptions = {}): UseQueryResult<ListNotificationsResponse> {
+export function useNotifications(options: QueryOptions = {}): UseQueryResult<ListNotificationsResponse> {
     const bodhveda = useBodhveda();
     const recipientID = useRecipientID();
 
     return useQuery({
-        queryKey: [QUERY_KEYS.useListNotifications],
+        queryKey: [QUERY_KEYS.useNotifications],
         queryFn: () => bodhveda.recipients.notifications.list(recipientID),
         ...options,
     });
 }
 
-export function useUnreadCount(options: QueryOptions = {}): UseQueryResult<{ unread_count: number }> {
+export function useNotificationsUnreadCount(options: QueryOptions = {}): UseQueryResult<{ unread_count: number }> {
     const bodhveda = useBodhveda();
     const recipientID = useRecipientID();
 
     return useQuery({
-        queryKey: [QUERY_KEYS.useUnreadCount],
+        queryKey: [QUERY_KEYS.useNotificationsUnreadCount],
         queryFn: () => bodhveda.recipients.notifications.unreadCount(recipientID),
         ...options,
     });
@@ -102,8 +85,8 @@ export function useUpdateNotificationsState(options: MutationOptions = {}) {
             return bodhveda.recipients.notifications.updateState(recipientID, req);
         },
         onSuccess: (...args) => {
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useListNotifications] });
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useUnreadCount] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useNotifications] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useNotificationsUnreadCount] });
             onSuccess?.(...args);
         },
         ...rest,
@@ -121,47 +104,53 @@ export function useDeleteNotifications(options: MutationOptions = {}) {
             return bodhveda.recipients.notifications.delete(recipientID, req);
         },
         onSuccess: (...args) => {
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useListNotifications] });
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useUnreadCount] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useNotifications] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useNotificationsUnreadCount] });
             onSuccess?.(...args);
         },
         ...rest,
     });
 }
 
-export function useListPreferences(options: QueryOptions = {}): UseQueryResult<ListPreferencesResponse> {
+export function usePreferences(options: QueryOptions = {}): UseQueryResult<ListPreferencesResponse> {
     const bodhveda = useBodhveda();
     const recipientID = useRecipientID();
 
     return useQuery({
-        queryKey: [QUERY_KEYS.useListPreferences],
+        queryKey: [QUERY_KEYS.usePreferences],
         queryFn: () => bodhveda.recipients.preferences.list(recipientID),
         ...options,
     });
 }
 
-export function useSetPreference(options: MutationOptions = {}) {
+export function useUpdatePreference(options: MutationOptions = {}) {
     const bodhveda = useBodhveda();
     const recipientID = useRecipientID();
     const queryClient = useQueryClient();
+    const { onSuccess, ...rest } = options;
 
     return useMutation<SetPreferenceResponse, unknown, SetPreferenceRequest, unknown>({
         mutationFn: (req: SetPreferenceRequest) => {
             return bodhveda.recipients.preferences.set(recipientID, req);
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useListPreferences] });
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.usePreferences] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.useCheckPreference, args[0].target] });
+            onSuccess?.(...args);
         },
-        ...options,
+        ...rest,
     });
 }
 
-export function useCheckPreference(target: Target, options: QueryOptions = {}) {
+export function useCheckPreference(
+    target: Target,
+    options: QueryOptions = {}
+): UseQueryResult<CheckPreferenceResponse> {
     const bodhveda = useBodhveda();
     const recipientID = useRecipientID();
 
     return useQuery({
-        queryKey: [QUERY_KEYS.useListPreferences, target],
+        queryKey: [QUERY_KEYS.useCheckPreference, target],
         queryFn: () => bodhveda.recipients.preferences.check(recipientID, { target }),
         ...options,
     });
