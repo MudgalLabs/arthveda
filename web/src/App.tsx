@@ -1,6 +1,8 @@
 import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
 import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
-import { TooltipProvider } from "netra";
+import { isProd, TooltipProvider } from "netra";
+import { Bodhveda } from "bodhveda";
+import { BodhvedaProvider } from "@bodhveda/react";
 import { usePostHog } from "posthog-js/react";
 
 import "@/index.css";
@@ -15,8 +17,6 @@ import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 import { BrokerProvider, useBroker } from "@/features/broker/broker_context";
 import PlanLimitExceededModal from "@/components/plan_limit_exceeded_modal";
-import { Bodhveda } from "@/bodhveda";
-import { BodhvedaProvider } from "@/bodhveda/react";
 
 const AppLayout = lazy(() => import("@/app_layout"));
 
@@ -92,7 +92,7 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
 };
 
 const bodhveda = new Bodhveda(import.meta.env.ARTHVEDA_BODHVEDA_API_KEY, {
-    apiURL: "http://localhost:1338",
+    apiURL: !isProd() ? "http://localhost:1338" : undefined,
 });
 
 export default function App() {

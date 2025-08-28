@@ -248,6 +248,8 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				return
 			}
 
+			// FIXME: We should also update the user's subscription valid until based on the plan and interval.
+
 		case paddlenotification.EventTypeNameSubscriptionPastDue:
 			paddleSubscription := &paddlenotification.SubscriptionPastDue{}
 			if err := json.Unmarshal(rawBody, paddleSubscription); err != nil {

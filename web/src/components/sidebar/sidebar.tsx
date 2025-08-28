@@ -1,5 +1,6 @@
 import { FC, ReactNode, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useNotificationsUnreadCount } from "@bodhveda/react";
 
 import { Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent } from "netra";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,6 @@ import { useAuthentication } from "@/features/auth/auth_context";
 import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
 import { NotificationsInbox } from "@/components/notification/notifications_inbox";
-import { useNotificationsUnreadCount } from "@/bodhveda/react/hooks";
 
 const SIDEBAR_ROUTES = [ROUTES.dashboard, ROUTES.listPositions, ROUTES.newPositions, ROUTES.importPositions];
 

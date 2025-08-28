@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { Button, IconCheckCheck, IconSettings, LoadingScreen } from "netra";
+import { useNotifications, useNotificationsUnreadCount, useUpdateNotificationsState } from "@bodhveda/react";
 
 import { ROUTES } from "@/constants";
 import { Link } from "@/components/link";
-import { useNotifications, useNotificationsUnreadCount, useUpdateNotificationsState } from "@/bodhveda/react/hooks";
-import { NotificationItem } from "./notification_item";
+import { NotificationItem } from "@/components/notification/notification_item";
 
 interface NotificationsInboxProps {
     closeNotifications?: () => void;
@@ -12,7 +12,7 @@ interface NotificationsInboxProps {
 
 export function NotificationsInbox(props: NotificationsInboxProps) {
     const { closeNotifications } = props;
-    useNotificationsUnreadCount();
+    const { data: unreadCountData } = useNotificationsUnreadCount();
     const { data, isLoading, isError } = useNotifications();
     const { mutate: updateNotificationState, isPending: isUpdatingNotificationState } = useUpdateNotificationsState();
 
@@ -62,6 +62,7 @@ export function NotificationsInbox(props: NotificationsInboxProps) {
                         size="small"
                         onClick={handleMarkAllAsRead}
                         loading={isUpdatingNotificationState}
+                        disabled={unreadCountData?.unread_count === 0}
                     >
                         <IconCheckCheck size={16} />
                         <span className="text-xs">Mark all as read</span>

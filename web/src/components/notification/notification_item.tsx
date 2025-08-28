@@ -1,8 +1,7 @@
-import { cn, formatTimeAgo, IconMegaphone } from "netra";
-
-import { Notification, Target } from "@/bodhveda/core/types";
 import { useMemo } from "react";
-import { useUpdateNotificationsState } from "@/bodhveda/react/hooks";
+import { cn, formatTimeAgo, IconMegaphone } from "netra";
+import { Notification, Target } from "bodhveda";
+import { useUpdateNotificationsState } from "@bodhveda/react";
 
 const enum NotificationKind {
     ANNOUNECEMENT_NEW_FEATURE = "announcement_new_feature",

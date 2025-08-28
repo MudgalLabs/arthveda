@@ -4,3 +4,4 @@
 *.logs
 
 volumes
+node_modules

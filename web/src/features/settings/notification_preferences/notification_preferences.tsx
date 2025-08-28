@@ -1,4 +1,4 @@
-import { usePreferences, useUpdatePreference } from "@/bodhveda/react/hooks";
+import { usePreferences, useUpdatePreference } from "@bodhveda/react";
 
 import { PageHeading } from "@/components/page_heading";
 import {
@@ -24,7 +24,7 @@ export default function NotificationPreferences() {
     //         payload: {
     //             title: "New Feature Released!",
     //             description: "Check out our latest feature that will enhance your experience.",
-    //             url: "https://example.com/new-feature",
+    //             url: "https://bodhveda.com",
     //         },
     //         target: {
     //             channel: "announcements",
