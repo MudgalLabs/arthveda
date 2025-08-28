@@ -1,7 +1,6 @@
 import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
 import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import { isProd, TooltipProvider } from "netra";
-import { Bodhveda } from "bodhveda";
 import { BodhvedaProvider } from "@bodhveda/react";
 import { usePostHog } from "posthog-js/react";
 
@@ -91,10 +90,6 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     return <div className="h-screen w-screen">{children}</div>;
 };
 
-const bodhveda = new Bodhveda(import.meta.env.ARTHVEDA_BODHVEDA_API_KEY, {
-    apiURL: !isProd() ? "http://localhost:1338" : undefined,
-});
-
 export default function App() {
     const { data } = useAuthentication();
 
@@ -108,7 +103,13 @@ export default function App() {
             <BrokerProvider>
                 <SidebarProvider>
                     <TooltipProvider>
-                        <BodhvedaProvider bodhveda={bodhveda} recipientID={data?.user_id || ""}>
+                        <BodhvedaProvider
+                            apiKey={import.meta.env.ARTHVEDA_BODHVEDA_API_KEY}
+                            recipientID={data?.user_id || ""}
+                            options={{
+                                apiURL: !isProd() ? "http://localhost:1338" : undefined,
+                            }}
+                        >
                             <Suspense
                                 fallback={
                                     <div className="h-screen w-screen">
