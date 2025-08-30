@@ -7,6 +7,7 @@ import (
 	"arthveda/internal/env"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/dashboard"
+	"arthveda/internal/feature/notification"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/symbol"
 	"arthveda/internal/feature/trade"
@@ -76,6 +77,8 @@ func main() {
 	if env.ENABLE_GOOGLE_OAUTH {
 		oauth.InitGoogle()
 	}
+
+	notification.Init()
 
 	brokerRepository := broker.NewRepository(db)
 	dashboardRepository := dashboard.NewRepository(db)

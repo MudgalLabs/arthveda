@@ -1,5 +1,11 @@
 cloud.google.com/go/compute/metadata v0.3.0 h1:Tz+eQXMEqDIKRsmY3cHTL6FVaynIjX2QxYC4trgAKZc=
 cloud.google.com/go/compute/metadata v0.3.0/go.mod h1:zFmK7XCadkQkj6TtorcaGlCW1hT1fIilQDwofLpJ20k=
+github.com/MudgalLabs/bodhveda/sdk/go v0.1.0 h1:fArKm4EL6O7tmrBeEFDsjllxKG+bBnfMVG4kLIWWER0=
+github.com/MudgalLabs/bodhveda/sdk/go v0.1.0/go.mod h1:pg9bZbn2mATweNMJyS2kGzIh8hAO3BxCCI6HbZHsHMQ=
+github.com/MudgalLabs/bodhveda/sdk/go v0.1.1 h1:yjDhIZ9Du7UBTQEPISR4Tbm9xNCMy4DRtLYRzT/l2VQ=
+github.com/MudgalLabs/bodhveda/sdk/go v0.1.1/go.mod h1:pg9bZbn2mATweNMJyS2kGzIh8hAO3BxCCI6HbZHsHMQ=
+github.com/MudgalLabs/bodhveda/sdk/go v0.1.2 h1:sTYMEvzf3UbDrhjOPdTBjPmXShXxxCwm0psPLSzdyX4=
+github.com/MudgalLabs/bodhveda/sdk/go v0.1.2/go.mod h1:pg9bZbn2mATweNMJyS2kGzIh8hAO3BxCCI6HbZHsHMQ=
 github.com/PaddleHQ/paddle-go-sdk v1.0.0 h1:+EXitsPFbRcc0CpQE/MIeudxiVOR8pFe/aOWTEUHDKU=
 github.com/PaddleHQ/paddle-go-sdk v1.0.0/go.mod h1:kbBBzf0BHEj38QvhtoELqlGip3alKgA/I+vl7RQzB58=
 github.com/alexedwards/scs/pgxstore v0.0.0-20250417082927-ab20b3feb5e9 h1:waHKgIePzsCMcYqKbTP31GuxOl+nSmLgmq1H4uC5xJc=
@@ -44,6 +50,8 @@ github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/justinas/alice v1.2.0 h1:+MHSA/vccVCF4Uq37S42jwlkvI2Xzl7zTPCN5BnZNVo=
+github.com/justinas/alice v1.2.0/go.mod h1:fN5HRH/reO/zrUflLfTN43t3vXvKzvZIENsNEe7i7qA=
 github.com/klauspost/cpuid/v2 v2.2.10 h1:tBs3QSyvjDyFTq3uoc/9xFpCuOsJQFNPiAhYdw2skhE=
 github.com/klauspost/cpuid/v2 v2.2.10/go.mod h1:hqwkgyIinND0mEev00jJYCxPNVRVXFQeu1XKlok6oO0=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
@@ -148,6 +156,7 @@ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
 gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
+gopkg.in/jarcoal/httpmock.v1 v1.0.0-20180719183105-8007e27cdb32 h1:30DLrQoRqdUHslVMzxuKUnY4GKJGk1/FJtKy3yx4TKE=
 gopkg.in/jarcoal/httpmock.v1 v1.0.0-20180719183105-8007e27cdb32/go.mod h1:d3R+NllX3X5e0zlG1Rful3uLvsGC/Q3OHut5464DEQw=
 gopkg.in/natefinch/lumberjack.v2 v2.2.1 h1:bBRl1b0OH9s/DuPhuXpNl+VtCaJXFZ5/uEFST95x9zc=
 gopkg.in/natefinch/lumberjack.v2 v2.2.1/go.mod h1:YD8tP3GAjkrDg1eZH7EGmyESg/lsYskCTPBJVb9jqSc=

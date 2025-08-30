@@ -104,7 +104,7 @@ export default function App() {
                 <SidebarProvider>
                     <TooltipProvider>
                         <BodhvedaProvider
-                            apiKey={import.meta.env.ARTHVEDA_BODHVEDA_API_KEY}
+                            apiKey={import.meta.env.ARTHVEDA_BODHVEDA_CLIENT_API_KEY}
                             recipientID={data?.user_id || ""}
                             options={{
                                 apiURL: !isProd() ? "http://localhost:1338" : undefined,

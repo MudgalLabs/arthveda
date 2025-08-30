@@ -1,6 +1,7 @@
 package user_identity
 
 import (
+	"arthveda/internal/feature/notification"
 	"arthveda/internal/feature/userprofile"
 	"arthveda/internal/oauth"
 	"arthveda/internal/repository"
@@ -73,6 +74,11 @@ func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*userpr
 		userProfile, err = s.userIdentityRepository.SignUp(ctx, userInfo.Name, userIdentity)
 		if err != nil {
 			return nil, service.ErrInternalServerError, fmt.Errorf("sign up: %w", err)
+		}
+
+		err = notification.SendWelcomeNotification(ctx, userProfile.UserID.String())
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("send welcome notification: %w", err)
 		}
 	} else {
 		// The user already exists.

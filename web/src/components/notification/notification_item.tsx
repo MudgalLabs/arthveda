@@ -4,11 +4,17 @@ import { Notification, Target } from "bodhveda";
 import { useUpdateNotificationsState } from "@bodhveda/react";
 
 const enum NotificationKind {
-    ANNOUNECEMENT_NEW_FEATURE = "announcement_new_feature",
+    MARKETING_WELCOME = "marketing_welcome",
+    MARKETING_NEW_FEATURE = "marketing_new_feature",
 }
 
 const NotificationTargetToKindMap: Record<NotificationKind, Target> = {
-    [NotificationKind.ANNOUNECEMENT_NEW_FEATURE]: {
+    [NotificationKind.MARKETING_WELCOME]: {
+        channel: "marketing",
+        topic: "none",
+        event: "welcome",
+    },
+    [NotificationKind.MARKETING_NEW_FEATURE]: {
         channel: "announcements",
         topic: "product",
         event: "new_feature",
@@ -36,8 +42,10 @@ export function NotificationItem({ notification }: { notification: Notification 
 
     const notificationContent = useMemo(() => {
         switch (kind) {
-            case NotificationKind.ANNOUNECEMENT_NEW_FEATURE:
-                return <AnnouncementNewFeatureNotification notification={notification} />;
+            case NotificationKind.MARKETING_WELCOME:
+                return <MarketingWelcomeNotification notification={notification} />;
+            case NotificationKind.MARKETING_NEW_FEATURE:
+                return <MarketingNewFeatureNotification notification={notification} />;
             default:
                 return null;
         }
@@ -62,14 +70,41 @@ export function NotificationItem({ notification }: { notification: Notification 
     );
 }
 
-interface AnnouncementNewFeatureNotificationPayload {
+interface MarketingWelcomeNotificationPayload {
     title: string;
-    description: string;
-    url?: string;
+    body: string;
 }
 
-function AnnouncementNewFeatureNotification({ notification }: { notification: Notification }) {
-    const payload = notification.payload as AnnouncementNewFeatureNotificationPayload;
+function MarketingWelcomeNotification({ notification }: { notification: Notification }) {
+    const payload = notification.payload as MarketingWelcomeNotificationPayload;
+
+    return (
+        <div className="p-4">
+            <div className="flex items-start">
+                <div className="bg-azure-900 rounded-full p-1">
+                    <IconMegaphone size={24} />
+                </div>
+
+                <div className="pl-4">
+                    <p className="mb-1 text-sm font-medium">{payload.title}</p>
+
+                    <p className="text-text-muted mb-2 text-xs">{formatTimeAgo(new Date(notification.created_at))}</p>
+
+                    <p className="bg-azure-900 rounded-md px-2 py-3 text-[13px]">{payload.body}</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+interface MarketingNewFeatureNotificationPayload {
+    title: string;
+    description: string;
+    url: string;
+}
+
+function MarketingNewFeatureNotification({ notification }: { notification: Notification }) {
+    const payload = notification.payload as MarketingNewFeatureNotificationPayload;
 
     return (
         <a href={payload.url} className="link-unstyled">

@@ -13,7 +13,7 @@ interface NotificationsInboxProps {
 export function NotificationsInbox(props: NotificationsInboxProps) {
     const { closeNotifications } = props;
     const { data: unreadCountData } = useNotificationsUnreadCount();
-    const { data, isLoading, isError, isFetching, fetchNextPage, hasNextPage } = useNotifications();
+    const { data, isLoading, isError, fetchNextPage, hasNextPage } = useNotifications();
     const { mutate: updateNotificationState, isPending: isUpdatingNotificationState } = useUpdateNotificationsState();
 
     const handleMarkAllAsRead = useCallback(() => {
@@ -52,7 +52,7 @@ export function NotificationsInbox(props: NotificationsInboxProps) {
 
                 {hasNextPage && (
                     <span className="flex-center my-2">
-                        <Button variant="ghost" size="small" onClick={() => fetchNextPage()} loading={isFetching}>
+                        <Button variant="ghost" size="small" onClick={() => fetchNextPage()} loading={isLoading}>
                             Load more
                         </Button>
                     </span>

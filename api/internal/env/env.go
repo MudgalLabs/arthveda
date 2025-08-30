@@ -23,6 +23,7 @@ var (
 	PADDLE_API_KEY        string
 	ZERODHA_API_KEY       string // ClientID
 	ZERODHA_API_SECRET    string // ClientSecret
+	BODHVEDA_API_KEY      string
 )
 
 func IsProd() bool {
@@ -52,6 +53,7 @@ func Init(path string) {
 	PADDLE_API_KEY = os.Getenv("ARTHVEDA_PADDLE_API_KEY")
 	ZERODHA_API_KEY = os.Getenv("ARTHVEDA_ZERODHA_API_KEY")
 	ZERODHA_API_SECRET = os.Getenv("ARTHVEDA_ZERODHA_API_SECRET")
+	BODHVEDA_API_KEY = os.Getenv("ARTHVEDA_BODHVEDA_SERVER_API_KEY")
 
 	// TODO: We should validate the environment variables here to ensure they are set correctly.
 

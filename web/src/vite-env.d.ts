@@ -58,7 +58,7 @@ interface ImportMetaEnv {
     /**
      * The Bodhveda API key for notifications.
      */
-    readonly ARTHVEDA_BODHVEDA_API_KEY: string;
+    readonly ARTHVEDA_BODHVEDA_CLIENT_API_KEY: string;
 }
 
 interface ImportMeta {
