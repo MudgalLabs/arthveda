@@ -1,4 +1,4 @@
-import { createContext, FC, PropsWithChildren, useContext } from "react";
+import { createContext, PropsWithChildren, useContext } from "react";
 
 import { LocalStorageKeySidebarOpen } from "@/lib/utils";
 import { useLocalStorageState } from "@/hooks/use_local_storage_state";
@@ -15,7 +15,7 @@ const SidebarContext = createContext<SidebarContextType>({
     toggleSidebar: () => {},
 });
 
-export const SidebarProvider: FC<PropsWithChildren> = ({ children }) => {
+export function SidebarProvider({ children }: PropsWithChildren) {
     const [isOpen, setIsOpen] = useLocalStorageState<boolean>(LocalStorageKeySidebarOpen, true);
 
     function toggleSidebar() {
@@ -33,7 +33,7 @@ export const SidebarProvider: FC<PropsWithChildren> = ({ children }) => {
             {children}
         </SidebarContext.Provider>
     );
-};
+}
 
 export function useSidebar(): SidebarContextType {
     const context = useContext(SidebarContext);

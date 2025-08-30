@@ -14,7 +14,7 @@ import { ProfileMenu } from "@/components/profile_menu";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
-import { NotificationsInbox } from "@/components/notification/notifications_inbox";
+import { NotificationsInbox } from "@/components/notification/notification_inbox";
 
 const SIDEBAR_ROUTES = [ROUTES.dashboard, ROUTES.listPositions, ROUTES.newPositions, ROUTES.importPositions];
 
@@ -72,7 +72,7 @@ export const Sidebar = () => {
                 <div className="h-4" />
 
                 <Link to={ROUTES.dashboard} variant="unstyled">
-                    <SidebarNavItem
+                    <SidebarItem
                         label="Dashboard"
                         icon={<IconDashboard size={20} />}
                         open={isOpen}
@@ -82,7 +82,7 @@ export const Sidebar = () => {
                 </Link>
 
                 <Link to={ROUTES.listPositions} variant="unstyled">
-                    <SidebarNavItem
+                    <SidebarItem
                         label="Positions"
                         icon={<IconCandlestick size={20} />}
                         open={isOpen}
@@ -95,7 +95,7 @@ export const Sidebar = () => {
             <div className="mb-4 space-y-2">
                 <Popover open={showNotifications} onOpenChange={setShowNotifications}>
                     <PopoverTrigger className="w-full" onClick={() => setShowNotifications((prev) => !prev)}>
-                        <SidebarNavItem
+                        <SidebarItem
                             label={
                                 <span className="flex-x w-full justify-between">
                                     Notifications {isOpen && unreadCount > 0 && notificationUnreadCountDot}
@@ -143,7 +143,7 @@ export const Sidebar = () => {
     );
 };
 
-interface SidebarNavItemProps {
+interface SidebarItemProps {
     label: ReactNode;
     icon: ReactNode;
     open: boolean;
@@ -152,7 +152,7 @@ interface SidebarNavItemProps {
     isMobile?: boolean;
 }
 
-const SidebarNavItem: FC<SidebarNavItemProps> = (props) => {
+const SidebarItem: FC<SidebarItemProps> = (props) => {
     const { label, icon, open, isActive, onClick } = props;
     const isMobile = useIsMobile();
 

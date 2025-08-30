@@ -13,7 +13,7 @@ interface NotificationsInboxProps {
 export function NotificationsInbox(props: NotificationsInboxProps) {
     const { closeNotifications } = props;
     const { data: unreadCountData } = useNotificationsUnreadCount();
-    const { data, isLoading, isError } = useNotifications();
+    const { data, isLoading, isError, isFetching, fetchNextPage, hasNextPage } = useNotifications();
     const { mutate: updateNotificationState, isPending: isUpdatingNotificationState } = useUpdateNotificationsState();
 
     const handleMarkAllAsRead = useCallback(() => {
@@ -41,13 +41,23 @@ export function NotificationsInbox(props: NotificationsInboxProps) {
         }
 
         return (
-            <ul>
-                {data?.notifications.map((notification) => (
-                    <li key={notification.id}>
-                        <NotificationItem notification={notification} />
-                    </li>
-                ))}
-            </ul>
+            <>
+                <ul>
+                    {data?.notifications.map((notification) => (
+                        <li key={notification.id}>
+                            <NotificationItem notification={notification} />
+                        </li>
+                    ))}
+                </ul>
+
+                {hasNextPage && (
+                    <span className="flex-center my-2">
+                        <Button variant="ghost" size="small" onClick={() => fetchNextPage()} loading={isFetching}>
+                            Load more
+                        </Button>
+                    </span>
+                )}
+            </>
         );
     }, [data, isError, isLoading]);
 
