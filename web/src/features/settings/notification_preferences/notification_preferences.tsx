@@ -39,7 +39,7 @@ export default function NotificationPreferences() {
             return <p className="text-text-destructive">Failed to load preferences. Please try again.</p>;
         }
 
-        if (!data) return null;
+        if (!data || data.preferences.length === 0) return null;
 
         return (
             <ul className="border-border-subtle mx-auto max-w-xl rounded-md border-1 p-2">

@@ -59,7 +59,7 @@ export function NotificationItem({ notification }: { notification: Notification 
             onClick={() => {
                 updateNotificationState({
                     ids: [notification.id],
-                    state: { read: true },
+                    state: { read: true, opened: true },
                 });
             }}
         >
