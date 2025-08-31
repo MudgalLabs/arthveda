@@ -19,7 +19,7 @@ func Init() {
 	}
 
 	client = bodhveda.NewClient(env.BODHVEDA_API_KEY, &bodhveda.ClientOptions{
-		APIURL: &apiURL,
+		APIURL: apiURL,
 	})
 }
 

@@ -27,7 +27,7 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
-	github.com/MudgalLabs/bodhveda/sdk/go v0.1.2 // indirect
+	github.com/MudgalLabs/bodhveda/sdk/go v0.1.9 // indirect
 	github.com/ggicci/httpin v0.19.0 // indirect
 	github.com/ggicci/owl v0.8.2 // indirect
 	github.com/gocarina/gocsv v0.0.0-20180809181117-b8c38cb1ba36 // indirect
