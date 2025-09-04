@@ -3,6 +3,7 @@ package notification
 
 import (
 	"arthveda/internal/env"
+	"arthveda/internal/feature/userprofile"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -21,6 +22,20 @@ func Init() {
 	client = bodhveda.NewClient(env.BODHVEDA_API_KEY, &bodhveda.ClientOptions{
 		APIURL: apiURL,
 	})
+}
+
+func CreateRecipient(ctx context.Context, user *userprofile.UserProfile) (*bodhveda.Recipient, error) {
+	req := &bodhveda.CreateRecipientRequest{
+		ID:   user.UserID.String(),
+		Name: &user.Name,
+	}
+
+	res, err := client.Recipients.Create(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("create recipient: %w", err)
+	}
+
+	return &res.Recipient, nil
 }
 
 // Bodhveda notification channels
@@ -55,7 +70,7 @@ func SendWelcomeNotification(ctx context.Context, recipientID string) error {
 	payload, err := json.Marshal(
 		marketingWelcomeNotificationPayload{
 			Title: "Welcome to Arthveda!",
-			Body:  "Thank you for signing up. We're excited to have you on board!",
+			Body:  "We're excited to have you on board!",
 		},
 	)
 	if err != nil {

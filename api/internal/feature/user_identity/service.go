@@ -76,6 +76,11 @@ func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*userpr
 			return nil, service.ErrInternalServerError, fmt.Errorf("sign up: %w", err)
 		}
 
+		_, err = notification.CreateRecipient(ctx, userProfile)
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("create notification recipient: %w", err)
+		}
+
 		err = notification.SendWelcomeNotification(ctx, userProfile.UserID.String())
 		if err != nil {
 			return nil, service.ErrInternalServerError, fmt.Errorf("send welcome notification: %w", err)
