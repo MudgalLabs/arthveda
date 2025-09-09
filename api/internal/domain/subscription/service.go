@@ -24,29 +24,9 @@ func NewService(sr ReadWriter) *Service {
 	}
 }
 
-type CreatePayload struct {
-	UserID          uuid.UUID
-	ValidUntil      time.Time
-	BillingInterval BillingInterval
-	Provider        PaymentProvider
-	ExternalRef     string
-}
-
-func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
+func (s *Service) CreateOrUpdate(ctx context.Context, sub *UserSubscription) error {
 	l := logger.FromCtx(ctx)
 	now := time.Now().UTC()
-
-	sub := &UserSubscription{
-		UserID:          payload.UserID,
-		PlanID:          PlanPro,
-		Status:          StatusActive,
-		ValidFrom:       now,
-		ValidUntil:      payload.ValidUntil,
-		BillingInterval: payload.BillingInterval,
-		Provider:        ProviderPaddle,
-		ExternalRef:     payload.ExternalRef,
-		CreatedAt:       now,
-	}
 
 	err := s.SubscriptionRepository.UpsertUserSubscription(ctx, sub)
 	if err != nil {
@@ -55,10 +35,16 @@ func (s *Service) Create(ctx context.Context, payload CreatePayload) error {
 
 	event := &UserSubscriptionEvent{
 		ID:         uuid.New(),
-		UserID:     payload.UserID,
-		EventType:  EventSubscribed,
-		Provider:   ProviderPaddle,
+		UserID:     sub.UserID,
+		Provider:   sub.Provider,
 		OccurredAt: now,
+	}
+
+	// Check if the subscription is created at least 25 days ago to consider it as a renewal.
+	if sub.CreatedAt.Before(now.AddDate(0, 0, -25)) {
+		event.EventType = EventRenewed
+	} else {
+		event.EventType = EventSubscribed
 	}
 
 	err = s.SubscriptionRepository.CreateUserSubscriptionEvent(ctx, event)

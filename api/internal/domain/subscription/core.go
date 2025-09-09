@@ -23,6 +23,7 @@ type SubscriptionEventType string
 
 const (
 	EventSubscribed SubscriptionEventType = "subscribed"
+	EventRenewed    SubscriptionEventType = "renewed"
 	EventCanceled   SubscriptionEventType = "canceled"
 	EventExpired    SubscriptionEventType = "expired"
 )

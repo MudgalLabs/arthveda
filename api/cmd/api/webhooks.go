@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/env"
 	"arthveda/internal/logger"
+	"arthveda/internal/repository"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -74,32 +75,40 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				break
 			}
 
-			nextBilledAt, err := time.Parse(time.RFC3339Nano, *paddleSubscription.Data.NextBilledAt)
+			validFrom, err := time.Parse(time.RFC3339Nano, paddleSubscription.Data.CurrentBillingPeriod.StartsAt)
 			if err != nil {
 				l.Errorw("invalid next billed at format", "error", err)
 				break
 			}
 
-			var billingInterval subscription.BillingInterval
-			paddleInterval := paddleSubscription.Data.BillingCycle.Interval
-			switch paddleInterval {
-			case "month":
-				billingInterval = subscription.IntervalMonthly
-			case "year":
-				billingInterval = subscription.IntervalYearly
-			default:
-				l.Error("unknown billing interval", "interval", paddleInterval)
+			validUntil, err := time.Parse(time.RFC3339Nano, paddleSubscription.Data.CurrentBillingPeriod.EndsAt)
+			if err != nil {
+				l.Errorw("invalid next billed at format", "error", err)
+				break
 			}
 
-			payload := subscription.CreatePayload{
+			billingInterval, err := getBillingIntervalFromPaddleInterval(paddleSubscription.Data.BillingCycle.Interval)
+			if err != nil {
+				l.Errorw("failed to get billing interval from paddle interval", "error", err)
+				http.Error(w, "Failed to get billing interval from paddle interval", http.StatusBadRequest)
+				return
+			}
+
+			now := time.Now().UTC()
+
+			sub := &subscription.UserSubscription{
 				UserID:          userID,
-				ValidUntil:      nextBilledAt,
-				BillingInterval: billingInterval,
+				PlanID:          subscription.PlanPro,
+				Status:          subscription.StatusActive,
+				ValidFrom:       validFrom.UTC(),
+				ValidUntil:      validUntil.UTC(),
+				BillingInterval: *billingInterval,
 				Provider:        subscription.ProviderPaddle,
 				ExternalRef:     paddleSubscription.Data.ID,
+				CreatedAt:       now,
 			}
 
-			err = s.Create(ctx, payload)
+			err = s.CreateOrUpdate(ctx, sub)
 			if err != nil {
 				l.Errorw("failed to create user subscription", "error", err)
 				http.Error(w, "Failed to create user subscription", http.StatusInternalServerError)
@@ -248,8 +257,6 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				return
 			}
 
-			// FIXME: We should also update the user's subscription valid until based on the plan and interval.
-
 		case paddlenotification.EventTypeNameSubscriptionPastDue:
 			paddleSubscription := &paddlenotification.SubscriptionPastDue{}
 			if err := json.Unmarshal(rawBody, paddleSubscription); err != nil {
@@ -265,10 +272,57 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				return
 			}
 
-		default:
-			generic := &paddlenotification.GenericNotificationEvent{}
-			if err := json.Unmarshal(rawBody, generic); err != nil {
+		case paddlenotification.EventTypeNameSubscriptionUpdated:
+			fmt.Println("Subscription Updated webhook received")
+			paddleSubscription := &paddlenotification.SubscriptionUpdated{}
+			if err := json.Unmarshal(rawBody, paddleSubscription); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			sub, err := s.SubscriptionRepository.FindUserSubscriptionByExternalRef(
+				ctx, subscription.ProviderPaddle, paddleSubscription.Data.ID)
+			if err != nil && err != repository.ErrNotFound {
+				l.Errorw("failed to find user subscription by external ref", "error", err)
+				http.Error(w, "Failed to find user subscription", http.StatusInternalServerError)
+				return
+			}
+
+			if sub == nil {
+				break
+			}
+
+			validFrom, err := time.Parse(time.RFC3339Nano, paddleSubscription.Data.CurrentBillingPeriod.StartsAt)
+			if err != nil {
+				l.Errorw("invalid next billed at format", "error", err)
+				break
+			}
+
+			validUntil, err := time.Parse(time.RFC3339Nano, paddleSubscription.Data.CurrentBillingPeriod.EndsAt)
+			if err != nil {
+				l.Errorw("invalid next billed at format", "error", err)
+				break
+			}
+
+			billingInterval, err := getBillingIntervalFromPaddleInterval(paddleSubscription.Data.BillingCycle.Interval)
+			if err != nil {
+				l.Errorw("failed to get billing interval from paddle interval", "error", err)
+				http.Error(w, "Failed to get billing interval from paddle interval", http.StatusBadRequest)
+				return
+			}
+
+			now := time.Now().UTC()
+
+			sub.ValidFrom = validFrom.UTC()
+			sub.ValidUntil = validUntil.UTC()
+			sub.BillingInterval = *billingInterval
+			sub.Status = subscription.StatusActive
+			sub.UpdatedAt = &now
+
+			err = s.CreateOrUpdate(ctx, sub)
+			if err != nil {
+				l.Errorw("failed to update user subscription", "error", err)
+				http.Error(w, "Failed to update user subscription", http.StatusInternalServerError)
 				return
 			}
 		}
@@ -287,4 +341,19 @@ func getUserIDFromCustomData(customData map[string]any) (uuid.UUID, error) {
 
 	userID, err := uuid.Parse(userIDStr)
 	return userID, err
+}
+
+func getBillingIntervalFromPaddleInterval(paddleInterval paddlenotification.Interval) (*subscription.BillingInterval, error) {
+	var billingInterval subscription.BillingInterval
+
+	switch paddleInterval {
+	case "month":
+		billingInterval = subscription.IntervalMonthly
+	case "year":
+		billingInterval = subscription.IntervalYearly
+	default:
+		return nil, fmt.Errorf("unknown billing interval: %s", paddleInterval)
+	}
+
+	return &billingInterval, nil
 }
