@@ -443,8 +443,6 @@ func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *impo
 		return nil, fmt.Errorf("Symbol is empty in row")
 	}
 
-	instrument := types.InstrumentEquity
-
 	exchange := row[metadata.exchangeColumnIdx]
 	if exchange == "" {
 		return nil, fmt.Errorf("Exchange is empty in row")
@@ -485,10 +483,31 @@ func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *impo
 	orderExecTimeStr := row[metadata.orderExecutionTimeColumnIdx]
 	orderID := symbolStr + " " + dateStr + " " + orderExecTimeStr
 
+	instrument := types.InstrumentEquity
 	shouldIgnore := false
+
 	if strings.Contains(exchange, "DERV") {
-		// We do not support derivatives yet.
-		shouldIgnore = true
+		if strings.HasPrefix(symbolStr, "OPT") {
+			instrument = types.InstrumentOption
+
+			// We need to format `symbolStr` to a standard symbol name we use in Arthveda.
+			// Example - NIFTY31JUL24900CE
+			fields := strings.Fields(symbolStr) // splits by spaces
+			// Example: ["OPTIDXNIFTY", "31JUL2025CE", "24900.00"]
+
+			underlying := strings.TrimPrefix(fields[0], "OPTIDX")
+			expiryAndType := fields[1]                 // e.g. "31JUL2025CE"
+			strike := strings.Split(fields[2], ".")[0] // remove decimals
+
+			// expiry = first 5 chars (31JUL), optionType = last 2 chars (CE/PE)
+			expiry := expiryAndType[:5]
+			optionType := expiryAndType[len(expiryAndType)-2:]
+
+			symbolStr = fmt.Sprintf("%s%s%s%s", underlying, expiry, strike, optionType)
+		} else {
+			// We do not support any other derivative other than Options.
+			shouldIgnore = true
+		}
 	}
 
 	return &types.ImportableTrade{

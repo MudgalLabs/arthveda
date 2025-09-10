@@ -709,7 +709,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
     const supportedInstrumentsByBroker: Record<BrokerName, PositionInstrument[]> = {
         "Angel One": ["equity"],
         Groww: ["equity"],
-        "Kotak Securities": ["equity"],
+        "Kotak Securities": ["equity", "option"],
         Upstox: ["equity", "option"],
         Zerodha: ["equity", "future", "option"],
     };
