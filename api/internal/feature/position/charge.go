@@ -144,7 +144,7 @@ func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind types.TradeKi
 		stampCharges = tradeValue.Mul(decimal.NewFromFloat(config.stampChargesPercent / 100))
 	}
 
-	// calculate SEBI charges
+	// Calculate SEBI charges
 	sebiCharges := tradeValue.Mul(decimal.NewFromFloat(config.sebiChargesPercent / 100))
 
 	// Calculate DP charges
@@ -152,7 +152,17 @@ func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind types.TradeKi
 
 	// DP charges are only applicable for sell trades.
 	if tradeKind == types.TradeKindSell {
-		dpCharges = config.dpChargesAmount
+		// Formula : tradeValue * dpChargesPercentage -> apply min/max
+		dpCharges = tradeValue.Mul(decimal.NewFromFloat(config.dpCharges.percent / 100))
+
+		// Apply min/max brokerage charges
+		if dpCharges.GreaterThan(decimal.NewFromFloat(config.dpCharges.max)) {
+			dpCharges = decimal.NewFromFloat(config.dpCharges.max)
+		}
+
+		if dpCharges.LessThan(decimal.NewFromFloat(config.dpCharges.min)) {
+			dpCharges = decimal.NewFromFloat(config.dpCharges.min)
+		}
 	}
 
 	// Calculate NSE Investor Protection Fund charges
@@ -427,6 +437,12 @@ type exchangeTransactionChargesConfig struct {
 	percentForBSE float64
 }
 
+type dpChargesConfig struct {
+	percent float64
+	max     float64
+	min     float64
+}
+
 // TODO: Instead of using float64 for percentages, we should use decimal.Decimal for better precision?
 type computeChargesConfig struct {
 	brokerage                           brokerageConfig
@@ -434,7 +450,7 @@ type computeChargesConfig struct {
 	exchangeTransactionCharges          exchangeTransactionChargesConfig
 	stampChargesPercent                 float64
 	sebiChargesPercent                  float64
-	dpChargesAmount                     decimal.Decimal
+	dpCharges                           dpChargesConfig
 	nseInvestorProtectionFundPercentage float64
 	gstPercent                          float64
 }
@@ -453,7 +469,7 @@ func getComputeTradeChargesConfig(brokerName broker.Name, instrument types.Instr
 		exchangeTransactionCharges:          getExchangeTransactionChargesConfig(instrument),
 		stampChargesPercent:                 getStampChargesPercent(instrument, etk),
 		sebiChargesPercent:                  sebiChargesPercent,
-		dpChargesAmount:                     getDpChargesAmount(brokerName, etk),
+		dpCharges:                           getDpChargesAmount(brokerName, etk),
 		nseInvestorProtectionFundPercentage: getNSEInvestorProtectionFundPercentage(instrument),
 		gstPercent:                          gstPercent,
 	}
@@ -480,6 +496,13 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 			config.percent = 0.1
 			config.max = 20
 			config.min = 5
+		case broker.BrokerNameKotakSecurities:
+			if etk != nil && *etk == EquityTradeIntraday {
+				config.percent = 0.05
+				config.max = 10
+			} else {
+				config.percent = 0.2
+			}
 		case broker.BrokerNameUpstox:
 			if etk != nil && *etk == EquityTradeIntraday {
 				config.percent = 0.1
@@ -503,33 +526,29 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 		switch brokerName {
 		case broker.BrokerNameAngelOne:
 			config.min = 20
-			return config
 		case broker.BrokerNameGroww:
 			config.min = 20
-			return config
+		case broker.BrokerNameKotakSecurities:
+			config.min = 10
 		case broker.BrokerNameUpstox:
 			config.percent = 0.05
 			config.max = 20
-			return config
 		case broker.BrokerNameZerodha:
 			config.percent = 0.03
 			config.max = 20
-			return config
 		}
 	case types.InstrumentOption:
 		switch brokerName {
 		case broker.BrokerNameAngelOne:
 			config.min = 20
-			return config
 		case broker.BrokerNameGroww:
 			config.min = 20
-			return config
+		case broker.BrokerNameKotakSecurities:
+			config.min = 10
 		case broker.BrokerNameUpstox:
 			config.min = 20
-			return config
 		case broker.BrokerNameZerodha:
 			config.min = 20
-			return config
 		}
 	}
 
@@ -613,7 +632,8 @@ func getStampChargesPercent(instrument types.Instrument, etk *equityTradeKind) f
 
 	var stampChargesPercent float64
 
-	if instrument == types.InstrumentEquity {
+	switch instrument {
+	case types.InstrumentEquity:
 		if etk != nil {
 			switch *etk {
 			case EquityTradeIntraday:
@@ -622,41 +642,47 @@ func getStampChargesPercent(instrument types.Instrument, etk *equityTradeKind) f
 				stampChargesPercent = stampEquityDeliveryChargesPercentOnBuy
 			}
 		}
-	} else if instrument == types.InstrumentFuture {
+	case types.InstrumentFuture:
 		stampChargesPercent = stampFutureChargesPercentOnBuy
-	} else if instrument == types.InstrumentOption {
+	case types.InstrumentOption:
 		stampChargesPercent = stampOptionChargesPercentOnBuy
-	} else {
+	default:
 		logger.Get().Errorw("getStampChargesPercent: unknown instrument for stamp charges", "instrument", instrument)
 	}
 
 	return stampChargesPercent
 }
 
-func getDpChargesAmount(b broker.Name, etk *equityTradeKind) decimal.Decimal {
+func getDpChargesAmount(b broker.Name, etk *equityTradeKind) dpChargesConfig {
+	config := dpChargesConfig{}
+
 	// DP charges are applicable only for Equity trades.
 	if etk == nil {
-		return decimal.Zero
+		return config
 	}
 
 	// DP charges are not applicable for intraday trades.
 	if *etk == EquityTradeIntraday {
-		return decimal.Zero
+		return config
 	}
 
 	switch b {
 	case broker.BrokerNameAngelOne:
-		return decimal.NewFromFloat(20.0)
+		config.min = 20.0
 	case broker.BrokerNameGroww:
-		return decimal.NewFromFloat(16.5)
+		config.min = 16.5
+	case broker.BrokerNameKotakSecurities:
+		config.percent = 0.04
+		config.min = 20
 	case broker.BrokerNameZerodha:
-		return decimal.NewFromFloat(15.34)
+		config.min = 15.34
 	case broker.BrokerNameUpstox:
-		return decimal.NewFromFloat(20.0)
+		config.min = 20.0
 	default:
 		logger.Get().Errorw("getDpChargesAmount: unknown broker for dp charges", "broker", b)
-		return decimal.Zero
 	}
+
+	return config
 }
 
 func getNSEInvestorProtectionFundPercentage(instrument types.Instrument) float64 {

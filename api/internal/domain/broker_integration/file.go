@@ -66,6 +66,19 @@ type importFileMetadata struct {
 	// [Angel One] provides separate columns for buy and sell price.
 	buyPriceColumnIdx  int
 	sellPriceColumnIdx int
+
+	// The exchange column index.
+	// This is used to figure out the exchange the trade was executed on.
+	//
+	// [Kotak Securities] we will use this column values to figure out
+	// the Instrument this trade belongs to.
+	exchangeColumnIdx int
+
+	// The order execution time column index.
+	//
+	// [Kotak Securities] we will use this column to form our own "OrderID"
+	// that will allow us to aggregate trades that belong to the same order.
+	orderExecutionTimeColumnIdx int
 }
 
 type FileAdapter interface {
@@ -80,6 +93,8 @@ func GetFileAdapter(b *broker.Broker) (FileAdapter, error) {
 		return &angelOneFileAdapter{}, nil
 	case broker.BrokerNameGroww:
 		return &growwFileAdapter{}, nil
+	case broker.BrokerNameKotakSecurities:
+		return &kotakSecuritiesFileAdapter{}, nil
 	case broker.BrokerNameUpstox:
 		return &upstoxFileAdapter{}, nil
 	case broker.BrokerNameZerodha:
@@ -203,7 +218,7 @@ func (adapter *angelOneFileAdapter) ParseRow(row []string, metadata *importFileM
 		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
 	}
 
-	tradeTime, err := time.ParseInLocation("1/2/06 15:04", timeStr, ist)
+	tradeDateTime, err := time.ParseInLocation("1/2/06 15:04", timeStr, ist)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid time at row : %s", timeStr)
 	}
@@ -228,7 +243,7 @@ func (adapter *angelOneFileAdapter) ParseRow(row []string, metadata *importFileM
 		Quantity:     decimal.NewFromFloat(quantity),
 		Price:        price,
 		OrderID:      orderID,
-		Time:         tradeTime,
+		Time:         tradeDateTime,
 		ShouldIgnore: shouldIgnore,
 	}, nil
 }
@@ -351,6 +366,140 @@ func (adapter *growwFileAdapter) ParseRow(row []string, metadata *importFileMeta
 		Price:      price,
 		OrderID:    orderID,
 		Time:       tradeTime,
+	}, nil
+}
+
+type kotakSecuritiesFileAdapter struct{}
+
+func (adapter *kotakSecuritiesFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
+	var headerRowIdx int
+	var symbolColumnIdx, exchangeColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx,
+		orderIDColumnIdx, dateColumnIdx, timeColumnIdx, orderExecutationTimeColumnIdx int
+
+	for rowIdx, row := range rows {
+		for columnIdx, colCell := range row {
+
+			if strings.Contains(colCell, "Security Name") {
+				headerRowIdx = rowIdx
+				symbolColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Exchange") {
+				exchangeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Transaction Type") {
+				tradeTypeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Quantity") {
+				quantityColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Market Rate") {
+				priceColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Order ID") {
+				orderIDColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Trade Date") {
+				dateColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Trade Time") {
+				timeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Order Time") {
+				orderExecutationTimeColumnIdx = columnIdx
+			}
+
+			// If we have found the header row, and we are past it, we can stop.
+			if headerRowIdx > 0 && rowIdx > headerRowIdx {
+				break
+			}
+		}
+	}
+
+	return &importFileMetadata{
+		HeaderRowIdx:                headerRowIdx,
+		symbolColumnIdx:             symbolColumnIdx,
+		exchangeColumnIdx:           exchangeColumnIdx,
+		tradeTypeColumnIdx:          tradeTypeColumnIdx,
+		quantityColumnIdx:           quantityColumnIdx,
+		priceColumnIdx:              priceColumnIdx,
+		orderIDColumnIdx:            orderIDColumnIdx,
+		dateColumnIdx:               dateColumnIdx,
+		timeColumnIdx:               timeColumnIdx,
+		orderExecutionTimeColumnIdx: orderExecutationTimeColumnIdx,
+	}, nil
+}
+
+func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
+	symbolStr := row[metadata.symbolColumnIdx]
+	if symbolStr == "" {
+		return nil, fmt.Errorf("Symbol is empty in row")
+	}
+
+	instrument := types.InstrumentEquity
+
+	exchange := row[metadata.exchangeColumnIdx]
+	if exchange == "" {
+		return nil, fmt.Errorf("Exchange is empty in row")
+	}
+
+	tradeTypeStr := row[metadata.tradeTypeColumnIdx]
+	tradeKind := types.TradeKind(strings.ToLower(tradeTypeStr))
+
+	quantityStr := row[metadata.quantityColumnIdx]
+	quantity, err := decimal.NewFromString(quantityStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid quantity at row : %s", quantityStr)
+	}
+
+	priceStr := row[metadata.priceColumnIdx]
+	price, err := decimal.NewFromString(priceStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid price at row : %s", priceStr)
+	}
+
+	dateStr := row[metadata.dateColumnIdx]
+	timeStr := row[metadata.timeColumnIdx]
+	dateTimeStr := dateStr + " " + timeStr
+
+	tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
+	ist, err := time.LoadLocation(string(tz))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
+	}
+
+	tradeDateTime, err := time.ParseInLocation("02/01/2006 15:04:05", dateTimeStr, ist)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid time at row : %s", timeStr)
+	}
+
+	// We will create our own order ID because Kotak Securities does not provide a unique order ID for each order.
+	// We will use the "Symbol + Trade Date + Order Exec Time" as the order ID.
+	orderExecTimeStr := row[metadata.orderExecutionTimeColumnIdx]
+	orderID := symbolStr + " " + dateStr + " " + orderExecTimeStr
+
+	shouldIgnore := false
+	if strings.Contains(exchange, "DERV") {
+		// We do not support derivatives yet.
+		shouldIgnore = true
+	}
+
+	return &types.ImportableTrade{
+		Symbol:       symbolStr,
+		Instrument:   instrument,
+		TradeKind:    tradeKind,
+		Quantity:     quantity,
+		Price:        price,
+		OrderID:      orderID,
+		Time:         tradeDateTime,
+		ShouldIgnore: shouldIgnore,
 	}, nil
 }
 
