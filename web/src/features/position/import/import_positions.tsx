@@ -537,9 +537,23 @@ const BrokerTile = ({
     );
 };
 
+const AngelOneTradingHistoryDirections: FC = () => {
+    return (
+        <>
+            <li>
+                Go to the <strong>Account </strong> section on the App
+            </li>
+            <li>
+                Go to <strong>Trades</strong> and charges
+            </li>
+            <li>Click on Download trade history</li>
+        </>
+    );
+};
+
 const GrowwTradingHistoryDirections: FC = () => {
     return (
-        <ol className="list-decimal pl-8">
+        <>
             <li>Go to your profile</li>
             <li>
                 Select the <strong>Reports</strong> option
@@ -551,13 +565,13 @@ const GrowwTradingHistoryDirections: FC = () => {
                 Select the time frame and click <strong>Download</strong>
             </li>
             <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
-        </ol>
+        </>
     );
 };
 
 const UpstoxTradingHistoryDirections: FC = () => {
     return (
-        <ol className="list-decimal pl-8">
+        <>
             <li>
                 Login to your Upstox account and go to{" "}
                 <a
@@ -579,13 +593,13 @@ const UpstoxTradingHistoryDirections: FC = () => {
                 Click <strong>Download XLSX</strong> from download dropdown to download the Excel file
             </li>
             <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
-        </ol>
+        </>
     );
 };
 
 const ZerodhaTradingHistoryDirections: FC = () => {
     return (
-        <ol className="list-decimal pl-8">
+        <>
             <li>
                 Login to your{" "}
                 <a className="text-base!" href="https://console.zerodha.com" target="_blank" rel="noopener noreferrer">
@@ -601,7 +615,7 @@ const ZerodhaTradingHistoryDirections: FC = () => {
                 Click <strong>XLSX </strong> to download the Excel file
             </li>
             <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
-        </ol>
+        </>
     );
 };
 
@@ -647,15 +661,19 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
 
             <div className="h-2" />
 
-            {name === "Groww" ? (
-                <GrowwTradingHistoryDirections />
-            ) : name === "Upstox" ? (
-                <UpstoxTradingHistoryDirections />
-            ) : name === "Zerodha" ? (
-                <ZerodhaTradingHistoryDirections />
-            ) : (
-                <p className="text-text-destructive">Unsupported broker for file import</p>
-            )}
+            <ol className="list-decimal space-y-1 pl-8">
+                {name === "Angel One" ? (
+                    <AngelOneTradingHistoryDirections />
+                ) : name === "Groww" ? (
+                    <GrowwTradingHistoryDirections />
+                ) : name === "Upstox" ? (
+                    <UpstoxTradingHistoryDirections />
+                ) : name === "Zerodha" ? (
+                    <ZerodhaTradingHistoryDirections />
+                ) : (
+                    <p className="text-text-destructive">Unsupported broker for file import</p>
+                )}
+            </ol>
 
             <div className="h-8" />
 
@@ -672,6 +690,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
     const brokerName = state.brokerName;
 
     const supportedInstrumentsByBroker: Record<BrokerName, PositionInstrument[]> = {
+        "Angel One": ["equity"],
         Groww: ["equity"],
         Upstox: ["equity", "option"],
         Zerodha: ["equity", "future", "option"],

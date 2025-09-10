@@ -22,14 +22,16 @@ type importFileMetadata struct {
 
 	// The scrip code column index.
 	// Scrip code is also known as exchange token.
-	// This is only used for Upstox.
+	//
+	// [Upstox]
 	scripCodeIdx int
 
 	// The segment column index.
 	segmentColumnIdx int
 
 	// The instrument type column index.
-	// This is for Upstox to figure out if the symbol is Future or Option("European Call" or "European Put").
+	//
+	// [Upstox] to figure out if the symbol is Future or Option("European Call" or "European Put").
 	instrumentTypeColumnIdx int
 
 	// The expiry type column index.
@@ -59,6 +61,11 @@ type importFileMetadata struct {
 
 	// The date column index.
 	dateColumnIdx int
+
+	// The buy price column index.
+	// [Angel One] provides separate columns for buy and sell price.
+	buyPriceColumnIdx  int
+	sellPriceColumnIdx int
 }
 
 type FileAdapter interface {
@@ -69,27 +76,30 @@ type FileAdapter interface {
 // GetFileAdapter returns an importer for the given broker.
 func GetFileAdapter(b *broker.Broker) (FileAdapter, error) {
 	switch b.Name {
-	case broker.BrokerNameZerodha:
-		return &zerodhaFileAdapter{}, nil
+	case broker.BrokerNameAngelOne:
+		return &angelOneFileAdapter{}, nil
 	case broker.BrokerNameGroww:
 		return &growwFileAdapter{}, nil
 	case broker.BrokerNameUpstox:
 		return &upstoxFileAdapter{}, nil
+	case broker.BrokerNameZerodha:
+		return &zerodhaFileAdapter{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported broker: %s", b.Name)
 	}
 }
 
-type zerodhaFileAdapter struct{}
+type angelOneFileAdapter struct{}
 
-func (adapter zerodhaFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
+func (adapter *angelOneFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
 	var headerRowIdx int
-	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, dateTimeColumnIdx int
+	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, buyPriceColumnIdx,
+		sellPriceColumnIdx, orderIDColumnIdx, dateTimeColumnIdx int
 
 	for rowIdx, row := range rows {
 		for columnIdx, colCell := range row {
-			if strings.Contains(colCell, "Symbol") {
-				// If we found "Symbol" in the header, we can assume this is the header row.
+
+			if strings.Contains(colCell, "Scrip/Contract") {
 				headerRowIdx = rowIdx
 				symbolColumnIdx = columnIdx
 			}
@@ -98,7 +108,7 @@ func (adapter zerodhaFileAdapter) GetMetadata(rows [][]string) (*importFileMetad
 				segmentColumnIdx = columnIdx
 			}
 
-			if strings.Contains(colCell, "Trade Type") {
+			if strings.Contains(colCell, "Buy/Sell") {
 				tradeTypeColumnIdx = columnIdx
 			}
 
@@ -106,15 +116,19 @@ func (adapter zerodhaFileAdapter) GetMetadata(rows [][]string) (*importFileMetad
 				quantityColumnIdx = columnIdx
 			}
 
-			if strings.Contains(colCell, "Price") {
-				priceColumnIdx = columnIdx
+			if strings.Contains(colCell, "Buy Price") {
+				buyPriceColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Sell Price") {
+				sellPriceColumnIdx = columnIdx
 			}
 
 			if strings.Contains(colCell, "Order ID") {
 				orderIDColumnIdx = columnIdx
 			}
 
-			if strings.Contains(colCell, "Order Execution Time") {
+			if strings.Contains(colCell, "Date") {
 				dateTimeColumnIdx = columnIdx
 			}
 
@@ -131,51 +145,57 @@ func (adapter zerodhaFileAdapter) GetMetadata(rows [][]string) (*importFileMetad
 		segmentColumnIdx:   segmentColumnIdx,
 		tradeTypeColumnIdx: tradeTypeColumnIdx,
 		quantityColumnIdx:  quantityColumnIdx,
-		priceColumnIdx:     priceColumnIdx,
+		buyPriceColumnIdx:  buyPriceColumnIdx,
+		sellPriceColumnIdx: sellPriceColumnIdx,
 		orderIDColumnIdx:   orderIDColumnIdx,
 		dateTimeColumnIdx:  dateTimeColumnIdx,
 	}, nil
 }
 
-func (adapter zerodhaFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
-	symbolColumnIdx := metadata.symbolColumnIdx
-	segmentColumnIdx := metadata.segmentColumnIdx
-	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
-	quantityColumnIdx := metadata.quantityColumnIdx
-	priceColumnIdx := metadata.priceColumnIdx
-	orderIDColumnIdx := metadata.orderIDColumnIdx
-	dateTimeColumnIdx := metadata.dateTimeColumnIdx
-
-	symbol := row[symbolColumnIdx]
+func (adapter *angelOneFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
+	symbol := row[metadata.symbolColumnIdx]
 	if symbol == "" {
 		return nil, fmt.Errorf("Symbol is empty in row")
 	}
 
-	segment := row[segmentColumnIdx]
+	segment := row[metadata.segmentColumnIdx]
 	if segment == "" {
 		return nil, fmt.Errorf("Segment is empty in row")
 	}
 
-	orderID := row[orderIDColumnIdx]
+	orderID := row[metadata.orderIDColumnIdx]
 	if orderID == "" {
 		return nil, fmt.Errorf("Order ID is empty in row")
 	}
 
-	tradeTypeStr := row[tradeTypeColumnIdx]
-	quantityStr := row[quantityColumnIdx]
-	priceStr := row[priceColumnIdx]
-	timeStr := row[dateTimeColumnIdx]
+	tradeTypeStr := row[metadata.tradeTypeColumnIdx]
+	tradeKind := types.TradeKind(strings.ToLower(tradeTypeStr))
 
-	tradeKind := types.TradeKind(tradeTypeStr)
+	quantityStr := row[metadata.quantityColumnIdx]
 	quantity, err := strconv.ParseFloat(quantityStr, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid quantity in row: %s", quantityStr)
+		return nil, fmt.Errorf("Invalid quantity at row : %s", quantityStr)
 	}
 
-	price, err := decimal.NewFromString(priceStr)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid price in row: %s", priceStr)
+	var price decimal.Decimal
+	switch tradeKind {
+	case types.TradeKindBuy:
+		buyPriceStr := row[metadata.buyPriceColumnIdx]
+		price, err = decimal.NewFromString(buyPriceStr)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid buy price at row : %s", buyPriceStr)
+		}
+	case types.TradeKindSell:
+		sellPriceStr := row[metadata.sellPriceColumnIdx]
+		price, err = decimal.NewFromString(sellPriceStr)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid sell price at row : %s", sellPriceStr)
+		}
+	default:
+		return nil, fmt.Errorf("Invalid trade kind at row : %s", tradeTypeStr)
 	}
+
+	timeStr := row[metadata.dateTimeColumnIdx]
 
 	tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
 	ist, err := time.LoadLocation(string(tz))
@@ -183,36 +203,33 @@ func (adapter zerodhaFileAdapter) ParseRow(row []string, metadata *importFileMet
 		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
 	}
 
-	tradeTime, err := time.ParseInLocation("2006-01-02T15:04:05", timeStr, ist)
+	tradeTime, err := time.ParseInLocation("1/2/06 15:04", timeStr, ist)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid time in row: %s", timeStr)
+		return nil, fmt.Errorf("Invalid time at row : %s", timeStr)
 	}
 
-	var instrument types.Instrument
-	switch segment {
-	case "EQ":
-		instrument = types.InstrumentEquity
-	case "FO", "COM":
-		// FO is Futures and Options, COM is Commodities.
+	// For now, we will assume that all trades are equity trades.
+	instrument := types.InstrumentEquity
 
-		// CE = Call Option, PE = Put Option & FUT = Future.
-		// Example of Options - NIFTY24DEC25000CE, NIFTY25JAN23500PE
-		// Example of Futures -  NATURALGAS25MAYFUT.
-		if strings.HasSuffix(symbol, "CE") || strings.HasSuffix(symbol, "PE") {
-			instrument = types.InstrumentOption
-		} else if strings.HasSuffix(symbol, "FUT") {
-			instrument = types.InstrumentFuture
-		}
+	shouldIgnore := false
+
+	if quantity == 0 {
+		shouldIgnore = true
+	}
+
+	if segment != "CAPITAL" {
+		shouldIgnore = true
 	}
 
 	return &types.ImportableTrade{
-		Symbol:     symbol,
-		Instrument: instrument,
-		TradeKind:  tradeKind,
-		Quantity:   decimal.NewFromFloat(quantity),
-		Price:      price,
-		OrderID:    orderID,
-		Time:       tradeTime,
+		Symbol:       symbol,
+		Instrument:   instrument,
+		TradeKind:    tradeKind,
+		Quantity:     decimal.NewFromFloat(quantity),
+		Price:        price,
+		OrderID:      orderID,
+		Time:         tradeTime,
+		ShouldIgnore: shouldIgnore,
 	}, nil
 }
 
@@ -576,6 +593,142 @@ func (adapter *upstoxFileAdapter) ParseRow(row []string, metadata *importFileMet
 
 	return &types.ImportableTrade{
 		Symbol:     symbolStr,
+		Instrument: instrument,
+		TradeKind:  tradeKind,
+		Quantity:   decimal.NewFromFloat(quantity),
+		Price:      price,
+		OrderID:    orderID,
+		Time:       tradeTime,
+	}, nil
+}
+
+type zerodhaFileAdapter struct{}
+
+func (adapter zerodhaFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
+	var headerRowIdx int
+	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, dateTimeColumnIdx int
+
+	for rowIdx, row := range rows {
+		for columnIdx, colCell := range row {
+			if strings.Contains(colCell, "Symbol") {
+				// If we found "Symbol" in the header, we can assume this is the header row.
+				headerRowIdx = rowIdx
+				symbolColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Segment") {
+				segmentColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Trade Type") {
+				tradeTypeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Quantity") {
+				quantityColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Price") {
+				priceColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Order ID") {
+				orderIDColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Order Execution Time") {
+				dateTimeColumnIdx = columnIdx
+			}
+
+			// If we have found the header row, and we are past it, we can stop.
+			if headerRowIdx > 0 && rowIdx > headerRowIdx {
+				break
+			}
+		}
+	}
+
+	return &importFileMetadata{
+		HeaderRowIdx:       headerRowIdx,
+		symbolColumnIdx:    symbolColumnIdx,
+		segmentColumnIdx:   segmentColumnIdx,
+		tradeTypeColumnIdx: tradeTypeColumnIdx,
+		quantityColumnIdx:  quantityColumnIdx,
+		priceColumnIdx:     priceColumnIdx,
+		orderIDColumnIdx:   orderIDColumnIdx,
+		dateTimeColumnIdx:  dateTimeColumnIdx,
+	}, nil
+}
+
+func (adapter zerodhaFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
+	symbolColumnIdx := metadata.symbolColumnIdx
+	segmentColumnIdx := metadata.segmentColumnIdx
+	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
+	quantityColumnIdx := metadata.quantityColumnIdx
+	priceColumnIdx := metadata.priceColumnIdx
+	orderIDColumnIdx := metadata.orderIDColumnIdx
+	dateTimeColumnIdx := metadata.dateTimeColumnIdx
+
+	symbol := row[symbolColumnIdx]
+	if symbol == "" {
+		return nil, fmt.Errorf("Symbol is empty in row")
+	}
+
+	segment := row[segmentColumnIdx]
+	if segment == "" {
+		return nil, fmt.Errorf("Segment is empty in row")
+	}
+
+	orderID := row[orderIDColumnIdx]
+	if orderID == "" {
+		return nil, fmt.Errorf("Order ID is empty in row")
+	}
+
+	tradeTypeStr := row[tradeTypeColumnIdx]
+	quantityStr := row[quantityColumnIdx]
+	priceStr := row[priceColumnIdx]
+	timeStr := row[dateTimeColumnIdx]
+
+	tradeKind := types.TradeKind(tradeTypeStr)
+	quantity, err := strconv.ParseFloat(quantityStr, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid quantity in row: %s", quantityStr)
+	}
+
+	price, err := decimal.NewFromString(priceStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid price in row: %s", priceStr)
+	}
+
+	tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
+	ist, err := time.LoadLocation(string(tz))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
+	}
+
+	tradeTime, err := time.ParseInLocation("2006-01-02T15:04:05", timeStr, ist)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid time in row: %s", timeStr)
+	}
+
+	var instrument types.Instrument
+	switch segment {
+	case "EQ":
+		instrument = types.InstrumentEquity
+	case "FO", "COM":
+		// FO is Futures and Options, COM is Commodities.
+
+		// CE = Call Option, PE = Put Option & FUT = Future.
+		// Example of Options - NIFTY24DEC25000CE, NIFTY25JAN23500PE
+		// Example of Futures -  NATURALGAS25MAYFUT.
+		if strings.HasSuffix(symbol, "CE") || strings.HasSuffix(symbol, "PE") {
+			instrument = types.InstrumentOption
+		} else if strings.HasSuffix(symbol, "FUT") {
+			instrument = types.InstrumentFuture
+		}
+	}
+
+	return &types.ImportableTrade{
+		Symbol:     symbol,
 		Instrument: instrument,
 		TradeKind:  tradeKind,
 		Quantity:   decimal.NewFromFloat(quantity),

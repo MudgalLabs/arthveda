@@ -316,7 +316,12 @@ func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload File
 
 		importableTrade, err := fileAdapter.ParseRow(row, metadata)
 		if err != nil {
-			return nil, service.ErrBadRequest, fmt.Errorf("failed to parse row %d: %w", rowIdx+headerRowIdx+1, err)
+			l.Errorw("failed to parse row", "error", err, "row_index", rowIdx+headerRowIdx+1, "row", row)
+			return nil, service.ErrBadRequest, fmt.Errorf("File seems invalid or unsupported")
+		}
+
+		if importableTrade.ShouldIgnore {
+			continue
 		}
 
 		importableTrades = append(importableTrades, importableTrade)
@@ -333,6 +338,7 @@ func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload File
 		Confirm:                  payload.Confirm,
 		Force:                    payload.Force,
 	}
+
 	return s.Import(ctx, importableTrades, options)
 }
 

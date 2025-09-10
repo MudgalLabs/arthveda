@@ -78,21 +78,18 @@ export const BrokerAccounts = () => {
         <>
             <PageHeading>
                 <IconZap size={18} />
-
-                <div className="flex-x w-full justify-between">
-                    <h1>Broker accounts</h1>
-
-                    <div className="flex justify-end gap-x-4">
-                        <AddBrokerAccountModal
-                            renderTrigger={() => (
-                                <Button className="h-8">
-                                    <IconPlus size={16} /> New
-                                </Button>
-                            )}
-                        />
-                    </div>
-                </div>
+                <h1>Broker accounts</h1>
             </PageHeading>
+
+            <div className="mb-4 flex justify-end">
+                <AddBrokerAccountModal
+                    renderTrigger={() => (
+                        <Button className="">
+                            <IconPlus size={16} /> Broker account
+                        </Button>
+                    )}
+                />
+            </div>
 
             <BrokerAccountsTable setSyncSummary={setSyncSummary} setSyncSummaryModalOpen={setSyncSummaryModalOpen} />
 

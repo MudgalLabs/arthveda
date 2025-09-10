@@ -32,6 +32,10 @@ type ImportableTrade struct {
 	Price      decimal.Decimal `json:"price"`
 	Time       time.Time       `json:"time"`
 
-	// Unique identifier for the order in the broker's system. There can be multiple trades for the same order.
+	// Unique identifier for the order in the broker's system.
+	// There can be multiple trades for the same order.
 	OrderID string `json:"order_id"`
+
+	// Sometimes, certain trades need to be ignored during processing.
+	ShouldIgnore bool `json:"should_ignore"`
 }

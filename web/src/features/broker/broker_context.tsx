@@ -3,13 +3,15 @@ import { createContext, FC, PropsWithChildren, useCallback, useContext, useMemo 
 import { BrokerName, Broker } from "@/lib/api/broker";
 import { apiHooks } from "@/hooks/api_hooks";
 
-// Broker logos
-import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
+import AngelOneLogo from "@/assets/brokers/angel_one.svg";
 import GrowwLogo from "@/assets/brokers/groww.svg";
 import UpstoxLogo from "@/assets/brokers/upstox.svg";
+import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
 
 const getBrokerLogoByName = (name: BrokerName) => {
     switch (name) {
+        case "Angel One":
+            return AngelOneLogo;
         case "Groww":
             return GrowwLogo;
         case "Upstox":

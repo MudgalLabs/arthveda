@@ -29,7 +29,7 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
 
     const posthog = usePostHog();
 
-    const label = "Add or import position";
+    const label = "Add positions";
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -37,9 +37,9 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
                 <DropdownMenuTrigger asChild>
                     <Button
                         className={cn(
-                            "scale-100!", // Disable the scale effect.
+                            "scale-100! font-normal!", // Disable the scale effect.
                             {
-                                "w-full justify-start! rounded-sm p-2": sidebarOpen && !isMobile,
+                                "w-full rounded-sm p-2": sidebarOpen && !isMobile,
                                 "mx-auto flex h-9 w-9 items-center justify-center": !sidebarOpen || isMobile,
                             },
                             className
