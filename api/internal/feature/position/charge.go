@@ -467,6 +467,15 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 	switch instrument {
 	case types.InstrumentEquity:
 		switch brokerName {
+		case broker.BrokerNameAngelOne:
+			if etk != nil && *etk == EquityTradeIntraday {
+				config.percent = 0.03
+				config.max = 20
+			} else {
+				config.percent = 0.1
+				config.max = 20
+				config.min = 2
+			}
 		case broker.BrokerNameGroww:
 			config.percent = 0.1
 			config.max = 20
@@ -492,6 +501,9 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 		}
 	case types.InstrumentFuture:
 		switch brokerName {
+		case broker.BrokerNameAngelOne:
+			config.min = 20
+			return config
 		case broker.BrokerNameGroww:
 			config.min = 20
 			return config
@@ -506,6 +518,9 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 		}
 	case types.InstrumentOption:
 		switch brokerName {
+		case broker.BrokerNameAngelOne:
+			config.min = 20
+			return config
 		case broker.BrokerNameGroww:
 			config.min = 20
 			return config
@@ -630,6 +645,8 @@ func getDpChargesAmount(b broker.Name, etk *equityTradeKind) decimal.Decimal {
 	}
 
 	switch b {
+	case broker.BrokerNameAngelOne:
+		return decimal.NewFromFloat(20.0)
 	case broker.BrokerNameGroww:
 		return decimal.NewFromFloat(16.5)
 	case broker.BrokerNameZerodha:
