@@ -437,7 +437,7 @@ const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
 
             <div className="h-8" />
 
-            <ul className="flex flex-col gap-4 sm:flex-row">
+            <ul className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
                 {brokers
                     .filter((b) => b.supports_file_import)
                     .map((broker) => {
@@ -502,7 +502,8 @@ const BrokerTile = ({
     isSelected: boolean;
 }) => {
     return (
-        <button onClick={onClick} className="w-full sm:w-fit">
+        // Remove min-w from button, grid will handle it
+        <button onClick={onClick} className="w-full">
             <Card
                 className={cn(
                     "flex-center hover:border-border-hover relative gap-x-2 border-1 p-8 transition-all duration-300 ease-in-out",
@@ -565,6 +566,20 @@ const GrowwTradingHistoryDirections: FC = () => {
                 Select the time frame and click <strong>Download</strong>
             </li>
             <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
+        </>
+    );
+};
+
+const KotakSecuritiesTradingHistoryDirections: FC = () => {
+    return (
+        <>
+            <li>Log into your Global investing account</li>
+            <li>
+                Click on <strong>Performance & Reports</strong>
+            </li>
+            <li>
+                Download required reports / statements from the <strong>Reports</strong> section.
+            </li>
         </>
     );
 };
@@ -666,6 +681,8 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
                     <AngelOneTradingHistoryDirections />
                 ) : name === "Groww" ? (
                     <GrowwTradingHistoryDirections />
+                ) : name === "Kotak Securities" ? (
+                    <KotakSecuritiesTradingHistoryDirections />
                 ) : name === "Upstox" ? (
                     <UpstoxTradingHistoryDirections />
                 ) : name === "Zerodha" ? (
@@ -692,6 +709,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
     const supportedInstrumentsByBroker: Record<BrokerName, PositionInstrument[]> = {
         "Angel One": ["equity"],
         Groww: ["equity"],
+        "Kotak Securities": ["equity"],
         Upstox: ["equity", "option"],
         Zerodha: ["equity", "future", "option"],
     };

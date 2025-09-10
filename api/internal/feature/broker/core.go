@@ -17,17 +17,19 @@ type Broker struct {
 type Name string
 
 const (
-	BrokerNameAngelOne Name = "Angel One"
-	BrokerNameGroww    Name = "Groww"
-	BrokerNameUpstox   Name = "Upstox"
-	BrokerNameZerodha  Name = "Zerodha"
+	BrokerNameAngelOne        Name = "Angel One"
+	BrokerNameGroww           Name = "Groww"
+	BrokerNameKotakSecurities Name = "Kotak Securities"
+	BrokerNameUpstox          Name = "Upstox"
+	BrokerNameZerodha         Name = "Zerodha"
 )
 
 var supportedInstrumentsByBroker = map[Name][]types.Instrument{
-	BrokerNameAngelOne: {types.InstrumentEquity},
-	BrokerNameGroww:    {types.InstrumentEquity},
-	BrokerNameUpstox:   {types.InstrumentEquity, types.InstrumentOption},
-	BrokerNameZerodha:  {types.InstrumentEquity, types.InstrumentFuture, types.InstrumentOption},
+	BrokerNameAngelOne:        {types.InstrumentEquity},
+	BrokerNameGroww:           {types.InstrumentEquity},
+	BrokerNameKotakSecurities: {types.InstrumentEquity},
+	BrokerNameUpstox:          {types.InstrumentEquity, types.InstrumentOption},
+	BrokerNameZerodha:         {types.InstrumentEquity, types.InstrumentFuture, types.InstrumentOption},
 }
 
 func (b *Broker) IsInstrumentSupportedForImport(instrument types.Instrument) bool {

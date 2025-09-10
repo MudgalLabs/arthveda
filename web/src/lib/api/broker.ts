@@ -2,7 +2,7 @@ import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
 
 // NOTE: All the supported brokers should be listed here.
-export type BrokerName = "Angel One" | "Groww" | "Upstox" | "Zerodha";
+export type BrokerName = "Angel One" | "Groww" | "Kotak Securities" | "Upstox" | "Zerodha";
 
 export interface Broker {
     id: string;
