@@ -28,7 +28,7 @@ import { IconDownload } from "@/components/icons";
 import { CancelAutoRenew } from "@/features/settings/plan_and_billing/components/cancel_auto_renew";
 
 export const PlanAndBilling = () => {
-    useDocumentTitle("Plan and billing");
+    useDocumentTitle("Plan and billing • Arthveda");
     const subscription = useSubscription();
     const hasPro = useUserHasProSubscription();
 

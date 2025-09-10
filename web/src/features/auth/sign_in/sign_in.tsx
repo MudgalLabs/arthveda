@@ -17,7 +17,8 @@ import { apiErrorHandler } from "@/lib/api";
 import { PasswordInput } from "@/components/input/password_input";
 
 export function SignIn() {
-    useDocumentTitle("Sign in to Arthveda");
+    useDocumentTitle("Sign in • Arthveda");
+
     const posthog = usePostHog();
 
     const isPasswordAuthEnabled = import.meta.env.ARTHVEDA_ENABLE_SIGN_IN === "true";

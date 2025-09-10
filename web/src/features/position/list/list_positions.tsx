@@ -12,7 +12,7 @@ import { IconCandlestick, Tooltip, useDocumentTitle } from "netra";
 import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
 
 export const Positions = () => {
-    useDocumentTitle("Positions");
+    useDocumentTitle("Positions • Arthveda");
 
     const tableState = useListPositionsStore((s) => s.tableState);
     const setTableState = useListPositionsStore((s) => s.setTableState);

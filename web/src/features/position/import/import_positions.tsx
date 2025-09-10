@@ -82,7 +82,7 @@ const INITIAL_STATE: State = {
 };
 
 export const ImportPositions = () => {
-    useDocumentTitle("Import positions");
+    useDocumentTitle("Import positions • Arthveda");
     const [state, setState] = useState<State>(INITIAL_STATE);
     const [importPositionResData, setImportPositionResData] = useState<ImportPositionsResponse | null>(null);
 

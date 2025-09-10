@@ -70,7 +70,7 @@ import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
 
 export const BrokerAccounts = () => {
-    useDocumentTitle("Broker accounts");
+    useDocumentTitle("Broker accounts • Arthveda");
     const [syncSummary, setSyncSummary] = useState<SyncSummary | null>(null);
     const [syncSummaryModalOpen, setSyncSummaryModalOpen] = useState(false);
 

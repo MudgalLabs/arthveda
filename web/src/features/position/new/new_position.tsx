@@ -226,7 +226,7 @@ function NewPosition() {
 
     const disablePrimaryButton = (isEditingPosition && !hasPositionDataChanged) || !canSave;
 
-    const title = isCreatingPosition ? "New position" : position.symbol;
+    const title = `${isCreatingPosition ? "New position" : position.symbol} • Arthveda`;
     useDocumentTitle(title);
 
     return (

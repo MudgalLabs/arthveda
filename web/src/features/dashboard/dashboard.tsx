@@ -124,7 +124,7 @@ const smLayout: Layout[] = [
 ];
 
 export const Dashboard = () => {
-    useDocumentTitle("Dashboard");
+    useDocumentTitle("Dashboard • Arthveda");
 
     const [layouts, setLayouts] = useState<Record<DashboardLayoutSize, Layout[]>>({
         lg: lgLayout,
