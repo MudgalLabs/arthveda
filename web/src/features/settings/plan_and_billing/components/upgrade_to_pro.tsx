@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
 
-import { Button, Tooltip } from "netra";
+import { Button } from "netra";
 import { isProd } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 import { useAuthentication, useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
+
+// FIXME: Instead of this, we should add a `is_banned` flag for users in the backend.
+const BLOCKED_EMAILS_FOR_PRO = ["budhiparkash97@gmail.com"];
 
 interface UpgradeToProProps {
     priceId: string;
@@ -70,21 +73,19 @@ export function UpgradeToPro(props: UpgradeToProProps) {
         });
     };
 
-    let disabled = hasPro && !subscription?.cancel_at_period_end;
-    disabled = true;
+    const disabled = hasPro && !subscription?.cancel_at_period_end;
+
+    if (BLOCKED_EMAILS_FOR_PRO.includes(data.email)) {
+        return (
+            <Button className={className} disabled>
+                Contact hey@arthveda.app to upgrade
+            </Button>
+        );
+    }
 
     return (
-        <Tooltip
-            content={
-                <>
-                    Please contact us at <a href="mailto:hey@arthveda.app">hey@arthveda.app</a> to upgrade to Pro.
-                </>
-            }
-        >
-            {/* <Button className={className} onClick={handleCheckout} disabled={hasPro && !subscription?.cancel_at_period_end}> */}
-            <Button className={className} onClick={handleCheckout} disabled={disabled}>
-                Upgrade to Pro
-            </Button>
-        </Tooltip>
+        <Button className={className} onClick={handleCheckout} disabled={disabled}>
+            Upgrade to Pro
+        </Button>
     );
 }

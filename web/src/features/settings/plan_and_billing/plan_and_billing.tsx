@@ -25,7 +25,7 @@ import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 import { Pricing } from "./components/pricing";
 import { IconDownload } from "@/components/icons";
-import { CancelAutoRenew } from "@/features/settings/plan_and_billing/components/cancel_auto_renew";
+import { CancelSubscription } from "@/features/settings/plan_and_billing/components/cancel_subscription";
 
 export const PlanAndBilling = () => {
     useDocumentTitle("Plan and billing • Arthveda");
@@ -65,8 +65,12 @@ export const PlanAndBilling = () => {
                 <IconInfo />
 
                 <div className="flex-x items-start justify-between">
-                    <div className="space-y-2">
-                        <p className="font-semibold">You are currently on the {hasPro ? "Pro" : "Free"} plan.</p>
+                    <div className="w-full space-y-2">
+                        <div className="w-full space-y-2 sm:flex sm:flex-row sm:justify-between">
+                            <p className="font-semibold">You are currently on the {hasPro ? "Pro" : "Free"} plan.</p>
+
+                            {hasPro && !subscription?.cancel_at_period_end ? <CancelSubscription /> : <ShowPricing />}
+                        </div>
 
                         {hasPro ? (
                             <div className="text-text-muted space-y-2">
@@ -81,15 +85,20 @@ export const PlanAndBilling = () => {
                                         at any time.
                                     </p>
                                 )}
+                                <p>
+                                    Contact us at <a href="mailto:hey@arthveda.app">hey@arthveda.app</a> if you want to
+                                    request a refund.
+                                </p>
                             </div>
                         ) : (
-                            <p className="text-text-muted">
-                                You are currently on the free plan.{" "}
-                                <span className="font-semibold">Click on Upgrade</span> to learn more about Pro.
-                            </p>
+                            <div className="text-text-muted">
+                                <p className="text-text-muted">You are currently on the free plan.</p>
+                                <p>
+                                    Click on <span className="font-semibold">Upgrade</span> to learn more about Pro.
+                                </p>
+                            </div>
                         )}
                     </div>
-                    <div>{hasPro && !subscription?.cancel_at_period_end ? <CancelAutoRenew /> : <ShowPricing />}</div>
                 </div>
             </Alert>
 

@@ -16,7 +16,7 @@ import {
 import { useSubscription } from "@/features/auth/auth_context";
 import { formatDate } from "@/lib/utils";
 
-export function CancelAutoRenew() {
+export function CancelSubscription() {
     const [open, setOpen] = useState(false);
     const subscription = useSubscription();
 
@@ -33,13 +33,13 @@ export function CancelAutoRenew() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="destructive">Cancel auto renew</Button>
+                <Button variant="destructive">Cancel subscription</Button>
             </DialogTrigger>
 
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Cancel Auto-Renew</DialogTitle>
-                    <DialogDescription>Are you sure you want to cancel auto renew?</DialogDescription>
+                    <DialogTitle>Cancel subscription</DialogTitle>
+                    <DialogDescription>Are you sure you want to cancel your Pro subscription?</DialogDescription>
                 </DialogHeader>
 
                 <p>
@@ -62,7 +62,7 @@ export function CancelAutoRenew() {
 
                 <DialogFooter>
                     <Button type="button" variant="destructive" onClick={() => cancelSubscription()}>
-                        Cancel Auto-Renew
+                        Cancel subscription
                     </Button>
                 </DialogFooter>
             </DialogContent>

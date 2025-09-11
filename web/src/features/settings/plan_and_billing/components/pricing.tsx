@@ -106,16 +106,12 @@ export function Pricing(props: PricingProps) {
                 </Card>
             </div>
 
-            <p>
-                Please contact us at <a href="mailto:hey@arthveda.app">hey@arthveda.app</a> to upgrade to Pro.
-            </p>
-
-            <div className="h-8" />
-
             <p className="text-muted-foreground mb-6 text-sm font-medium text-pretty! italic">
                 💡 Subscribe yearly and lock in this price for 12 months. As Arthveda grows, prices may increase, but
                 yours won’t.
             </p>
+
+            <div className="h-8" />
 
             <div className="overflow-x-auto">
                 <Table className="min-w-full border-collapse overflow-hidden rounded-md text-sm">
@@ -177,17 +173,17 @@ export function Pricing(props: PricingProps) {
                             </TableCell>
                         </TableRow>
                         <TableRow className="bg-muted/5">
-                            <TableCell className="px-6 py-3">Import from broker</TableCell>
+                            <TableCell className="px-6 py-3">Broker integrations</TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-accent" />
-                                    File upload
+                                    File import
                                 </div>
                             </TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-text-success" />
-                                    1-click sync today's trades
+                                    1-click sync today’s trades
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -213,7 +209,7 @@ export function Pricing(props: PricingProps) {
                             <TableCell className="px-6 py-3">Support</TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
-                                    <IconBadgeCheck className="text-text-success" />
+                                    <IconBadgeCheck className="text-accent" />
                                     Normal
                                 </div>
                             </TableCell>
