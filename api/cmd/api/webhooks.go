@@ -280,6 +280,15 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 				return
 			}
 
+			if paddleSubscription.Data.Status != paddlenotification.SubscriptionStatusActive {
+				// If the subscription is not active, we don't need to update it.
+				// This could be a paused, cancelled or past_due subscription.
+				// We handle those events separately.
+				// So we just break out of the switch case here.
+				l.Infow("subscription is not active, skipping update", "status", paddleSubscription.Data.Status)
+				break
+			}
+
 			sub, err := s.SubscriptionRepository.FindUserSubscriptionByExternalRef(
 				ctx, subscription.ProviderPaddle, paddleSubscription.Data.ID)
 			if err != nil && err != repository.ErrNotFound {
