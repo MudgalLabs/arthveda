@@ -59,7 +59,7 @@ export function Pricing(props: PricingProps) {
                 </div>
             </div>
 
-            <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="mb-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <Card className="relative flex h-60 flex-col justify-between">
                     <div>
                         {!hasPro && <p className="label-muted absolute right-4">Current plan</p>}
@@ -106,14 +106,19 @@ export function Pricing(props: PricingProps) {
                 </Card>
             </div>
 
+            <p>
+                Please contact us at <a href="mailto:hey@arthveda.app">hey@arthveda.app</a> to upgrade to Pro.
+            </p>
+
+            <div className="h-8" />
+
             <p className="text-muted-foreground mb-6 text-sm font-medium text-pretty! italic">
-                💡 <span className="text-foreground font-semibold">Subscribe yearly</span> and lock in this price for 12
-                months. As Arthveda grows, prices may increase, but yours won’t.
+                💡 Subscribe yearly and lock in this price for 12 months. As Arthveda grows, prices may increase, but
+                yours won’t.
             </p>
 
             <div className="overflow-x-auto">
                 <Table className="min-w-full border-collapse overflow-hidden rounded-md text-sm">
-                    <TableCaption>Free vs Pro</TableCaption>
                     <TableHeader>
                         <TableRow className="bg-muted text-left">
                             <TableHead className="px-6 py-4 text-base font-semibold">Feature</TableHead>
