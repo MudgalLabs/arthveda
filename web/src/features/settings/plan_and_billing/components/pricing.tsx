@@ -176,14 +176,14 @@ export function Pricing(props: PricingProps) {
                             <TableCell className="px-6 py-3">Broker integrations</TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
-                                    <IconBadgeCheck className="text-accent" />
-                                    File import
+                                    <IconBadgeCheck className="text-text-success" />
+                                    File import and daily sync
                                 </div>
                             </TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-text-success" />
-                                    1-click sync today’s trades
+                                    File import and daily sync
                                 </div>
                             </TableCell>
                         </TableRow>
