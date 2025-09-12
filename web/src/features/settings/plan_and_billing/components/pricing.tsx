@@ -129,7 +129,7 @@ export function Pricing(props: PricingProps) {
                     </TableHeader>
                     <TableBody className="divide-muted/20 divide-y">
                         <TableRow>
-                            <TableCell className="px-6 py-3">Position imports</TableCell>
+                            <TableCell className="px-6 py-3">Trade imports</TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-text-success" /> Unlimited
