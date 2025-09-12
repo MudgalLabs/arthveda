@@ -28,6 +28,7 @@ import {
     BreadcrumbPage,
     IconCandlestick,
     IconSquarePen,
+    PageHeading,
 } from "netra";
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
@@ -42,7 +43,6 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
 import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
-import { PageHeading } from "@/components/page_heading";
 import { apiErrorHandler } from "@/lib/api";
 import { Setter } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";

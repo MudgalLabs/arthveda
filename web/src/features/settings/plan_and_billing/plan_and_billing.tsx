@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Loading } from "@/components/loading";
-import { PageHeading } from "@/components/page_heading";
 import { toast } from "@/components/toast";
 import { useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
 import { apiHooks } from "@/hooks/api_hooks";
@@ -14,6 +13,7 @@ import {
     IconInfo,
     Tooltip,
     useDocumentTitle,
+    PageHeading,
 } from "netra";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTable } from "@/s8ly/data_table/data_table";

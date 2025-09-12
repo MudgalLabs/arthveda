@@ -1,6 +1,6 @@
 import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
 import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
-import { isProd, TooltipProvider } from "netra";
+import { isProd, TooltipProvider, SidebarProvider } from "netra";
 import { BodhvedaProvider } from "@bodhveda/react";
 import { usePostHog } from "posthog-js/react";
 
@@ -9,7 +9,6 @@ import "netra/styles.css";
 
 import { toast, ToastProvider } from "@/components/toast";
 import { useAuthentication } from "@/features/auth/auth_context";
-import { SidebarProvider } from "@/components/sidebar/sidebar_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/constants";
 import { useURLState } from "@/hooks/use_url_state";

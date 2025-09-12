@@ -13,6 +13,8 @@ export const ROUTES = {
     // Using a function so that we can pass the `":id"` only in rendering route.
     // But for ROUTES_PROTECTED and RouteHandler, we don't pass `id`.
     viewPosition: (id = "") => `/positions/${id}`,
+    calendar: "/calendar",
+
     planAndBilling: "/settings/plan-and-billing",
     brokerAccounts: "/settings/broker-accounts",
     feedbackAndSupport: "/settings/feedback-and-support",
@@ -27,6 +29,7 @@ export const ROUTES_PROTECTED = [
     ROUTES.newPositions,
     ROUTES.importPositions,
     ROUTES.viewPosition(),
+    ROUTES.calendar,
     ROUTES.planAndBilling,
     ROUTES.brokerAccounts,
     ROUTES.feedbackAndSupport,

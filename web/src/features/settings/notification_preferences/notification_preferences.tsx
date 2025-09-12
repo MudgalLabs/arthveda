@@ -1,7 +1,7 @@
 import { usePreferences, useUpdatePreference } from "@bodhveda/react";
 
-import { PageHeading } from "@/components/page_heading";
 import {
+    PageHeading,
     Breadcrumb,
     BreadcrumbList,
     BreadcrumbItem,

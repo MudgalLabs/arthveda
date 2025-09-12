@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 
-import { PageHeading } from "@/components/page_heading";
 import { PositionListTable } from "@/features/position/components/position_list_table";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import { prepareFilters } from "@/features/position/utils";
@@ -8,7 +7,7 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
-import { IconCandlestick, Loading, Tooltip, useDocumentTitle } from "netra";
+import { PageHeading, IconCandlestick, Loading, Tooltip, useDocumentTitle } from "netra";
 import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
 
 export const Positions = () => {

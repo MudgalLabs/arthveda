@@ -1,6 +1,4 @@
-import { Separator } from "netra";
-
-import { PageHeading } from "@/components/page_heading";
+import { PageHeading, Separator } from "netra";
 
 export const Settings = () => {
     return (

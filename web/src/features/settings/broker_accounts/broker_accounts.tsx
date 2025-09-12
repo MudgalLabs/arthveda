@@ -15,7 +15,6 @@ import {
     IconTrash,
 } from "@/components/icons";
 import { LoadingScreen } from "@/components/loading_screen";
-import { PageHeading } from "@/components/page_heading";
 import { useBroker } from "@/features/broker/broker_context";
 import { apiHooks } from "@/hooks/api_hooks";
 import {
@@ -57,6 +56,7 @@ import {
     useDocumentTitle,
     IconZap,
     Loading,
+    PageHeading,
 } from "netra";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";

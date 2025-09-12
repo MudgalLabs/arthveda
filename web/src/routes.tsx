@@ -11,6 +11,7 @@ import ListPositionsLazy from "@/features/position/list/list_positions_lazy";
 import ViewPositionLazy from "@/features/position/view/view_position_lazy";
 import NewPositionLazy from "@/features/position/new/new_position_lazy";
 import ImportPositionsLazy from "@/features/position/import/import_positions_lazy";
+import CalendarLazy from "@/features/calendar/calendar_lazy";
 import BrokerAccountsLazy from "@/features/settings/broker_accounts/broker_accounts_lazy";
 import PlanAndBillingLazy from "@/features/settings/plan_and_billing/plan_and_billing_lazy";
 import NotificationPreferencesLazy from "@/features/settings/notification_preferences/notification_preferences_lazy";
@@ -55,6 +56,10 @@ export const routes: Array<RouteObject> = [
     {
         path: ROUTES.importPositions,
         element: <ImportPositionsLazy />,
+    },
+    {
+        path: ROUTES.calendar,
+        element: <CalendarLazy />,
     },
     {
         path: ROUTES.brokerAccounts,

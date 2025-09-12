@@ -4,7 +4,6 @@ import { Responsive, WidthProvider, Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
-import { PageHeading } from "@/components/page_heading";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useAuthentication, useUserHasProSubscription } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
@@ -12,7 +11,7 @@ import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cum
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
 import { IconSearch } from "@/components/icons";
-import { Button, DatePicker, IconDashboard, Tooltip, useDocumentTitle } from "netra";
+import { PageHeading, Button, DatePicker, IconDashboard, Tooltip, useDocumentTitle } from "netra";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";

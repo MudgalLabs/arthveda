@@ -2,12 +2,11 @@ import { FC, ReactNode, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useNotificationsUnreadCount } from "@bodhveda/react";
 
-import { Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent } from "netra";
+import { useSidebar, Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent, IconCalendarSingle } from "netra";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
 import { IconCandlestick, IconDashboard } from "@/components/icons";
 
-import { useSidebar } from "@/components/sidebar/sidebar_context";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/constants";
 import { ProfileMenu } from "@/components/profile_menu";
@@ -88,6 +87,16 @@ export const Sidebar = () => {
                         open={isOpen}
                         isActive={activeRoute === ROUTES.listPositions}
                         onClick={() => handleClick(ROUTES.listPositions)}
+                    />
+                </Link>
+
+                <Link to={ROUTES.calendar} variant="unstyled">
+                    <SidebarItem
+                        label="Calendar"
+                        icon={<IconCalendarSingle size={20} />}
+                        open={isOpen}
+                        isActive={activeRoute === ROUTES.calendar}
+                        onClick={() => handleClick(ROUTES.calendar)}
                     />
                 </Link>
             </div>

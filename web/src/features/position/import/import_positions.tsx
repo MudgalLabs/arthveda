@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import Decimal from "decimal.js";
 
-import { PageHeading } from "@/components/page_heading";
 import { toast } from "@/components/toast";
 import { WithLabel } from "@/components/with_label";
 import { apiHooks } from "@/hooks/api_hooks";
@@ -20,6 +19,7 @@ import {
     Tag,
     useDocumentTitle,
     IconImport,
+    PageHeading,
 } from "netra";
 import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
