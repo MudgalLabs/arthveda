@@ -8,7 +8,7 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
-import { IconCandlestick, Tooltip, useDocumentTitle } from "netra";
+import { IconCandlestick, Loading, Tooltip, useDocumentTitle } from "netra";
 import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
 
 export const Positions = () => {
@@ -48,6 +48,7 @@ export const Positions = () => {
             <PageHeading>
                 <IconCandlestick size={18} />
                 <h1>Positions</h1>
+                {queryResult.isFetching && <Loading />}
             </PageHeading>
 
             {!hasPro && !!queryResult?.data?.data.no_of_positions_hidden && (

@@ -56,6 +56,7 @@ import {
     Tag,
     useDocumentTitle,
     IconZap,
+    Loading,
 } from "netra";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";
@@ -73,12 +74,14 @@ export const BrokerAccounts = () => {
     useDocumentTitle("Broker accounts • Arthveda");
     const [syncSummary, setSyncSummary] = useState<SyncSummary | null>(null);
     const [syncSummaryModalOpen, setSyncSummaryModalOpen] = useState(false);
+    const { isFetching } = apiHooks.userBrokerAccount.useList();
 
     return (
         <>
             <PageHeading>
                 <IconZap size={18} />
                 <h1>Broker accounts</h1>
+                {isFetching && <Loading />}
             </PageHeading>
 
             <div className="mb-4 flex justify-end">
