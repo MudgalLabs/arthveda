@@ -52,8 +52,8 @@ export function TradingCalendar(props: TradingCalendarProps) {
             {selectedDates.length > 0 ? <h1>{selectedDates[0].toDateString()}</h1> : null}
 
             <header className="mb-2">
-                <div className="flex-x gap-x-8!">
-                    <div className="flex w-[220px] items-center justify-between">
+                <div className="flex flex-col gap-x-8 gap-y-2 sm:flex-row">
+                    <div className="flex w-full items-center justify-between sm:w-[220px]!">
                         <Button variant="ghost" size="icon" {...subtractOffset({ months: 1 })}>
                             <IconChevronLeft size={18} />
                         </Button>
@@ -67,17 +67,19 @@ export function TradingCalendar(props: TradingCalendarProps) {
                         </Button>
                     </div>
 
-                    {monthData?.pnl && (
-                        <PnL value={new Decimal(monthData.pnl)} className="text-xl font-semibold">
-                            {formatCurrency(monthData.pnl, {
-                                compact: true,
-                            })}
-                        </PnL>
-                    )}
+                    <div className="flex-center sm:flex-x gap-x-4!">
+                        {monthData?.pnl && (
+                            <PnL value={new Decimal(monthData.pnl)} className="text-xl font-semibold">
+                                {formatCurrency(monthData.pnl, {
+                                    compact: true,
+                                })}
+                            </PnL>
+                        )}
 
-                    {monthData?.positions_count && (
-                        <p className="text-text-muted">{monthData.positions_count} positions</p>
-                    )}
+                        {monthData?.positions_count && (
+                            <p className="text-text-muted">{monthData.positions_count} positions</p>
+                        )}
+                    </div>
                 </div>
 
                 <Separator className="mt-2 mb-4" />
@@ -126,7 +128,7 @@ function Day(props: DayProps) {
             className={cn("border-border-subtle flex h-full flex-col justify-between rounded-md border p-2", {
                 "bg-success-bg border-success-border": isWin,
                 "bg-error-bg border-error-border": isLoss,
-                "bg-secondary border-none": isEven,
+                "bg-surface-2 border-border-subtle": isEven,
                 "cursor-pointer": dpDay.inCurrentMonth && !isEven,
             })}
         >
