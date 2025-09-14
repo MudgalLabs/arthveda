@@ -70,9 +70,7 @@ export function TradingCalendar(props: TradingCalendarProps) {
                     <div className="flex-center sm:flex-x gap-x-4!">
                         {monthData?.pnl && (
                             <PnL value={new Decimal(monthData.pnl)} className="text-xl font-semibold">
-                                {formatCurrency(monthData.pnl, {
-                                    compact: true,
-                                })}
+                                {formatCurrency(monthData.pnl)}
                             </PnL>
                         )}
 
