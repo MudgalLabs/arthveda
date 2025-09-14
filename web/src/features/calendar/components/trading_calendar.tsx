@@ -6,22 +6,6 @@ import { Button, cn, formatCurrency, IconChevronLeft, IconChevronRight, Separato
 import { GetCalendarResponse } from "@/lib/api/calendar";
 import { PnL } from "@/components/pnl";
 
-// const pnlByDate: Record<number, Decimal> = {
-//     4: new Decimal(-50),
-//     16: new Decimal(100),
-//     18: new Decimal(750000),
-//     19: new Decimal(-20000000),
-//     29: new Decimal(200),
-// };
-
-// const numOfPositionsByDate: Record<number, number> = {
-//     4: 2,
-//     16: 1,
-//     18: 3,
-//     19: 1,
-//     29: 4,
-// };
-
 interface TradingCalendarProps {
     data: GetCalendarResponse;
 }
@@ -124,9 +108,9 @@ function Day(props: DayProps) {
     return (
         <div
             className={cn("border-border-subtle flex h-full flex-col justify-between rounded-md border p-2", {
-                "bg-success-bg border-success-border": isWin,
-                "bg-error-bg border-error-border": isLoss,
-                "bg-surface-2 border-border-subtle": isEven,
+                "bg-success-border border-success-border": isWin,
+                "bg-error-border border-error-border": isLoss,
+                "bg-surface-2 border-none": isEven,
                 // "cursor-pointer": dpDay.inCurrentMonth && !isEven,
             })}
         >

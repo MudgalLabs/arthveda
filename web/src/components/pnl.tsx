@@ -17,8 +17,8 @@ export function PnL(props: PnLProps) {
     return (
         <span
             className={cn(className, {
-                "text-text-success": isPositive,
-                "text-text-destructive": isNegative,
+                "text-success-foreground": isPositive,
+                "text-error-foreground": isNegative,
                 "text-foreground": isEven,
             })}
         >
