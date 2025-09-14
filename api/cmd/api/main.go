@@ -6,6 +6,7 @@ import (
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/env"
 	"arthveda/internal/feature/broker"
+	"arthveda/internal/feature/calendar"
 	"arthveda/internal/feature/dashboard"
 	"arthveda/internal/feature/notification"
 	"arthveda/internal/feature/position"
@@ -36,6 +37,7 @@ type app struct {
 // All the services.
 type services struct {
 	BrokerService            *broker.Service
+	CalendarService          *calendar.Service
 	CurrencyService          *currency.Service
 	DashboardService         *dashboard.Service
 	PositionService          *position.Service
@@ -90,6 +92,7 @@ func main() {
 	userIdentityRepository := user_identity.NewRepository(db)
 
 	brokerService := broker.NewService(brokerRepository)
+	calendarService := calendar.NewService(positionRepository)
 	currencyService := currency.NewService()
 	dashboardService := dashboard.NewService(dashboardRepository, positionRepository, tradeRepository)
 	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository, userBrokerAccountRepository)
@@ -101,6 +104,7 @@ func main() {
 
 	services := services{
 		BrokerService:            brokerService,
+		CalendarService:          calendarService,
 		CurrencyService:          currencyService,
 		DashboardService:         dashboardService,
 		PositionService:          positionService,

@@ -53,7 +53,9 @@ func NewPlanEnforcer(subscription *UserSubscription) *PlanEnforcer {
 	}
 }
 
-func (e *PlanEnforcer) CanAccessFullAnalytics() bool {
+// CanAccessAllPositions returns true if the user can access all positions,
+// false if they can only access positions from the last 12 months.
+func (e *PlanEnforcer) CanAccessAllPositions() bool {
 	return isPro(e.subscription)
 }
 

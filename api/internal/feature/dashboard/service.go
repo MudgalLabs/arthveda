@@ -33,7 +33,7 @@ type GetDashboardPayload struct {
 	DateRange *common.DateRangeFilter `json:"date_range"`
 }
 
-type GetDashboardReponse struct {
+type GetDashboardResult struct {
 	generalStats
 	PositionsCount       int         `json:"positions_count"`
 	CumulativePnLBuckets []pnlBucket `json:"cumulative_pnl_buckets"`
@@ -41,9 +41,10 @@ type GetDashboardReponse struct {
 	NoOfPositionsHidden  int         `json:"no_of_positions_hidden"`
 }
 
-func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location, enforcer *subscription.PlanEnforcer, payload GetDashboardPayload) (*GetDashboardReponse, service.Error, error) {
+func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer, payload GetDashboardPayload) (*GetDashboardResult, service.Error, error) {
+	l := logger.Get()
 	now := time.Now().UTC()
-	twelveMonthsAgo := time.Now().In(loc).AddDate(-1, 0, 0)
+	yearAgo := time.Now().In(tz).AddDate(-1, 0, 0)
 	from := time.Time{}
 	to := time.Time{}
 
@@ -55,7 +56,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 		to = *payload.DateRange.To
 	}
 
-	startUTC, endUTC, err := common.NormalizeDateRangeFromTimezone(from, to, loc)
+	startUTC, endUTC, err := common.NormalizeDateRangeFromTimezone(from, to, tz)
 
 	if err == nil {
 		payload.DateRange.From = &startUTC
@@ -75,8 +76,8 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 	}
 
 	// If the user is not a Pro user, we limit the time range to the last 12 months.
-	if !enforcer.CanAccessFullAnalytics() {
-		tradeTimeRange.From = &twelveMonthsAgo
+	if !enforcer.CanAccessAllPositions() {
+		tradeTimeRange.From = &yearAgo
 	}
 
 	searchPositionPayload := position.SearchPayload{
@@ -95,24 +96,8 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 		return nil, service.ErrInternalServerError, err
 	}
 
-	// Find the earliest and latest trade times
-	var rangeStart, rangeEnd time.Time
-
-	for _, position := range positions {
-		for _, trade := range position.Trades {
-			if rangeStart.IsZero() || trade.Time.Before(rangeStart) {
-				rangeStart = trade.Time
-			}
-
-			if rangeEnd.IsZero() || trade.Time.After(rangeEnd) {
-				rangeEnd = trade.Time
-			}
-		}
-	}
-
-	// When we are calculating the dashboard, we want to include the entire day of the last trade. Otherwise we will end up skipping the last day's trades.
-	// Extend end to include the entire day of the last trade
-	rangeEnd = rangeEnd.Add(24 * time.Hour)
+	// Find the earliest and latest trade times.
+	rangeStart, rangeEnd := position.GetRangeBasedOnTrades(positions)
 
 	// If we are provided with a date range, we should use that instead of the earliest and latest trade times.
 	if !startUTC.IsZero() {
@@ -128,8 +113,8 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 	}
 
 	var noOfPositionsHidden int
-	if rangeStart.Before(twelveMonthsAgo) && !enforcer.CanAccessFullAnalytics() {
-		rangeStart = twelveMonthsAgo // Otherwise empty buckets will be returned for months before twelve months ago.
+	if rangeStart.Before(yearAgo) && !enforcer.CanAccessAllPositions() {
+		rangeStart = yearAgo // Otherwise empty buckets will be returned for months before twelve months ago.
 		noOfPositionsHidden = positionsExistOlderThanTwelveMonths
 	}
 
@@ -145,21 +130,21 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, loc *time.Location,
 		bucketPeriod = common.BucketPeriodMonthly
 	}
 
-	positionsFiltered := filterPositionsWithRealisingTradesUpTo(positions, rangeEnd, loc)
+	positionsFiltered := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
 
 	for _, pos := range positionsFiltered {
 		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction)
 		if err != nil {
-			logger.Get().Warnw("failed to compute smart trades for position", "position_id", pos.ID, "error", err)
+			l.Errorw("failed to compute smart trades for position", "position_id", pos.ID, "error", err)
 			continue
 		}
 	}
 
 	generalStats := getGeneralStats(positionsFiltered)
-	pnlBuckets := getPnLBuckets(positionsFiltered, bucketPeriod, rangeStart, rangeEnd, loc)
-	cumulativePnLBuckets := getCumulativePnLBuckets(positionsFiltered, bucketPeriod, rangeStart, rangeEnd, loc)
+	pnlBuckets := getPnLBuckets(positionsFiltered, bucketPeriod, rangeStart, rangeEnd, tz)
+	cumulativePnLBuckets := getCumulativePnLBuckets(positionsFiltered, bucketPeriod, rangeStart, rangeEnd, tz)
 
-	result := &GetDashboardReponse{
+	result := &GetDashboardResult{
 		PositionsCount:       len(positionsFiltered),
 		generalStats:         generalStats,
 		CumulativePnLBuckets: cumulativePnLBuckets,

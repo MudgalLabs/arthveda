@@ -278,7 +278,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 	capitalUsed := decimal.Zero
 
 	for _, t := range trades {
-		grossPnL = grossPnL.Add(t.RealisedPnL)
+		grossPnL = grossPnL.Add(t.RealisedGrossPnL)
 
 		for _, lot := range t.MatchedLots {
 			capitalUsed = capitalUsed.Add(lot.Qty.Mul(lot.PriceIn))
@@ -510,7 +510,7 @@ func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmar
 				t.MatchedLots = matched
 			}
 
-			t.RealisedPnL = realisedPnL
+			t.RealisedGrossPnL = realisedPnL
 			if !costBasis.IsZero() {
 				t.ROI = realisedPnL.Div(costBasis).Mul(decimal.NewFromInt(100))
 			}
@@ -565,4 +565,103 @@ func computeAvgPrice(fifo []fifoLot) decimal.Decimal {
 	}
 
 	return totalCost.Div(totalQty)
+}
+
+func GetRangeBasedOnTrades(positions []*Position) (time.Time, time.Time) {
+	// Find the earliest and latest trade times
+	var rangeStart, rangeEnd time.Time
+
+	for _, position := range positions {
+		for _, trade := range position.Trades {
+			if rangeStart.IsZero() || trade.Time.Before(rangeStart) {
+				rangeStart = trade.Time
+			}
+
+			if rangeEnd.IsZero() || trade.Time.After(rangeEnd) {
+				rangeEnd = trade.Time
+			}
+		}
+	}
+
+	// When we are calculating the dashboard, we want to include the entire day of the last trade.
+	// Otherwise we will end up skipping the last day's trades.
+	// Extend end to include the entire day of the last trade
+	rangeEnd = rangeEnd.Add(24 * time.Hour)
+
+	return rangeStart, rangeEnd
+}
+
+func FilterPositionsWithRealisingTradesUpTo(positions []*Position, end time.Time, loc *time.Location) []*Position {
+	// These are the trades that we will use to compute the stats.
+	// We will only consider trades that are before or equal to the end date.
+	// We will also create a copy of the positions so that we don't modify the original positions
+	// and their trades. This is important because we will be calling "Compute" on the positions
+	// to calculate the realised PnL and other stats, and we don't want to modify the original positions.
+
+	// We need to compute the Position stats based on the trades that fall within the date range.
+	// So we will go through all positions and their trades,
+	// and call "Compute" up until we don't reach a trade that's time is after the end date.
+	// If we reach a trade that is after the end date, we will stop processing the position.
+	positionsWithTradesUptoEnd := []*Position{}
+
+	if len(positions) == 0 || positions == nil {
+		return positionsWithTradesUptoEnd
+	}
+
+	originalPosByID := map[uuid.UUID]*Position{}
+	for _, p := range positions {
+		originalPosByID[p.ID] = p
+		positionCopy := *p
+		trades := []*trade.Trade{}
+
+		atLeastOneTradeWasScalingOut := false
+
+		// Apply trades to the position to calculate realised PnL.
+		// This will also update the position's GrossPnLAmount, NetPnLAmount
+		// and TotalChargesAmount fields.
+		for _, t := range p.Trades {
+			if t.Time.In(loc).Before(end) || t.Time.In(loc).Equal(end) {
+				trades = append(trades, t)
+
+				// If position is long and we have a sell trade,
+				// or if position is short and we have a buy trade,
+				// we know that this is a scaling out trade.
+				// This flag helps us to include positions for calculating stats
+				// that have tried to realise PnL by scaling out. Otherwise, we might have
+				// wrong stats for positions that were just scaling in during the time range.
+				if (positionCopy.Direction == DirectionLong && t.Kind == types.TradeKindSell) ||
+					(positionCopy.Direction == DirectionShort && t.Kind == types.TradeKindBuy) {
+					atLeastOneTradeWasScalingOut = true
+				}
+			}
+		}
+
+		positionCopy.Trades = trades
+
+		if atLeastOneTradeWasScalingOut {
+			positionsWithTradesUptoEnd = append(positionsWithTradesUptoEnd, &positionCopy)
+		}
+	}
+
+	// Let's call "Compute" on positionsWithTradesUptoEnd
+	// to calculate the realised PnL and other stats.
+
+	for i, p := range positionsWithTradesUptoEnd {
+		payload := ComputePayload{
+			Trades:     ConvertTradesToCreatePayload(p.Trades),
+			RiskAmount: p.RiskAmount,
+		}
+
+		computeResult, err := Compute(payload)
+		if err != nil {
+			// If we fail silently and continue.
+			logger.Get().Errorw("failed to compute position", "error", err, "symbol", p.Symbol, "opened_at", p.OpenedAt)
+			continue
+		}
+
+		ApplyComputeResultToPosition(p, computeResult)
+		positionsWithTradesUptoEnd[i] = p
+	}
+
+	return positionsWithTradesUptoEnd
 }

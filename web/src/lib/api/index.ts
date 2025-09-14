@@ -4,6 +4,7 @@ import { ApiRes } from "@/lib/api/client";
 import { toast } from "@/components/toast";
 import * as auth from "@/lib/api/auth";
 import * as broker from "@/lib/api/broker";
+import * as calendar from "@/lib/api/calendar";
 import * as currency from "@/lib/api/currency";
 import * as dashboard from "@/lib/api/dashboard";
 import * as position from "@/lib/api/position";
@@ -16,6 +17,7 @@ import { useUpgradeModalStore } from "@/components/plan_limit_exceeded_modal";
 export const api = {
     auth,
     broker,
+    calendar,
     currency,
     dashboard,
     position,

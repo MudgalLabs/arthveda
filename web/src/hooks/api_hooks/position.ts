@@ -5,6 +5,8 @@ import {
     keepPreviousData,
     AnyUseQueryOptions,
     UseQueryResult,
+    useQueryClient,
+    QueryClient,
 } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
@@ -21,6 +23,19 @@ import {
     UpdatePositionRequest,
     UpdatePositionResponse,
 } from "@/lib/api/position";
+
+const QueriesToInvalidateOnPositionChange = [
+    "useGetDashboard",
+    "useGetCalendar",
+    "useGetPosition",
+    "usePositionsSearch",
+];
+
+function invalidatePositionRelatedQueries(queryClient: QueryClient) {
+    QueriesToInvalidateOnPositionChange.forEach((query) => {
+        queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] === query });
+    });
+}
 
 export function useCompute(options: AnyUseMutationOptions = {}) {
     let computeAbortController: AbortController | null = null;
@@ -39,29 +54,50 @@ export function useCompute(options: AnyUseMutationOptions = {}) {
 }
 
 export function useCreate(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
     return useMutation<ApiRes<CreatePositionResponse>, unknown, CreatePositionRequest, unknown>({
         mutationFn: (body: CreatePositionRequest) => {
             return api.position.create(body);
         },
-        ...options,
+        onSuccess: (...args) => {
+            invalidatePositionRelatedQueries(queryClient);
+            onSuccess?.(...args);
+        },
+        ...restOptions,
     });
 }
 
 export function useUpdate(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
     return useMutation<ApiRes<UpdatePositionResponse>, unknown, { id: string; body: UpdatePositionRequest }, unknown>({
         mutationFn: ({ id, body }: { id: string; body: UpdatePositionRequest }) => {
             return api.position.update(id, body);
         },
-        ...options,
+        onSuccess: (...args) => {
+            invalidatePositionRelatedQueries(queryClient);
+            onSuccess?.(...args);
+        },
+        ...restOptions,
     });
 }
 
 export function useDelete(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
     return useMutation({
         mutationFn: (id: string) => {
             return api.position.deletePosition(id);
         },
-        ...options,
+        onSuccess: (...args) => {
+            invalidatePositionRelatedQueries(queryClient);
+            onSuccess?.(...args);
+        },
+        ...restOptions,
     });
 }
 
@@ -80,11 +116,18 @@ export function useSearch(
 }
 
 export function useImport(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
     return useMutation<ApiRes<ImportPositionsResponse>, unknown, ImportPositionsRequest, unknown>({
         mutationFn: (body: ImportPositionsRequest) => {
             return api.position.importPositions(body);
         },
-        ...options,
+        onSuccess: (...args) => {
+            invalidatePositionRelatedQueries(queryClient);
+            onSuccess?.(...args);
+        },
+        ...restOptions,
     });
 }
 

@@ -76,6 +76,13 @@ func initRouter(a *app) http.Handler {
 			r.Get("/zerodha/redirect", zerodhaRedirectHandler(a.service.UserBrokerAccountService))
 		})
 
+		r.Route("/calendar", func(r chi.Router) {
+			r.Use(authMiddleware)
+			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
+
+			r.Get("/", getCalendarHandler(a.service.CalendarService))
+		})
+
 		r.Route("/currencies", func(r chi.Router) {
 			r.Use(authMiddleware)
 

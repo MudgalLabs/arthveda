@@ -21,7 +21,7 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
                 <div className="overflow-none min-w-0 flex-1 sm:p-2 sm:pl-0">
                     <div className="flex h-full min-w-0 justify-center">
                         <div className="bg-surface-1 border-border-subtle w-full min-w-0 overflow-auto px-3 py-2 sm:rounded-md sm:border-1">
-                            <div className="min-w-full">{children}</div>
+                            <div className="h-full min-w-full">{children}</div>
                         </div>
                     </div>
                 </div>

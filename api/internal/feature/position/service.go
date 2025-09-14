@@ -168,7 +168,7 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, enforcer *subscr
 	var noOfPositionsHidden int
 
 	// If the user is not a Pro user, we limit the time range to the last 12 months.
-	if !enforcer.CanAccessFullAnalytics() {
+	if !enforcer.CanAccessAllPositions() {
 		// If no time range is specified or if the time range is specified,
 		// we check if it is more than 12 months ago.
 		if payload.Filters.Opened != nil {

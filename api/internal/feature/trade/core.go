@@ -33,8 +33,8 @@ type Trade struct {
 	// These are the fields that are computed at runtime and are not stored in the database.
 	// They are used for dashboard analytics. I am still not sure if we should store them in the database.
 	// I am storing ChargesAmount, so I think we should store these too??
-	RealisedPnL decimal.Decimal `json:"realised_pnl" db:"realised_pnl"`
-	ROI         decimal.Decimal `json:"roi" db:"roi"`
+	RealisedGrossPnL decimal.Decimal `json:"realised_gross_pnl" db:"realised_gross_pnl"`
+	ROI              decimal.Decimal `json:"roi" db:"roi"`
 
 	MatchedLots []MatchedLot `json:"matched_lots" db:"matched_lots"`
 }

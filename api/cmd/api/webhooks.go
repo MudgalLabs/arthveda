@@ -273,7 +273,6 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 			}
 
 		case paddlenotification.EventTypeNameSubscriptionUpdated:
-			fmt.Println("Subscription Updated webhook received")
 			paddleSubscription := &paddlenotification.SubscriptionUpdated{}
 			if err := json.Unmarshal(rawBody, paddleSubscription); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)

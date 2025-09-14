@@ -45,7 +45,6 @@ import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { apiErrorHandler } from "@/lib/api";
 import { Setter } from "@/lib/types";
-import { useQueryClient } from "@tanstack/react-query";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { WithDebounce } from "@/components/with_debounce";
 import { SymbolInput } from "@/features/position/components/symbol_input";
@@ -70,7 +69,6 @@ function NewPosition() {
     const isCreatingPosition = useIsCreatingPosition();
     const isEditingPosition = useIsEditingPosition();
 
-    const queryClient = useQueryClient();
     const navigate = useNavigate();
 
     const { mutateAsync: create, isPending: isCreating } = apiHooks.position.useCreate({
@@ -86,12 +84,6 @@ function NewPosition() {
             });
 
             discard();
-            queryClient.invalidateQueries({
-                queryKey: ["useGetDashboard"],
-            });
-            queryClient.invalidateQueries({
-                queryKey: ["usePositionsSearch"],
-            });
         },
         onError: apiErrorHandler,
     });
@@ -99,15 +91,6 @@ function NewPosition() {
     const { mutateAsync: update, isPending: isUpdating } = apiHooks.position.useUpdate({
         onSuccess: async () => {
             toast.success("Position Updated");
-            queryClient.invalidateQueries({
-                queryKey: ["useGetDashboard"],
-            });
-            queryClient.invalidateQueries({
-                queryKey: ["usePositionsSearch"],
-            });
-            queryClient.invalidateQueries({
-                queryKey: ["useGetPosition", position.id],
-            });
         },
         onError: apiErrorHandler,
     });
@@ -115,12 +98,6 @@ function NewPosition() {
     const { mutateAsync: deletePosition, isPending: isDeleting } = apiHooks.position.useDelete({
         onSuccess: async () => {
             toast.success("Position Deleted");
-            queryClient.invalidateQueries({
-                queryKey: ["useGetDashboard"],
-            });
-            queryClient.invalidateQueries({
-                queryKey: ["usePositionsSearch"],
-            });
             navigate(ROUTES.listPositions);
         },
         onError: apiErrorHandler,

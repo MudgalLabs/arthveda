@@ -1,6 +1,5 @@
 import { FC, ReactNode, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 import Decimal from "decimal.js";
 
 import { toast } from "@/components/toast";
@@ -92,7 +91,6 @@ export const ImportPositions = () => {
     }, []);
 
     const navigate = useNavigate();
-    const queryClient = useQueryClient();
 
     const { mutateAsync: importAsync, isPending } = apiHooks.position.useImport({
         onError: (error) => {
@@ -163,11 +161,6 @@ export const ImportPositions = () => {
                     discard();
 
                     if (data.positions_imported_count > 0) {
-                        // Invalidate the dashbaord cache to reflect the new positions.
-                        queryClient.invalidateQueries({
-                            queryKey: ["useGetDashboard"],
-                        });
-
                         return {
                             type: "success",
                             message: `Imported ${data.positions_imported_count} positions`,
@@ -726,7 +719,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
                     {brokerName && (
                         <span className="flex-x">
                             {supportedInstrumentsByBroker[brokerName]?.map((instrument) => (
-                                <Tag>{positionInstrumentToString(instrument)}</Tag>
+                                <Tag key={instrument}>{positionInstrumentToString(instrument)}</Tag>
                             ))}
                         </span>
                     )}

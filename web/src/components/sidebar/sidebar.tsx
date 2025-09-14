@@ -2,7 +2,7 @@ import { FC, ReactNode, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useNotificationsUnreadCount } from "@bodhveda/react";
 
-import { useSidebar, Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent, IconCalendarSingle } from "netra";
+import { useSidebar, Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent, IconCalendarSingle, Tag } from "netra";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
 import { IconCandlestick, IconDashboard } from "@/components/icons";
@@ -15,7 +15,13 @@ import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
 import { NotificationsInbox } from "@/components/notification/notification_inbox";
 
-const SIDEBAR_ROUTES = [ROUTES.dashboard, ROUTES.listPositions, ROUTES.newPositions, ROUTES.importPositions];
+const SIDEBAR_ROUTES = [
+    ROUTES.dashboard,
+    ROUTES.listPositions,
+    ROUTES.newPositions,
+    ROUTES.importPositions,
+    ROUTES.calendar,
+];
 
 export const Sidebar = () => {
     const { pathname } = useLocation();
@@ -92,7 +98,11 @@ export const Sidebar = () => {
 
                 <Link to={ROUTES.calendar} variant="unstyled">
                     <SidebarItem
-                        label="Calendar"
+                        label={
+                            <span className="flex-x">
+                                Calendar <Tag size="small">New</Tag>
+                            </span>
+                        }
                         icon={<IconCalendarSingle size={20} />}
                         open={isOpen}
                         isActive={activeRoute === ROUTES.calendar}

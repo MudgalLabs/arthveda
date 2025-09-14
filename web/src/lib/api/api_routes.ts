@@ -7,6 +7,9 @@ export const API_ROUTES = {
     broker: {
         list: "/v1/brokers",
     },
+    calendar: {
+        get: "/v1/calendar",
+    },
     currency: {
         list: "/v1/currencies",
     },
