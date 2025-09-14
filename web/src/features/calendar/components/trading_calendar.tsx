@@ -129,7 +129,7 @@ function Day(props: DayProps) {
                 "bg-success-bg border-success-border": isWin,
                 "bg-error-bg border-error-border": isLoss,
                 "bg-surface-2 border-border-subtle": isEven,
-                "cursor-pointer": dpDay.inCurrentMonth && !isEven,
+                // "cursor-pointer": dpDay.inCurrentMonth && !isEven,
             })}
         >
             <span
