@@ -5,19 +5,17 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
 import { apiHooks } from "@/hooks/api_hooks";
-import { useAuthentication, useUserHasProSubscription } from "@/features/auth/auth_context";
+import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cumulative_pnl_graph";
 import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
 import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
 import { IconSearch } from "@/components/icons";
-import { PageHeading, Button, DatePicker, IconDashboard, Tooltip, useDocumentTitle } from "netra";
+import { PageHeading, Button, DatePicker, IconDashboard, useDocumentTitle } from "netra";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
-import { Link } from "@/components/link";
-import { ROUTES } from "@/constants";
-import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
+import { FreePlanLimitTag } from "@/components/free_plan_limit_tag";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -132,11 +130,10 @@ export const Dashboard = () => {
     const [dates, setDates] = useState<Date[]>([]);
     const [appliedDates, setAppliedDates] = useState<Date[]>([]);
 
-    const hasPro = useUserHasProSubscription();
-
     const { data, isFetching, isError } = apiHooks.dashboard.useGetDashboard({
         date_range: datesArrayToDateRangeFilter(appliedDates),
     });
+    const { data: userMeData } = apiHooks.user.useMe();
 
     const cumulativePnLData = useMemo(() => {
         if (!data) return [];
@@ -166,11 +163,6 @@ export const Dashboard = () => {
         setAppliedDates(dates);
     };
 
-    const isNewUser = useMemo(() => {
-        // No filters applied and no positions count means it's a new user.
-        return appliedDates.length === 0 && data?.positions_count === 0;
-    }, [appliedDates.length, data?.positions_count]);
-
     const content = useMemo(() => {
         if (isError) {
             return <p className="text-text-destructive">Error loading dashboard data.</p>;
@@ -186,7 +178,7 @@ export const Dashboard = () => {
 
         if (!data) return null;
 
-        if (isNewUser) {
+        if (!userMeData || !userMeData.data.total_positions) {
             return <GetStarted />;
         }
 
@@ -288,30 +280,9 @@ export const Dashboard = () => {
                 <h1>Dashboard</h1>
             </PageHeading>
 
-            {!isNewUser && !isFetching && (
+            {!isFetching && (
                 <div className="space-y-4">
-                    {!hasPro && !!data?.no_of_positions_hidden && (
-                        <div className="text-text-muted flex flex-col gap-2 sm:flex-row">
-                            <Tooltip
-                                contentProps={{ align: "start" }}
-                                content={
-                                    <div className="space-y-2">
-                                        <p>
-                                            {data.no_of_positions_hidden} positions are older than 12 months and have
-                                            been hidden.
-                                        </p>
-                                        <p>
-                                            <Link to={ROUTES.planAndBilling}>Upgrade</Link> to see full analytics.
-                                        </p>
-                                    </div>
-                                }
-                            >
-                                <span>
-                                    <FreePlanLimitTag />
-                                </span>
-                            </Tooltip>
-                        </div>
-                    )}
+                    <FreePlanLimitTag />
 
                     <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row">
                         <div className="flex-x">

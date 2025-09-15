@@ -1,14 +1,11 @@
 import { useMemo } from "react";
+import { PageHeading, IconCandlestick, Loading, useDocumentTitle } from "netra";
 
 import { PositionListTable } from "@/features/position/components/position_list_table";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import { prepareFilters } from "@/features/position/utils";
 import { apiHooks } from "@/hooks/api_hooks";
-import { useUserHasProSubscription } from "@/features/auth/auth_context";
-import { Link } from "@/components/link";
-import { ROUTES } from "@/constants";
-import { PageHeading, IconCandlestick, Loading, Tooltip, useDocumentTitle } from "netra";
-import { FreePlanLimitTag } from "@/components/free_plan_limi_tag";
+import { FreePlanLimitTag } from "@/components/free_plan_limit_tag";
 
 export const Positions = () => {
     useDocumentTitle("Positions • Arthveda");
@@ -40,8 +37,6 @@ export const Positions = () => {
         return [];
     }, [queryResult]);
 
-    const hasPro = useUserHasProSubscription();
-
     return (
         <>
             <PageHeading>
@@ -50,28 +45,9 @@ export const Positions = () => {
                 {queryResult.isFetching && <Loading />}
             </PageHeading>
 
-            {!hasPro && !!queryResult?.data?.data.no_of_positions_hidden && (
-                <div className="text-text-muted flex flex-col gap-2 sm:flex-row">
-                    <Tooltip
-                        contentProps={{ align: "start" }}
-                        content={
-                            <div className="space-y-2">
-                                <p>
-                                    {queryResult?.data?.data.no_of_positions_hidden} positions are older than 12 months
-                                    and have been hidden.
-                                </p>
-                                <p>
-                                    <Link to={ROUTES.planAndBilling}>Upgrade</Link> for complete history.
-                                </p>
-                            </div>
-                        }
-                    >
-                        <span>
-                            <FreePlanLimitTag />
-                        </span>
-                    </Tooltip>
-                </div>
-            )}
+            <FreePlanLimitTag />
+
+            <div className="h-2" />
 
             {queryResult?.data && (
                 <>

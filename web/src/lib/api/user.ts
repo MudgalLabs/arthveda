@@ -11,6 +11,8 @@ export interface User {
     update_at: string;
 
     subscription: Subscription | null;
+    positions_hidden: number;
+    total_positions: number;
 }
 
 export interface UserMeResponse extends User {}

@@ -1,8 +1,9 @@
+import { useMemo } from "react";
 import { ErrorMessage, IconCalendarSingle, Loading, LoadingScreen, PageHeading } from "netra";
 
 import { TradingCalendar } from "@/features/calendar/components/trading_calendar";
 import { apiHooks } from "@/hooks/api_hooks";
-import { useMemo } from "react";
+import { FreePlanLimitTag } from "@/components/free_plan_limit_tag";
 
 export function Calendar() {
     const { data, isLoading, isFetching, isError } = apiHooks.calendar.useGetCalendar();
@@ -21,7 +22,9 @@ export function Calendar() {
         }
 
         return (
-            <div className="flex-1">
+            <div className="flex-1 space-y-2">
+                <FreePlanLimitTag />
+
                 <TradingCalendar data={data} />
             </div>
         );

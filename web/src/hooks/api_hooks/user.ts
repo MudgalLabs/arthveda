@@ -9,5 +9,6 @@ export function useMe() {
         queryKey: ["useMe"],
         queryFn: () => api.user.me(),
         select: (res) => res.data as ApiRes<UserMeResponse>,
+        staleTime: Infinity,
     });
 }

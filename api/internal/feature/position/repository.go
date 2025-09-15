@@ -22,6 +22,7 @@ type Reader interface {
 	Search(ctx context.Context, payload SearchPayload, attachTrades bool) ([]*Position, int, error)
 	SearchSymbols(ctx context.Context, userID uuid.UUID, query string) ([]string, error)
 	NoOfPositionsOlderThanTwelveMonths(ctx context.Context, userID uuid.UUID) (int, error)
+	TotalPositions(ctx context.Context, userID uuid.UUID) (int, error)
 }
 
 type Writer interface {
@@ -588,6 +589,22 @@ func (r *positionRepository) NoOfPositionsOlderThanTwelveMonths(ctx context.Cont
 
 	var count int
 	err := r.db.QueryRow(ctx, sql, userID, twelveMonthsAgo).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("query: %w", err)
+	}
+
+	return count, nil
+}
+
+func (r *positionRepository) TotalPositions(ctx context.Context, userID uuid.UUID) (int, error) {
+	const sql = `
+		SELECT COUNT(id)
+		FROM position
+		WHERE created_by = $1
+	`
+
+	var count int
+	err := r.db.QueryRow(ctx, sql, userID).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("query: %w", err)
 	}

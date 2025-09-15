@@ -100,7 +100,7 @@ func main() {
 	symbolService := symbol.NewService(positionRepository)
 	userBrokerAccountService := userbrokeraccount.NewService(userBrokerAccountRepository, brokerRepository)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
-	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository)
+	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository, positionRepository)
 
 	services := services{
 		BrokerService:            brokerService,

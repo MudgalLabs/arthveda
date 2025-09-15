@@ -59,8 +59,9 @@ export function useAuthentication(): AuthenticationContextType {
     return context;
 }
 
-export function useSubscription(): Subscription | null | undefined {
+export function useSubscription(): Subscription | null {
     const { data } = useAuthentication();
+    if (!data) return null;
     return data?.subscription;
 }
 
