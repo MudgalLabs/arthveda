@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { DPDay, useDatePicker } from "@rehookify/datepicker";
 import Decimal from "decimal.js";
 
-import { Button, cn, formatCurrency, IconChevronLeft, IconChevronRight, Separator } from "netra";
+import { Button, cn, formatCurrency, formatDate, IconChevronLeft, IconChevronRight, Separator } from "netra";
 import { GetCalendarResponse } from "@/lib/api/calendar";
 import { PnL } from "@/components/pnl";
+import { ListPositionsModal } from "@/components/list_positions_modal";
+import { apiHooks } from "@/hooks/api_hooks";
 
 interface TradingCalendarProps {
     data: GetCalendarResponse;
@@ -103,39 +105,71 @@ function Day(props: DayProps) {
 
     const isWin = dpDay.inCurrentMonth && pnl.isPositive();
     const isLoss = dpDay.inCurrentMonth && pnl.isNegative();
-    const isEven = dpDay.inCurrentMonth && pnl.isZero() && numberOfPositions === 0;
+    const isNoTradeDay = dpDay.inCurrentMonth && pnl.isZero() && numberOfPositions === 0;
+
+    const [open, setOpen] = useState(false);
+    const { data, isFetching } = apiHooks.position.useSearch(
+        {
+            filters: {
+                trade_time: {
+                    from: dpDay.$date,
+                    to: dpDay.$date,
+                },
+            },
+        },
+        {
+            enabled: open,
+        }
+    );
 
     return (
-        <div
-            className={cn("border-border-subtle flex h-full flex-col justify-between rounded-md border p-2", {
-                "bg-success-border border-success-border": isWin,
-                "bg-error-border border-error-border": isLoss,
-                "bg-surface-2 border-none": isEven,
-                // "cursor-pointer": dpDay.inCurrentMonth && !isEven,
-            })}
-        >
-            <span
-                className={cn({
-                    "text-text-muted": !dpDay.inCurrentMonth,
-                })}
-            >
-                {dpDay.day}
-            </span>
-
-            {dpDay.inCurrentMonth && (
-                <div className="flex flex-col">
-                    {!isEven && (
-                        <PnL value={pnl} className="text-lg font-medium">
-                            {formatCurrency(pnl.toString(), {
-                                compact: true,
+        <ListPositionsModal
+            renderTrigger={() => (
+                <button
+                    className={cn("h-full w-full enabled:cursor-pointer enabled:hover:brightness-110")}
+                    disabled={isNoTradeDay || !dpDay.inCurrentMonth}
+                >
+                    <div
+                        className={cn(
+                            "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md border p-2",
+                            {
+                                "bg-success-border border-success-border": isWin,
+                                "bg-error-border border-error-border": isLoss,
+                                "bg-surface-2 border-none": isNoTradeDay,
+                            }
+                        )}
+                    >
+                        <span
+                            className={cn({
+                                "text-text-muted": !dpDay.inCurrentMonth,
                             })}
-                        </PnL>
-                    )}
+                        >
+                            {dpDay.day}
+                        </span>
 
-                    {numberOfPositions > 0 && <span>{numberOfPositions} positions</span>}
-                </div>
+                        {dpDay.inCurrentMonth && (
+                            <div className="flex flex-col">
+                                {!isNoTradeDay && (
+                                    <PnL value={pnl} className="absolute-center text-lg font-medium">
+                                        {formatCurrency(pnl.toString(), {
+                                            compact: true,
+                                        })}
+                                    </PnL>
+                                )}
+
+                                {numberOfPositions > 0 && <span>{numberOfPositions} positions</span>}
+                            </div>
+                        )}
+                    </div>
+                </button>
             )}
-        </div>
+            open={open}
+            setOpen={setOpen}
+            isLoading={isFetching}
+            data={data?.data}
+            title="Day info"
+            description={`Positions on ${formatDate(dpDay.$date)}`}
+        />
     );
 }
 

@@ -139,6 +139,7 @@ func searchPositionsHandler(s *position.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
+		tz := getUserTimezoneFromCtx(ctx)
 		enforcer := getPlanEnforcerFromCtx(ctx)
 
 		var payload position.SearchPayload
@@ -150,7 +151,7 @@ func searchPositionsHandler(s *position.Service) http.HandlerFunc {
 		// We only want to return the positions for the authenticated user.
 		payload.Filters.CreatedBy = &userID
 
-		result, errKind, err := s.Search(ctx, userID, enforcer, payload)
+		result, errKind, err := s.Search(ctx, userID, tz, enforcer, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

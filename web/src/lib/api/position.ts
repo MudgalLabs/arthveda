@@ -94,6 +94,7 @@ export interface PositionSearchFilters {
     charges_percentage?: DecimalString | "";
     charges_percentage_operator?: CompareOperator;
     user_broker_account_id?: string | "";
+    trade_time?: DateRangeFilter;
 }
 
 export interface PositionSearchRequest extends SearchRequest<PositionSearchFilters> {}

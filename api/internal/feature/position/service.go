@@ -150,7 +150,7 @@ type SearchResult struct {
 	common.SearchResult[[]*Position]
 }
 
-func (s *Service) Search(ctx context.Context, userID uuid.UUID, enforcer *subscription.PlanEnforcer, payload SearchPayload) (*SearchResult, service.Error, error) {
+func (s *Service) Search(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer, payload SearchPayload) (*SearchResult, service.Error, error) {
 	err := payload.Init(allowedSortFields)
 	if err != nil {
 		return nil, service.ErrInvalidInput, err
@@ -167,6 +167,44 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, enforcer *subscr
 				payload.Filters.Opened.From = &twelveMonthsAgo
 			}
 		}
+	}
+
+	// Normalize timestamps.
+	if payload.Filters.Opened != nil {
+		if payload.Filters.Opened.From == nil {
+			payload.Filters.Opened.From = &time.Time{}
+		}
+
+		if payload.Filters.Opened.To == nil {
+			payload.Filters.Opened.To = &time.Time{}
+		}
+
+		openedFrom, openedTo, err := common.NormalizeDateRangeFromTimezone(*payload.Filters.Opened.From, *payload.Filters.Opened.To, tz)
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("normalize opened date range: %w", err)
+		}
+
+		payload.Filters.Opened.From = &openedFrom
+		payload.Filters.Opened.To = &openedTo
+	}
+
+	// Normalize timestamps.
+	if payload.Filters.TradeTime != nil {
+		if payload.Filters.TradeTime.From == nil {
+			payload.Filters.TradeTime.From = &time.Time{}
+		}
+
+		if payload.Filters.TradeTime.To == nil {
+			payload.Filters.TradeTime.To = &time.Time{}
+		}
+
+		tradeTimeFrom, tradeTimeTo, err := common.NormalizeDateRangeFromTimezone(*payload.Filters.TradeTime.From, *payload.Filters.TradeTime.To, tz)
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("normalize trade time date range: %w", err)
+		}
+
+		payload.Filters.TradeTime.From = &tradeTimeFrom
+		payload.Filters.TradeTime.To = &tradeTimeTo
 	}
 
 	positions, totalItems, err := s.positionRepository.Search(ctx, payload, false)
