@@ -3,7 +3,7 @@ import { IconBadgeCheck } from "@/components/icons";
 import { UpgradeToPro } from "@/features/settings/plan_and_billing/components/upgrade_to_pro";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 import { cn } from "@/lib/utils";
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tag } from "netra";
+import { Button, IconInfo, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tag, Tooltip } from "netra";
 import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { PADDLE_PRICE_ID_MONTHLY, PADDLE_PRICE_ID_YEARLY } from "@/constants";
@@ -107,8 +107,8 @@ export function Pricing(props: PricingProps) {
             </div>
 
             <p className="text-muted-foreground mb-6 text-sm font-medium text-pretty!">
-                💡 Subscribe yearly and lock in this price for a year. As Arthveda grows, prices may increase, but yours
-                won’t.
+                💡 <span className="text-foreground font-semibold">Subscribe yearly</span> and lock in this price for a
+                year. As Arthveda grows, prices may increase, but yours won’t.
             </p>
 
             <div className="h-8" />
@@ -142,24 +142,19 @@ export function Pricing(props: PricingProps) {
                             </TableCell>
                         </TableRow>
                         <TableRow className="bg-muted/5">
-                            <TableCell className="px-6 py-3">Analytics</TableCell>
-                            <TableCell className="px-6 py-3">
-                                <div className="flex-x">
-                                    <IconBadgeCheck className="text-accent" />
-                                    Past 1 year only
-                                </div>
-                            </TableCell>
-                            <TableCell className="px-6 py-3">
-                                <div className="flex-x">
-                                    <IconBadgeCheck className="text-text-success" />
-                                    Full history
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell className="px-6 py-3">Explore positions</TableCell>
                             <TableCell className="px-6 py-3">
                                 {" "}
+                                <div className="flex-x">
+                                    Data & Insights
+                                    <Tooltip
+                                        content="Includes dashboard, positions and calendar."
+                                        contentProps={{ className: "max-w-xs" }}
+                                    >
+                                        <IconInfo size={14} />
+                                    </Tooltip>
+                                </div>
+                            </TableCell>
+                            <TableCell className="px-6 py-3">
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-accent" />
                                     Past 1 year only
