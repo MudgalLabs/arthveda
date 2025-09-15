@@ -106,9 +106,9 @@ export function Pricing(props: PricingProps) {
                 </Card>
             </div>
 
-            <p className="text-muted-foreground mb-6 text-sm font-medium text-pretty! italic">
-                💡 Subscribe yearly and lock in this price for 12 months. As Arthveda grows, prices may increase, but
-                yours won’t.
+            <p className="text-muted-foreground mb-6 text-sm font-medium text-pretty!">
+                💡 Subscribe yearly and lock in this price for a year. As Arthveda grows, prices may increase, but yours
+                won’t.
             </p>
 
             <div className="h-8" />
@@ -146,13 +146,13 @@ export function Pricing(props: PricingProps) {
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-accent" />
-                                    Last 12 months only
+                                    Past 1 year only
                                 </div>
                             </TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-text-success" />
-                                    Unlimited
+                                    Full history
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -162,13 +162,13 @@ export function Pricing(props: PricingProps) {
                                 {" "}
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-accent" />
-                                    Last 12 months only
+                                    Past 1 year only
                                 </div>
                             </TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
                                     <IconBadgeCheck className="text-text-success" />
-                                    Unlimited
+                                    Full history
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -195,7 +195,7 @@ export function Pricing(props: PricingProps) {
                             </TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
-                                    <IconBadgeCheck className="text-accent" />1 account
+                                    <IconBadgeCheck className="text-accent" />2 accounts
                                 </div>
                             </TableCell>
                             <TableCell className="px-6 py-3">

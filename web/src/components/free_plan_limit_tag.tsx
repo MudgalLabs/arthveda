@@ -18,7 +18,7 @@ export function FreePlanLimitTag() {
             content={
                 <div className="space-y-2">
                     <p>
-                        {positionsHidden}/{totalPositions} positions are older than 12 months and hidden.
+                        {positionsHidden}/{totalPositions} positions are older than a year and hidden.
                     </p>
 
                     <p>

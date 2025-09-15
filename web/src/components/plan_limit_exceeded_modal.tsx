@@ -38,11 +38,10 @@ interface DialogData {
 const dialogDataByFeature: Record<Feature, DialogData> = {
     [Feature.AddUserBrokerAccount]: {
         title: "Add more broker accounts",
-        messageFreePlan:
-            "You have reached your limit for adding broker accounts. Need more? You can upgrade your plan to add more.",
+        messageFreePlan: "You have reached your limit for adding broker accounts. Need more? Upgrade to Pro.",
         messageProPlan:
-            "You have reached your limit for adding broker accounts. Please delete old broker accounts to add new ones.",
-        freePlanLimit: 1,
+            "You have reached your limit for adding broker accounts. Please delete old broker accounts to add new ones. You can contact us at hey@arthveda.app for more help.",
+        freePlanLimit: 2,
         proPlanLimit: 10,
     },
 };

@@ -92,7 +92,6 @@ export const PlanAndBilling = () => {
                             </div>
                         ) : (
                             <div className="text-text-muted">
-                                <p className="text-text-muted">You are currently on the free plan.</p>
                                 <p>
                                     Click on <span className="font-semibold">Upgrade</span> to learn more about Pro.
                                 </p>
