@@ -145,9 +145,9 @@ export function Pricing(props: PricingProps) {
                             <TableCell className="px-6 py-3">
                                 {" "}
                                 <div className="flex-x">
-                                    Data & Insights
+                                    Data and insights
                                     <Tooltip
-                                        content="Includes dashboard, positions and calendar."
+                                        content="Includes Dashboard, Positions and Calendar."
                                         contentProps={{ className: "max-w-xs" }}
                                     >
                                         <IconInfo size={14} />
