@@ -97,9 +97,7 @@ export interface PositionSearchFilters {
 }
 
 export interface PositionSearchRequest extends SearchRequest<PositionSearchFilters> {}
-export interface PositionSearchResponse extends SearchResponse<Position[]> {
-    no_of_positions_hidden: number;
-}
+export interface PositionSearchResponse extends SearchResponse<Position[]> {}
 
 export function search(body: PositionSearchRequest) {
     return client.post(API_ROUTES.position.search, body);

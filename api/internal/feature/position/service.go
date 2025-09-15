@@ -148,8 +148,6 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePa
 type SearchPayload = common.SearchPayload[SearchFilter]
 type SearchResult struct {
 	common.SearchResult[[]*Position]
-
-	NoOfPositionsHidden int `json:"no_of_positions_hidden"`
 }
 
 func (s *Service) Search(ctx context.Context, userID uuid.UUID, enforcer *subscription.PlanEnforcer, payload SearchPayload) (*SearchResult, service.Error, error) {
@@ -160,13 +158,6 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, enforcer *subscr
 
 	twelveMonthsAgo := time.Now().AddDate(-1, 0, 0)
 
-	positionsExistOlderThanTwelveMonths, err := s.positionRepository.NoOfPositionsOlderThanTwelveMonths(ctx, userID)
-	if err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("UserHasPositionsOlderThanTwelveMonths: %w", err)
-	}
-
-	var noOfPositionsHidden int
-
 	// If the user is not a Pro user, we limit the time range to the last 12 months.
 	if !enforcer.CanAccessAllPositions() {
 		// If no time range is specified or if the time range is specified,
@@ -174,7 +165,6 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, enforcer *subscr
 		if payload.Filters.Opened != nil {
 			if payload.Filters.Opened.From == nil || (payload.Filters.Opened.From != nil && payload.Filters.Opened.From.Before(twelveMonthsAgo)) {
 				payload.Filters.Opened.From = &twelveMonthsAgo
-				noOfPositionsHidden = positionsExistOlderThanTwelveMonths
 			}
 		}
 	}
@@ -187,8 +177,7 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, enforcer *subscr
 	result := common.NewSearchResult(positions, payload.Pagination.GetMeta(totalItems))
 
 	return &SearchResult{
-		SearchResult:        *result,
-		NoOfPositionsHidden: noOfPositionsHidden,
+		SearchResult: *result,
 	}, service.ErrNone, nil
 }
 
