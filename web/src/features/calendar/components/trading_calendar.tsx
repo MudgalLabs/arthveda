@@ -54,9 +54,7 @@ export function TradingCalendar(props: TradingCalendarProps) {
                     <div className="flex-center sm:flex-x gap-x-4!">
                         {monthData?.pnl && (
                             <PnL value={new Decimal(monthData.pnl)} className="text-xl font-semibold">
-                                {formatCurrency(monthData.pnl, {
-                                    compact: true,
-                                })}
+                                {formatCurrency(monthData.pnl)}
                             </PnL>
                         )}
 
@@ -110,9 +108,9 @@ function Day(props: DayProps) {
     return (
         <div
             className={cn("border-border-subtle flex h-full flex-col justify-between rounded-md border p-2", {
-                "bg-success-bg border-success-border": isWin,
-                "bg-error-bg border-error-border": isLoss,
-                "bg-surface-2 border-border-subtle": isEven,
+                "bg-success-border border-success-border": isWin,
+                "bg-error-border border-error-border": isLoss,
+                "bg-surface-2 border-none": isEven,
                 // "cursor-pointer": dpDay.inCurrentMonth && !isEven,
             })}
         >

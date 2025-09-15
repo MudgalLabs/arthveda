@@ -1,11 +1,13 @@
 import { useMemo } from "react";
-import { ErrorMessage, IconCalendarSingle, Loading, LoadingScreen, PageHeading } from "netra";
+import { ErrorMessage, IconCalendarSingle, Loading, LoadingScreen, PageHeading, useDocumentTitle } from "netra";
 
 import { TradingCalendar } from "@/features/calendar/components/trading_calendar";
 import { apiHooks } from "@/hooks/api_hooks";
 import { FreePlanLimitTag } from "@/components/free_plan_limit_tag";
 
 export function Calendar() {
+    useDocumentTitle("Calendar • Arthveda");
+
     const { data, isLoading, isFetching, isError } = apiHooks.calendar.useGetCalendar();
 
     const content = useMemo(() => {
