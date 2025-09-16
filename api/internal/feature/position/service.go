@@ -171,40 +171,56 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 	// Normalize timestamps.
 	if payload.Filters.Opened != nil {
-		if payload.Filters.Opened.From == nil {
-			payload.Filters.Opened.From = &time.Time{}
+		openedFrom := time.Time{}
+		openedTo := time.Time{}
+
+		if payload.Filters.Opened.From != nil {
+			openedFrom = *payload.Filters.Opened.From
 		}
 
-		if payload.Filters.Opened.To == nil {
-			payload.Filters.Opened.To = &time.Time{}
+		if payload.Filters.Opened.To != nil {
+			openedTo = *payload.Filters.Opened.To
 		}
 
-		openedFrom, openedTo, err := common.NormalizeDateRangeFromTimezone(*payload.Filters.Opened.From, *payload.Filters.Opened.To, tz)
+		openedFrom, openedTo, err = common.NormalizeDateRangeFromTimezone(openedFrom, openedTo, tz)
 		if err != nil {
 			return nil, service.ErrInternalServerError, fmt.Errorf("normalize opened date range: %w", err)
 		}
 
-		payload.Filters.Opened.From = &openedFrom
-		payload.Filters.Opened.To = &openedTo
+		if payload.Filters.Opened.From != nil {
+			payload.Filters.Opened.From = &openedFrom
+		}
+
+		if payload.Filters.Opened.To != nil {
+			payload.Filters.Opened.To = &openedTo
+		}
 	}
 
 	// Normalize timestamps.
 	if payload.Filters.TradeTime != nil {
-		if payload.Filters.TradeTime.From == nil {
-			payload.Filters.TradeTime.From = &time.Time{}
+		tradeTimeFrom := time.Time{}
+		tradeTimeTo := time.Time{}
+
+		if payload.Filters.TradeTime.From != nil {
+			tradeTimeFrom = *payload.Filters.TradeTime.From
 		}
 
-		if payload.Filters.TradeTime.To == nil {
-			payload.Filters.TradeTime.To = &time.Time{}
+		if payload.Filters.TradeTime.To != nil {
+			tradeTimeTo = *payload.Filters.TradeTime.To
 		}
 
-		tradeTimeFrom, tradeTimeTo, err := common.NormalizeDateRangeFromTimezone(*payload.Filters.TradeTime.From, *payload.Filters.TradeTime.To, tz)
+		tradeTimeFrom, tradeTimeTo, err = common.NormalizeDateRangeFromTimezone(tradeTimeFrom, tradeTimeTo, tz)
 		if err != nil {
 			return nil, service.ErrInternalServerError, fmt.Errorf("normalize trade time date range: %w", err)
 		}
 
-		payload.Filters.TradeTime.From = &tradeTimeFrom
-		payload.Filters.TradeTime.To = &tradeTimeTo
+		if payload.Filters.TradeTime.From != nil {
+			payload.Filters.TradeTime.From = &tradeTimeFrom
+		}
+
+		if payload.Filters.TradeTime.To != nil {
+			payload.Filters.TradeTime.To = &tradeTimeTo
+		}
 	}
 
 	positions, totalItems, err := s.positionRepository.Search(ctx, payload, false)
