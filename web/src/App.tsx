@@ -105,9 +105,6 @@ export default function App() {
                         <BodhvedaProvider
                             apiKey={import.meta.env.ARTHVEDA_BODHVEDA_CLIENT_API_KEY}
                             recipientID={data?.user_id || ""}
-                            options={{
-                                apiURL: !isProd() ? "http://localhost:1338" : undefined,
-                            }}
                         >
                             <Suspense
                                 fallback={
