@@ -2,7 +2,16 @@ import { useMemo, useState } from "react";
 import { DPDay, useDatePicker } from "@rehookify/datepicker";
 import Decimal from "decimal.js";
 
-import { Button, cn, formatCurrency, formatDate, IconChevronLeft, IconChevronRight, Separator } from "netra";
+import {
+    Button,
+    cn,
+    formatCurrency,
+    formatDate,
+    IconChevronLeft,
+    IconChevronRight,
+    Separator,
+    useControlled,
+} from "netra";
 import { GetCalendarResponse } from "@/lib/api/calendar";
 import { PnL } from "@/components/pnl";
 import { ListPositionsModal } from "@/components/list_positions_modal";
@@ -10,10 +19,21 @@ import { apiHooks } from "@/hooks/api_hooks";
 
 interface TradingCalendarProps {
     data: GetCalendarResponse;
+    shrinkedView?: boolean;
+}
+
+const enum ViewMode {
+    ALL = "all",
+    YEARLY = "yearly",
+    MONTHLY = "monthly",
 }
 
 export function TradingCalendar(props: TradingCalendarProps) {
-    const { data } = props;
+    const { data, shrinkedView } = props;
+
+    const now = new Date();
+
+    const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.MONTHLY);
 
     const [selectedDates, onDatesChange] = useState<Date[]>([]);
     const [offsetDate, onOffsetChange] = useState<Date>(new Date());
@@ -29,30 +49,77 @@ export function TradingCalendar(props: TradingCalendarProps) {
         calendar: { mode: "fluid" },
     });
 
-    const { year, month, days } = calendars[0];
+    const isMonthlyView = viewMode === ViewMode.MONTHLY;
+
+    const { days, year, month } = calendars[0];
 
     const monthData = useMemo(() => {
         return data[Number(year)]?.[month];
     }, [data, month, year]);
+
+    const content = useMemo(() => {
+        if (isMonthlyView) {
+            return <Monthly data={data} shrink={shrinkedView} offsetDate={offsetDate} />;
+        }
+
+        if (viewMode === ViewMode.YEARLY) {
+            return (
+                <ul className="mx-auto grid grid-cols-1 gap-8 pb-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
+                        <li key={m}>
+                            <Monthly
+                                data={data}
+                                offsetDate={new Date(Number(year), m - 1, 1)}
+                                shrink
+                                onClickOpen={() => {
+                                    setViewMode(ViewMode.MONTHLY);
+                                    onOffsetChange(new Date(Number(year), m - 1, now.getDate()));
+                                }}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            );
+        }
+    }, [days, monthData, weekDays, shrinkedView, viewMode, isMonthlyView, offsetDate]);
 
     return (
         <section className="flex h-full w-full flex-col">
             {selectedDates.length > 0 ? <h1>{selectedDates[0].toDateString()}</h1> : null}
 
             <header className="mb-2">
-                <div className="flex flex-col gap-x-8 gap-y-2 sm:flex-row">
-                    <div className="flex w-full items-center justify-between sm:w-[220px]!">
-                        <Button variant="ghost" size="icon" {...subtractOffset({ months: 1 })}>
-                            <IconChevronLeft size={18} />
-                        </Button>
+                <div
+                    className={cn("flex flex-col gap-x-8 gap-y-2", {
+                        "sm:flex-row": !shrinkedView,
+                    })}
+                >
+                    <div
+                        className={cn("flex w-full items-center justify-between", {
+                            "sm:w-[220px]!": !shrinkedView,
+                            "justify-center": !isMonthlyView,
+                        })}
+                    >
+                        {isMonthlyView && (
+                            <Button variant="ghost" size="icon" {...subtractOffset({ months: 1 })}>
+                                <IconChevronLeft size={18} />
+                            </Button>
+                        )}
 
-                        <p className="font-semibold">
-                            {month} {year}
-                        </p>
+                        <span className="space-x-2">
+                            {isMonthlyView && (
+                                <Button variant="link" onClick={() => setViewMode(ViewMode.YEARLY)}>
+                                    {month}
+                                </Button>
+                            )}
 
-                        <Button variant="ghost" size="icon" {...addOffset({ months: 1 })}>
-                            <IconChevronRight size={18} />
-                        </Button>
+                            <Button variant="link">{year}</Button>
+                        </span>
+
+                        {isMonthlyView && (
+                            <Button variant="ghost" size="icon" {...addOffset({ months: 1 })}>
+                                <IconChevronRight size={18} />
+                            </Button>
+                        )}
                     </div>
 
                     <div className="flex-center sm:flex-x gap-x-4!">
@@ -68,30 +135,94 @@ export function TradingCalendar(props: TradingCalendarProps) {
                     </div>
                 </div>
 
-                <Separator className="mt-2 mb-4" />
-
-                <ul className="grid flex-1 grid-cols-7 gap-x-2 gap-y-2">
-                    {weekDays.map((weekDay) => (
-                        <li key={`${month}-${weekDay}`}>
-                            <WeekDay weekDay={weekDay} />
-                        </li>
-                    ))}
-                </ul>
+                <Separator className="my-4" />
             </header>
 
-            <ul className="grid flex-1 grid-cols-7 [grid-template-rows:repeat(6,1fr)] gap-x-2 gap-y-2">
-                {days.map((dpDay) => {
-                    const day = Number(dpDay.day);
-                    const pnl = new Decimal(monthData?.daily[day]?.pnl ?? 0);
-                    const numberOfPositions = monthData?.daily[day]?.positions_count ?? 0;
+            {content}
+        </section>
+    );
+}
 
-                    return (
-                        <li key={dpDay.$date.toDateString()} className="h-full w-full">
-                            <Day dpDay={dpDay} pnl={pnl} numberOfPositions={numberOfPositions} />
-                        </li>
-                    );
-                })}
+interface MonthlyProps {
+    data: GetCalendarResponse;
+    offsetDate?: Date;
+    shrink?: boolean;
+    onClickOpen?: () => void;
+}
+
+function Monthly(props: MonthlyProps) {
+    const { data, shrink, offsetDate: offsetDateProp, onClickOpen } = props;
+
+    const [selectedDates, onDatesChange] = useState<Date[]>([]);
+    const [offsetDate, onOffsetChange] = useControlled({
+        controlled: offsetDateProp,
+        default: new Date(),
+        name: "TradingCalendar.Monthly",
+        state: "offsetDate",
+    });
+
+    const {
+        data: { weekDays, calendars },
+    } = useDatePicker({
+        selectedDates,
+        onDatesChange,
+        offsetDate,
+        onOffsetChange,
+        calendar: { mode: "fluid" },
+    });
+
+    const { year, month, days } = calendars[0];
+
+    const monthData = useMemo(() => {
+        return data[Number(year)]?.[month];
+    }, [data, month, year]);
+
+    return (
+        <section
+            className={cn("flex h-full w-full flex-col", {
+                "border-border-subtle rounded-md border-1 p-2": shrink,
+            })}
+        >
+            {shrink && (
+                <div className="flex-x mx-2 mt-0 mb-4 justify-between">
+                    <span className={cn("text-center font-semibold", { "text-lg": !shrink })}>
+                        {month.slice(0, 3)}, {year}
+                    </span>
+
+                    <Button variant="ghost" size="small" onClick={onClickOpen}>
+                        Open
+                    </Button>
+                </div>
+            )}
+
+            <ul className="mb-4 grid flex-1 grid-cols-7 gap-x-2">
+                {weekDays.map((weekDay) => (
+                    <li key={weekDay}>
+                        <WeekDay weekDay={weekDay} />
+                    </li>
+                ))}
             </ul>
+
+            <section className="flex h-full w-full flex-col">
+                <ul className="grid flex-1 grid-cols-7 [grid-template-rows:repeat(6,1fr)] gap-x-2 gap-y-2">
+                    {days.map((dpDay) => {
+                        const day = Number(dpDay.day);
+                        const pnl = new Decimal(monthData?.daily[day]?.pnl ?? 0);
+                        const numberOfPositions = monthData?.daily[day]?.positions_count ?? 0;
+
+                        return (
+                            <li key={dpDay.$date.toDateString()} className="h-full w-full">
+                                <Day
+                                    dpDay={dpDay}
+                                    pnl={pnl}
+                                    numberOfPositions={numberOfPositions}
+                                    shrinkedView={shrink}
+                                />
+                            </li>
+                        );
+                    })}
+                </ul>
+            </section>
         </section>
     );
 }
@@ -100,10 +231,11 @@ interface DayProps {
     dpDay: DPDay;
     pnl: Decimal;
     numberOfPositions: number;
+    shrinkedView?: boolean;
 }
 
 function Day(props: DayProps) {
-    const { dpDay, pnl, numberOfPositions } = props;
+    const { dpDay, pnl, numberOfPositions, shrinkedView } = props;
 
     const isWin = dpDay.inCurrentMonth && pnl.isPositive();
     const isLoss = dpDay.inCurrentMonth && pnl.isNegative();
@@ -144,12 +276,13 @@ function Day(props: DayProps) {
                         <span
                             className={cn({
                                 "text-text-muted": !dpDay.inCurrentMonth,
+                                "flex-center h-full w-full": shrinkedView,
                             })}
                         >
                             {dpDay.day}
                         </span>
 
-                        {dpDay.inCurrentMonth && (
+                        {dpDay.inCurrentMonth && !shrinkedView && (
                             <div className="flex flex-col">
                                 {!isNoTradeDay && (
                                     <PnL value={pnl} className="absolute-center text-lg font-medium">

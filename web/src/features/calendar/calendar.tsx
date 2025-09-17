@@ -27,7 +27,11 @@ export function Calendar() {
             <div className="flex-1 space-y-2">
                 <FreePlanLimitTag />
 
-                <TradingCalendar data={data} />
+                <TradingCalendar
+                    data={data}
+                    //
+                    // shrinkedView={true}
+                />
             </div>
         );
     }, [data, isLoading, isError]);

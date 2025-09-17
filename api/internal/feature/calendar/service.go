@@ -25,13 +25,6 @@ func NewService(positionRepository position.ReadWriter) *Service {
 	}
 }
 
-// calendarMonthlyKey is used to create a unique key for each month in the format "September_2025"
-// type calendarMonthlyKey string
-
-// func createCalendarMonthlyKey(year int, month time.Month) calendarMonthlyKey {
-// 	return calendarMonthlyKey(fmt.Sprintf("%s_%d", month.String(), year))
-// }
-
 type calendarDaily struct {
 	PnL            decimal.Decimal `json:"pnl"`
 	PositionsCount int             `json:"positions_count"`
@@ -88,9 +81,6 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 	}
 
 	realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID(positions)
-
-	// yearlyData := make(map[int]calendarYearly)
-	// monthlyData := make(map[string]calendarMonthly)
 	positionsFoundOnDate := make(map[string][]uuid.UUID) // date string (DDMMYYYY) to list of position IDs
 
 	for _, position := range positions {
@@ -147,13 +137,10 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 				monthlyEntry.PnL = monthlyEntry.PnL.Add(netPnL)
 
 				monthlyEntry.Daily[day] = dailyEntry
-				// monthlyData[month.String()] = monthlyEntry
 				result[year][month.String()] = monthlyEntry
 			}
 		}
 	}
-
-	// result.Yearly = monthlyData
 
 	return &result, service.ErrNone, nil
 }

@@ -6,7 +6,7 @@ interface CalendarDaily {
     positions_count: number;
 }
 
-interface CalendarMonthly {
+export interface CalendarMonthly {
     year: number; // e.g 2025
     month: number; // e.g 1-12
     pnl: string;

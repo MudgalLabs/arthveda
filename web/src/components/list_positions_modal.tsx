@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import Decimal from "decimal.js";
 import {
@@ -6,7 +6,6 @@ import {
     DataTableColumnHeader,
     DataTablePagination,
     DataTableSmart,
-    DataTableState,
     Dialog,
     DialogContent,
     DialogDescription,
@@ -37,35 +36,26 @@ interface ListPositionsModalProps {
 export function ListPositionsModal(props: ListPositionsModalProps) {
     const { renderTrigger, data, open, setOpen, isLoading, title = "Positions", description = "Positions" } = props;
 
-    const [tableState, setTableState] = useState<Partial<DataTableState>>({
-        sorting: [],
-    });
-
     const content = useMemo(() => {
         if (isLoading) return <LoadingScreen />;
 
         if (!data) return null;
 
         return (
-            <DataTableSmart
-                columns={columns}
-                data={data.items}
-                state={tableState}
-                onStateChange={setTableState}
-                total={data.pagination.total_items}
-            >
-                {(table) => (
-                    <div className="space-y-4">
-                        <DataTable table={table} />
-
-                        {data.pagination.total_items > data.pagination.limit && (
-                            <DataTablePagination table={table} total={data.pagination.total_items} />
-                        )}
-                    </div>
-                )}
-            </DataTableSmart>
+            <div className="w-full overflow-x-auto">
+                <DataTableSmart columns={columns} data={data.items} total={data.pagination.total_items}>
+                    {(table) => (
+                        <div className="space-y-4">
+                            <DataTable table={table} />
+                            {data.pagination.total_items > data.pagination.limit && (
+                                <DataTablePagination table={table} total={data.pagination.total_items} />
+                            )}
+                        </div>
+                    )}
+                </DataTableSmart>
+            </div>
         );
-    }, [data, isLoading, tableState]);
+    }, [data, isLoading]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
