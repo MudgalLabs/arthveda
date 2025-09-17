@@ -31,7 +31,9 @@ export function TradingCalendar(props: TradingCalendarProps) {
 
     const { year, month, days } = calendars[0];
 
-    const monthData = useMemo(() => data.monthly[`${month}_${year}`], [data, month, year]);
+    const monthData = useMemo(() => {
+        return data[Number(year)]?.[month];
+    }, [data, month, year]);
 
     return (
         <section className="flex h-full w-full flex-col">

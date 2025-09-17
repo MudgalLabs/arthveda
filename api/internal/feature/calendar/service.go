@@ -26,34 +26,33 @@ func NewService(positionRepository position.ReadWriter) *Service {
 }
 
 // calendarMonthlyKey is used to create a unique key for each month in the format "September_2025"
-type calendarMonthlyKey string
+// type calendarMonthlyKey string
 
-func createCalendarMonthlyKey(year int, month time.Month) calendarMonthlyKey {
-	return calendarMonthlyKey(fmt.Sprintf("%s_%d", month.String(), year))
-}
+// func createCalendarMonthlyKey(year int, month time.Month) calendarMonthlyKey {
+// 	return calendarMonthlyKey(fmt.Sprintf("%s_%d", month.String(), year))
+// }
 
-type calendarDailyData struct {
+type calendarDaily struct {
 	PnL            decimal.Decimal `json:"pnl"`
 	PositionsCount int             `json:"positions_count"`
 }
 
-type calendarMonthlyData struct {
-	Year           int                       `json:"year"`
-	Month          time.Month                `json:"month"`
-	PnL            decimal.Decimal           `json:"pnl"`
-	PositionsCount int                       `json:"positions_count"`
-	DailyData      map[int]calendarDailyData `json:"daily"`
+type calendarMonthly struct {
+	Year           int                   `json:"year"`
+	Month          time.Month            `json:"month"`
+	PnL            decimal.Decimal       `json:"pnl"`
+	PositionsCount int                   `json:"positions_count"`
+	Daily          map[int]calendarDaily `json:"daily"`
 }
 
-type GetCalendarResult struct {
-	MonthlyData map[calendarMonthlyKey]calendarMonthlyData `json:"monthly"`
-}
+type calendarYearly = map[string]calendarMonthly // key is month (e.g., "September")
+
+type GetCalendarResult map[int]calendarYearly // key is year (e.g., 2025)
 
 func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetCalendarResult, service.Error, error) {
 	l := logger.Get()
 	result := GetCalendarResult{}
 	yearAgo := time.Now().In(tz).AddDate(-1, 0, 0)
-
 	tradeTimeRange := &common.DateRangeFilter{}
 
 	if !enforcer.CanAccessAllPositions() {
@@ -90,7 +89,8 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 
 	realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID(positions)
 
-	monthlyData := make(map[calendarMonthlyKey]calendarMonthlyData)
+	// yearlyData := make(map[int]calendarYearly)
+	// monthlyData := make(map[string]calendarMonthly)
 	positionsFoundOnDate := make(map[string][]uuid.UUID) // date string (DDMMYYYY) to list of position IDs
 
 	for _, position := range positions {
@@ -103,23 +103,27 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 
 			if stats.IsScaleOut {
 				year, month, day := trade.Time.Date()
-				monthKey := createCalendarMonthlyKey(year, month)
 				positionFoundKey := fmt.Sprintf("%02d%02d%d", day, month, year)
 
-				monthlyEntry, exists := monthlyData[monthKey]
+				_, exists := result[year]
 				if !exists {
-					monthlyEntry = calendarMonthlyData{
+					result[year] = make(map[string]calendarMonthly)
+				}
+
+				monthlyEntry, exists := result[year][month.String()]
+				if !exists {
+					monthlyEntry = calendarMonthly{
 						Year:           year,
 						Month:          month,
 						PnL:            decimal.Decimal{},
 						PositionsCount: 0,
-						DailyData:      make(map[int]calendarDailyData),
+						Daily:          make(map[int]calendarDaily),
 					}
 				}
 
-				dailyEntry, exists := monthlyEntry.DailyData[day]
+				dailyEntry, exists := monthlyEntry.Daily[day]
 				if !exists {
-					dailyEntry = calendarDailyData{
+					dailyEntry = calendarDaily{
 						PnL:            decimal.Decimal{},
 						PositionsCount: 0,
 					}
@@ -142,13 +146,14 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 
 				monthlyEntry.PnL = monthlyEntry.PnL.Add(netPnL)
 
-				monthlyEntry.DailyData[day] = dailyEntry
-				monthlyData[monthKey] = monthlyEntry
+				monthlyEntry.Daily[day] = dailyEntry
+				// monthlyData[month.String()] = monthlyEntry
+				result[year][month.String()] = monthlyEntry
 			}
 		}
 	}
 
-	result.MonthlyData = monthlyData
+	// result.Yearly = monthlyData
 
 	return &result, service.ErrNone, nil
 }
