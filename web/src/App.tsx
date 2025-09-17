@@ -1,6 +1,6 @@
 import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
 import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
-import { isProd, TooltipProvider, SidebarProvider } from "netra";
+import { TooltipProvider, SidebarProvider } from "netra";
 import { BodhvedaProvider } from "@bodhveda/react";
 import { usePostHog } from "posthog-js/react";
 
