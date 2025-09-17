@@ -126,7 +126,7 @@ function Day(props: DayProps) {
         <ListPositionsModal
             renderTrigger={() => (
                 <button
-                    className={cn("h-full w-full enabled:cursor-pointer enabled:hover:brightness-110")}
+                    className={cn("h-full w-full enabled:hover:brightness-110")}
                     disabled={isNoTradeDay || !dpDay.inCurrentMonth}
                 >
                     <div
