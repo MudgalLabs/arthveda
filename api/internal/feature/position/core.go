@@ -1,12 +1,14 @@
 package position
 
 import (
+	"arthveda/internal/common"
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -664,4 +666,92 @@ func FilterPositionsWithRealisingTradesUpTo(positions []*Position, end time.Time
 	}
 
 	return positionsWithTradesUptoEnd
+}
+
+type PnlBucket struct {
+	Label     string                  `json:"label"`
+	Start     time.Time               `json:"start"`
+	End       time.Time               `json:"end"`
+	NetPnL    decimal.Decimal         `json:"net_pnl"`
+	GrossPnL  decimal.Decimal         `json:"gross_pnl"`
+	Charges   decimal.Decimal         `json:"charges"`
+	Positions map[uuid.UUID]*Position `json:"-"` // Positions that contributed to this bucket's PnL.
+}
+
+func GetPnLBuckets(positions []*Position, period common.BucketPeriod, start, end time.Time, loc *time.Location) []PnlBucket {
+	if len(positions) == 0 {
+		return []PnlBucket{}
+	}
+
+	positionByID := make(map[uuid.UUID]*Position)
+	realisedStatsByTradeID := GetRealisedStatsUptoATradeByTradeID(positions)
+
+	// Generate buckets
+	buckets := common.GenerateBuckets(period, start, end, loc)
+	results := make([]PnlBucket, len(buckets))
+	for i, b := range buckets {
+		results[i] = PnlBucket{
+			Start:     b.Start,
+			End:       b.End,
+			Label:     b.Label(loc),
+			NetPnL:    decimal.Zero,
+			GrossPnL:  decimal.Zero,
+			Charges:   decimal.Zero,
+			Positions: make(map[uuid.UUID]*Position),
+		}
+	}
+
+	// Collect all trades and sort them by time
+	var allTrades []*trade.Trade
+
+	for _, pos := range positions {
+		positionByID[pos.ID] = pos
+		allTrades = append(allTrades, pos.Trades...)
+	}
+
+	sort.Slice(allTrades, func(i, j int) bool {
+		return allTrades[i].Time.Before(allTrades[j].Time)
+	})
+
+	chargesByPositionID := make(map[uuid.UUID]decimal.Decimal)
+
+	for _, t := range allTrades {
+		// Find the active bucket for this trade
+		var activeBucket *PnlBucket
+		for i := range results {
+			if !t.Time.Before(results[i].Start) && t.Time.Before(results[i].End) {
+				activeBucket = &results[i]
+				break
+			}
+		}
+
+		if activeBucket == nil {
+			continue // Skip trades outside the bucket range
+		}
+
+		stats := realisedStatsByTradeID[t.ID]
+
+		chargesAmount, exists := chargesByPositionID[t.PositionID]
+		if !exists {
+			chargesByPositionID[t.PositionID] = decimal.Zero
+			chargesAmount = decimal.Zero
+		}
+
+		grossPnL := t.RealisedGrossPnL
+		charges := stats.ChargesAmount.Sub(chargesAmount)
+		netPnL := grossPnL.Sub(charges)
+
+		if stats.IsScaleOut {
+			activeBucket.GrossPnL = activeBucket.GrossPnL.Add(grossPnL)
+			activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
+			activeBucket.Charges = activeBucket.Charges.Add(charges)
+
+			chargesByPositionID[t.PositionID] = stats.ChargesAmount
+
+			pos := positionByID[t.PositionID]
+			activeBucket.Positions[pos.ID] = pos
+		}
+	}
+
+	return results
 }

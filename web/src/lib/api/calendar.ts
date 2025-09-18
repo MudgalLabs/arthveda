@@ -14,7 +14,11 @@ export interface CalendarMonthly {
     daily: Record<number, CalendarDaily>; // Key is day of month (1–31)
 }
 
-type CalendarYearly = Record<string, CalendarMonthly>; // Key is month (e.g., "September")
+interface CalendarYearly {
+    pnl: string;
+    positions_count: number;
+    monthly: Record<string, CalendarMonthly>; // Key is month (e.g., "September")
+}
 
 export type GetCalendarResponse = Record<number, CalendarYearly>; // Key is year.
 

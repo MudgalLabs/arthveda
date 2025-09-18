@@ -6,8 +6,6 @@ import (
 	"arthveda/internal/feature/position"
 	"arthveda/internal/logger"
 	"context"
-	"fmt"
-	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,7 +36,12 @@ type calendarMonthly struct {
 	Daily          map[int]calendarDaily `json:"daily"`
 }
 
-type calendarYearly = map[string]calendarMonthly // key is month (e.g., "September")
+// type calendarYearly = map[string]calendarMonthly // key is month (e.g., "September")
+type calendarYearly struct {
+	PnL            decimal.Decimal            `json:"pnl"`
+	PositionsCount int                        `json:"positions_count"`
+	Monthly        map[string]calendarMonthly `json:"monthly"` // key is month (e.g., "September")
+}
 
 type GetCalendarResult map[int]calendarYearly // key is year (e.g., 2025)
 
@@ -68,8 +71,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 		return nil, service.ErrInternalServerError, err
 	}
 
-	_, rangeEnd := position.GetRangeBasedOnTrades(positions)
-
+	rangeStart, rangeEnd := position.GetRangeBasedOnTrades(positions)
 	positionsFiltered := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
 
 	for _, pos := range positionsFiltered {
@@ -80,66 +82,103 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 		}
 	}
 
-	realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID(positions)
-	positionsFoundOnDate := make(map[string][]uuid.UUID) // date string (DDMMYYYY) to list of position IDs
+	// Maps to track unique position IDs for each day, month, and year.
+	positionIDsByYear := make(map[int]map[uuid.UUID]struct{})
+	positionIDsByMonth := make(map[int]map[string]map[uuid.UUID]struct{})
+	positionIDsByDay := make(map[int]map[string]map[int]map[uuid.UUID]struct{})
 
-	for _, position := range positions {
-		for _, trade := range position.Trades {
-			stats, exists := realisedStatsByTradeID[trade.ID]
-			if !exists {
-				l.Warnw("realised stats not found for trade", "trade_id", trade.ID)
-				continue
-			}
+	// Use position.GetPnLBuckets to get daily buckets for the calendar.
+	buckets := position.GetPnLBuckets(positionsFiltered, common.BucketPeriodDaily, rangeStart, rangeEnd, tz)
 
-			if stats.IsScaleOut {
-				year, month, day := trade.Time.Date()
-				positionFoundKey := fmt.Sprintf("%02d%02d%d", day, month, year)
+	// Build the calendar result from buckets
+	for _, bucket := range buckets {
+		year, month, day := bucket.Start.In(tz).Date()
+		monthStr := month.String()
 
-				_, exists := result[year]
-				if !exists {
-					result[year] = make(map[string]calendarMonthly)
-				}
+		// Initialize maps if not present
+		if _, ok := positionIDsByYear[year]; !ok {
+			positionIDsByYear[year] = make(map[uuid.UUID]struct{})
+		}
+		if _, ok := positionIDsByMonth[year]; !ok {
+			positionIDsByMonth[year] = make(map[string]map[uuid.UUID]struct{})
+		}
+		if _, ok := positionIDsByMonth[year][monthStr]; !ok {
+			positionIDsByMonth[year][monthStr] = make(map[uuid.UUID]struct{})
+		}
+		if _, ok := positionIDsByDay[year]; !ok {
+			positionIDsByDay[year] = make(map[string]map[int]map[uuid.UUID]struct{})
+		}
+		if _, ok := positionIDsByDay[year][monthStr]; !ok {
+			positionIDsByDay[year][monthStr] = make(map[int]map[uuid.UUID]struct{})
+		}
+		if _, ok := positionIDsByDay[year][monthStr][day]; !ok {
+			positionIDsByDay[year][monthStr][day] = make(map[uuid.UUID]struct{})
+		}
 
-				monthlyEntry, exists := result[year][month.String()]
-				if !exists {
-					monthlyEntry = calendarMonthly{
-						Year:           year,
-						Month:          month,
-						PnL:            decimal.Decimal{},
-						PositionsCount: 0,
-						Daily:          make(map[int]calendarDaily),
-					}
-				}
+		// Track unique position IDs for this bucket
+		for _, pos := range bucket.Positions {
+			positionIDsByYear[year][pos.ID] = struct{}{}
+			positionIDsByMonth[year][monthStr][pos.ID] = struct{}{}
+			positionIDsByDay[year][monthStr][day][pos.ID] = struct{}{}
+		}
 
-				dailyEntry, exists := monthlyEntry.Daily[day]
-				if !exists {
-					dailyEntry = calendarDaily{
-						PnL:            decimal.Decimal{},
-						PositionsCount: 0,
-					}
-				}
-
-				netPnL := trade.RealisedGrossPnL.Sub(stats.ChargesAmount)
-
-				dailyEntry.PnL = dailyEntry.PnL.Add(netPnL)
-
-				positionsFound, positionAlreadyCounted := positionsFoundOnDate[positionFoundKey]
-				if !positionAlreadyCounted {
-					positionsFoundOnDate[positionFoundKey] = []uuid.UUID{}
-				}
-
-				if !slices.Contains(positionsFound, position.ID) {
-					positionsFoundOnDate[positionFoundKey] = append(positionsFoundOnDate[positionFoundKey], position.ID)
-					dailyEntry.PositionsCount += 1
-					monthlyEntry.PositionsCount += 1
-				}
-
-				monthlyEntry.PnL = monthlyEntry.PnL.Add(netPnL)
-
-				monthlyEntry.Daily[day] = dailyEntry
-				result[year][month.String()] = monthlyEntry
+		// Get or create yearly entry
+		yearlyEntry, exists := result[year]
+		if !exists {
+			yearlyEntry = calendarYearly{
+				PnL:            decimal.Zero,
+				PositionsCount: 0,
+				Monthly:        make(map[string]calendarMonthly),
 			}
 		}
+
+		// Get or create monthly entry
+		monthlyEntry, exists := yearlyEntry.Monthly[monthStr]
+		if !exists {
+			monthlyEntry = calendarMonthly{
+				Year:           year,
+				Month:          month,
+				PnL:            decimal.Zero,
+				PositionsCount: 0,
+				Daily:          make(map[int]calendarDaily),
+			}
+		}
+
+		// Get or create daily entry
+		dailyEntry, exists := monthlyEntry.Daily[day]
+		if !exists {
+			dailyEntry = calendarDaily{
+				PnL:            decimal.Zero,
+				PositionsCount: 0,
+			}
+		}
+
+		// Add bucket PnL to daily/monthly/yearly
+		dailyEntry.PnL = dailyEntry.PnL.Add(bucket.NetPnL)
+		monthlyEntry.PnL = monthlyEntry.PnL.Add(bucket.NetPnL)
+		yearlyEntry.PnL = yearlyEntry.PnL.Add(bucket.NetPnL)
+
+		monthlyEntry.Daily[day] = dailyEntry
+		yearlyEntry.Monthly[monthStr] = monthlyEntry
+		result[year] = yearlyEntry
+	}
+
+	// After all buckets processed, set PositionsCount using the unique position ID maps
+	for year, yearlyEntry := range result {
+		yearlyEntry.PositionsCount = len(positionIDsByYear[year])
+
+		for monthStr, monthlyEntry := range yearlyEntry.Monthly {
+			monthlyEntry.PositionsCount = len(positionIDsByMonth[year][monthStr])
+
+			for day, dailyEntry := range monthlyEntry.Daily {
+				dailyEntry.PositionsCount = len(positionIDsByDay[year][monthStr][day])
+				monthlyEntry.Daily[day] = dailyEntry
+			}
+
+			yearlyEntry.Monthly[monthStr] = monthlyEntry
+		}
+
+		result[year] = yearlyEntry
 	}
 
 	return &result, service.ErrNone, nil

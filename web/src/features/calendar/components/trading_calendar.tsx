@@ -64,30 +64,61 @@ export function TradingCalendar(props: TradingCalendarProps) {
         calendar: { mode: "fluid" },
     });
 
+    const isAllView = viewMode === ViewMode.ALL;
+    const isYearlyView = viewMode === ViewMode.YEARLY;
     const isMonthlyView = viewMode === ViewMode.MONTHLY;
 
     const { days, year, month } = calendars[0];
 
+    const yearlyData = useMemo(() => {
+        return data[Number(year)];
+    }, [data, year]);
+
     const monthData = useMemo(() => {
-        return data[Number(year)]?.[month];
+        return data[Number(year)]?.monthly[month];
     }, [data, month, year]);
 
     // Disable going to next month if it's the current month or there is no data for next month in current year.
     const disableNextMonth = Number(year) === now.getFullYear() && MONTHS.indexOf(month) === now.getMonth();
-
-    // Allow going to previous month only if there is data for previous year or current month is not January.
+    // Disable going to previous month if there is no data for previous year and current month is January.
     const disablePrevMonth = !data.hasOwnProperty(Number(year) - 1) && month === "January";
+    // Disable going to next year if there is no data for next year.
+    const disableNextYear = !data.hasOwnProperty(Number(year) + 1);
+    // Disable going to previous year if there is no data for previous year.
+    const disablePrevYear = !data.hasOwnProperty(Number(year) - 1);
 
     const content = useMemo(() => {
-        if (isMonthlyView) {
-            return <MonthlyCalendar data={data} shrink={shrinkedView} offsetDate={offsetDate} />;
+        if (isAllView) {
+            return (
+                <ul className="mb-8 flex w-full flex-wrap justify-center gap-4 sm:justify-start!">
+                    {Object.keys(data).map((year) => {
+                        const yearData = data[Number(year)];
+                        const isFuture = Number(year) > now.getFullYear();
+
+                        return (
+                            <li key={year}>
+                                <PnLTile
+                                    title={year}
+                                    pnl={new Decimal(yearData?.pnl ?? 0)}
+                                    noOfPositions={yearData?.positions_count ?? 0}
+                                    onClick={() => {
+                                        setViewMode(ViewMode.YEARLY);
+                                        onOffsetChange(new Date(Number(year), now.getMonth(), now.getDate()));
+                                    }}
+                                    disabled={isFuture}
+                                />
+                            </li>
+                        );
+                    })}
+                </ul>
+            );
         }
 
-        if (viewMode === ViewMode.YEARLY) {
+        if (isYearlyView) {
             return (
-                <ul className="flex flex-wrap gap-4">
+                <ul className="mb-8 flex w-full flex-wrap justify-center gap-4 sm:justify-start!">
                     {MONTHS.map((month, idx) => {
-                        const monthData = data[Number(year)]?.[month];
+                        const monthData = data[Number(year)]?.monthly[month];
                         const isFuture =
                             Number(year) > now.getFullYear() ||
                             (Number(year) === now.getFullYear() && idx > now.getMonth());
@@ -110,6 +141,12 @@ export function TradingCalendar(props: TradingCalendarProps) {
                 </ul>
             );
         }
+
+        if (isMonthlyView) {
+            return <MonthlyCalendar data={data} shrink={shrinkedView} offsetDate={offsetDate} />;
+        }
+
+        return null;
     }, [
         days,
         monthData,
@@ -117,6 +154,12 @@ export function TradingCalendar(props: TradingCalendarProps) {
         shrinkedView,
         viewMode,
         isMonthlyView,
+        isYearlyView,
+        data,
+        setViewMode,
+        year,
+        now,
+        onDatesChange,
         offsetDate,
         year,
         now,
@@ -125,72 +168,87 @@ export function TradingCalendar(props: TradingCalendarProps) {
     ]);
 
     return (
-        <section className="flex h-full w-full flex-col">
-            {selectedDates.length > 0 ? <h1>{selectedDates[0].toDateString()}</h1> : null}
-
-            <header className="mb-2">
-                <div
-                    className={cn("flex flex-col gap-x-8 gap-y-2", {
-                        "sm:flex-row": !shrinkedView,
-                    })}
-                >
+        <div className="flex h-full w-full flex-col">
+            <div className="mb-2">
+                {!isAllView ? (
                     <div
-                        className={cn("flex w-full items-center justify-between", {
-                            "sm:w-[220px]!": !shrinkedView,
-                            "justify-center": !isMonthlyView,
+                        className={cn("flex flex-col gap-x-8 gap-y-2", {
+                            "sm:flex-row": !shrinkedView,
                         })}
                     >
-                        {isMonthlyView && (
+                        <div
+                            className={cn("flex w-full items-center justify-between", {
+                                "sm:w-[220px]!": !shrinkedView,
+                            })}
+                        >
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                {...subtractOffset({ months: 1 })}
-                                disabled={disablePrevMonth}
+                                {...subtractOffset(isMonthlyView ? { months: 1 } : { years: 1 })}
+                                disabled={isMonthlyView ? disablePrevMonth : disablePrevYear}
                             >
                                 <IconChevronLeft size={18} />
                             </Button>
-                        )}
 
-                        <span className="space-x-2">
-                            {isMonthlyView && (
-                                <Button variant="link" onClick={() => setViewMode(ViewMode.YEARLY)}>
-                                    {month}
+                            <span className="space-x-2">
+                                {isMonthlyView && (
+                                    <Button variant="link" onClick={() => setViewMode(ViewMode.YEARLY)}>
+                                        {month}
+                                    </Button>
+                                )}
+
+                                <Button variant="link" onClick={() => setViewMode(ViewMode.ALL)}>
+                                    {year}
                                 </Button>
-                            )}
+                            </span>
 
-                            <Button variant="link">{year}</Button>
-                        </span>
-
-                        {isMonthlyView && (
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                {...addOffset({ months: 1 })}
-                                disabled={disableNextMonth}
+                                {...addOffset(isMonthlyView ? { months: 1 } : { years: 1 })}
+                                disabled={isMonthlyView ? disableNextMonth : disableNextYear}
                             >
                                 <IconChevronRight size={18} />
                             </Button>
-                        )}
-                    </div>
+                        </div>
 
-                    <div className="flex-center sm:flex-x gap-x-4!">
-                        {monthData?.pnl && (
-                            <PnL value={new Decimal(monthData.pnl)} className="text-xl font-semibold">
-                                {formatCurrency(monthData.pnl)}
-                            </PnL>
-                        )}
+                        <div className="flex-center sm:flex-x gap-x-4!">
+                            {isMonthlyView ? (
+                                <>
+                                    {monthData?.pnl && (
+                                        <PnL value={new Decimal(monthData.pnl)} className="text-xl font-semibold">
+                                            {formatCurrency(monthData.pnl)}
+                                        </PnL>
+                                    )}
 
-                        {monthData?.positions_count && (
-                            <p className="text-text-muted">{monthData.positions_count} positions</p>
-                        )}
+                                    {monthData?.positions_count && (
+                                        <p className="text-text-muted">{monthData.positions_count} positions</p>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    {yearlyData?.pnl && (
+                                        <PnL value={new Decimal(yearlyData.pnl)} className="text-xl font-semibold">
+                                            {formatCurrency(yearlyData.pnl)}
+                                        </PnL>
+                                    )}
+
+                                    {yearlyData?.positions_count && (
+                                        <p className="text-text-muted">{yearlyData.positions_count} positions</p>
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <p className="flex-center w-full">Select a year</p>
+                )}
 
                 <Separator className="my-4" />
-            </header>
+            </div>
 
             {content}
-        </section>
+        </div>
     );
 }
 
@@ -225,7 +283,7 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
     const { year, month, days } = calendars[0];
 
     const monthData = useMemo(() => {
-        return data[Number(year)]?.[month];
+        return data[Number(year)]?.monthly[month];
     }, [data, month, year]);
 
     return (
