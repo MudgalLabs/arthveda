@@ -17,15 +17,30 @@ import { PnL } from "@/components/pnl";
 import { ListPositionsModal } from "@/components/list_positions_modal";
 import { apiHooks } from "@/hooks/api_hooks";
 
-interface TradingCalendarProps {
-    data: GetCalendarResponse;
-    shrinkedView?: boolean;
-}
-
 const enum ViewMode {
     ALL = "all",
     YEARLY = "yearly",
     MONTHLY = "monthly",
+}
+
+const MONTHS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+];
+
+interface TradingCalendarProps {
+    data: GetCalendarResponse;
+    shrinkedView?: boolean;
 }
 
 export function TradingCalendar(props: TradingCalendarProps) {
@@ -57,31 +72,57 @@ export function TradingCalendar(props: TradingCalendarProps) {
         return data[Number(year)]?.[month];
     }, [data, month, year]);
 
+    // Disable going to next month if it's the current month or there is no data for next month in current year.
+    const disableNextMonth = Number(year) === now.getFullYear() && MONTHS.indexOf(month) === now.getMonth();
+
+    // Allow going to previous month only if there is data for previous year or current month is not January.
+    const disablePrevMonth = !data.hasOwnProperty(Number(year) - 1) && month === "January";
+
     const content = useMemo(() => {
         if (isMonthlyView) {
-            return <Monthly data={data} shrink={shrinkedView} offsetDate={offsetDate} />;
+            return <MonthlyCalendar data={data} shrink={shrinkedView} offsetDate={offsetDate} />;
         }
 
         if (viewMode === ViewMode.YEARLY) {
             return (
-                <ul className="mx-auto grid grid-cols-1 gap-8 pb-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
-                        <li key={m}>
-                            <Monthly
-                                data={data}
-                                offsetDate={new Date(Number(year), m - 1, 1)}
-                                shrink
-                                onClickOpen={() => {
-                                    setViewMode(ViewMode.MONTHLY);
-                                    onOffsetChange(new Date(Number(year), m - 1, now.getDate()));
-                                }}
-                            />
-                        </li>
-                    ))}
+                <ul className="flex flex-wrap gap-4">
+                    {MONTHS.map((month, idx) => {
+                        const monthData = data[Number(year)]?.[month];
+                        const isFuture =
+                            Number(year) > now.getFullYear() ||
+                            (Number(year) === now.getFullYear() && idx > now.getMonth());
+
+                        return (
+                            <li key={month}>
+                                <PnLTile
+                                    title={month}
+                                    pnl={new Decimal(monthData?.pnl ?? 0)}
+                                    noOfPositions={monthData?.positions_count ?? 0}
+                                    onClick={() => {
+                                        setViewMode(ViewMode.MONTHLY);
+                                        onOffsetChange(new Date(Number(year), idx, now.getDate()));
+                                    }}
+                                    disabled={isFuture}
+                                />
+                            </li>
+                        );
+                    })}
                 </ul>
             );
         }
-    }, [days, monthData, weekDays, shrinkedView, viewMode, isMonthlyView, offsetDate]);
+    }, [
+        days,
+        monthData,
+        weekDays,
+        shrinkedView,
+        viewMode,
+        isMonthlyView,
+        offsetDate,
+        year,
+        now,
+        onOffsetChange,
+        setViewMode,
+    ]);
 
     return (
         <section className="flex h-full w-full flex-col">
@@ -100,7 +141,12 @@ export function TradingCalendar(props: TradingCalendarProps) {
                         })}
                     >
                         {isMonthlyView && (
-                            <Button variant="ghost" size="icon" {...subtractOffset({ months: 1 })}>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                {...subtractOffset({ months: 1 })}
+                                disabled={disablePrevMonth}
+                            >
                                 <IconChevronLeft size={18} />
                             </Button>
                         )}
@@ -116,7 +162,12 @@ export function TradingCalendar(props: TradingCalendarProps) {
                         </span>
 
                         {isMonthlyView && (
-                            <Button variant="ghost" size="icon" {...addOffset({ months: 1 })}>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                {...addOffset({ months: 1 })}
+                                disabled={disableNextMonth}
+                            >
                                 <IconChevronRight size={18} />
                             </Button>
                         )}
@@ -143,14 +194,14 @@ export function TradingCalendar(props: TradingCalendarProps) {
     );
 }
 
-interface MonthlyProps {
+interface MonthlyCalendarProps {
     data: GetCalendarResponse;
     offsetDate?: Date;
     shrink?: boolean;
     onClickOpen?: () => void;
 }
 
-function Monthly(props: MonthlyProps) {
+function MonthlyCalendar(props: MonthlyCalendarProps) {
     const { data, shrink, offsetDate: offsetDateProp, onClickOpen } = props;
 
     const [selectedDates, onDatesChange] = useState<Date[]>([]);
@@ -316,4 +367,48 @@ function WeekDay(props: WeekDayProps) {
     const { weekDay } = props;
 
     return <div className="border-border-subtle flex-center rounded-md border p-2 font-medium">{weekDay}</div>;
+}
+
+interface PnLTileProps {
+    title: string;
+    pnl: Decimal;
+    noOfPositions: number;
+    onClick?: () => void;
+    disabled?: boolean; // <-- add disabled prop
+}
+
+function PnLTile(props: PnLTileProps) {
+    const { title, pnl, noOfPositions, onClick, disabled } = props;
+
+    const isWin = pnl.isPositive();
+    const isLoss = pnl.isNegative();
+
+    return (
+        <button
+            className={cn(
+                "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md",
+                "min-h-30 min-w-40 border p-2 enabled:hover:brightness-110",
+                {
+                    "bg-success-border border-success-border": isWin,
+                    "bg-error-border border-error-border": isLoss,
+                    "bg-surface-2 text-text-muted border-none": noOfPositions === 0 || disabled,
+                    "cursor-not-allowed opacity-60": disabled,
+                }
+            )}
+            onClick={disabled ? undefined : onClick}
+            disabled={disabled}
+        >
+            <span>{title}</span>
+
+            <div className="flex flex-col">
+                <PnL value={pnl} className="absolute-center text-lg font-medium">
+                    {formatCurrency(pnl.toString(), {
+                        compact: true,
+                    })}
+                </PnL>
+
+                <span>{noOfPositions} positions</span>
+            </div>
+        </button>
+    );
 }
