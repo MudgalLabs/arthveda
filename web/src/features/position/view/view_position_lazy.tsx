@@ -5,7 +5,7 @@ import { PositionStoreProvider } from "@/features/position/position_store_contex
 import { LoadingScreen } from "@/components/loading_screen";
 import { apiHooks } from "@/hooks/api_hooks";
 
-const ViewPosition = lazy(() => import("@/features/position/view/view_position"));
+const PositionLog = lazy(() => import("@/features/position/components/position_log"));
 
 const ViewPositionLazy = () => {
     const { id } = useParams<{ id: string }>();
@@ -32,7 +32,7 @@ const ViewPositionLazy = () => {
         return (
             <Suspense fallback={<LoadingScreen />}>
                 <PositionStoreProvider initState={position}>
-                    <ViewPosition />
+                    <PositionLog />
                 </PositionStoreProvider>
             </Suspense>
         );

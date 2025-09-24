@@ -65,7 +65,7 @@ import { UserBrokerAccountSearch } from "@/features/broker/components/user_broke
 import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
 import { Link } from "@/components/link";
 
-function NewPosition() {
+function PositionLog() {
     const isCreatingPosition = useIsCreatingPosition();
     const isEditingPosition = useIsEditingPosition();
 
@@ -440,7 +440,7 @@ function NewPosition() {
     );
 }
 
-export default NewPosition;
+export default PositionLog;
 
 const columns: ColumnDef<CreateTrade>[] = [
     {
