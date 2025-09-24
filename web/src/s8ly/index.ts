@@ -36,6 +36,8 @@ export * from "@/s8ly/radio_group/radio_group";
 export * from "@/s8ly/select/select";
 // Seperator
 export * from "@/s8ly/seperator/seperator";
+// Tabs
+export * from "@/s8ly/tabs/tabs";
 // Tag
 export * from "@/s8ly/tag/tag";
 // Table

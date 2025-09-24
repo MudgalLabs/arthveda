@@ -35,21 +35,17 @@ export function PositionLogTrades() {
 
     return (
         <>
-            <div className="flex-x justify-between">
-                <h2 className="sub-heading">Trades</h2>
+            <div className="flex-x">
+                <Checkbox
+                    id="auto"
+                    checked={enableAutoCharges}
+                    onCheckedChange={() => setEnabledAutoCharges(!enableAutoCharges)}
+                />
 
-                <div className="flex-x">
-                    <Checkbox
-                        id="auto"
-                        checked={enableAutoCharges}
-                        onCheckedChange={() => setEnabledAutoCharges(!enableAutoCharges)}
-                    />
-
-                    <Label htmlFor="auto">Enable Auto Charges</Label>
-                    <Tooltip content="Charges will get calculated for each trade approximately to actual charges. Requires a broker account to be selected.">
-                        <IconInfo />
-                    </Tooltip>
-                </div>
+                <Label htmlFor="auto">Enable Auto Charges</Label>
+                <Tooltip content="Charges will get calculated for each trade approximately to actual charges. Requires a broker account to be selected.">
+                    <IconInfo />
+                </Tooltip>
             </div>
 
             <div className="h-4" />

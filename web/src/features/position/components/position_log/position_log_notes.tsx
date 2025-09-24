@@ -1,7 +1,9 @@
-import { Label, Textarea, WithLabel } from "netra";
+import { Textarea } from "netra";
 
 import { WithDebounce } from "@/components/with_debounce";
 import { usePositionStore } from "@/features/position/position_store_context";
+
+const MAX_NOTES_LENGTH = 4096;
 
 export function PositionLogNotes() {
     const position = usePositionStore((s) => s.position);
@@ -18,22 +20,20 @@ export function PositionLogNotes() {
                 }}
             >
                 {(value, setValue) => (
-                    <WithLabel
-                        className="flex-1"
-                        Label={
-                            <Label className="flex w-full justify-between">
-                                <span>Notes </span> <span className="text-xs">{value.length} / 4096</span>
-                            </Label>
-                        }
-                    >
+                    <div className="flex w-full flex-col gap-y-2">
                         <Textarea
-                            className="h-24 w-full resize-none whitespace-pre-wrap"
+                            className="h-48 w-full resize-none whitespace-pre-wrap"
                             maxLength={4096}
                             value={value}
                             onChange={(e) => setValue(e.target.value)}
                             placeholder="Add notes here..."
                         />
-                    </WithLabel>
+                        {value.length > 4069 && (
+                            <span className="text-xs">
+                                {value.length} / {MAX_NOTES_LENGTH} characters used
+                            </span>
+                        )}
+                    </div>
                 )}
             </WithDebounce>
         </div>

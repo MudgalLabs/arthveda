@@ -1,6 +1,5 @@
 import { memo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import {
     Button,
     Dialog,
@@ -25,6 +24,7 @@ import {
     IconSquarePen,
     PageHeading,
 } from "netra";
+
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
 import { WithLabel } from "@/components/with_label";
 import { IconCalendarRange } from "@/components/icons";
@@ -56,10 +56,17 @@ import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_ac
 import { Link } from "@/components/link";
 import { PositionLogTrades } from "@/features/position/components/position_log/position_log_trades";
 import { PositionLogNotes } from "@/features/position/components/position_log/position_log_notes";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/s8ly";
+
+const enum PositionLogTab {
+    Trades = "trades",
+    Notes = "notes",
+}
 
 function PositionLog() {
     const isCreatingPosition = useIsCreatingPosition();
     const isEditingPosition = useIsEditingPosition();
+    const [tab, setTab] = useState<string>(PositionLogTab.Trades);
 
     const navigate = useNavigate();
 
@@ -338,15 +345,26 @@ function PositionLog() {
                 </WithLabel>
             </div>
 
-            <div className="h-4" />
-
-            <PositionLogNotes />
-
             <div className="h-8" />
 
-            <PositionLogTrades />
+            <Tabs defaultValue="trades" value={tab} onValueChange={setTab}>
+                <TabsList>
+                    <TabsTrigger value="trades">Trades</TabsTrigger>
+                    <TabsTrigger value="notes">Notes</TabsTrigger>
+                </TabsList>
 
-            <div className="h-10" />
+                <div className="h-8" />
+
+                <TabsContent value="trades">
+                    <PositionLogTrades />
+                </TabsContent>
+
+                <TabsContent value="notes">
+                    <PositionLogNotes />
+                </TabsContent>
+            </Tabs>
+
+            <div className="h-8" />
 
             <div className="flex flex-col justify-between gap-x-12 gap-y-4 sm:flex-row">
                 <div className="flex flex-col justify-between gap-2 sm:flex-row">
