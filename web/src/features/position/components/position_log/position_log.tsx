@@ -23,6 +23,10 @@ import {
     IconCandlestick,
     IconSquarePen,
     PageHeading,
+    Tabs,
+    TabsList,
+    TabsTrigger,
+    TabsContent,
 } from "netra";
 
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
@@ -56,7 +60,6 @@ import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_ac
 import { Link } from "@/components/link";
 import { PositionLogTrades } from "@/features/position/components/position_log/position_log_trades";
 import { PositionLogNotes } from "@/features/position/components/position_log/position_log_notes";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/s8ly";
 
 const enum PositionLogTab {
     Trades = "trades",
