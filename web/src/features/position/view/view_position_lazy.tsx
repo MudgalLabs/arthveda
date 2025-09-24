@@ -5,7 +5,7 @@ import { PositionStoreProvider } from "@/features/position/position_store_contex
 import { LoadingScreen } from "@/components/loading_screen";
 import { apiHooks } from "@/hooks/api_hooks";
 
-const PositionLog = lazy(() => import("@/features/position/components/position_log"));
+const PositionLog = lazy(() => import("@/features/position/components/position_log/position_log"));
 
 const ViewPositionLazy = () => {
     const { id } = useParams<{ id: string }>();
