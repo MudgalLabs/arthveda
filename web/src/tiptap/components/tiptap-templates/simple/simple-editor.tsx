@@ -235,6 +235,7 @@ export function SimpleEditor(props: SimpleEditorProps) {
                               }
                             : {}),
                     }}
+                    className="bg-transparent!"
                 >
                     {mobileView === "main" ? (
                         <MainToolbarContent

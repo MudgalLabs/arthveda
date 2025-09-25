@@ -165,7 +165,7 @@ const columns: ColumnDef<Position>[] = [
                         </Tooltip>
                     )}
 
-                    {row.original.notes && (
+                    {/* {row.original.notes && (
                         <Popover>
                             <Tooltip content="View Notes" delayDuration={300}>
                                 <PopoverTrigger asChild>
@@ -186,7 +186,7 @@ const columns: ColumnDef<Position>[] = [
                                 )}
                             </PopoverContent>
                         </Popover>
-                    )}
+                    )} */}
                 </div>
             );
         },

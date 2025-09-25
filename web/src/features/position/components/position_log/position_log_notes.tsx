@@ -15,7 +15,7 @@ export function PositionLogNotes() {
 
     return (
         <>
-            {/* <WithDebounce
+            <WithDebounce
                 state={position.notes}
                 onDebounce={(v) => {
                     updatePosition({
@@ -24,30 +24,30 @@ export function PositionLogNotes() {
                 }}
             >
                 {(value, setValue) => (
-                    <div className="flex w-full flex-col gap-y-2">
-                        <Textarea
-                            className="h-48 w-full resize-none whitespace-pre-wrap"
-                            maxLength={4096}
-                            value={value}
-                            onChange={(e) => setValue(e.target.value)}
-                            placeholder="Add notes here..."
-                        />
-                        {value.length > 4069 && (
-                            <span className="text-xs">
-                                {value.length} / {MAX_NOTES_LENGTH} characters used
-                            </span>
-                        )}
-                    </div>
+                    // <div className="flex w-full flex-col gap-y-2">
+                    //     <Textarea
+                    //         className="h-48 w-full resize-none whitespace-pre-wrap"
+                    //         maxLength={4096}
+                    //         value={value}
+                    //         onChange={(e) => setValue(e.target.value)}
+                    //         placeholder="Add notes here..."
+                    //     />
+                    //     {value.length > 4069 && (
+                    //         <span className="text-xs">
+                    //             {value.length} / {MAX_NOTES_LENGTH} characters used
+                    //         </span>
+                    //     )}
+                    // </div>
+                    <SimpleEditor
+                        initialContent={value}
+                        onChange={(editor) => {
+                            contentDataRef.current = editor.getHTML();
+                            // updatePosition({ notes: editor.getHTML() });
+                            setValue(editor.getHTML());
+                        }}
+                    />
                 )}
-            </WithDebounce> */}
-
-            <SimpleEditor
-                initialContent={position.notes}
-                onChange={(editor) => {
-                    contentDataRef.current = editor.getHTML();
-                    updatePosition({ notes: editor.getHTML() });
-                }}
-            />
+            </WithDebounce>
         </>
     );
 }

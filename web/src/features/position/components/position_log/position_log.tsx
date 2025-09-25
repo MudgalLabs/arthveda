@@ -214,183 +214,190 @@ function PositionLog() {
                         <h1>{title}</h1>
                     </>
                 ) : (
-                    <>
-                        <IconCandlestick size={18} />
-                        <Breadcrumb>
-                            <BreadcrumbList>
-                                <BreadcrumbItem>
-                                    <BreadcrumbLink asChild>
-                                        <Link className="text-[16px]! font-medium!" to={ROUTES.listPositions}>
-                                            Positions
-                                        </Link>
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
+                    <div className="flex-x gap-x-8">
+                        <div className="flex-x">
+                            <IconCandlestick size={18} />
+                            <Breadcrumb>
+                                <BreadcrumbList>
+                                    <BreadcrumbItem>
+                                        <BreadcrumbLink asChild>
+                                            <Link className="text-[16px]! font-medium!" to={ROUTES.listPositions}>
+                                                Positions
+                                            </Link>
+                                        </BreadcrumbLink>
+                                    </BreadcrumbItem>
 
-                                <BreadcrumbSeparator />
+                                    <BreadcrumbSeparator />
 
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage>{title}</BreadcrumbPage>
-                                </BreadcrumbItem>
-                            </BreadcrumbList>
-                        </Breadcrumb>
-                    </>
+                                    <BreadcrumbItem>
+                                        <BreadcrumbPage>{title}</BreadcrumbPage>
+                                    </BreadcrumbItem>
+                                </BreadcrumbList>
+                            </Breadcrumb>
+                        </div>
+
+                        <div className="flex h-fit gap-x-2">
+                            <StatusTag
+                                currency={position.currency}
+                                status={position.status}
+                                openAvgPrice={position.open_average_price_amount}
+                                openQuantity={position.open_quantity}
+                            />
+                            <DirectionTag direction={position.direction} />
+                        </div>
+                    </div>
                 )}
 
                 {isComputing && <Loading />}
             </PageHeading>
 
-            <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:h-44 sm:flex-row">
-                <OverviewCard
-                    className="min-w-72 sm:w-fit"
-                    total_charges_amount={position.total_charges_amount}
-                    charges_as_percentage_of_net_pnl={position.charges_as_percentage_of_net_pnl}
-                    currency={position.currency}
-                    gross_pnl_amount={position.gross_pnl_amount}
-                    net_pnl_amount={position.net_pnl_amount}
-                    net_return_percentage={position.net_return_percentage}
-                    r_factor={position.r_factor}
-                />
-
-                <DurationCard opened_at={position.opened_at} closed_at={position.closed_at} />
-
-                <div className="flex items-end">
-                    <div className="flex h-fit gap-x-2">
-                        <DirectionTag direction={position.direction} />
-                        <StatusTag
+            <div className="flex flex-col gap-y-8 lg:flex-row!">
+                <div className="border-r-border-subtle min-w-[360px] border-r-1 lg:pr-4">
+                    <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row lg:flex-col!">
+                        <OverviewCard
+                            className="min-w-72"
+                            total_charges_amount={position.total_charges_amount}
+                            charges_as_percentage_of_net_pnl={position.charges_as_percentage_of_net_pnl}
                             currency={position.currency}
-                            status={position.status}
-                            openAvgPrice={position.open_average_price_amount}
-                            openQuantity={position.open_quantity}
+                            gross_pnl_amount={position.gross_pnl_amount}
+                            net_pnl_amount={position.net_pnl_amount}
+                            net_return_percentage={position.net_return_percentage}
+                            r_factor={position.r_factor}
                         />
+
+                        <DurationCard opened_at={position.opened_at} closed_at={position.closed_at} />
+                    </div>
+
+                    <div className="h-4" />
+
+                    <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-1">
+                        <WithDebounce
+                            state={position.symbol}
+                            onDebounce={(v) => {
+                                updatePosition({
+                                    symbol: v,
+                                });
+                            }}
+                        >
+                            {(value, setValue) => (
+                                <WithLabel Label={<Label>Symbol</Label>}>
+                                    <SymbolInput
+                                        variant={value ? "default" : "error"}
+                                        value={value}
+                                        onChange={(v) => setValue(v)}
+                                        aria-invalid={!value}
+                                        errorMsg="Symbol is required"
+                                        placeholder="HDFCBANK"
+                                    />
+                                </WithLabel>
+                            )}
+                        </WithDebounce>
+
+                        <WithLabel Label={<Label>Instrument</Label>}>
+                            <InstrumentToggle
+                                value={position.instrument}
+                                onChange={(value) =>
+                                    value &&
+                                    updatePosition({
+                                        instrument: value,
+                                    })
+                                }
+                            />
+                        </WithLabel>
+
+                        <WithDebounce
+                            state={position.risk_amount}
+                            onDebounce={(v) => {
+                                updatePosition({
+                                    risk_amount: v,
+                                });
+                            }}
+                        >
+                            {(value, setValue) => (
+                                <WithLabel Label={<Label>Risk</Label>}>
+                                    <DecimalInput
+                                        kind="amount"
+                                        currency={position.currency}
+                                        value={value}
+                                        onChange={(e) => {
+                                            setValue(e.target.value);
+                                        }}
+                                        placeholder="1,000"
+                                    />
+                                </WithLabel>
+                            )}
+                        </WithDebounce>
+
+                        <WithLabel
+                            Label={
+                                <div className="flex-x">
+                                    <Label>Broker Account</Label>
+                                    <BrokerAccountInfoTooltip />
+                                </div>
+                            }
+                        >
+                            <UserBrokerAccountSearch
+                                value={position.user_broker_account}
+                                onChange={(v) =>
+                                    updatePosition({
+                                        user_broker_account_id: v ? v.id : null,
+                                        user_broker_account: v,
+                                    })
+                                }
+                                variant={!position.user_broker_account && enableAutoCharges ? "error" : "default"}
+                                errorMsg="Broker Account is required to calculate charges"
+                            />
+                        </WithLabel>
                     </div>
                 </div>
-            </div>
 
-            <div className="h-8" />
+                <div className="w-full lg:pl-4">
+                    <Tabs defaultValue="trades" value={tab} onValueChange={setTab}>
+                        <TabsList>
+                            <TabsTrigger value="trades">Trades</TabsTrigger>
+                            <TabsTrigger value="notes">Notes</TabsTrigger>
+                        </TabsList>
 
-            <div className="flex flex-col gap-x-8 gap-y-4 sm:flex-row sm:justify-between">
-                <WithDebounce
-                    state={position.symbol}
-                    onDebounce={(v) => {
-                        updatePosition({
-                            symbol: v,
-                        });
-                    }}
-                >
-                    {(value, setValue) => (
-                        <WithLabel Label={<Label>Symbol</Label>}>
-                            <SymbolInput
-                                variant={value ? "default" : "error"}
-                                value={value}
-                                onChange={(v) => setValue(v)}
-                                aria-invalid={!value}
-                                errorMsg="Symbol is required"
-                                placeholder="HDFCBANK"
-                            />
-                        </WithLabel>
-                    )}
-                </WithDebounce>
+                        <div className="h-8" />
 
-                <WithLabel Label={<Label>Instrument</Label>}>
-                    <InstrumentToggle
-                        value={position.instrument}
-                        onChange={(value) =>
-                            value &&
-                            updatePosition({
-                                instrument: value,
-                            })
-                        }
-                    />
-                </WithLabel>
+                        <TabsContent value="trades">
+                            <PositionLogTrades />
+                        </TabsContent>
 
-                <WithDebounce
-                    state={position.risk_amount}
-                    onDebounce={(v) => {
-                        updatePosition({
-                            risk_amount: v,
-                        });
-                    }}
-                >
-                    {(value, setValue) => (
-                        <WithLabel Label={<Label>Risk</Label>}>
-                            <DecimalInput
-                                kind="amount"
-                                currency={position.currency}
-                                value={value}
-                                onChange={(e) => {
-                                    setValue(e.target.value);
-                                }}
-                                placeholder="1,000"
-                            />
-                        </WithLabel>
-                    )}
-                </WithDebounce>
+                        <TabsContent value="notes">
+                            <PositionLogNotes />
+                        </TabsContent>
+                    </Tabs>
 
-                <WithLabel
-                    Label={
-                        <div className="flex-x">
-                            <Label>Broker Account</Label>
-                            <BrokerAccountInfoTooltip />
+                    <div className="h-8" />
+
+                    <div className="flex flex-col justify-between gap-x-12 gap-y-4 sm:flex-row">
+                        <div className="flex flex-col justify-between gap-2 sm:flex-row">
+                            {isEditingPosition && (
+                                <DeleteButton
+                                    deletePosition={() => deletePosition(position.id)}
+                                    isDeleting={isDeleting}
+                                />
+                            )}
                         </div>
-                    }
-                >
-                    <UserBrokerAccountSearch
-                        value={position.user_broker_account}
-                        onChange={(v) =>
-                            updatePosition({
-                                user_broker_account_id: v ? v.id : null,
-                                user_broker_account: v,
-                            })
-                        }
-                        variant={!position.user_broker_account && enableAutoCharges ? "error" : "default"}
-                        errorMsg="Broker Account is required to calculate charges"
-                    />
-                </WithLabel>
-            </div>
 
-            <div className="h-8" />
+                        <div className="flex flex-col justify-between gap-2 sm:flex-row">
+                            <DiscardButton hasSomethingToDiscard={hasPositionDataChanged} discard={discard} />
 
-            <Tabs defaultValue="trades" value={tab} onValueChange={setTab}>
-                <TabsList>
-                    <TabsTrigger value="trades">Trades</TabsTrigger>
-                    <TabsTrigger value="notes">Notes</TabsTrigger>
-                </TabsList>
-
-                <div className="h-8" />
-
-                <TabsContent value="trades">
-                    <PositionLogTrades />
-                </TabsContent>
-
-                <TabsContent value="notes">
-                    <PositionLogNotes />
-                </TabsContent>
-            </Tabs>
-
-            <div className="h-8" />
-
-            <div className="flex flex-col justify-between gap-x-12 gap-y-4 sm:flex-row">
-                <div className="flex flex-col justify-between gap-2 sm:flex-row">
-                    {isEditingPosition && (
-                        <DeleteButton deletePosition={() => deletePosition(position.id)} isDeleting={isDeleting} />
-                    )}
-                </div>
-
-                <div className="flex flex-col justify-between gap-2 sm:flex-row">
-                    <DiscardButton hasSomethingToDiscard={hasPositionDataChanged} discard={discard} />
-
-                    <Tooltip
-                        content={isEditingPosition ? "No changes to save" : "Some required fields are missing"}
-                        disabled={!disablePrimaryButton}
-                    >
-                        <Button
-                            onClick={handleClickSave}
-                            loading={isCreating || isUpdating}
-                            disabled={disablePrimaryButton}
-                        >
-                            {isCreatingPosition ? "Create" : "Update"}
-                        </Button>
-                    </Tooltip>
+                            <Tooltip
+                                content={isEditingPosition ? "No changes to save" : "Some required fields are missing"}
+                                disabled={!disablePrimaryButton}
+                            >
+                                <Button
+                                    onClick={handleClickSave}
+                                    loading={isCreating || isUpdating}
+                                    disabled={disablePrimaryButton}
+                                >
+                                    {isCreatingPosition ? "Create" : "Update"}
+                                </Button>
+                            </Tooltip>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>
