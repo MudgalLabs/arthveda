@@ -1,17 +1,21 @@
+import { useRef } from "react";
 import { Textarea } from "netra";
+import { Content } from "@tiptap/react";
 
 import { WithDebounce } from "@/components/with_debounce";
 import { usePositionStore } from "@/features/position/position_store_context";
+import { SimpleEditor } from "@/tiptap/components/tiptap-templates/simple/simple-editor";
 
 const MAX_NOTES_LENGTH = 4096;
 
 export function PositionLogNotes() {
     const position = usePositionStore((s) => s.position);
     const updatePosition = usePositionStore((s) => s.updatePosition);
+    const contentDataRef = useRef<Content>(position.notes);
 
     return (
-        <div className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
-            <WithDebounce
+        <>
+            {/* <WithDebounce
                 state={position.notes}
                 onDebounce={(v) => {
                     updatePosition({
@@ -35,7 +39,15 @@ export function PositionLogNotes() {
                         )}
                     </div>
                 )}
-            </WithDebounce>
-        </div>
+            </WithDebounce> */}
+
+            <SimpleEditor
+                initialContent={position.notes}
+                onChange={(editor) => {
+                    contentDataRef.current = editor.getHTML();
+                    updatePosition({ notes: editor.getHTML() });
+                }}
+            />
+        </>
     );
 }

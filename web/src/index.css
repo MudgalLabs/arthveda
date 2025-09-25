@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./tiptap/styles/_variables.scss";
+@import "./tiptap/styles/_keyframe-animations.scss";
 
 /* Font-face */
 
