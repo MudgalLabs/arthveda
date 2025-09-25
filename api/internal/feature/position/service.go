@@ -7,12 +7,14 @@ import (
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
+	"arthveda/internal/feature/journal_entry"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/feature/userbrokeraccount"
 	"arthveda/internal/logger"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -31,16 +33,19 @@ type Service struct {
 	positionRepository          ReadWriter
 	tradeRepository             trade.ReadWriter
 	userBrokerAccountRepository userbrokeraccount.Reader
+	journalEntryService         *journal_entry.Service
 }
 
-func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWriter, tradeRepository trade.ReadWriter,
-	userBrokerAccountRepository userbrokeraccount.Reader,
+func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWriter,
+	tradeRepository trade.ReadWriter, userBrokerAccountRepository userbrokeraccount.Reader,
+	journalEntryService *journal_entry.Service,
 ) *Service {
 	return &Service{
 		brokerRepository,
 		positionRepository,
 		tradeRepository,
 		userBrokerAccountRepository,
+		journalEntryService,
 	}
 }
 
@@ -113,7 +118,10 @@ type CreatePayload struct {
 	Instrument          types.Instrument      `json:"instrument"`
 	Currency            currency.CurrencyCode `json:"currency"`
 	UserBrokerAccountID *uuid.UUID            `json:"user_broker_account_id"`
+	JournalContent      json.RawMessage       `json:"journal_content"`
 }
+
+// FIXME: use transaction.
 
 func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePayload) (*Position, service.Error, error) {
 	logger := logger.FromCtx(ctx)
@@ -141,6 +149,16 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePa
 	}
 
 	position.Trades = trades
+
+	_, err = s.journalEntryService.UpsertForPosition(ctx, userID, position.ID, payload.JournalContent)
+	if err != nil {
+		logger.Errorw("failed to create journal entry after creating a position, so deleting the position and trades that were created", "error", err, "position_id", position.ID)
+		s.tradeRepository.DeleteByPositionID(ctx, position.ID)
+		s.positionRepository.Delete(ctx, position.ID)
+		return nil, service.ErrInternalServerError, err
+	}
+
+	position.JournalContent = payload.JournalContent
 
 	return position, service.ErrNone, nil
 }
@@ -952,6 +970,15 @@ func (s *Service) Get(ctx context.Context, userID, positionID uuid.UUID) (*Posit
 
 	position.Trades = trades
 
+	journalContent, err := s.journalEntryService.GetJournalContentForPosition(ctx, userID, position.ID)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get journal entry for position ID %s: %w", position.ID, err)
+	}
+
+	if journalContent != nil {
+		position.JournalContent = *journalContent
+	}
+
 	return position, service.ErrNone, nil
 }
 
@@ -961,7 +988,7 @@ type UpdatePayload struct {
 	BrokerID *uuid.UUID `json:"broker_id"`
 }
 
-// FIXME: We should figure out a way to use DB transactions.
+// FIXME: use transaction.
 
 func (s *Service) Update(ctx context.Context, userID, positionID uuid.UUID, payload UpdatePayload) (*Position, service.Error, error) {
 	l := logger.FromCtx(ctx)
@@ -1005,6 +1032,13 @@ func (s *Service) Update(ctx context.Context, userID, positionID uuid.UUID, payl
 
 	// Attach the newly created trades to the updated position.
 	updatedPosition.Trades = trades
+
+	// Update or create the journal entry for the position.
+	_, err = s.journalEntryService.UpsertForPosition(ctx, userID, positionID, payload.JournalContent)
+	if err != nil {
+		l.Errorw("failed to upsert journal entry for position", "error", err, "position_id", originalPosition.ID)
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to upsert journal entry for position: %w", err)
+	}
 
 	// Save the updated position in the repository.
 	err = s.positionRepository.Update(ctx, &updatedPosition)

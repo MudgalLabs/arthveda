@@ -16,8 +16,8 @@ import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
 import { PositionListFilters } from "@/features/position/components/position_list_filters";
-import { Tag, Button, Popover, PopoverTrigger, PopoverContent, Tooltip } from "netra";
-import { IconArrowUpRight, IconCross, IconNotebookPen } from "@/components/icons";
+import { Tag, Button, Tooltip } from "netra";
+import { IconArrowUpRight, IconCross } from "@/components/icons";
 import {
     defaultPositionSearchFilters,
     positionSearchFiltersLabel,
@@ -164,29 +164,6 @@ const columns: ColumnDef<Position>[] = [
                             )}
                         </Tooltip>
                     )}
-
-                    {/* {row.original.notes && (
-                        <Popover>
-                            <Tooltip content="View Notes" delayDuration={300}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        className="text-foreground-muted hover:text-foreground size-9"
-                                        variant="ghost"
-                                    >
-                                        <IconNotebookPen size={18} />
-                                    </Button>
-                                </PopoverTrigger>
-                            </Tooltip>
-
-                            <PopoverContent className="max-h-40 max-w-96 overflow-y-auto text-sm">
-                                {row.original.notes ? (
-                                    <div className="whitespace-pre-wrap">{row.original.notes}</div>
-                                ) : (
-                                    <span className="text-foreground-muted">No notes on this position</span>
-                                )}
-                            </PopoverContent>
-                        </Popover>
-                    )} */}
                 </div>
             );
         },

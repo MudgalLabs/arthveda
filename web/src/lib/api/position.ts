@@ -1,3 +1,5 @@
+import { Content } from "@tiptap/react";
+
 import { CompareOperator } from "@/components/select/compare_select";
 import { PositionStatusFilterValue } from "@/components/select/position_status_select";
 import {
@@ -49,6 +51,7 @@ export interface CreatePositionRequest {
     currency: CurrencyCode;
     risk_amount: DecimalString;
     user_broker_account_id: string | null;
+    journal_content: Content | null;
     trades: CreateTrade[];
 
     // Only used for "Compute" when creating/updating a position. This is not stored in the database.

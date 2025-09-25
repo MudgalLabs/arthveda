@@ -32,7 +32,7 @@ import "@/tiptap/components/tiptap-node/paragraph-node/paragraph-node.scss";
 
 // --- Tiptap UI ---
 import { HeadingDropdownMenu } from "@/tiptap/components/tiptap-ui/heading-dropdown-menu";
-import { ImageUploadButton } from "@/tiptap/components/tiptap-ui/image-upload-button";
+// import { ImageUploadButton } from "@/tiptap/components/tiptap-ui/image-upload-button";
 import { ListDropdownMenu } from "@/tiptap/components/tiptap-ui/list-dropdown-menu";
 import { BlockquoteButton } from "@/tiptap/components/tiptap-ui/blockquote-button";
 import { CodeBlockButton } from "@/tiptap/components/tiptap-ui/code-block-button";
@@ -120,11 +120,11 @@ const MainToolbarContent = ({
                 <TextAlignButton align="justify" />
             </ToolbarGroup>
 
-            <ToolbarSeparator />
+            {/* <ToolbarSeparator />
 
             <ToolbarGroup>
                 <ImageUploadButton text="Add" />
-            </ToolbarGroup>
+            </ToolbarGroup> */}
 
             <Spacer />
 
@@ -235,6 +235,7 @@ export function SimpleEditor(props: SimpleEditorProps) {
                               }
                             : {}),
                     }}
+                    // className="bg-surface-3!"
                     className="bg-transparent!"
                 >
                     {mobileView === "main" ? (

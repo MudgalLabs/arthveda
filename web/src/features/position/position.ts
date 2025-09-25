@@ -1,6 +1,7 @@
 import { CurrencyCode } from "@/lib/api/currency";
 import { Trade } from "@/features/trade/trade";
 import { DecimalString } from "@/lib/types";
+import { Content } from "@tiptap/react";
 
 type PositionInstrument = "equity" | "future" | "option" | "crypto";
 
@@ -63,7 +64,7 @@ interface Position {
     instrument: PositionInstrument;
     currency: CurrencyCode;
     risk_amount: DecimalString;
-    notes: string;
+    // notes: string;
 
     total_charges_amount: DecimalString;
     direction: PositionDirection;
@@ -81,6 +82,7 @@ interface Position {
 
     trades: Trade[] | null;
     user_broker_account: UserBrokerAccountSearchValue | null;
+    journal_content: Content | undefined;
     is_duplicate: boolean;
 }
 

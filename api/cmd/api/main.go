@@ -8,6 +8,8 @@ import (
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/calendar"
 	"arthveda/internal/feature/dashboard"
+	"arthveda/internal/feature/journal_entry"
+	"arthveda/internal/feature/journal_entry_content"
 	"arthveda/internal/feature/notification"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/symbol"
@@ -84,6 +86,8 @@ func main() {
 
 	brokerRepository := broker.NewRepository(db)
 	dashboardRepository := dashboard.NewRepository(db)
+	journalEntryRepository := journal_entry.NewRepository(db)
+	journalEntryContentRepository := journal_entry_content.NewRepository(db)
 	positionRepository := position.NewRepository(db)
 	subscriptionRepository := subscription.NewRepository(db)
 	tradeRepository := trade.NewRepository(db)
@@ -95,7 +99,9 @@ func main() {
 	calendarService := calendar.NewService(positionRepository)
 	currencyService := currency.NewService()
 	dashboardService := dashboard.NewService(dashboardRepository, positionRepository, tradeRepository)
-	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository, userBrokerAccountRepository)
+	journalEntryService := journal_entry.NewService(journalEntryRepository, journalEntryContentRepository)
+	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository,
+		userBrokerAccountRepository, journalEntryService)
 	subcriptionService := subscription.NewService(subscriptionRepository)
 	symbolService := symbol.NewService(positionRepository)
 	userBrokerAccountService := userbrokeraccount.NewService(userBrokerAccountRepository, brokerRepository)

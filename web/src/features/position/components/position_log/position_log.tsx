@@ -147,9 +147,10 @@ function PositionLog() {
             symbol: position.symbol,
             instrument: position.instrument,
             currency: position.currency,
-            notes: position.notes,
+            // notes: position.notes,
             broker_id: position.user_broker_account?.broker_id || null,
             user_broker_account_id: position.user_broker_account_id,
+            journal_content: position.journal_content || null,
             trades: (position.trades || []).map((t) => {
                 // Removing fields that are not required by the API.
                 // We are removing these fields because the API will throw an error if we send them.
@@ -235,16 +236,6 @@ function PositionLog() {
                                 </BreadcrumbList>
                             </Breadcrumb>
                         </div>
-
-                        <div className="flex h-fit gap-x-2">
-                            <StatusTag
-                                currency={position.currency}
-                                status={position.status}
-                                openAvgPrice={position.open_average_price_amount}
-                                openQuantity={position.open_quantity}
-                            />
-                            <DirectionTag direction={position.direction} />
-                        </div>
                     </div>
                 )}
 
@@ -254,6 +245,16 @@ function PositionLog() {
             <div className="flex flex-col gap-y-8 lg:flex-row!">
                 <div className="border-r-border-subtle min-w-[360px] border-r-1 lg:pr-4">
                     <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row lg:flex-col!">
+                        <div className="flex h-fit gap-x-2">
+                            <StatusTag
+                                currency={position.currency}
+                                status={position.status}
+                                openAvgPrice={position.open_average_price_amount}
+                                openQuantity={position.open_quantity}
+                            />
+                            <DirectionTag direction={position.direction} />
+                        </div>
+
                         <OverviewCard
                             className="min-w-72"
                             total_charges_amount={position.total_charges_amount}

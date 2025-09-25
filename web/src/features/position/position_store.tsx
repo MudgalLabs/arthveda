@@ -40,7 +40,7 @@ const defaultState: State = {
         instrument: "equity",
         currency: "inr",
         risk_amount: "",
-        notes: "",
+        // notes: "",
         total_charges_amount: "0",
         opened_at: roundToNearest15Minutes(new Date()),
         closed_at: null,
@@ -57,6 +57,7 @@ const defaultState: State = {
 
         trades: [],
         user_broker_account: null,
+        journal_content: undefined,
         is_duplicate: false,
     },
 

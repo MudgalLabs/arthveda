@@ -3,25 +3,28 @@
 CREATE TABLE IF NOT EXISTS journal_entry (
     id                  UUID PRIMARY KEY,
     user_id             UUID NOT NULL REFERENCES user_profile(user_id) ON DELETE CASCADE,
-    scope               TEXT NOT NULL CHECK (scope IN ('position', 'day')),
+    scope               TEXT NOT NULL CHECK (scope IN ('position')),
     position_id         UUID REFERENCES position(id) ON DELETE CASCADE,
-    journal_date        DATE,
-    plain_text          TEXT,
     created_at          TIMESTAMPTZ NOT NULL,
-    updated_at          TIMESTAMPTZ NOT NULL
+    updated_at          TIMESTAMPTZ
 );
+
+-- Enforce uniqueness only for scope = 'position'
+CREATE UNIQUE INDEX unique_user_position_scope_entry
+    ON journal_entry (user_id, position_id, scope);
+
 
 -- optional index for filtering by user + date
 -- CREATE INDEX IF NOT EXISTS idx_journal_entries_user_date ON journal_entries(user_id, journal_date);
 
 CREATE TABLE IF NOT EXISTS journal_entry_content (
-    entry_id UUID       PRIMARY KEY REFERENCES journal_entry(id) ON DELETE CASCADE,
-    content JSONB       NOT NULL
+    journal_entry_id    UUID PRIMARY KEY REFERENCES journal_entry(id) ON DELETE CASCADE,
+    content             JSONB NOT NULL
 );
 
--- CREATE TABLE IF NOT EXISTS journal_entry_attachments (
+-- CREATE TABLE IF NOT EXISTS journal_entry_attachment (
 --     id                  UUID PRIMARY KEY,
---     entry_id            UUID NOT NULL REFERENCES journal_entry(id) ON DELETE CASCADE,
+--     journal_entry_id    UUID NOT NULL REFERENCES journal_entry(id) ON DELETE CASCADE,
 --     user_id             UUID NOT NULL REFERENCES user_profile(id) ON DELETE CASCADE,
 --     url                 TEXT NOT NULL,
 --     size_bytes          BIGINT NOT NULL,

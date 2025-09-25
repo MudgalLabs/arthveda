@@ -6,6 +6,7 @@ import (
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -14,6 +15,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
+
+// TODO: `notes` column in the `position` table is deprecated. Use `journal_content` instead.
+// We will remove the `notes` column in a future migration.
 
 type Position struct {
 	ID        uuid.UUID  `json:"id" db:"id"`
@@ -54,6 +58,8 @@ type Position struct {
 	BrokerID *uuid.UUID `json:"broker_id" db:"broker_id"` // The ID of the Broker from which this Position is imported.
 
 	UserBrokerAccountID *uuid.UUID `json:"user_broker_account_id" db:"user_broker_account_id"` // The ID of the UserBrokerAccount to which this Position belongs.
+
+	JournalContent json.RawMessage `json:"journal_content"`
 
 	//
 	// Everything above is present in the DATABASE but everything below isn't.
