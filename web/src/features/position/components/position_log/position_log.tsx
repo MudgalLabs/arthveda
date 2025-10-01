@@ -366,7 +366,7 @@ function PositionLog() {
                         </TabsContent>
 
                         <TabsContent value="notes">
-                            <PositionLogNotes />
+                            <PositionLogNotes savePosition={handleClickSave} />
                         </TabsContent>
                     </Tabs>
 

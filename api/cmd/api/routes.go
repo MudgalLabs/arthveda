@@ -116,6 +116,13 @@ func initRouter(a *app) http.Handler {
 			r.Post("/search", searchSymbolsHandler(a.service.SymbolService))
 		})
 
+		r.Route("/uploads", func(r chi.Router) {
+			r.Use(authMiddleware)
+
+			r.Post("/presign", getPutPresignHandler(a.service.UploadService))
+			r.Get("/{id}", getGetPresignHandler(a.service.UploadService))
+		})
+
 		r.Route("/users", func(r chi.Router) {
 			r.Use(authMiddleware)
 

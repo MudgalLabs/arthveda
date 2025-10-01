@@ -14,11 +14,13 @@ import (
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/symbol"
 	"arthveda/internal/feature/trade"
+	"arthveda/internal/feature/upload"
 	"arthveda/internal/feature/user_identity"
 	"arthveda/internal/feature/userbrokeraccount"
 	"arthveda/internal/feature/userprofile"
 	"arthveda/internal/logger"
 	"arthveda/internal/oauth"
+	"arthveda/internal/s3x"
 	"arthveda/internal/session"
 	"context"
 	"errors"
@@ -45,6 +47,7 @@ type services struct {
 	PositionService          *position.Service
 	SubscriptionService      *subscription.Service
 	SymbolService            *symbol.Service
+	UploadService            *upload.Service
 	UserBrokerAccountService *userbrokeraccount.Service
 	UserIdentityService      *user_identity.Service
 	UserProfileService       *userprofile.Service
@@ -78,6 +81,11 @@ func main() {
 
 	defer db.Close()
 
+	s3, err := s3x.Init()
+	if err != nil {
+		panic(err)
+	}
+
 	if env.ENABLE_GOOGLE_OAUTH {
 		oauth.InitGoogle()
 	}
@@ -91,6 +99,7 @@ func main() {
 	positionRepository := position.NewRepository(db)
 	subscriptionRepository := subscription.NewRepository(db)
 	tradeRepository := trade.NewRepository(db)
+	uploadRepository := upload.NewRepository(db)
 	userProfileRepository := userprofile.NewRepository(db)
 	userBrokerAccountRepository := userbrokeraccount.NewRepository(db)
 	userIdentityRepository := user_identity.NewRepository(db)
@@ -104,6 +113,7 @@ func main() {
 		userBrokerAccountRepository, journalEntryService)
 	subcriptionService := subscription.NewService(subscriptionRepository)
 	symbolService := symbol.NewService(positionRepository)
+	uploadService := upload.NewService(s3, uploadRepository)
 	userBrokerAccountService := userbrokeraccount.NewService(userBrokerAccountRepository, brokerRepository)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
 	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository, positionRepository)
@@ -116,6 +126,7 @@ func main() {
 		PositionService:          positionService,
 		SubscriptionService:      subcriptionService,
 		SymbolService:            symbolService,
+		UploadService:            uploadService,
 		UserBrokerAccountService: userBrokerAccountService,
 		UserIdentityService:      userIdentityService,
 		UserProfileService:       userProfileService,

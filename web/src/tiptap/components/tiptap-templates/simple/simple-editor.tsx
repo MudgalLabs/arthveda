@@ -32,7 +32,7 @@ import "@/tiptap/components/tiptap-node/paragraph-node/paragraph-node.scss";
 
 // --- Tiptap UI ---
 import { HeadingDropdownMenu } from "@/tiptap/components/tiptap-ui/heading-dropdown-menu";
-// import { ImageUploadButton } from "@/tiptap/components/tiptap-ui/image-upload-button";
+import { ImageUploadButton } from "@/tiptap/components/tiptap-ui/image-upload-button";
 import { ListDropdownMenu } from "@/tiptap/components/tiptap-ui/list-dropdown-menu";
 import { BlockquoteButton } from "@/tiptap/components/tiptap-ui/blockquote-button";
 import { CodeBlockButton } from "@/tiptap/components/tiptap-ui/code-block-button";
@@ -53,8 +53,8 @@ import { LinkIcon } from "@/tiptap/components/tiptap-icons/link-icon";
 
 // --- Hooks ---
 import { useIsMobile } from "@/tiptap/hooks/use-mobile";
-import { useWindowSize } from "@/tiptap/hooks/use-window-size";
-import { useCursorVisibility } from "@/tiptap/hooks/use-cursor-visibility";
+// import { useWindowSize } from "@/tiptap/hooks/use-window-size";
+// import { useCursorVisibility } from "@/tiptap/hooks/use-cursor-visibility";
 
 // --- Components ---
 import { ThemeToggle } from "@/tiptap/components/tiptap-templates/simple/theme-toggle";
@@ -69,10 +69,12 @@ const MainToolbarContent = ({
     onHighlighterClick,
     onLinkClick,
     isMobile,
+    disableImageButton,
 }: {
     onHighlighterClick: () => void;
     onLinkClick: () => void;
     isMobile: boolean;
+    disableImageButton?: boolean;
 }) => {
     return (
         <>
@@ -120,11 +122,11 @@ const MainToolbarContent = ({
                 <TextAlignButton align="justify" />
             </ToolbarGroup>
 
-            {/* <ToolbarSeparator />
+            <ToolbarSeparator />
 
             <ToolbarGroup>
-                <ImageUploadButton text="Add" />
-            </ToolbarGroup> */}
+                <ImageUploadButton text="Add" disabled={disableImageButton} />
+            </ToolbarGroup>
 
             <Spacer />
 
@@ -159,12 +161,14 @@ const MobileToolbarContent = ({ type, onBack }: { type: "highlighter" | "link"; 
 export interface SimpleEditorProps {
     initialContent?: Content;
     onChange?: (editor: Editor) => void;
+    disableImageButton?: boolean;
+    onImageUploadSuccess?: () => void;
 }
 
 export function SimpleEditor(props: SimpleEditorProps) {
-    const { initialContent, onChange } = props;
+    const { initialContent, onChange, disableImageButton, onImageUploadSuccess } = props;
     const isMobile = useIsMobile();
-    const { height } = useWindowSize();
+    // const { height } = useWindowSize();
     const [mobileView, setMobileView] = React.useState<"main" | "highlighter" | "link">("main");
     const toolbarRef = React.useRef<HTMLDivElement>(null);
 
@@ -201,9 +205,10 @@ export function SimpleEditor(props: SimpleEditorProps) {
             ImageUploadNode.configure({
                 accept: "image/*",
                 maxSize: MAX_FILE_SIZE,
-                limit: 3,
+                limit: 1,
                 upload: handleImageUpload,
                 onError: (error) => console.error("Upload failed:", error),
+                onSuccess: () => onImageUploadSuccess?.(),
             }),
         ],
         content: initialContent,
@@ -212,10 +217,10 @@ export function SimpleEditor(props: SimpleEditorProps) {
         },
     });
 
-    const rect = useCursorVisibility({
-        editor,
-        overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
-    });
+    // const rect = useCursorVisibility({
+    //     editor,
+    //     overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
+    // });
 
     React.useEffect(() => {
         if (!isMobile && mobileView !== "main") {
@@ -228,13 +233,13 @@ export function SimpleEditor(props: SimpleEditorProps) {
             <EditorContext.Provider value={{ editor }}>
                 <Toolbar
                     ref={toolbarRef}
-                    style={{
-                        ...(isMobile
-                            ? {
-                                  bottom: `calc(100% - ${height - rect.y}px)`,
-                              }
-                            : {}),
-                    }}
+                    // style={{
+                    //     ...(isMobile
+                    //         ? {
+                    //               bottom: `calc(100% - ${height - rect.y}px)`,
+                    //           }
+                    //         : {}),
+                    // }}
                     // className="bg-surface-3!"
                     className="bg-transparent!"
                 >
@@ -243,6 +248,7 @@ export function SimpleEditor(props: SimpleEditorProps) {
                             onHighlighterClick={() => setMobileView("highlighter")}
                             onLinkClick={() => setMobileView("link")}
                             isMobile={isMobile}
+                            disableImageButton={disableImageButton}
                         />
                     ) : (
                         <MobileToolbarContent

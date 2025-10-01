@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS journal_entry_content (
 -- );
 
 -- for fast quota checks
--- CREATE INDEX IF NOT EXISTS idx_attachments_user_id ON journal_entry_attachments(user_id);
+-- CREATE INDEX IF NOT EXISTS idx_attachments_user_id ON journal_entry_attachment(user_id);
 -- +goose StatementEnd
 
 -- +goose Down

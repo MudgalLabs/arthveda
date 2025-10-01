@@ -11,7 +11,11 @@ var (
 	LOG_LEVEL             string
 	LOG_FILE              string
 	DB_URL                string
+	S3_URL                string
+	S3_ACCESS_KEY         string
+	S3_SECRET_KEY         string
 	WEB_URL               string
+	API_URL               string
 	ENABLE_SIGN_UP        bool
 	ENABLE_SIGN_IN        bool
 	ENABLE_GOOGLE_OAUTH   bool
@@ -42,7 +46,11 @@ func Init(path string) {
 	LOG_LEVEL = os.Getenv("ARTHVEDA_API_LOG_LEVEL")
 	LOG_FILE = os.Getenv("ARTHVEDA_API_LOG_FILE")
 	DB_URL = os.Getenv("ARTHVEDA_DB_URL")
+	S3_URL = os.Getenv("ARTHVEDA_S3_URL")
+	S3_ACCESS_KEY = os.Getenv("ARTHVEDA_S3_ACCESS_KEY")
+	S3_SECRET_KEY = os.Getenv("ARTHVEDA_S3_SECRET_KEY")
 	WEB_URL = os.Getenv("ARTHVEDA_WEB_URL")
+	API_URL = os.Getenv("ARTHVEDA_API_URL")
 	ENABLE_SIGN_UP = os.Getenv("ARTHVEDA_ENABLE_SIGN_UP") == "true"
 	ENABLE_SIGN_IN = os.Getenv("ARTHVEDA_ENABLE_SIGN_IN") == "true"
 	ENABLE_GOOGLE_OAUTH = os.Getenv("ARTHVEDA_ENABLE_GOOGLE_OAUTH") == "true"

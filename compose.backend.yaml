@@ -21,6 +21,10 @@ services:
             ARTHVEDA_API_LOG_LEVEL: ${ARTHVEDA_API_LOG_LEVEL}
             ARTHVEDA_API_LOG_FILE: ./logs/${ARTHVEDA_API_LOG_FILE}
             ARTHVEDA_DB_URL: ${ARTHVEDA_DB_URL}
+            ARTHVEDA_S3_URL: ${ARTHVEDA_S3_URL}
+            ARTHVEDA_S3_ACCESS_KEY: ${ARTHVEDA_S3_ACCESS_KEY}
+            ARTHVEDA_S3_SECRET_KEY: ${ARTHVEDA_S3_SECRET_KEY}
+            ARTHVEDA_API_URL: ${ARTHVEDA_API_URL}
             ARTHVEDA_WEB_URL: ${ARTHVEDA_WEB_URL}
             ARTHVEDA_ENABLE_SIGN_UP: ${ARTHVEDA_ENABLE_SIGN_UP}
             ARTHVEDA_ENABLE_SIGN_IN: ${ARTHVEDA_ENABLE_SIGN_IN}
@@ -48,6 +52,25 @@ services:
             db:
                 condition: service_healthy
                 restart: true
+            s3:
+                condition: service_healthy
+                restart: true
+
+    s3:
+        image: ceoshikhar/minio-2025-04-22@sha256:3f97c5651cb6662b880c787a232b6b34fec8d8922e08d6617b25d241a21164bb
+        container_name: arthveda_s3
+        ports:
+            - "9000:9000" # S3 API
+            - "9001:9001" # MinIO Console
+        environment:
+            MINIO_ROOT_USER: ${ARTHVEDA_MINIO_ROOT_USER}
+            MINIO_ROOT_PASSWORD: ${ARTHVEDA_MINIO_ROOT_PASSWORD}
+        volumes:
+            - ./volumes/s3_data:/data
+        networks:
+            - arthveda_network
+            - caddy_net
+        command: server /data --console-address ":9001"
 
     db:
         container_name: arthveda_db

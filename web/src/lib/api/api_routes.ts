@@ -33,6 +33,9 @@ export const API_ROUTES = {
     symbol: {
         search: "/v1/symbols/search",
     },
+    upload: {
+        presign: "/v1/uploads/presign",
+    },
     user: {
         me: "/v1/users/me",
     },

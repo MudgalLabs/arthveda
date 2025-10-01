@@ -1,7 +1,7 @@
 .PHONY: up dev down logs db build build_web build_api
 
 up:
-	docker compose up -d db
+	docker compose up -d db s3
 
 down:
 	docker compose down
