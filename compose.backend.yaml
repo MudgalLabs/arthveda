@@ -63,8 +63,8 @@ services:
             - "9000:9000" # S3 API
             - "9001:9001" # MinIO Console
         environment:
-            MINIO_ROOT_USER: ${ARTHVEDA_MINIO_ROOT_USER}
-            MINIO_ROOT_PASSWORD: ${ARTHVEDA_MINIO_ROOT_PASSWORD}
+            MINIO_ROOT_USER: ${ARTHVEDA_S3_ROOT_USER}
+            MINIO_ROOT_PASSWORD: ${ARTHVEDA_S3_ROOT_PASSWORD}
         volumes:
             - ./volumes/s3_data:/data
         networks:
