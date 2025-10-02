@@ -121,6 +121,7 @@ func initRouter(a *app) http.Handler {
 
 			r.Post("/presign", getPutPresignHandler(a.service.UploadService))
 			r.Get("/{id}", getGetPresignHandler(a.service.UploadService))
+			r.Get("/cleanup", cleanupUploadsHandler(a.service.UploadService))
 		})
 
 		r.Route("/users", func(r chi.Router) {

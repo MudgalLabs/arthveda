@@ -2,6 +2,7 @@ package upload
 
 import (
 	"arthveda/internal/env"
+	"arthveda/internal/logger"
 	"arthveda/internal/s3x"
 	"arthveda/internal/service"
 	"context"
@@ -94,4 +95,43 @@ func (s *Service) GetGetPresign(ctx context.Context, userID uuid.UUID, uploadID 
 	}
 
 	return presignedGetURL, service.ErrNone, nil
+}
+
+func (s *Service) CleanupUploads(ctx context.Context) (int, service.Error, error) {
+	l := logger.FromCtx(ctx)
+
+	uploads, err := s.uploadRepository.FindUploadsToCleanup(ctx)
+	if err != nil {
+		return 0, service.ErrInternalServerError, fmt.Errorf("upload repo find uploads to cleanup failed: %w", err)
+	}
+
+	uploadIDs := make([]uuid.UUID, 0, len(uploads))
+	objectsCh := make(chan minio.ObjectInfo, len(uploads))
+
+	// Feed object keys into the channel
+	go func() {
+		defer close(objectsCh)
+		for _, u := range uploads {
+			uploadIDs = append(uploadIDs, u.ID)
+			objectsCh <- minio.ObjectInfo{Key: u.ObjectKey}
+		}
+	}()
+
+	// Collect errors from RemoveObjects
+	var errs []error
+	for rErr := range s.s3.RemoveObjects(ctx, s3x.BucketUserUploads, objectsCh, minio.RemoveObjectsOptions{}) {
+		errs = append(errs, fmt.Errorf("failed to delete %s: %w", rErr.ObjectName, rErr.Err))
+	}
+
+	if len(errs) > 0 {
+		return 0, service.ErrInternalServerError, fmt.Errorf("cleanup completed with %d errors: %v", len(errs), errs)
+	}
+
+	err = s.uploadRepository.DeleteByIDs(ctx, uploadIDs)
+	if err != nil {
+		l.Errorw("Failed to delete upload records after S3 cleanup", "error", err.Error())
+		// Not returning error to avoid retrying S3 deletions.
+	}
+
+	return len(uploadIDs), service.ErrNone, nil
 }

@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/feature/upload"
 	"arthveda/internal/logger"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -52,5 +53,19 @@ func getGetPresignHandler(s *upload.Service) http.HandlerFunc {
 		}
 
 		http.Redirect(w, r, presignedGetURL.String(), http.StatusFound)
+	}
+}
+
+func cleanupUploadsHandler(s *upload.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		count, errKind, err := s.CleanupUploads(ctx)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, fmt.Sprintf("Cleanup completed successfully. Deleted %d stale uploads.", count), nil)
 	}
 }

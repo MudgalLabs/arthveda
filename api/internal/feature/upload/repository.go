@@ -12,11 +12,13 @@ import (
 
 type Reader interface {
 	FindUploadByID(ctx context.Context, uploadID uuid.UUID) (*Upload, error)
+	FindUploadsToCleanup(ctx context.Context) ([]*Upload, error)
 }
 
 type Writer interface {
 	Create(ctx context.Context, upload *Upload) error
 	SyncJournalEntryUploads(ctx context.Context, userID, journalEntryID uuid.UUID, activeUploadIDs []uuid.UUID) error
+	DeleteByIDs(ctx context.Context, uploadIDs []uuid.UUID) error
 }
 
 type ReadWriter interface {
@@ -89,6 +91,50 @@ func (r *uploadRepository) SyncJournalEntryUploads(ctx context.Context, userID, 
 	`, StatusDeleted, ResourceTypeJournalEntry, journalEntryID, activeUploadIDs, userID)
 	if err != nil {
 		return fmt.Errorf("failed to unlink previous uploads: %w", err)
+	}
+
+	return nil
+}
+
+func (r *uploadRepository) FindUploadsToCleanup(ctx context.Context) ([]*Upload, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, user_id, resource_type, resource_id, object_key, file_name, mime_type, size_bytes,
+		status, created_at
+		FROM uploads
+		WHERE (status = $1 OR status = $2)
+		AND created_at < NOW() - INTERVAL '24 hours'
+	`, StatusPending, StatusDeleted)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query uploads for cleanup: %w", err)
+	}
+	defer rows.Close()
+
+	var uploads []*Upload
+	for rows.Next() {
+		var upload Upload
+		err := rows.Scan(&upload.ID, &upload.UserID, &upload.ResourceType, &upload.ResourceID, &upload.ObjectKey,
+			&upload.FileName, &upload.MimeType, &upload.SizeBytes, &upload.Status, &upload.CreatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan upload row: %w", err)
+		}
+		uploads = append(uploads, &upload)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+
+	return uploads, nil
+}
+
+func (r *uploadRepository) DeleteByIDs(ctx context.Context, uploadIDs []uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `
+		DELETE FROM uploads
+		WHERE id = ANY($1)
+	`, uploadIDs)
+	if err != nil {
+		return fmt.Errorf("failed to delete uploads: %w", err)
 	}
 
 	return nil
