@@ -2,15 +2,15 @@ services:
     api:
         container_name: arthveda_api
         image: ceoshikhar/arthveda_api:beta
-        logging:
-            driver: loki
-            options:
-                loki-url: "https://${LOKI_USER}:${LOKI_PASSWORD}@loki.thor.ceoshikhar.com/loki/api/v1/push"
-                loki-retries: 2
-                loki-max-backoff: 800ms
-                loki-timeout: 1s
-                keep-file: "true"
-                mode: "non-blocking"
+        # logging:
+        #     driver: loki
+        #     options:
+        #         loki-url: "https://${LOKI_USER}:${LOKI_PASSWORD}@loki.thor.ceoshikhar.com/loki/api/v1/push"
+        #         loki-retries: 2
+        #         loki-max-backoff: 800ms
+        #         loki-timeout: 1s
+        #         keep-file: "true"
+        #         mode: "non-blocking"
         build:
             dockerfile: api.dockerfile
             args:
@@ -58,7 +58,7 @@ services:
 
     s3:
         image: ceoshikhar/minio-2025-04-22@sha256:3f97c5651cb6662b880c787a232b6b34fec8d8922e08d6617b25d241a21164bb
-        container_name: arthveda_s3
+        container_name: arthveda-s3 # Note the hyphen instead of underscore so that client can connect to it.
         ports:
             - "9000:9000" # S3 API
             - "9001:9001" # MinIO Console
@@ -71,6 +71,18 @@ services:
             - arthveda_network
             - caddy_net
         command: server /data --console-address ":9001"
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "curl",
+                    "-f",
+                    "http://localhost:9000/minio/health/ready",
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 20s
 
     db:
         container_name: arthveda_db
