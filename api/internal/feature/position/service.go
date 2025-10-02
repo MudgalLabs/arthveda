@@ -9,6 +9,7 @@ import (
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/journal_entry"
 	"arthveda/internal/feature/trade"
+	"arthveda/internal/feature/upload"
 	"arthveda/internal/feature/userbrokeraccount"
 	"arthveda/internal/logger"
 	"arthveda/internal/repository"
@@ -34,11 +35,12 @@ type Service struct {
 	tradeRepository             trade.ReadWriter
 	userBrokerAccountRepository userbrokeraccount.Reader
 	journalEntryService         *journal_entry.Service
+	uploadRepository            upload.ReadWriter
 }
 
 func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWriter,
 	tradeRepository trade.ReadWriter, userBrokerAccountRepository userbrokeraccount.Reader,
-	journalEntryService *journal_entry.Service,
+	journalEntryService *journal_entry.Service, uploadRepository upload.ReadWriter,
 ) *Service {
 	return &Service{
 		brokerRepository,
@@ -46,6 +48,7 @@ func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWrite
 		tradeRepository,
 		userBrokerAccountRepository,
 		journalEntryService,
+		uploadRepository,
 	}
 }
 
@@ -119,6 +122,7 @@ type CreatePayload struct {
 	Currency            currency.CurrencyCode `json:"currency"`
 	UserBrokerAccountID *uuid.UUID            `json:"user_broker_account_id"`
 	JournalContent      json.RawMessage       `json:"journal_content"`
+	ActiveUploadIDs     []uuid.UUID           `json:"active_upload_ids"`
 }
 
 // FIXME: use transaction.
@@ -150,7 +154,7 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePa
 
 	position.Trades = trades
 
-	_, err = s.journalEntryService.UpsertForPosition(ctx, userID, position.ID, payload.JournalContent)
+	journalEntry, err := s.journalEntryService.UpsertForPosition(ctx, userID, position.ID, payload.JournalContent)
 	if err != nil {
 		logger.Errorw("failed to create journal entry after creating a position, so deleting the position and trades that were created", "error", err, "position_id", position.ID)
 		s.tradeRepository.DeleteByPositionID(ctx, position.ID)
@@ -159,6 +163,12 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePa
 	}
 
 	position.JournalContent = payload.JournalContent
+
+	err = s.syncUploads(ctx, userID, journalEntry.ID, payload.ActiveUploadIDs)
+	if err != nil {
+		logger.Errorw("failed to sync uploads after creating a position", "error", err, "position_id", position.ID)
+		// Not returning an error here, as the position was created successfully.
+	}
 
 	return position, service.ErrNone, nil
 }
@@ -1034,10 +1044,16 @@ func (s *Service) Update(ctx context.Context, userID, positionID uuid.UUID, payl
 	updatedPosition.Trades = trades
 
 	// Update or create the journal entry for the position.
-	_, err = s.journalEntryService.UpsertForPosition(ctx, userID, positionID, payload.JournalContent)
+	journalEntry, err := s.journalEntryService.UpsertForPosition(ctx, userID, positionID, payload.JournalContent)
 	if err != nil {
 		l.Errorw("failed to upsert journal entry for position", "error", err, "position_id", originalPosition.ID)
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to upsert journal entry for position: %w", err)
+	}
+
+	err = s.syncUploads(ctx, userID, journalEntry.ID, payload.ActiveUploadIDs)
+	if err != nil {
+		l.Errorw("failed to sync uploads after creating a position", "error", err, "position_id", positionID)
+		// Not returning an error here, just logging it.
 	}
 
 	// Save the updated position in the repository.
@@ -1078,4 +1094,13 @@ func (s *Service) Delete(ctx context.Context, userID, positionID uuid.UUID) (ser
 	}
 
 	return service.ErrNone, nil
+}
+
+func (s *Service) syncUploads(ctx context.Context, userID, journalEntryID uuid.UUID, activeUploadIDs []uuid.UUID) error {
+	err := s.uploadRepository.SyncJournalEntryUploads(ctx, userID, journalEntryID, activeUploadIDs)
+	if err != nil {
+		return fmt.Errorf("failed to sync uploads for journal entry: %w", err)
+	}
+
+	return nil
 }

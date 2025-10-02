@@ -280,7 +280,7 @@ export const handleImageUpload = async (
 
     try {
         const presignRes = await api.upload.getUploadPresign({
-            resource_type: UploadResourceType.JournalEntryAttachment,
+            resource_type: UploadResourceType.JournalEntry,
             resource_id: null,
             file_name: file.name,
             mime_type: file.type,

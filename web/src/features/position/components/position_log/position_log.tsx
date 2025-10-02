@@ -60,6 +60,7 @@ import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_ac
 import { Link } from "@/components/link";
 import { PositionLogTrades } from "@/features/position/components/position_log/position_log_trades";
 import { PositionLogNotes } from "@/features/position/components/position_log/position_log_notes";
+import { collectUploadIds } from "@/features/position/utils";
 
 const enum PositionLogTab {
     Trades = "trades",
@@ -151,6 +152,7 @@ function PositionLog() {
             broker_id: position.user_broker_account?.broker_id || null,
             user_broker_account_id: position.user_broker_account_id,
             journal_content: position.journal_content || null,
+            active_upload_ids: collectUploadIds(position.journal_content ?? []),
             trades: (position.trades || []).map((t) => {
                 // Removing fields that are not required by the API.
                 // We are removing these fields because the API will throw an error if we send them.
@@ -366,7 +368,7 @@ function PositionLog() {
                         </TabsContent>
 
                         <TabsContent value="notes">
-                            <PositionLogNotes savePosition={handleClickSave} />
+                            <PositionLogNotes />
                         </TabsContent>
                     </Tabs>
 
@@ -399,6 +401,8 @@ function PositionLog() {
                             </Tooltip>
                         </div>
                     </div>
+
+                    <div className="h-8" />
                 </div>
             </div>
         </>

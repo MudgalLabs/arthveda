@@ -110,7 +110,7 @@ func main() {
 	dashboardService := dashboard.NewService(dashboardRepository, positionRepository, tradeRepository)
 	journalEntryService := journal_entry.NewService(journalEntryRepository, journalEntryContentRepository)
 	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository,
-		userBrokerAccountRepository, journalEntryService)
+		userBrokerAccountRepository, journalEntryService, uploadRepository)
 	subcriptionService := subscription.NewService(subscriptionRepository)
 	symbolService := symbol.NewService(positionRepository)
 	uploadService := upload.NewService(s3, uploadRepository)

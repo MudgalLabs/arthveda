@@ -2,7 +2,7 @@ import { API_ROUTES } from "@/lib/api/api_routes";
 import { ApiRes, client } from "@/lib/api/client";
 
 export const enum UploadResourceType {
-    JournalEntryAttachment = "journal_entry_attachment",
+    JournalEntry = "journal_entry",
 }
 
 export interface UploadPresignPayload {

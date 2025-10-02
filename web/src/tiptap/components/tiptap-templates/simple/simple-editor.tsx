@@ -5,7 +5,8 @@ import { EditorContent, EditorContext, useEditor, Content, Editor } from "@tipta
 
 // --- Tiptap Core Extensions ---
 import { StarterKit } from "@tiptap/starter-kit";
-import { Image } from "@tiptap/extension-image";
+// import { Image } from "@tiptap/extension-image";
+import { ResizableImage } from "tiptap-extension-resizable-image";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Typography } from "@tiptap/extension-typography";
@@ -64,17 +65,16 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/tiptap/lib/tiptap-utils";
 
 // --- Styles ---
 import "@/tiptap/components/tiptap-templates/simple/simple-editor.scss";
+import "tiptap-extension-resizable-image/styles.css";
 
 const MainToolbarContent = ({
     onHighlighterClick,
     onLinkClick,
     isMobile,
-    disableImageButton,
 }: {
     onHighlighterClick: () => void;
     onLinkClick: () => void;
     isMobile: boolean;
-    disableImageButton?: boolean;
 }) => {
     return (
         <>
@@ -125,7 +125,7 @@ const MainToolbarContent = ({
             <ToolbarSeparator />
 
             <ToolbarGroup>
-                <ImageUploadButton text="Add" disabled={disableImageButton} />
+                <ImageUploadButton text="Add" />
             </ToolbarGroup>
 
             <Spacer />
@@ -161,12 +161,10 @@ const MobileToolbarContent = ({ type, onBack }: { type: "highlighter" | "link"; 
 export interface SimpleEditorProps {
     initialContent?: Content;
     onChange?: (editor: Editor) => void;
-    disableImageButton?: boolean;
-    onImageUploadSuccess?: () => void;
 }
 
 export function SimpleEditor(props: SimpleEditorProps) {
-    const { initialContent, onChange, disableImageButton, onImageUploadSuccess } = props;
+    const { initialContent, onChange } = props;
     const isMobile = useIsMobile();
     // const { height } = useWindowSize();
     const [mobileView, setMobileView] = React.useState<"main" | "highlighter" | "link">("main");
@@ -197,7 +195,8 @@ export function SimpleEditor(props: SimpleEditorProps) {
             TaskList,
             TaskItem.configure({ nested: true }),
             Highlight.configure({ multicolor: true }),
-            Image,
+            // Image,
+            ResizableImage,
             Typography,
             Superscript,
             Subscript,
@@ -208,7 +207,6 @@ export function SimpleEditor(props: SimpleEditorProps) {
                 limit: 1,
                 upload: handleImageUpload,
                 onError: (error) => console.error("Upload failed:", error),
-                onSuccess: () => onImageUploadSuccess?.(),
             }),
         ],
         content: initialContent,
@@ -248,7 +246,6 @@ export function SimpleEditor(props: SimpleEditorProps) {
                             onHighlighterClick={() => setMobileView("highlighter")}
                             onLinkClick={() => setMobileView("link")}
                             isMobile={isMobile}
-                            disableImageButton={disableImageButton}
                         />
                     ) : (
                         <MobileToolbarContent

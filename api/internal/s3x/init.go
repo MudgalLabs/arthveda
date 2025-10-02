@@ -32,7 +32,7 @@ func Init() (*minio.Client, error) {
 	if err != nil {
 		exists, errBucketExists := client.BucketExists(ctx, BucketUserUploads)
 		if errBucketExists == nil && exists {
-			l.Infof("Bucket %s already exists", BucketUserUploads)
+			l.Debugf("Bucket %s already exists", BucketUserUploads)
 		} else {
 			l.Fatalf("Failed to create bucket %s: %v", BucketUserUploads, err)
 		}

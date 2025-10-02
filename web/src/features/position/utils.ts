@@ -1,14 +1,12 @@
 import { PositionSearchFilters } from "@/lib/api/position";
-import {
-    CompareOperator,
-    compareOperatorToString,
-} from "@/components/select/compare_select";
+import { CompareOperator, compareOperatorToString } from "@/components/select/compare_select";
 import { formatDate } from "@/lib/utils";
 import {
     positionDirectionToString,
     positionInstrumentToString,
     positionStatusToString,
 } from "@/features/position/position";
+import { Content } from "@tiptap/react";
 
 export const defaultPositionSearchFilters: PositionSearchFilters = {
     opened: {},
@@ -28,9 +26,7 @@ export const defaultPositionSearchFilters: PositionSearchFilters = {
     charges_percentage_operator: CompareOperator.GTE,
 };
 
-export const positionSearchFiltersLabel: Partial<
-    Record<keyof PositionSearchFilters, string>
-> = {
+export const positionSearchFiltersLabel: Partial<Record<keyof PositionSearchFilters, string>> = {
     opened: "Opened",
     symbol: "Symbol",
     instrument: "Instrument",
@@ -44,10 +40,7 @@ export const positionSearchFiltersLabel: Partial<
 };
 
 export const positionSearchFiltersValueFormatter: Partial<
-    Record<
-        keyof PositionSearchFilters,
-        (value: any, filters: PositionSearchFilters) => string
-    >
+    Record<keyof PositionSearchFilters, (value: any, filters: PositionSearchFilters) => string>
 > = {
     opened: (v) => {
         if (!v?.from && !v?.to) return "Any";
@@ -81,9 +74,7 @@ export const positionSearchFiltersValueFormatter: Partial<
     },
 };
 
-export function prepareFilters(
-    filters: PositionSearchFilters
-): PositionSearchFilters {
+export function prepareFilters(filters: PositionSearchFilters): PositionSearchFilters {
     if (filters.gross_pnl) {
         filters.gross_pnl = String(filters.gross_pnl);
     }
@@ -123,3 +114,25 @@ export function prepareFilters(
 }
 
 export const URL_KEY_FILTERS = "filters";
+
+// This function traverses the Tiptap JSON content and
+// collects all image upload IDs (UUIDs) from image nodes.
+export function collectUploadIds(content: Content): string[] {
+    const ids: string[] = [];
+
+    function traverse(node: any) {
+        if (node.type === "image" && node.attrs?.src) {
+            const match = node.attrs.src.match(/\/uploads\/([^/]+)$/);
+            if (match) {
+                ids.push(match[1]); // the UUID part
+            }
+        }
+
+        if (node.content) {
+            node.content.forEach(traverse);
+        }
+    }
+
+    traverse(content);
+    return ids;
+}

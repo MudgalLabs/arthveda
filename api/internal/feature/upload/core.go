@@ -16,23 +16,34 @@ type Upload struct {
 	FileName     string           `db:"file_name"`
 	MimeType     string           `db:"mime_type"`
 	SizeBytes    int64            `db:"size_bytes"`
-	Status       UploadStatus     `db:"status"`
+	Status       Status           `db:"status"`
 	CreatedAt    time.Time        `db:"created_at"`
-	UpdatedAt    *time.Time       `db:"updated_at"`
 }
 
 type ResourceTypeKind string
 
 const (
-	ResourceTypeJournalEntryAttachment ResourceTypeKind = "journal_entry_attachment"
+	ResourceTypeJournalEntry ResourceTypeKind = "journal_entry"
 	// ResourceTypeAvatar ResourceTypeKind = "avatar"
 )
 
-type UploadStatus string
+func (r ResourceTypeKind) ForS3Key() string {
+	switch r {
+	case ResourceTypeJournalEntry:
+		return "journal_entry_images"
+	// case ResourceTypeAvatar:
+	// 	return "avatars"
+	default:
+		return "unknown"
+	}
+}
+
+type Status string
 
 const (
-	UploadStatusPending UploadStatus = "pending"
-	UploadStatusActive  UploadStatus = "active"
+	StatusPending Status = "pending"
+	StatusActive  Status = "active"
+	StatusDeleted Status = "deleted"
 )
 
 func NewUpload(userID uuid.UUID, resourceType ResourceTypeKind, resourceID *uuid.UUID, sizeBytes int64) (*Upload, error) {
@@ -41,7 +52,7 @@ func NewUpload(userID uuid.UUID, resourceType ResourceTypeKind, resourceID *uuid
 		return nil, fmt.Errorf("failed to generate uuid: %w", err)
 	}
 
-	objectKey := fmt.Sprintf("user_%s/%s/upload_%s", userID.String(), resourceType, id.String())
+	objectKey := fmt.Sprintf("user_%s/%s/upload_%s", userID.String(), resourceType.ForS3Key(), id.String())
 
 	return &Upload{
 		ID:           id,
@@ -50,7 +61,7 @@ func NewUpload(userID uuid.UUID, resourceType ResourceTypeKind, resourceID *uuid
 		ResourceID:   resourceID,
 		ObjectKey:    objectKey,
 		SizeBytes:    sizeBytes,
-		Status:       UploadStatusPending,
+		Status:       StatusPending,
 		CreatedAt:    time.Now().UTC(),
 	}, nil
 }

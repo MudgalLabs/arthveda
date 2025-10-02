@@ -9,18 +9,15 @@ CREATE TABLE IF NOT EXISTS uploads (
     file_name       TEXT NOT NULL,
     mime_type       TEXT NOT NULL,
     size_bytes      BIGINT NOT NULL,
-    status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','active')),
-    created_at      TIMESTAMPTZ NOT NULL,
-    updated_at      TIMESTAMPTZ
+    status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','active','deleted')),
+    created_at      TIMESTAMPTZ NOT NULL
 );
 
 CREATE INDEX idx_uploads_user_id ON uploads(user_id);
-CREATE INDEX idx_uploads_object_key ON uploads(object_key);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS uploads;
 DROP INDEX IF EXISTS idx_uploads_user_id;
-DROP INDEX IF EXISTS idx_uploads_object_key;
 -- +goose StatementEnd

@@ -4,29 +4,14 @@ import { Content } from "@tiptap/react";
 import { WithDebounce } from "@/components/with_debounce";
 import { usePositionStore } from "@/features/position/position_store_context";
 import { SimpleEditor } from "@/tiptap/components/tiptap-templates/simple/simple-editor";
-import { useIsCreatingPosition } from "@/features/position/position_store";
-import { IconBadgeAlert } from "netra";
 
-interface PositionLogNotesProps {
-    savePosition: () => void;
-}
-
-export function PositionLogNotes(props: PositionLogNotesProps) {
-    const { savePosition } = props;
-
+export function PositionLogNotes() {
     const position = usePositionStore((s) => s.position);
     const updatePosition = usePositionStore((s) => s.updatePosition);
     const contentDataRef = useRef<Content>(position.journal_content);
-    const isCreatingPosition = useIsCreatingPosition();
 
     return (
         <>
-            {isCreatingPosition && (
-                <p className="text-text-muted flex-x">
-                    <IconBadgeAlert /> Click on "Create" to be able to add images.
-                </p>
-            )}
-
             <WithDebounce
                 state={position.journal_content}
                 onDebounce={(v) => {
@@ -42,8 +27,6 @@ export function PositionLogNotes(props: PositionLogNotesProps) {
                             contentDataRef.current = editor.getJSON();
                             setValue(editor.getJSON());
                         }}
-                        disableImageButton={isCreatingPosition}
-                        onImageUploadSuccess={savePosition}
                     />
                 )}
             </WithDebounce>
