@@ -4,7 +4,6 @@ import (
 	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"context"
-	"fmt"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -17,13 +16,9 @@ func Init() (*minio.Client, error) {
 
 	l.Info("connecting to s3")
 
-	fmt.Println("S3 URL:", env.S3_URL)
-	fmt.Println("S3 Access Key:", env.S3_ACCESS_KEY)
-	fmt.Println("S3 Secret Key:", env.S3_SECRET_KEY) // Do not print secret key for security reasons
-
 	client, err := minio.New(env.S3_URL, &minio.Options{
 		Creds:  credentials.NewStaticV4(env.S3_ACCESS_KEY, env.S3_SECRET_KEY, ""),
-		Secure: false,
+		Secure: env.S3_URL == "s3.arthveda.app",
 	})
 	if err != nil {
 		return nil, err
