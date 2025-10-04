@@ -41,7 +41,7 @@ type PutPresignResult struct {
 }
 
 func (s *Service) GetPutPresign(ctx context.Context, userID uuid.UUID, payload PutPresignPayload) (*PutPresignResult, service.Error, error) {
-	upload, err := NewUpload(userID, payload.ResourceType, payload.ResourceID, payload.SizeBytes)
+	upload, err := New(userID, payload.ResourceType, payload.ResourceID, payload.SizeBytes)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to create new upload: %w", err)
 	}

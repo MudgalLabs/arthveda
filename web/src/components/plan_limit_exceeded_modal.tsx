@@ -41,7 +41,7 @@ const dialogDataByFeature: Record<Feature, DialogData> = {
         messageFreePlan: "You have reached your limit for adding broker accounts. Need more? Upgrade to Pro.",
         messageProPlan:
             "You have reached your limit for adding broker accounts. Please delete old broker accounts to add new ones. You can contact us at hey@arthveda.app for more help.",
-        freePlanLimit: 2,
+        freePlanLimit: 1,
         proPlanLimit: 10,
     },
 };

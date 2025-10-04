@@ -190,7 +190,7 @@ export function Pricing(props: PricingProps) {
                             </TableCell>
                             <TableCell className="px-6 py-3">
                                 <div className="flex-x">
-                                    <IconBadgeCheck className="text-accent" />2 accounts
+                                    <IconBadgeCheck className="text-accent" />1 account
                                 </div>
                             </TableCell>
                             <TableCell className="px-6 py-3">

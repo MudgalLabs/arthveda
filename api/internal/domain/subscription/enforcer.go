@@ -27,7 +27,7 @@ type PlanLimits struct {
 }
 
 var FreePlanLimits = PlanLimits{
-	MaxUserBrokerAccounts: 2,
+	MaxUserBrokerAccounts: 1,
 }
 
 var ProPlanLimits = PlanLimits{

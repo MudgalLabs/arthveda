@@ -46,7 +46,7 @@ const (
 	StatusDeleted Status = "deleted"
 )
 
-func NewUpload(userID uuid.UUID, resourceType ResourceTypeKind, resourceID *uuid.UUID, sizeBytes int64) (*Upload, error) {
+func New(userID uuid.UUID, resourceType ResourceTypeKind, resourceID *uuid.UUID, sizeBytes int64) (*Upload, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate uuid: %w", err)
