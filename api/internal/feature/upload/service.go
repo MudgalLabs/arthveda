@@ -1,6 +1,7 @@
 package upload
 
 import (
+	"arthveda/internal/domain/subscription"
 	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"arthveda/internal/s3x"
@@ -40,7 +41,11 @@ type PutPresignResult struct {
 	DownloadURL string    `json:"download_url"`
 }
 
-func (s *Service) GetPutPresign(ctx context.Context, userID uuid.UUID, payload PutPresignPayload) (*PutPresignResult, service.Error, error) {
+func (s *Service) GetPutPresign(ctx context.Context, userID uuid.UUID, enforcer *subscription.PlanEnforcer, payload PutPresignPayload) (*PutPresignResult, service.Error, error) {
+	if !enforcer.CanUpload() {
+		return nil, service.ErrPlanLimitExceeded, subscription.NewPlanLimitError(subscription.FeatureUpload)
+	}
+
 	upload, err := New(userID, payload.ResourceType, payload.ResourceID, payload.SizeBytes)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to create new upload: %w", err)

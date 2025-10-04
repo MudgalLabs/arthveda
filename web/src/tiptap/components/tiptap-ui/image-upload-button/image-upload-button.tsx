@@ -14,6 +14,8 @@ import { IMAGE_UPLOAD_SHORTCUT_KEY, useImageUpload } from "@/tiptap/components/t
 import type { ButtonProps } from "@/tiptap/components/tiptap-ui-primitive/button";
 import { Button } from "@/tiptap/components/tiptap-ui-primitive/button";
 import { Badge } from "@/tiptap/components/tiptap-ui-primitive/badge";
+import { useUserHasProSubscription } from "@/features/auth/auth_context";
+import { Feature, useUpgradeModalStore } from "@/components/plan_limit_exceeded_modal";
 
 export interface ImageUploadButtonProps extends Omit<ButtonProps, "type">, UseImageUploadConfig {
     /**
@@ -50,6 +52,9 @@ export const ImageUploadButton = React.forwardRef<HTMLButtonElement, ImageUpload
         },
         ref
     ) => {
+        const isPro = useUserHasProSubscription();
+        const { showUpgradeModal } = useUpgradeModalStore();
+
         const { editor } = useTiptapEditor(providedEditor);
         const { isVisible, canInsert, handleImage, label, isActive, shortcutKeys, Icon } = useImageUpload({
             editor,
@@ -61,6 +66,12 @@ export const ImageUploadButton = React.forwardRef<HTMLButtonElement, ImageUpload
             (event: React.MouseEvent<HTMLButtonElement>) => {
                 onClick?.(event);
                 if (event.defaultPrevented) return;
+
+                if (!isPro) {
+                    showUpgradeModal(Feature.Upload);
+                    return;
+                }
+
                 handleImage();
             },
             [handleImage, onClick]
@@ -69,6 +80,8 @@ export const ImageUploadButton = React.forwardRef<HTMLButtonElement, ImageUpload
         if (!isVisible) {
             return null;
         }
+
+        console.log({ isPro });
 
         return (
             <Button

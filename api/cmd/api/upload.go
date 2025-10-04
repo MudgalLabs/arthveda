@@ -15,6 +15,7 @@ func getPutPresignHandler(s *upload.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
+		enforcer := getPlanEnforcerFromCtx(ctx)
 
 		var payload upload.PutPresignPayload
 		if err := decodeJSONRequest(&payload, r); err != nil {
@@ -22,7 +23,7 @@ func getPutPresignHandler(s *upload.Service) http.HandlerFunc {
 			return
 		}
 
-		result, errKind, err := s.GetPutPresign(ctx, userID, payload)
+		result, errKind, err := s.GetPutPresign(ctx, userID, enforcer, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

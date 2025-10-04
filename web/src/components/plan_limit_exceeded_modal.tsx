@@ -6,9 +6,10 @@ import { ROUTES } from "@/constants";
 import { cn } from "@/lib/utils";
 import { useUserHasProSubscription } from "@/features/auth/auth_context";
 
-// Keep this in sync with - arthveda/api/internal/domain/subscription/core.go
-const enum Feature {
+// Keep this in sync with - arthveda/api/internal/domain/subscription/enforcer.go
+export const enum Feature {
     AddUserBrokerAccount = "add_user_broker_account",
+    Upload = "upload",
 }
 
 interface UpgradeModalStore {
@@ -31,8 +32,8 @@ interface DialogData {
     title: string;
     messageFreePlan: string;
     messageProPlan: string;
-    freePlanLimit: number;
-    proPlanLimit: number;
+    freePlanLimit: number | string;
+    proPlanLimit: number | string;
 }
 
 const dialogDataByFeature: Record<Feature, DialogData> = {
@@ -43,6 +44,14 @@ const dialogDataByFeature: Record<Feature, DialogData> = {
             "You have reached your limit for adding broker accounts. Please delete old broker accounts to add new ones. You can contact us at hey@arthveda.app for more help.",
         freePlanLimit: 1,
         proPlanLimit: 10,
+    },
+    [Feature.Upload]: {
+        title: "Start uploading files",
+        messageFreePlan:
+            "Uploading files like images is not available on the Free plan. Upgrade to Pro to unlock this feature.",
+        messageProPlan: "",
+        freePlanLimit: "None",
+        proPlanLimit: "1 GB",
     },
 };
 

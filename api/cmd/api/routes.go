@@ -118,6 +118,7 @@ func initRouter(a *app) http.Handler {
 
 		r.Route("/uploads", func(r chi.Router) {
 			r.Use(authMiddleware)
+			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
 
 			r.Post("/presign", getPutPresignHandler(a.service.UploadService))
 			r.Get("/{id}", getGetPresignHandler(a.service.UploadService))

@@ -4,6 +4,7 @@ type Feature string
 
 const (
 	FeatureAddUserBrokerAccount Feature = "add_user_broker_account"
+	FeatureUpload               Feature = "upload"
 )
 
 type PlanLimitError struct {
@@ -61,6 +62,10 @@ func (e *PlanEnforcer) CanAccessAllPositions() bool {
 
 func (e *PlanEnforcer) CanAddUserBrokerAccount(currAccountsCount int) bool {
 	return e.planLimits.MaxUserBrokerAccounts > currAccountsCount
+}
+
+func (e *PlanEnforcer) CanUpload() bool {
+	return isPro(e.subscription)
 }
 
 func isPro(subscription *UserSubscription) bool {
