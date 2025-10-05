@@ -35,6 +35,8 @@ var ProPlanLimits = PlanLimits{
 	MaxUserBrokerAccounts: 10,
 }
 
+const MaxUserUploadBytes int64 = 1_073_741_824 // 1 GiB
+
 type PlanEnforcer struct {
 	subscription *UserSubscription // nil if user is on FREE plan
 	planLimits   PlanLimits
@@ -64,8 +66,12 @@ func (e *PlanEnforcer) CanAddUserBrokerAccount(currAccountsCount int) bool {
 	return e.planLimits.MaxUserBrokerAccounts > currAccountsCount
 }
 
-func (e *PlanEnforcer) CanUpload() bool {
-	return isPro(e.subscription)
+func (e *PlanEnforcer) CanUpload(currBytesUsed int64) bool {
+	if !isPro(e.subscription) {
+		return false
+	}
+
+	return currBytesUsed < MaxUserUploadBytes
 }
 
 func isPro(subscription *UserSubscription) bool {

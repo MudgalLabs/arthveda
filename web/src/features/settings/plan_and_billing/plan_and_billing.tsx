@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loading } from "@/components/loading";
 import { toast } from "@/components/toast";
 import { useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
@@ -14,11 +14,14 @@ import {
     Tooltip,
     useDocumentTitle,
     PageHeading,
+    Progress,
+    AlertTitle,
+    AlertDescription,
 } from "netra";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatBytes, formatCurrency, formatDate } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { BillingIntervalToString, PaymentProviderToString, SubscriptionInvoice } from "@/lib/api/subscription";
 import { useURLState } from "@/hooks/use_url_state";
@@ -29,6 +32,13 @@ import { CancelSubscription } from "@/features/settings/plan_and_billing/compone
 
 export const PlanAndBilling = () => {
     useDocumentTitle("Plan and billing • Arthveda");
+    const { data: userData } = apiHooks.user.useMe();
+    const storageUsedPercent = useMemo(() => {
+        if (!userData) return 0;
+        return (userData.data.upload_bytes_used / userData.data.upload_bytes_limit) * 100;
+    }, [userData]);
+    const storageUsedPercentDisplay = storageUsedPercent < 0.1 ? "<0.1" : storageUsedPercent.toFixed(1);
+
     const subscription = useSubscription();
     const hasPro = useUserHasProSubscription();
 
@@ -61,13 +71,13 @@ export const PlanAndBilling = () => {
                 <h1>Plan and billing</h1>
             </PageHeading>
 
-            <Alert>
+            <Alert className="max-w-2xl">
                 <IconInfo />
 
                 <div className="flex-x items-start justify-between">
                     <div className="w-full space-y-2">
                         <div className="w-full space-y-2 sm:flex sm:flex-row sm:justify-between">
-                            <p className="font-semibold">You are currently on the {hasPro ? "Pro" : "Free"} plan.</p>
+                            <p className="font-semibold">You are currently on the {hasPro ? "Pro" : "Free"} plan</p>
 
                             {hasPro && !subscription?.cancel_at_period_end ? <CancelSubscription /> : <ShowPricing />}
                         </div>
@@ -100,6 +110,25 @@ export const PlanAndBilling = () => {
                     </div>
                 </div>
             </Alert>
+
+            {hasPro && userData && (
+                <div className="my-4">
+                    <Alert className="max-w-2xl space-y-2">
+                        <IconInfo />
+                        <AlertTitle>
+                            <h2 className="font-semibold">Storage used</h2>
+                        </AlertTitle>
+
+                        <AlertDescription>
+                            <Progress className="w-full" value={storageUsedPercent} />
+                            <p>
+                                You have used {formatBytes(userData.data.upload_bytes_used)} /{" "}
+                                {formatBytes(userData.data.upload_bytes_limit)} ({storageUsedPercentDisplay}%)
+                            </p>
+                        </AlertDescription>
+                    </Alert>
+                </div>
+            )}
 
             <div className="my-8">
                 <Invoices />

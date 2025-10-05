@@ -3,6 +3,7 @@ package userprofile
 import (
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/feature/position"
+	"arthveda/internal/feature/upload"
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
@@ -15,21 +16,25 @@ type Service struct {
 	userProfileRepository  ReadWriter
 	subscriptionRepository subscription.Reader
 	positionRepository     position.Reader
+	uploadRepository       upload.Reader
 }
 
-func NewService(upr ReadWriter, sr subscription.Reader, pr position.Reader) *Service {
+func NewService(upr ReadWriter, sr subscription.Reader, pr position.Reader, ur upload.Reader) *Service {
 	return &Service{
 		userProfileRepository:  upr,
 		subscriptionRepository: sr,
 		positionRepository:     pr,
+		uploadRepository:       ur,
 	}
 }
 
 type GetUserMeResult struct {
 	UserProfile
-	Subscription    *subscription.UserSubscription `json:"subscription"` // nil if no subscription exists
-	PositionsHidden int                            `json:"positions_hidden"`
-	TotalPositions  int                            `json:"total_positions"`
+	Subscription     *subscription.UserSubscription `json:"subscription"` // nil if no subscription exists
+	PositionsHidden  int                            `json:"positions_hidden"`
+	TotalPositions   int                            `json:"total_positions"`
+	UploadBytesUsed  int64                          `json:"upload_bytes_used"`
+	UploadBytesLimit int64                          `json:"upload_bytes_limit"`
 }
 
 func (s *Service) GetUserMe(ctx context.Context, id uuid.UUID) (*GetUserMeResult, service.Error, error) {
@@ -67,11 +72,18 @@ func (s *Service) GetUserMe(ctx context.Context, id uuid.UUID) (*GetUserMeResult
 		return nil, service.ErrInternalServerError, fmt.Errorf("TotalPositions: %w", err)
 	}
 
+	TotalUploadBytesUsed, err := s.uploadRepository.GetTotalBytesUsed(ctx, id)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("upload repo get total bytes used failed: %w", err)
+	}
+
 	GetUserMeResult := &GetUserMeResult{
 		*userProfile,
 		userSubscription,
 		PositionsHidden,
 		TotalPositions,
+		TotalUploadBytesUsed,
+		subscription.MaxUserUploadBytes,
 	}
 
 	return GetUserMeResult, service.ErrNone, nil

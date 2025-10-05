@@ -1,4 +1,4 @@
-import { api } from "@/lib/api";
+import { api, apiErrorHandler } from "@/lib/api";
 import { client } from "@/lib/api/client";
 import { UploadResourceType } from "@/lib/api/upload";
 import type { Node as TiptapNode } from "@tiptap/pm/model";
@@ -301,8 +301,9 @@ export const handleImageUpload = async (
         });
 
         return presignRes.data.data.download_url;
-    } catch (error) {
-        throw new Error("Upload failed");
+    } catch (_err) {
+        apiErrorHandler(_err);
+        throw _err;
     }
 };
 

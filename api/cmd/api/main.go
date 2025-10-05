@@ -116,7 +116,8 @@ func main() {
 	uploadService := upload.NewService(s3, uploadRepository)
 	userBrokerAccountService := userbrokeraccount.NewService(userBrokerAccountRepository, brokerRepository)
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
-	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository, positionRepository)
+	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository,
+		positionRepository, uploadRepository)
 
 	services := services{
 		BrokerService:            brokerService,

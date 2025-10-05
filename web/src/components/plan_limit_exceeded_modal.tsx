@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { create } from "zustand";
 
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "netra";
@@ -30,8 +31,8 @@ export const useUpgradeModalStore = create<UpgradeModalStore>((set) => ({
 
 interface DialogData {
     title: string;
-    messageFreePlan: string;
-    messageProPlan: string;
+    messageFreePlan: ReactNode;
+    messageProPlan: ReactNode;
     freePlanLimit: number | string;
     proPlanLimit: number | string;
 }
@@ -49,7 +50,12 @@ const dialogDataByFeature: Record<Feature, DialogData> = {
         title: "Start uploading files",
         messageFreePlan:
             "Uploading files like images is not available on the Free plan. Upgrade to Pro to unlock this feature.",
-        messageProPlan: "",
+        messageProPlan: (
+            <p>
+                Looks like you’ve hit your 1 GB upload limit! To continue uploading, please delete old files or contact
+                us at <a href="mailto:hey@arthveda.app">hey@arthveda.app</a> for more storage.
+            </p>
+        ),
         freePlanLimit: "None",
         proPlanLimit: "1 GB",
     },

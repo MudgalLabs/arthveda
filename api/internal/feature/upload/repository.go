@@ -13,6 +13,7 @@ import (
 type Reader interface {
 	FindUploadByID(ctx context.Context, uploadID uuid.UUID) (*Upload, error)
 	FindUploadsToCleanup(ctx context.Context) ([]*Upload, error)
+	GetTotalBytesUsed(ctx context.Context, userID uuid.UUID) (int64, error)
 }
 
 type Writer interface {
@@ -138,4 +139,19 @@ func (r *uploadRepository) DeleteByIDs(ctx context.Context, uploadIDs []uuid.UUI
 	}
 
 	return nil
+}
+
+func (r *uploadRepository) GetTotalBytesUsed(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT COALESCE(SUM(size_bytes), 0) FROM uploads
+		WHERE user_id = $1 AND status = $2
+	`, userID, StatusActive)
+
+	var totalBytes int64
+	err := row.Scan(&totalBytes)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get total bytes used: %w", err)
+	}
+
+	return totalBytes, nil
 }

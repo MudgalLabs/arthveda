@@ -371,3 +371,17 @@ export const BROWSER_TIMEZONE = getUserTimezone();
 export function getUserTimezone(): string {
     return Intl.DateTimeFormat().resolvedOptions().timeZone; // e.g. "Asia/Kolkata"
 }
+
+/**
+ * Formats bytes as human-readable text.
+ *  Examples:
+ *  formatBytes(1024) => "1.0 KB"
+ *  formatBytes(1234) => "1.2 KB"
+ *  formatBytes(123456789) => "117.7 MB"
+ */
+export function formatBytes(bytes: number): string {
+    if (bytes === 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
+}

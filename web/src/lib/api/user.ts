@@ -13,6 +13,8 @@ export interface User {
     subscription: Subscription | null;
     positions_hidden: number;
     total_positions: number;
+    upload_bytes_used: number;
+    upload_bytes_limit: number;
 }
 
 export interface UserMeResponse extends User {}

@@ -206,7 +206,6 @@ export function SimpleEditor(props: SimpleEditorProps) {
                 maxSize: MAX_FILE_SIZE,
                 limit: 1,
                 upload: handleImageUpload,
-                onError: (error) => console.error("Upload failed:", error),
             }),
         ],
         content: initialContent,

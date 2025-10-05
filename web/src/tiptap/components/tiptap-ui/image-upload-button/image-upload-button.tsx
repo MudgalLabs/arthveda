@@ -81,8 +81,6 @@ export const ImageUploadButton = React.forwardRef<HTMLButtonElement, ImageUpload
             return null;
         }
 
-        console.log({ isPro });
-
         return (
             <Button
                 type="button"

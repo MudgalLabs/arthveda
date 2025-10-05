@@ -42,7 +42,12 @@ type PutPresignResult struct {
 }
 
 func (s *Service) GetPutPresign(ctx context.Context, userID uuid.UUID, enforcer *subscription.PlanEnforcer, payload PutPresignPayload) (*PutPresignResult, service.Error, error) {
-	if !enforcer.CanUpload() {
+	totalBytesUsed, err := s.uploadRepository.GetTotalBytesUsed(ctx, userID)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("upload repo get total bytes used failed: %w", err)
+	}
+
+	if !enforcer.CanUpload(totalBytesUsed) {
 		return nil, service.ErrPlanLimitExceeded, subscription.NewPlanLimitError(subscription.FeatureUpload)
 	}
 
@@ -85,7 +90,8 @@ func (s *Service) GetGetPresign(ctx context.Context, userID uuid.UUID, uploadID 
 	}
 
 	if upload.UserID != userID {
-		return nil, service.ErrUnauthorized, nil
+		// Returning not found to avoid leaking existence of the upload.
+		return nil, service.ErrNotFound, fmt.Errorf("upload not found for user")
 	}
 
 	presignedGetURL, err := s.s3.PresignedGetObject(
