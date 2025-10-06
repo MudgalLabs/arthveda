@@ -5,8 +5,8 @@ import { EditorContent, EditorContext, useEditor, Content, Editor } from "@tipta
 
 // --- Tiptap Core Extensions ---
 import { StarterKit } from "@tiptap/starter-kit";
-import { Image } from "@tiptap/extension-image";
-// import { ResizableImage } from "tiptap-extension-resizable-image";
+// import { Image } from "@tiptap/extension-image";
+import { ResizableImage } from "tiptap-extension-resizable-image";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Typography } from "@tiptap/extension-typography";
@@ -195,8 +195,11 @@ export function SimpleEditor(props: SimpleEditorProps) {
             TaskList,
             TaskItem.configure({ nested: true }),
             Highlight.configure({ multicolor: true }),
-            Image,
-            // ResizableImage,
+            // Image,
+            ResizableImage.configure({
+                // So that people cannot just paste images from clipboard.
+                allowBase64: false,
+            }),
             Typography,
             Superscript,
             Subscript,
