@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loading } from "@/components/loading";
 import { toast } from "@/components/toast";
-import { useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
+import { useAuthentication, useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
 import { apiHooks } from "@/hooks/api_hooks";
 import {
     Alert,
@@ -32,15 +32,23 @@ import { CancelSubscription } from "@/features/settings/plan_and_billing/compone
 
 export const PlanAndBilling = () => {
     useDocumentTitle("Plan and billing • Arthveda");
-    const { data: userData } = apiHooks.user.useMe();
-    const storageUsedPercent = useMemo(() => {
-        if (!userData) return 0;
-        return (userData.data.upload_bytes_used / userData.data.upload_bytes_limit) * 100;
+
+    const { data: userData } = useAuthentication();
+
+    const isOldUser = useMemo(() => {
+        if (!userData) return false;
+        return new Date(userData.created_at) < new Date("2025-10-08T00:00:00Z");
     }, [userData]);
-    const storageUsedPercentDisplay = storageUsedPercent < 0.1 ? "<0.1" : storageUsedPercent.toFixed(1);
 
     const subscription = useSubscription();
     const hasPro = useUserHasProSubscription();
+
+    const storageUsedPercent = useMemo(() => {
+        if (!userData) return 0;
+        return (userData.upload_bytes_used / userData.upload_bytes_limit) * 100;
+    }, [userData]);
+
+    const storageUsedPercentDisplay = storageUsedPercent < 0.1 ? "<0.1" : storageUsedPercent.toFixed(1);
 
     const [isPaddleSuccess] = useURLState<boolean | "">("paddle_success", false);
     useEffectOnce(
@@ -71,15 +79,31 @@ export const PlanAndBilling = () => {
                 <h1>Plan and billing</h1>
             </PageHeading>
 
+            {!hasPro && isOldUser && (
+                <Alert className="mb-4 max-w-2xl">
+                    <IconInfo />
+                    <p>
+                        Use discount code <span className="text-text-muted font-semibold select-text!">GIFT50</span> at
+                        checkout to get 50% OFF!
+                    </p>
+                </Alert>
+            )}
+
             <Alert className="max-w-2xl">
                 <IconInfo />
 
                 <div className="flex-x items-start justify-between">
                     <div className="w-full space-y-2">
                         <div className="w-full space-y-2 sm:flex sm:flex-row sm:justify-between">
-                            <p className="font-semibold">You are currently on the {hasPro ? "Pro" : "Free"} plan</p>
+                            <p className="font-semibold">
+                                You are currently {hasPro ? "subscribed" : "not subscribed"}
+                            </p>
 
-                            {hasPro && !subscription?.cancel_at_period_end ? <CancelSubscription /> : <ShowPricing />}
+                            {hasPro && !subscription?.cancel_at_period_end ? (
+                                <CancelSubscription />
+                            ) : (
+                                <SubscribeButton />
+                            )}
                         </div>
 
                         {hasPro ? (
@@ -101,9 +125,9 @@ export const PlanAndBilling = () => {
                                 </p>
                             </div>
                         ) : (
-                            <div className="text-text-muted">
+                            <div className="text-text-muted space-y-2">
                                 <p>
-                                    Click on <span className="font-semibold">Upgrade</span> to learn more about Pro.
+                                    Click on <span className="font-semibold">Subscribe</span> to start using Arthveda.
                                 </p>
                             </div>
                         )}
@@ -122,8 +146,8 @@ export const PlanAndBilling = () => {
                         <AlertDescription>
                             <Progress className="w-full" value={storageUsedPercent} />
                             <p>
-                                You have used {formatBytes(userData.data.upload_bytes_used)} /{" "}
-                                {formatBytes(userData.data.upload_bytes_limit)} ({storageUsedPercentDisplay}%)
+                                You have used {formatBytes(userData.upload_bytes_used)} /{" "}
+                                {formatBytes(userData.upload_bytes_limit)} ({storageUsedPercentDisplay}%)
                             </p>
                         </AlertDescription>
                     </Alert>
@@ -139,15 +163,15 @@ export const PlanAndBilling = () => {
 
 export default PlanAndBilling;
 
-function ShowPricing() {
+function SubscribeButton() {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <Dialog modal={false} open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button>Upgrade</Button>
+                <Button>Subscribe</Button>
             </DialogTrigger>
 
-            <DialogContent className="max-h-screen! max-w-screen! overflow-y-auto">
+            <DialogContent>
                 <Pricing closePricingDialog={() => setIsOpen(false)} />
             </DialogContent>
         </Dialog>

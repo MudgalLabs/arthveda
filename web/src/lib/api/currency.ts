@@ -2,7 +2,7 @@ import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
 
 // We currently support only INR.
-export type CurrencyCode = "inr";
+export type CurrencyCode = "inr" | "usd";
 
 export interface Currency {
     code: CurrencyCode;
