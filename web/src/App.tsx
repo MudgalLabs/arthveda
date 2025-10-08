@@ -79,7 +79,7 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
         (deps) => !!deps.data
     );
 
-    if (isLoading || isLoadingBrokerContext || !data) {
+    if (isLoading || isLoadingBrokerContext) {
         return (
             <div className="h-screen w-screen">
                 <LoadingScreen />
