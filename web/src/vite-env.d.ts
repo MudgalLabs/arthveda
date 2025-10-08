@@ -56,6 +56,11 @@ interface ImportMetaEnv {
     readonly ARTHVEDA_PADDLE_PRICE_ID_YEARLY: string;
 
     /**
+     * The Paddle price ID.
+     */
+    readonly ARTHVEDA_PADDLE_PRICE_ID: string;
+
+    /**
      * The Bodhveda API key for notifications.
      */
     readonly ARTHVEDA_BODHVEDA_CLIENT_API_KEY: string;

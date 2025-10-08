@@ -77,9 +77,15 @@ export const PlanAndBilling = () => {
                 <div className="flex-x items-start justify-between">
                     <div className="w-full space-y-2">
                         <div className="w-full space-y-2 sm:flex sm:flex-row sm:justify-between">
-                            <p className="font-semibold">You are currently on the {hasPro ? "Pro" : "Free"} plan</p>
+                            <p className="font-semibold">
+                                You are currently {hasPro ? "subscribed" : "not subscribed"}
+                            </p>
 
-                            {hasPro && !subscription?.cancel_at_period_end ? <CancelSubscription /> : <ShowPricing />}
+                            {hasPro && !subscription?.cancel_at_period_end ? (
+                                <CancelSubscription />
+                            ) : (
+                                <SubscribeButton />
+                            )}
                         </div>
 
                         {hasPro ? (
@@ -103,7 +109,7 @@ export const PlanAndBilling = () => {
                         ) : (
                             <div className="text-text-muted">
                                 <p>
-                                    Click on <span className="font-semibold">Upgrade</span> to learn more about Pro.
+                                    Click on <span className="font-semibold">Subscribe</span> to start using Arthveda.
                                 </p>
                             </div>
                         )}
@@ -139,15 +145,15 @@ export const PlanAndBilling = () => {
 
 export default PlanAndBilling;
 
-function ShowPricing() {
+function SubscribeButton() {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <Dialog modal={false} open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button>Upgrade</Button>
+                <Button>Subscribe</Button>
             </DialogTrigger>
 
-            <DialogContent className="max-h-screen! max-w-screen! overflow-y-auto">
+            <DialogContent>
                 <Pricing closePricingDialog={() => setIsOpen(false)} />
             </DialogContent>
         </Dialog>
