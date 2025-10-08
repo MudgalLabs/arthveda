@@ -51,6 +51,10 @@ export function Pricing(props: PricingProps) {
                         })}
                         <span className="text-muted-foreground text-base font-medium">/year</span>
                     </p>
+
+                    <p className="text-text-muted text-center text-xs">
+                        (inclusive of {isIndia ? "GST" : "VAT if applicable"})
+                    </p>
                 </div>
 
                 <UpgradeToPro

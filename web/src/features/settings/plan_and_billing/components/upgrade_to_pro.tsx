@@ -85,7 +85,7 @@ export function UpgradeToPro(props: UpgradeToProProps) {
 
     return (
         <Button className={className} onClick={handleCheckout} disabled={disabled}>
-            Upgrade to Pro
+            Click to pay
         </Button>
     );
 }

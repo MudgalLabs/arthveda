@@ -1,5 +1,5 @@
-import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
-import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
+import { lazy, Suspense, FC, Fragment, PropsWithChildren, useMemo } from "react";
+import { Navigate, Outlet, ScrollRestoration, useLocation, useNavigate } from "react-router-dom";
 import { TooltipProvider, SidebarProvider } from "netra";
 import { BodhvedaProvider } from "@bodhveda/react";
 import { usePostHog } from "posthog-js/react";
@@ -8,7 +8,7 @@ import "@/index.css";
 import "netra/styles.css";
 
 import { toast, ToastProvider } from "@/components/toast";
-import { useAuthentication } from "@/features/auth/auth_context";
+import { useAuthentication, useUserHasProSubscription } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/constants";
 import { useURLState } from "@/hooks/use_url_state";
@@ -22,7 +22,13 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const posthog = usePostHog();
     const { isAuthenticated, isLoading, data } = useAuthentication();
     const { isLoading: isLoadingBrokerContext } = useBroker();
+    const hasPro = useUserHasProSubscription();
+    const isOldUser = useMemo(() => {
+        if (!data) return false;
+        return new Date(data.created_at) < new Date("2025-10-08T00:00:00Z");
+    }, [data]);
     const { pathname } = useLocation();
+    const navigate = useNavigate();
 
     const [isOAuthSuccess] = useURLState("oauth_success", false);
     const [isOAuthError] = useURLState("oauth_error", false);
@@ -57,7 +63,23 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
         (deps) => deps.isOAuthSuccess && !deps.isLoading
     );
 
-    if (isLoading || isLoadingBrokerContext) {
+    useEffectOnce(
+        (deps) => {
+            if (!deps.hasPro && deps.isOldUser) {
+                toast.info("Arthveda Free plan is shutting down on 31st October 2025.", {
+                    duration: 10000,
+                    action: {
+                        label: "Get 50% off",
+                        onClick: () => navigate(ROUTES.planAndBilling),
+                    },
+                });
+            }
+        },
+        { data, hasPro, isOldUser },
+        (deps) => !!deps.data
+    );
+
+    if (isLoading || isLoadingBrokerContext || !data) {
         return (
             <div className="h-screen w-screen">
                 <LoadingScreen />
@@ -73,6 +95,10 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     }
 
     if (isAuthenticated) {
+        if (!hasPro && !isOldUser && pathname !== ROUTES.planAndBilling) {
+            return <Navigate to={ROUTES.planAndBilling} />;
+        }
+
         // The user is trying to go to home(`/`) or to the auth flow route.
         // We should redirect the user to `/dashboard` as they are signed in.
         if (ROUTES_PUBLIC.includes(pathname)) {
