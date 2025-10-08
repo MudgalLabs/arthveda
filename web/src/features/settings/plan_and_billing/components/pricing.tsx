@@ -26,7 +26,6 @@ export function Pricing(props: PricingProps) {
     const { closePricingDialog } = props;
 
     const tz = getUserTimezone();
-    console.log("User timezone:", tz);
     const isIndia = tz === "Asia/Kolkata" || tz === "Asia/Calcutta";
     const yearlyPrice = isIndia ? 1500 : 50;
     const currency = isIndia ? "inr" : "usd";
