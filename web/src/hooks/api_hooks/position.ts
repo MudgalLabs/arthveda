@@ -29,6 +29,7 @@ const QueriesToInvalidateOnPositionChange = [
     "useGetCalendar",
     "useGetPosition",
     "usePositionsSearch",
+    "useMe",
 ];
 
 function invalidatePositionRelatedQueries(queryClient: QueryClient) {
