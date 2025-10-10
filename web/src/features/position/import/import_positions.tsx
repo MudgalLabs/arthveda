@@ -1,6 +1,13 @@
-import { FC, ReactNode, useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { FC, ReactNode, useCallback, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Decimal from "decimal.js";
+import {
+    ColumnDef,
+    getCoreRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from "@tanstack/react-table";
 
 import { toast } from "@/components/toast";
 import { WithLabel } from "@/components/with_label";
@@ -24,12 +31,10 @@ import { ImportPositionsResponse } from "@/lib/api/position";
 import { CurrencyCode } from "@/lib/api/currency";
 import { DecimalString, Setter } from "@/lib/types";
 import { DecimalInput } from "@/components/input/decimal_input";
-import { IconArrowLeft, IconArrowRight, IconCheck, IconInfo } from "@/components/icons";
+import { IconArrowLeft, IconArrowRight, IconInfo } from "@/components/icons";
 import { ROUTES } from "@/constants";
 import { MultiStep } from "@/components/multi_step/multi_step";
-import { LoadingScreen } from "@/components/loading_screen";
-import { Broker, BrokerName } from "@/lib/api/broker";
-import { Card } from "@/components/card";
+import { BrokerName } from "@/lib/api/broker";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import {
     Position,
@@ -37,26 +42,16 @@ import {
     PositionInstrument,
     positionInstrumentToString,
     positionStatusToString,
-    UserBrokerAccountSearchValue,
 } from "@/features/position/position";
 import { MultiStepProps } from "@/components/multi_step/multi_step_context";
-import {
-    ColumnDef,
-    getCoreRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
-} from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { useBroker } from "@/features/broker/broker_context";
-import { UserBrokerAccountSearch } from "@/features/broker/components/user_broker_account_search";
-import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
 import { ApiRes } from "@/lib/api/client";
 
 interface State {
     brokerID: string;
-    userBrokerAccount: UserBrokerAccountSearchValue | null;
+    userBrokerAccountID: string | null;
     brokerName: BrokerName | null;
     file: File | null;
     currency: CurrencyCode;
@@ -70,7 +65,7 @@ interface State {
 
 const INITIAL_STATE: State = {
     brokerID: "",
-    userBrokerAccount: null,
+    userBrokerAccountID: null,
     brokerName: null,
     file: null,
     currency: "inr",
@@ -80,17 +75,46 @@ const INITIAL_STATE: State = {
     force: false,
 };
 
+function createInitialState(overrides: Pick<State, "userBrokerAccountID" | "brokerID" | "brokerName">): State {
+    if (overrides.brokerID === "" || overrides.brokerName === null || !overrides.userBrokerAccountID) {
+        return INITIAL_STATE;
+    }
+
+    return {
+        ...INITIAL_STATE,
+        ...overrides,
+    };
+}
+
 export const ImportPositions = () => {
     useDocumentTitle("Import positions • Arthveda");
-    const [state, setState] = useState<State>(INITIAL_STATE);
+
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    const brokerId = searchParams.get("broker_id");
+    const userBrokerAccountId = searchParams.get("user_broker_account_id");
+    const brokerName = searchParams.get("broker_name");
+    const initialState = createInitialState({
+        brokerID: brokerId || "",
+        userBrokerAccountID: userBrokerAccountId,
+        brokerName: (brokerName as BrokerName) || null,
+    });
+
+    // If the required query params are not present, redirect to broker accounts page.
+    useEffect(() => {
+        if (!initialState.brokerID || !initialState.userBrokerAccountID || !initialState.brokerName) {
+            navigate(ROUTES.brokerAccounts);
+        }
+    }, [initialState, navigate]);
+
+    const [state, setState] = useState<State>(initialState);
     const [importPositionResData, setImportPositionResData] = useState<ImportPositionsResponse | null>(null);
 
     const discard = useCallback(() => {
-        setState(INITIAL_STATE);
+        setState(initialState);
         setImportPositionResData(null);
     }, []);
-
-    const navigate = useNavigate();
 
     const { mutateAsync: importAsync, isPending } = apiHooks.position.useImport({
         onError: (error) => {
@@ -99,13 +123,13 @@ export const ImportPositions = () => {
     });
 
     const handleReviewImport = ({ onSuccess }: { onSuccess?: (data: ImportPositionsResponse) => void }) => {
-        if (!state.file || !state.brokerID || !state.userBrokerAccount) return;
+        if (!state.file || !state.brokerID || !state.userBrokerAccountID) return;
 
         toast.promise(
             importAsync({
                 file: state.file,
                 broker_id: state.brokerID,
-                user_broker_account_id: state.userBrokerAccount.id,
+                user_broker_account_id: state.userBrokerAccountID,
                 currency: state.currency,
                 risk_amount: state.riskAmount || "0",
                 charges_calculation_method: state.chargesCalculationMethod,
@@ -133,7 +157,7 @@ export const ImportPositions = () => {
         if (
             !state.file ||
             !state.brokerID ||
-            !state.userBrokerAccount ||
+            !state.userBrokerAccountID ||
             importPositionResData?.positions?.length === 0
         )
             return;
@@ -142,7 +166,7 @@ export const ImportPositions = () => {
             importAsync({
                 file: state.file,
                 broker_id: state.brokerID,
-                user_broker_account_id: state.userBrokerAccount.id,
+                user_broker_account_id: state.userBrokerAccountID,
                 currency: state.currency,
                 risk_amount: state.riskAmount,
                 charges_calculation_method: state.chargesCalculationMethod,
@@ -192,7 +216,7 @@ export const ImportPositions = () => {
                 disabled = true;
             }
 
-            if (state.userBrokerAccount === null) {
+            if (state.userBrokerAccountID === null) {
                 disabled = true;
             }
         }
@@ -268,10 +292,6 @@ export const ImportPositions = () => {
 
         let labelText = "Next";
 
-        if (currentStepId === "broker-step") {
-            labelText = "Upload File";
-        }
-
         if (currentStepId === "file-step") {
             labelText = "Customise Options";
         }
@@ -321,10 +341,6 @@ export const ImportPositions = () => {
                 <div className="h-8" />
 
                 <MultiStep.Content>
-                    <MultiStep.Step id="broker-step">
-                        <BrokerStep state={state} setState={setState} />
-                    </MultiStep.Step>
-
                     <MultiStep.Step id="file-step">
                         <FileStep state={state} setState={setState} />
                     </MultiStep.Step>
@@ -390,146 +406,6 @@ interface ImportStepProps {
     state: State;
     setState: Setter<State>;
 }
-
-const BrokerStep: FC<ImportStepProps> = ({ state, setState }) => {
-    const { data, isLoading } = apiHooks.broker.useList();
-    const brokers = data?.data || [];
-
-    const { getBrokerLogoByName } = useBroker();
-
-    if (isLoading) {
-        return <LoadingScreen />;
-    }
-
-    const handleClick = (broker: Broker) => {
-        setState((prev) => {
-            // Toggle it if the same broker is clicked again.
-            const nextBrokerID = prev.brokerID === broker.id ? "" : broker.id;
-
-            let nextBrokerName = null;
-
-            if (nextBrokerID !== "") {
-                nextBrokerName = broker.name as BrokerName;
-            }
-
-            return {
-                ...prev,
-                brokerID: nextBrokerID,
-                brokerName: nextBrokerName,
-                userBrokerAccount: null, // Reset the user broker account when changing broker.
-            };
-        });
-    };
-
-    return (
-        <>
-            <h2 className="sub-heading">Broker</h2>
-            <p className="label-muted">
-                Select the Broker and the Broker Account you want to link these imported positions to
-            </p>
-
-            <div className="h-8" />
-
-            <ul className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
-                {brokers
-                    .filter((b) => b.supports_file_import)
-                    .map((broker) => {
-                        const isSelected = state.brokerID === broker.id;
-                        return (
-                            <li key={broker.id}>
-                                <BrokerTile
-                                    key={broker.id}
-                                    name={broker.name as BrokerName}
-                                    image={getBrokerLogoByName(broker.name as BrokerName)}
-                                    isSelected={isSelected}
-                                    onClick={() => handleClick(broker)}
-                                />
-                            </li>
-                        );
-                    })}
-            </ul>
-
-            <div className="h-8" />
-
-            <WithLabel
-                Label={
-                    <div className="flex-x">
-                        <Label>Broker Account</Label>
-                        <BrokerAccountInfoTooltip />
-                    </div>
-                }
-            >
-                <Tooltip content="Select a broker first" contentProps={{ side: "bottom" }} disabled={!!state.brokerID}>
-                    <UserBrokerAccountSearch
-                        filters={{
-                            brokerId: state.brokerID,
-                        }}
-                        disabled={!state.brokerID}
-                        value={state.userBrokerAccount}
-                        onChange={(v) => {
-                            if (v) {
-                                setState((prev) => ({
-                                    ...prev,
-                                    userBrokerAccount: v,
-                                }));
-                            }
-                        }}
-                    />
-                </Tooltip>
-            </WithLabel>
-        </>
-    );
-};
-
-const BrokerTile = ({
-    className,
-    name,
-    image,
-    onClick,
-    isSelected,
-}: {
-    className?: string;
-    name: BrokerName;
-    image: string;
-    onClick: () => void;
-    isSelected: boolean;
-}) => {
-    return (
-        // Remove min-w from button, grid will handle it
-        <button onClick={onClick} className="w-full">
-            <Card
-                className={cn(
-                    "flex-center hover:border-border-hover relative gap-x-2 border-1 p-8 transition-all duration-300 ease-in-out",
-                    {
-                        "border-border-accent hover:border-border-accent": isSelected,
-                    },
-                    className
-                )}
-            >
-                <img src={image} alt={`${name} logo`} className="h-10" />
-                <p
-                    className={cn("heading text-surface-foreground font-medium", {
-                        "text-foreground": isSelected,
-                    })}
-                >
-                    {name}
-                </p>
-
-                <div
-                    className={cn(
-                        "bg-primary text-foreground flex-center absolute top-1 right-1 rounded-full transition-opacity",
-                        {
-                            "opacity-0": !isSelected,
-                            "opacity-100": isSelected,
-                        }
-                    )}
-                >
-                    <IconCheck size={22} />
-                </div>
-            </Card>
-        </button>
-    );
-};
 
 const AngelOneTradingHistoryDirections: FC = () => {
     return (

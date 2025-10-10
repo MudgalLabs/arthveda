@@ -326,6 +326,15 @@ export type LoadFromURLParser = {
 };
 
 function deepParseObject<T>(input: T, customParsers?: LoadFromURLParser, path: string = ""): T {
+    // Apply custom parser for top-level key if path is empty and customParsers exists
+    if (path === "" && customParsers) {
+        for (const key in customParsers) {
+            if (customParsers[key] && input !== undefined) {
+                return customParsers[key](input);
+            }
+        }
+    }
+
     if (Array.isArray(input)) {
         return input.map((item, idx) => deepParseObject(item, customParsers, `${path}[${idx}]`)) as any;
     }
@@ -342,7 +351,6 @@ function deepParseObject<T>(input: T, customParsers?: LoadFromURLParser, path: s
 
     // String leaf node — apply built-in parsing
     if (typeof input === "string") {
-        // Custom parser takes precedence
         if (customParsers?.[path]) {
             return customParsers[path](input);
         }

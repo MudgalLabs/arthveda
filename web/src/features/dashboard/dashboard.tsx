@@ -280,7 +280,7 @@ export const Dashboard = () => {
                 <h1>Dashboard</h1>
             </PageHeading>
 
-            {!isFetching && (
+            {!isFetching && (userMeData?.data.total_positions || 0) > 0 && (
                 <div className="space-y-4">
                     <FreePlanLimitTag />
 
@@ -308,6 +308,7 @@ export const Dashboard = () => {
                     </div>
                 </div>
             )}
+
             {content}
         </div>
     );
@@ -339,16 +340,17 @@ function GetStarted() {
                     <CardTitle>Get Started</CardTitle>
                     <CardContent className="mt-4 space-y-4 text-pretty">
                         <p>
-                            To get started, use the <strong>"Add Position"</strong> button in the sidebar. You can:
+                            To get started, use the <strong>"Add positions"</strong> button in the sidebar. You can:
                         </p>
 
                         <ul className="text-muted-foreground list-inside list-disc">
                             <li>Add a position manually</li>
-                            <li>Import from a broker file</li>
-                            <li>Sync from a connected broker</li>
+                            <li>Import and/or import from a broker</li>
                         </ul>
 
-                        <p className="text-muted-foreground">Once added, you’ll have trading analytics here.</p>
+                        <p className="text-muted-foreground">
+                            Once positions with realised PnL are added, you’ll have analytics here.
+                        </p>
                     </CardContent>
                 </Card>
                 {/* </div> */}

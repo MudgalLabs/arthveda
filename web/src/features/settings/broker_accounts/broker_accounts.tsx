@@ -57,6 +57,7 @@ import {
     IconZap,
     Loading,
     PageHeading,
+    IconImport,
 } from "netra";
 import { WithLabel } from "@/components/with_label";
 import { BrokerSelect } from "@/components/select/broker_select";
@@ -69,6 +70,7 @@ import { Setter } from "@/lib/types";
 import { Position } from "@/features/position/position";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
+import { useNavigate } from "react-router-dom";
 
 export const BrokerAccounts = () => {
     useDocumentTitle("Broker accounts • Arthveda");
@@ -117,6 +119,27 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
         header: ({ column }) => <DataTableColumnHeader title="Name" column={column} />,
         enableHiding: false,
         enableSorting: true,
+        cell: ({ row }) => {
+            const { data, isLoading: isLoadingPositionCount } = apiHooks.position.useSearch({
+                filters: {
+                    user_broker_account_id: row.original.id,
+                },
+            });
+
+            const positionsCount = data?.data.pagination.total_items || 0;
+
+            return (
+                <div className="flex-x">
+                    <p>{row.original.name}</p>
+
+                    {!isLoadingPositionCount && (
+                        <Tooltip content="Positions">
+                            <p className="text-text-muted text-xs font-medium">{positionsCount}</p>
+                        </Tooltip>
+                    )}
+                </div>
+            );
+        },
     },
     {
         accessorKey: "broker_id",
@@ -134,18 +157,35 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
         enableSorting: false,
     },
     {
-        accessorKey: "last_sync_at",
-        header: ({ column }) => <DataTableColumnHeader title="Last Sync" column={column} />,
+        id: "import",
+        header: ({ column }) => <DataTableColumnHeader title="Import" column={column} />,
         cell: ({ row }) => {
-            if (row.original.last_sync_at === null) {
-                return "Never";
-            }
+            const navigate = useNavigate();
+            const { getBrokerById } = useBroker();
+            const broker = getBrokerById(row.original.broker_id);
 
-            const date = new Date(row.original.last_sync_at);
-            return formatDate(date, { time: true });
+            if (!broker) return null;
+
+            const supportsImport = broker?.supports_file_import;
+            const url = new URLSearchParams({
+                broker_id: row.original.broker_id,
+                user_broker_account_id: row.original.id,
+                broker_name: broker.name,
+            });
+
+            const handleClick = () => {
+                navigate(`${ROUTES.importPositions}?${url.toString()}`);
+            };
+
+            return (
+                <Tooltip content="Import is not supported yet" disabled={supportsImport}>
+                    <Button variant="secondary" disabled={!supportsImport} onClick={handleClick}>
+                        <IconImport size={16} />
+                        Import
+                    </Button>
+                </Tooltip>
+            );
         },
-        enableHiding: false,
-        enableSorting: false,
     },
     // {
     //     accessorKey: "is_connected",
@@ -187,13 +227,14 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
     //     enableSorting: false,
     // },
     {
+        id: "sync",
         accessorKey: "is_authenticated",
         header: ({ column }) => (
             <DataTableColumnHeader
                 title={
                     <span className="flex-x">
                         Sync
-                        <Tooltip content="For security reasons, brokers requires users to login everyday to grant access.">
+                        <Tooltip content="To sync from your broker, you must login. For some brokers you may need to connect via providing OAuth credentials.">
                             <IconInfo />
                         </Tooltip>
                     </span>
@@ -202,7 +243,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
             />
         ),
         cell: ({ row, table }) => {
-            const { getBrokerById, getBrokerLogoById } = useBroker();
+            const { getBrokerById } = useBroker();
             const broker = getBrokerById(row.original.broker_id);
             const setSyncSummary = table.options.meta?.extra?.setSyncSummary;
             const setSyncSummaryModalOpen = table.options.meta?.extra?.setSyncSummaryModalOpen;
@@ -247,12 +288,7 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
             if (!row.original.is_authenticated) {
                 return (
                     <Button variant="secondary" onClick={() => sync(row.original.id)} loading={isSyncing}>
-                        <img
-                            src={getBrokerLogoById(row.original.broker_id)}
-                            alt={broker.name}
-                            className="mr-2 h-4 w-4"
-                        />
-                        Connect
+                        Login to sync
                     </Button>
                 );
             }
@@ -267,6 +303,20 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
         enableHiding: false,
         enableSorting: false,
     },
+    // {
+    //     accessorKey: "last_sync_at",
+    //     header: ({ column }) => <DataTableColumnHeader title="Last Sync" column={column} />,
+    //     cell: ({ row }) => {
+    //         if (row.original.last_sync_at === null) {
+    //             return "Never";
+    //         }
+
+    //         const date = new Date(row.original.last_sync_at);
+    //         return formatDate(date, { time: true });
+    //     },
+    //     enableHiding: false,
+    //     enableSorting: false,
+    // },
     {
         id: "actions",
         header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
@@ -485,6 +535,14 @@ const BrokerAccountsTable = ({
         return <p className="text-text-destructive">Failed to fetch broker accounts</p>;
     }
 
+    if (data.data.length === 0) {
+        return (
+            <div className="text-text-muted mx-auto mt-[10%] text-center">
+                Add a broker account so that you can import and/or sync positions from your broker.
+            </div>
+        );
+    }
+
     return (
         <DataTableSmart data={data.data} columns={columns} extra={{ setSyncSummary, setSyncSummaryModalOpen }}>
             {(table) => <DataTable table={table} />}
@@ -544,9 +602,9 @@ export const AddBrokerAccountModal: FC<AddBrokerAccountModalProps> = ({ renderTr
 
             <DialogContent ref={handleRef}>
                 <DialogHeader>
-                    <DialogTitle>Create Broker Account</DialogTitle>
+                    <DialogTitle>Add broker account</DialogTitle>
                     <DialogDescription className="max-w-[80%]">
-                        Create a broker account to link and organize positions imported or synced from your broker.
+                        Add a broker account to link and organize positions imported or synced from your broker.
                     </DialogDescription>
                 </DialogHeader>
 

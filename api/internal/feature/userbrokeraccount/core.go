@@ -24,7 +24,9 @@ type UserBrokerAccount struct {
 	AccessTokenBytes       []byte `json:"-" db:"access_token_bytes"`
 	AccessTokenBytesNonce  []byte `json:"-" db:"access_token_bytes_nonce"`
 
+	//
 	// Runtime fields
+	//
 
 	// If we have a OAuthClientID and OAuthClientSecret, we are considered connected.
 	IsConnected bool `json:"is_connected"`

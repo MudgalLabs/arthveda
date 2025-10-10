@@ -8,11 +8,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
     Tooltip,
-    IconImport,
     IconPlus,
-    IconSync,
     IconSquarePen,
     useIsMobile,
+    IconZap,
 } from "netra";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants";
@@ -64,24 +63,13 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
                 </Link>
 
                 <Link
-                    to={ROUTES.importPositions}
+                    to={ROUTES.brokerAccounts}
                     variant="unstyled"
                     onClick={() => posthog?.capture("Clicked Import Positions From Broker On Dashboard")}
                 >
                     <DropdownMenuItem>
-                        <IconImport size={18} />
-                        Import from file
-                    </DropdownMenuItem>
-                </Link>
-
-                <Link
-                    to={ROUTES.brokerAccounts}
-                    variant="unstyled"
-                    onClick={() => posthog?.capture("Clicked sync from broker")}
-                >
-                    <DropdownMenuItem>
-                        <IconSync size={18} />
-                        Sync from broker
+                        <IconZap size={18} />
+                        From broker
                     </DropdownMenuItem>
                 </Link>
             </DropdownMenuContent>
