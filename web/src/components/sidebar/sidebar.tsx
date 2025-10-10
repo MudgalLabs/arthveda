@@ -71,7 +71,7 @@ export const Sidebar = () => {
 
                 <AddPositionMenu sidebarOpen={isOpen} />
 
-                <div className="h-12" />
+                <div className="h-8" />
 
                 <Link to={ROUTES.dashboard} variant="unstyled">
                     <SidebarItem

@@ -47,8 +47,6 @@ export const Positions = () => {
 
             <FreePlanLimitTag />
 
-            <div className="h-2" />
-
             {queryResult?.data && (
                 <>
                     <PositionListTable
