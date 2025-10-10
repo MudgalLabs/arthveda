@@ -1,5 +1,5 @@
 import { FC, ReactNode, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useNotificationsUnreadCount } from "@bodhveda/react";
 
 import { useSidebar, Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent, IconCalendarSingle } from "netra";
@@ -48,10 +48,7 @@ export const Sidebar = () => {
         }
     }, [isMobile, setIsOpen]);
 
-    const navigate = useNavigate();
-
     const handleClick = (route: string) => {
-        navigate(route);
         setActiveRoute(route);
     };
 
