@@ -351,6 +351,7 @@ function PositionLog() {
                                 errorMsg="Broker Account is required to calculate charges"
                             />
                         </WithLabel>
+                        <div className="h-4" />
                     </div>
                 </div>
 

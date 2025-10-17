@@ -35,11 +35,6 @@ export const PlanAndBilling = () => {
 
     const { data: userData } = useAuthentication();
 
-    const isOldUser = useMemo(() => {
-        if (!userData) return false;
-        return new Date(userData.created_at) < new Date("2025-10-08T00:00:00Z");
-    }, [userData]);
-
     const subscription = useSubscription();
     const hasPro = useUserHasProSubscription();
 
@@ -79,16 +74,6 @@ export const PlanAndBilling = () => {
                 <h1>Plan and billing</h1>
             </PageHeading>
 
-            {!hasPro && isOldUser && (
-                <Alert className="mb-4 max-w-2xl">
-                    <IconInfo />
-                    <p>
-                        Use discount code <span className="text-text-muted font-semibold select-text!">GIFT50</span> at
-                        checkout to get 50% OFF!
-                    </p>
-                </Alert>
-            )}
-
             <Alert className="max-w-2xl">
                 <IconInfo />
 
@@ -96,7 +81,7 @@ export const PlanAndBilling = () => {
                     <div className="w-full space-y-2">
                         <div className="w-full space-y-2 sm:flex sm:flex-row sm:justify-between">
                             <p className="font-semibold">
-                                You are currently {hasPro ? "subscribed" : "not subscribed"}
+                                You are currently {hasPro ? "subscribed" : "not subscribed"}.
                             </p>
 
                             {hasPro && !subscription?.cancel_at_period_end ? (

@@ -39,7 +39,7 @@ export function CancelSubscription() {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Cancel subscription</DialogTitle>
-                    <DialogDescription>Are you sure you want to cancel your Pro subscription?</DialogDescription>
+                    <DialogDescription>Are you sure you want to cancel your subscription?</DialogDescription>
                 </DialogHeader>
 
                 <p>
@@ -47,7 +47,7 @@ export function CancelSubscription() {
                     <span className="text-text-primary font-medium">
                         {formatDate(new Date(subscription!.valid_until))}
                     </span>
-                    , after which it will not renew and your plan will be downgraded to Free.
+                    , after which it will not renew and your access to Arthveda will discontinue.
                 </p>
 
                 <p>It's sad to see you go! 😔</p>

@@ -1,5 +1,5 @@
-import { lazy, Suspense, FC, Fragment, PropsWithChildren, useMemo } from "react";
-import { Navigate, Outlet, ScrollRestoration, useLocation, useNavigate } from "react-router-dom";
+import { lazy, Suspense, FC, Fragment, PropsWithChildren } from "react";
+import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import { TooltipProvider, SidebarProvider } from "netra";
 import { BodhvedaProvider } from "@bodhveda/react";
 import { usePostHog } from "posthog-js/react";
@@ -23,12 +23,7 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, isLoading, data } = useAuthentication();
     const { isLoading: isLoadingBrokerContext } = useBroker();
     const hasPro = useUserHasProSubscription();
-    const isOldUser = useMemo(() => {
-        if (!data) return false;
-        return new Date(data.created_at) < new Date("2025-10-08T00:00:00Z");
-    }, [data]);
     const { pathname } = useLocation();
-    const navigate = useNavigate();
 
     const [isOAuthSuccess] = useURLState("oauth_success", false);
     const [isOAuthError] = useURLState("oauth_error", false);
@@ -63,22 +58,6 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
         (deps) => deps.isOAuthSuccess && !deps.isLoading
     );
 
-    useEffectOnce(
-        (deps) => {
-            if (!deps.hasPro && deps.isOldUser) {
-                toast.info("Arthveda Free plan is shutting down on 31st October 2025.", {
-                    duration: 10000,
-                    action: {
-                        label: "Get 50% off",
-                        onClick: () => navigate(ROUTES.planAndBilling),
-                    },
-                });
-            }
-        },
-        { data, hasPro, isOldUser },
-        (deps) => !!deps.data
-    );
-
     if (isLoading || isLoadingBrokerContext) {
         return (
             <div className="h-screen w-screen">
@@ -95,7 +74,7 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     }
 
     if (isAuthenticated) {
-        if (!hasPro && !isOldUser && pathname !== ROUTES.planAndBilling) {
+        if (!hasPro && pathname !== ROUTES.planAndBilling) {
             return <Navigate to={ROUTES.planAndBilling} />;
         }
 
