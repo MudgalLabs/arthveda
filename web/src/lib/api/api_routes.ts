@@ -40,6 +40,7 @@ export const API_ROUTES = {
         updateTag: (id: string) => `/v1/tags/${id}`,
         updateGroup: (id: string) => `/v1/tags/groups/${id}`,
         deleteGroup: (id: string) => `/v1/tags/groups/${id}`,
+        deleteTag: (id: string) => `/v1/tags/${id}`,
     },
     upload: {
         presign: "/v1/uploads/presign",

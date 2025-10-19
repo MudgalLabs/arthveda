@@ -144,3 +144,25 @@ func deleteTagGroupHandler(s *tag.Service) http.HandlerFunc {
 		successResponse(w, r, http.StatusOK, "Tag group deleted successfully", nil)
 	}
 }
+
+func deleteTagHandler(s *tag.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		idStr := chi.URLParam(r, "id")
+		tagID, err := uuid.Parse(idStr)
+		if err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		payload := tag.DeleteTagPayload{TagID: tagID}
+		errKind, err := s.DeleteTag(ctx, payload)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, "Tag deleted successfully", nil)
+	}
+}

@@ -80,3 +80,17 @@ export function useDeleteTagGroup(options: AnyUseMutationOptions = {}) {
         ...restOptions,
     });
 }
+
+export function useDeleteTag(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
+    return useMutation({
+        mutationFn: (tag_id: string) => api.deleteTag(tag_id),
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({ queryKey: ["useListTagGroups"] });
+            onSuccess?.(...args);
+        },
+        ...restOptions,
+    });
+}

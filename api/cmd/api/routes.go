@@ -122,6 +122,8 @@ func initRouter(a *app) http.Handler {
 			r.Get("/", listTagGroupsHandler(a.service.TagService))
 			r.Post("/", createTagHandler(a.service.TagService))
 			r.Patch("/{id}", updateTagHandler(a.service.TagService))
+			r.Delete("/{id}", deleteTagHandler(a.service.TagService))
+
 			r.Post("/groups", createTagGroupHandler(a.service.TagService))
 			r.Patch("/groups/{id}", updateTagGroupHandler(a.service.TagService))
 			r.Delete("/groups/{id}", deleteTagGroupHandler(a.service.TagService))
