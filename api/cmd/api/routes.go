@@ -118,9 +118,12 @@ func initRouter(a *app) http.Handler {
 
 		r.Route("/tags", func(r chi.Router) {
 			r.Use(authMiddleware)
+
 			r.Get("/", listTagGroupsHandler(a.service.TagService))
 			r.Post("/", createTagHandler(a.service.TagService))
+			r.Patch("/{id}", updateTagHandler(a.service.TagService))
 			r.Post("/groups", createTagGroupHandler(a.service.TagService))
+			r.Patch("/groups/{id}", updateTagGroupHandler(a.service.TagService))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {

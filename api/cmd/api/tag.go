@@ -3,6 +3,9 @@ package main
 import (
 	"arthveda/internal/feature/tag"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 )
 
 func listTagGroupsHandler(s *tag.Service) http.HandlerFunc {
@@ -45,13 +48,72 @@ func createTagHandler(s *tag.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		var payload tag.AddTagPayload
+		var payload tag.CreateTagPayload
 		if err := decodeJSONRequest(&payload, r); err != nil {
 			malformedJSONResponse(w, r, err)
 			return
 		}
 
-		result, errKind, err := s.AddTag(ctx, payload)
+		result, errKind, err := s.CreateTag(ctx, payload)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, "", result)
+	}
+}
+
+func updateTagHandler(s *tag.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		var payload tag.UpdateTagPayload
+		if err := decodeJSONRequest(&payload, r); err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		idStr := chi.URLParam(r, "id")
+		tagID, err := uuid.Parse(idStr)
+		if err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		payload.TagID = tagID
+
+		result, errKind, err := s.UpdateTag(ctx, payload)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, "", result)
+	}
+}
+
+func updateTagGroupHandler(s *tag.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		userID := getUserIDFromContext(ctx)
+
+		var payload tag.UpdateTagGroupPayload
+		if err := decodeJSONRequest(&payload, r); err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		idStr := chi.URLParam(r, "id")
+		tagGroupID, err := uuid.Parse(idStr)
+		if err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		payload.TagGroupID = tagGroupID
+
+		result, errKind, err := s.UpdateTagGroup(ctx, userID, payload)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

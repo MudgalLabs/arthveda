@@ -37,6 +37,8 @@ export const API_ROUTES = {
         list: "/v1/tags",
         createTag: "/v1/tags",
         createGroup: "/v1/tags/groups",
+        updateTag: (id: string) => `/v1/tags/${id}`,
+        updateGroup: (id: string) => `/v1/tags/groups/${id}`,
     },
     upload: {
         presign: "/v1/uploads/presign",

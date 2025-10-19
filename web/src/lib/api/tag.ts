@@ -36,7 +36,6 @@ export interface CreateTagResponse {
     tag: Tag;
 }
 
-// API functions
 export function listTagGroups() {
     return client.get<ApiRes<ListTagGroupsResponse>>(API_ROUTES.tag.list);
 }
@@ -58,4 +57,35 @@ export interface CreateTagRequest {
 
 export function createTag(body: CreateTagRequest) {
     return client.post<ApiRes<CreateTagResponse>>(API_ROUTES.tag.createTag, body);
+}
+
+export interface UpdateTagRequest {
+    tag_id: string;
+    name: string;
+    description: string;
+}
+
+export interface UpdateTagResponse {
+    tag: Tag;
+}
+
+export function updateTag({ tag_id, name, description }: UpdateTagRequest) {
+    return client.patch<ApiRes<UpdateTagResponse>>(API_ROUTES.tag.updateTag(tag_id), { name, description });
+}
+
+export interface UpdateTagGroupRequest {
+    tag_group_id: string;
+    name: string;
+    description: string;
+}
+
+export interface UpdateTagGroupResponse {
+    tag_group: TagGroupWithTags;
+}
+
+export function updateTagGroup({ tag_group_id, name, description }: UpdateTagGroupRequest) {
+    return client.patch<ApiRes<UpdateTagGroupResponse>>(API_ROUTES.tag.updateGroup(tag_group_id), {
+        name,
+        description,
+    });
 }

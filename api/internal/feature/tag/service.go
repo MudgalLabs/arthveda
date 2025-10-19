@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"time"
 
+	"sort"
+	"strings"
+
 	"github.com/google/uuid"
 )
 
 type Service struct {
-	repo Repository
+	repo ReadWriter
 }
 
-func NewService(repo Repository) *Service {
+func NewService(repo ReadWriter) *Service {
 	return &Service{repo: repo}
 }
 
@@ -49,29 +52,39 @@ type UpdateTagGroupResult struct {
 	TagGroup *TagGroup `json:"tag_group"`
 }
 
-func (s *Service) UpdateTagGroup(ctx context.Context, payload UpdateTagGroupPayload) (*UpdateTagGroupResult, service.Error, error) {
+func (s *Service) UpdateTagGroup(ctx context.Context, userID uuid.UUID, payload UpdateTagGroupPayload) (*UpdateTagGroupResult, service.Error, error) {
 	now := time.Now().UTC()
-	if err := s.repo.UpdateTagGroup(ctx, payload.TagGroupID, payload.Name, payload.Description, now); err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("repo update tag group failed: %w", err)
-	}
+
 	tagGroup, err := s.repo.GetTagGroupByID(ctx, payload.TagGroupID)
 	if err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("repo get tag group failed: %w", err)
+		return nil, service.ErrInternalServerError, fmt.Errorf("repo read tag group failed: %w", err)
 	}
+
+	if tagGroup.UserID != userID {
+		return nil, service.ErrUnauthorized, fmt.Errorf("user does not own this tag group")
+	}
+
+	tagGroup.Name = payload.Name
+	tagGroup.Description = &payload.Description
+	tagGroup.UpdatedAt = &now
+	if err := s.repo.UpdateTagGroup(ctx, tagGroup); err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("repo update tag group failed: %w", err)
+	}
+
 	return &UpdateTagGroupResult{TagGroup: tagGroup}, service.ErrNone, nil
 }
 
-type AddTagPayload struct {
+type CreateTagPayload struct {
 	GroupID     uuid.UUID `json:"group_id"`
 	Name        string    `json:"name"`
 	Description *string   `json:"description"`
 }
 
-type AddTagResult struct {
+type CreateTagResult struct {
 	Tag *Tag `json:"tag"`
 }
 
-func (s *Service) AddTag(ctx context.Context, payload AddTagPayload) (*AddTagResult, service.Error, error) {
+func (s *Service) CreateTag(ctx context.Context, payload CreateTagPayload) (*CreateTagResult, service.Error, error) {
 	tag, err := NewTag(payload.GroupID, payload.Name, payload.Description)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to build tag: %w", err)
@@ -81,20 +94,43 @@ func (s *Service) AddTag(ctx context.Context, payload AddTagPayload) (*AddTagRes
 		return nil, service.ErrInternalServerError, fmt.Errorf("repo create tag failed: %w", err)
 	}
 
-	return &AddTagResult{Tag: tag}, service.ErrNone, nil
+	return &CreateTagResult{Tag: tag}, service.ErrNone, nil
 }
 
-type RemoveTagPayload struct {
+type UpdateTagPayload struct {
+	TagID       uuid.UUID `json:"tag_id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+}
+
+type UpdateTagResult struct {
+	Tag *Tag `json:"tag"`
+}
+
+func (s *Service) UpdateTag(ctx context.Context, payload UpdateTagPayload) (*UpdateTagResult, service.Error, error) {
+	now := time.Now().UTC()
+	tag, err := s.repo.GetTagByID(ctx, payload.TagID)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("repo read tag failed: %w", err)
+	}
+	tag.Name = payload.Name
+	tag.Description = &payload.Description
+	tag.UpdatedAt = &now
+	if err := s.repo.UpdateTag(ctx, tag); err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("repo update tag failed: %w", err)
+	}
+	return &UpdateTagResult{Tag: tag}, service.ErrNone, nil
+}
+
+type DeleteTagPayload struct {
 	TagID uuid.UUID `json:"tag_id"`
 }
 
-type RemoveTagResult struct{}
-
-func (s *Service) RemoveTag(ctx context.Context, payload RemoveTagPayload) (*RemoveTagResult, service.Error, error) {
+func (s *Service) DeleteTag(ctx context.Context, payload DeleteTagPayload) (service.Error, error) {
 	if err := s.repo.DeleteTag(ctx, payload.TagID); err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("repo delete tag failed: %w", err)
+		return service.ErrInternalServerError, fmt.Errorf("repo delete tag failed: %w", err)
 	}
-	return &RemoveTagResult{}, service.ErrNone, nil
+	return service.ErrNone, nil
 }
 
 type AttachTagToPositionPayload struct {
@@ -121,6 +157,18 @@ func (s *Service) ListTagGroups(ctx context.Context, userID uuid.UUID) (*ListTag
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("repo list tag groups with tags failed: %w", err)
 	}
+
+	// Sort tags within each group by name (case-insensitive, ascending)
+	for _, g := range groups {
+		sort.SliceStable(g.Tags, func(i, j int) bool {
+			return strings.ToLower(g.Tags[i].Name) < strings.ToLower(g.Tags[j].Name)
+		})
+	}
+
+	// Sort groups by name (case-insensitive, ascending)
+	sort.SliceStable(groups, func(i, j int) bool {
+		return strings.ToLower(groups[i].Name) < strings.ToLower(groups[j].Name)
+	})
 
 	return &ListTagGroupsResult{TagGroups: groups}, service.ErrNone, nil
 }

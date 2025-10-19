@@ -65,7 +65,7 @@ type repositories struct {
 	UserBrokerAccount userbrokeraccount.Reader
 	UserIdentity      user_identity.Reader
 	UserProfile       userprofile.Reader
-	Tag               tag.Repository
+	Tag               tag.Reader
 }
 
 func main() {

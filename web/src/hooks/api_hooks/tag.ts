@@ -38,3 +38,31 @@ export function useCreateTag(options: AnyUseMutationOptions = {}) {
         ...restOptions,
     });
 }
+
+export function useUpdateTag(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
+    return useMutation({
+        mutationFn: (body: api.UpdateTagRequest) => api.updateTag(body),
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({ queryKey: ["useListTagGroups"] });
+            onSuccess?.(...args);
+        },
+        ...restOptions,
+    });
+}
+
+export function useUpdateTagGroup(options: AnyUseMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    const { onSuccess, ...restOptions } = options;
+
+    return useMutation({
+        mutationFn: (body: api.UpdateTagGroupRequest) => api.updateTagGroup(body),
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({ queryKey: ["useListTagGroups"] });
+            onSuccess?.(...args);
+        },
+        ...restOptions,
+    });
+}

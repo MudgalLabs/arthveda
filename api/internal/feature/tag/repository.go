@@ -9,21 +9,31 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Repository interface {
-	CreateTagGroup(ctx context.Context, tg *TagGroup) error
-	UpdateTagGroup(ctx context.Context, tagGroupID uuid.UUID, name, description string, updatedAt time.Time) error
+type Reader interface {
+	ListTagGroupsWithTags(ctx context.Context, userID uuid.UUID) ([]*TagGroupWithTags, error)
 	GetTagGroupByID(ctx context.Context, tagGroupID uuid.UUID) (*TagGroup, error)
+	GetTagByID(ctx context.Context, tagID uuid.UUID) (*Tag, error)
+}
+
+type Writer interface {
+	CreateTagGroup(ctx context.Context, tg *TagGroup) error
+	UpdateTagGroup(ctx context.Context, tg *TagGroup) error
 	CreateTag(ctx context.Context, tag *Tag) error
 	DeleteTag(ctx context.Context, tagID uuid.UUID) error
 	AttachTagToPosition(ctx context.Context, positionID, tagID uuid.UUID, createdAt time.Time) error
-	ListTagGroupsWithTags(ctx context.Context, userID uuid.UUID) ([]*TagGroupWithTags, error)
+	UpdateTag(ctx context.Context, tag *Tag) error
+}
+
+type ReadWriter interface {
+	Reader
+	Writer
 }
 
 type repository struct {
 	db *pgxpool.Pool
 }
 
-func NewRepository(db *pgxpool.Pool) *repository {
+func NewRepository(db *pgxpool.Pool) ReadWriter {
 	return &repository{db: db}
 }
 
@@ -35,12 +45,12 @@ func (r *repository) CreateTagGroup(ctx context.Context, tg *TagGroup) error {
 	return err
 }
 
-func (r *repository) UpdateTagGroup(ctx context.Context, tagGroupID uuid.UUID, name, description string, updatedAt time.Time) error {
+func (r *repository) UpdateTagGroup(ctx context.Context, tg *TagGroup) error {
 	_, err := r.db.Exec(ctx, `
 		UPDATE tag_group
 		SET name = $1, description = $2, updated_at = $3
 		WHERE id = $4
-	`, name, description, updatedAt, tagGroupID)
+	`, tg.Name, tg.Description, tg.UpdatedAt, tg.ID)
 	return err
 }
 
@@ -89,7 +99,7 @@ func (r *repository) ListTagGroupsWithTags(ctx context.Context, userID uuid.UUID
 		FROM tag_group tg
 		LEFT JOIN tag t ON t.group_id = tg.id
 		WHERE tg.user_id = $1
-		ORDER BY tg.created_at, t.created_at
+		ORDER BY LOWER(tg.name), t.created_at
 	`, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query tag groups with tags: %w", err)
@@ -150,4 +160,27 @@ func (r *repository) ListTagGroupsWithTags(ctx context.Context, userID uuid.UUID
 	}
 
 	return result, nil
+}
+
+func (r *repository) UpdateTag(ctx context.Context, tag *Tag) error {
+	_, err := r.db.Exec(ctx, `
+		UPDATE tag
+		SET name = $1, description = $2, updated_at = $3
+		WHERE id = $4
+	`, tag.Name, tag.Description, tag.UpdatedAt, tag.ID)
+	return err
+}
+
+func (r *repository) GetTagByID(ctx context.Context, tagID uuid.UUID) (*Tag, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT id, group_id, name, description, created_at, updated_at
+		FROM tag
+		WHERE id = $1
+	`, tagID)
+	var t Tag
+	err := row.Scan(&t.ID, &t.GroupID, &t.Name, &t.Description, &t.CreatedAt, &t.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("tag not found: %w", err)
+	}
+	return &t, nil
 }

@@ -86,7 +86,7 @@ export const BrokerAccounts = () => {
                 {isFetching && <Loading />}
             </PageHeading>
 
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4">
                 <AddBrokerAccountModal
                     renderTrigger={() => (
                         <Button className="">
