@@ -13,6 +13,7 @@ import (
 	"arthveda/internal/feature/notification"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/symbol"
+	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/feature/upload"
 	"arthveda/internal/feature/user_identity"
@@ -51,6 +52,7 @@ type services struct {
 	UserBrokerAccountService *userbrokeraccount.Service
 	UserIdentityService      *user_identity.Service
 	UserProfileService       *userprofile.Service
+	TagService               *tag.Service
 }
 
 // Access to all repositories for reading.
@@ -63,6 +65,7 @@ type repositories struct {
 	UserBrokerAccount userbrokeraccount.Reader
 	UserIdentity      user_identity.Reader
 	UserProfile       userprofile.Reader
+	Tag               tag.Repository
 }
 
 func main() {
@@ -103,6 +106,7 @@ func main() {
 	userProfileRepository := userprofile.NewRepository(db)
 	userBrokerAccountRepository := userbrokeraccount.NewRepository(db)
 	userIdentityRepository := user_identity.NewRepository(db)
+	tagRepository := tag.NewRepository(db)
 
 	brokerService := broker.NewService(brokerRepository)
 	calendarService := calendar.NewService(positionRepository)
@@ -118,6 +122,7 @@ func main() {
 	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
 	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository,
 		positionRepository, uploadRepository)
+	tagService := tag.NewService(tagRepository)
 
 	services := services{
 		BrokerService:            brokerService,
@@ -131,6 +136,7 @@ func main() {
 		UserBrokerAccountService: userBrokerAccountService,
 		UserIdentityService:      userIdentityService,
 		UserProfileService:       userProfileService,
+		TagService:               tagService,
 	}
 
 	repositories := repositories{
@@ -141,6 +147,7 @@ func main() {
 		UserBrokerAccount: userBrokerAccountRepository,
 		UserIdentity:      userIdentityRepository,
 		UserProfile:       userProfileRepository,
+		Tag:               tagRepository,
 	}
 
 	a := &app{

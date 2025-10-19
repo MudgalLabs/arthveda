@@ -10,6 +10,7 @@ import * as dashboard from "@/lib/api/dashboard";
 import * as position from "@/lib/api/position";
 import * as subscription from "@/lib/api/subscription";
 import * as symbol from "@/lib/api/symbol";
+import * as tag from "@/lib/api/tag";
 import * as upload from "@/lib/api/upload";
 import * as user from "@/lib/api/user";
 import * as userBrokerAccount from "@/lib/api/user_broker_account";
@@ -24,6 +25,7 @@ export const api = {
     position,
     subscription,
     symbol,
+    tag,
     upload,
     user,
     userBrokerAccount,

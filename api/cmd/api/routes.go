@@ -116,6 +116,13 @@ func initRouter(a *app) http.Handler {
 			r.Post("/search", searchSymbolsHandler(a.service.SymbolService))
 		})
 
+		r.Route("/tags", func(r chi.Router) {
+			r.Use(authMiddleware)
+			r.Get("/", listTagGroupsHandler(a.service.TagService))
+			r.Post("/", createTagHandler(a.service.TagService))
+			r.Post("/groups", createTagGroupHandler(a.service.TagService))
+		})
+
 		r.Route("/uploads", func(r chi.Router) {
 			r.Use(authMiddleware)
 			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))

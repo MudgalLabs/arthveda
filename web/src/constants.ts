@@ -19,6 +19,7 @@ export const ROUTES = {
     brokerAccounts: "/settings/broker-accounts",
     feedbackAndSupport: "/settings/feedback-and-support",
     notificationsPreferences: "/settings/notifications",
+    tags: "/settings/tags",
 };
 
 export const ROUTES_PUBLIC = [ROUTES.index, ROUTES.notFound, ROUTES.signIn];
@@ -34,6 +35,7 @@ export const ROUTES_PROTECTED = [
     ROUTES.brokerAccounts,
     ROUTES.feedbackAndSupport,
     ROUTES.notificationsPreferences,
+    ROUTES.tags,
 ];
 
 export const PADDLE_PRICE_ID_MONTHLY = import.meta.env.ARTHVEDA_PADDLE_PRICE_ID_MONTHLY;

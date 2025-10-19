@@ -33,6 +33,11 @@ export const API_ROUTES = {
     symbol: {
         search: "/v1/symbols/search",
     },
+    tag: {
+        list: "/v1/tags",
+        createTag: "/v1/tags",
+        createGroup: "/v1/tags/groups",
+    },
     upload: {
         presign: "/v1/uploads/presign",
     },

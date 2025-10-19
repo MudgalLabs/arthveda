@@ -1,12 +1,14 @@
-import { Table as TableProp, flexRender } from "@tanstack/react-table";
+import { Fragment } from "react";
+import { Row, Table as TableProp, flexRender } from "@tanstack/react-table";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "netra";
 
 interface DataTableProps<TData> {
     table: TableProp<TData>;
+    renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
 }
 
-function DataTable<TData>({ table }: DataTableProps<TData>) {
+function DataTable<TData>({ table, renderSubComponent }: DataTableProps<TData>) {
     return (
         <div>
             <Table>
@@ -28,13 +30,21 @@ function DataTable<TData>({ table }: DataTableProps<TData>) {
                 <TableBody>
                     {table.getRowModel().rows?.length ? (
                         table.getRowModel().rows.map((row) => (
-                            <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                                {row.getVisibleCells().map((cell) => (
-                                    <TableCell key={cell.id}>
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
+                            <Fragment key={row.id}>
+                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                                    {row.getVisibleCells().map((cell) => (
+                                        <TableCell key={cell.id}>
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+
+                                {row.getIsExpanded() && renderSubComponent && (
+                                    <tr>
+                                        <td colSpan={row.getVisibleCells().length}>{renderSubComponent({ row })}</td>
+                                    </tr>
+                                )}
+                            </Fragment>
                         ))
                     ) : (
                         <TableRow>

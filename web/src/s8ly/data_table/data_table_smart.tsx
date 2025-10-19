@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import {
     ColumnDef,
     PaginationState,
+    Row,
     SortingState,
     Table,
     VisibilityState,
     getCoreRowModel,
+    getExpandedRowModel,
     getFacetedRowModel,
     getFacetedUniqueValues,
     getPaginationRowModel,
@@ -25,6 +27,7 @@ interface DataTableSmartProps<TData, TValue> {
     onStateChange?: (newState: DataTableState) => void;
     isFetching?: boolean;
     extra?: Record<string, any>;
+    getRowCanExpand?: (row: Row<TData>) => boolean;
 }
 
 function DataTableSmart<TData, TValue>({
@@ -36,6 +39,7 @@ function DataTableSmart<TData, TValue>({
     onStateChange,
     isFetching,
     extra = {},
+    getRowCanExpand,
 }: DataTableSmartProps<TData, TValue>) {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => stateProp?.columnVisibility ?? {});
     const [pagination, setPagination] = useState<PaginationState>(
@@ -71,6 +75,8 @@ function DataTableSmart<TData, TValue>({
         getSortedRowModel: !stateProp?.sorting ? getSortedRowModel() : undefined, // Use client-side sorting if uncontrolled
         getFacetedRowModel: getFacetedRowModel(),
         getFacetedUniqueValues: getFacetedUniqueValues(),
+        getExpandedRowModel: getExpandedRowModel(),
+        getRowCanExpand: getRowCanExpand,
         meta: {
             isFetching,
             extra,
