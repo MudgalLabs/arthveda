@@ -29,6 +29,7 @@ import {
     useCreateTag,
     useUpdateTagGroup,
     useUpdateTag,
+    useDeleteTagGroup,
 } from "@/hooks/api_hooks/tag";
 import { TagGroupWithTags, Tag } from "@/lib/api/tag";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
@@ -137,24 +138,60 @@ const tagGroupColumns: ColumnDef<TagGroupWithTags>[] = [
     {
         id: "actions",
         header: ({ column }) => <DataTableColumnHeader title="Actions" column={column} />,
-        cell: ({ row, table }) => (
-            <div className="flex gap-x-2">
-                <Tooltip content="Edit tag group" delayDuration={500}>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => table.options.meta?.extra?.onEditTagGroup(row.original)}
-                    >
-                        <IconEdit size={16} />
-                    </Button>
-                </Tooltip>
-                <Tooltip content="Delete tag group" delayDuration={500}>
-                    <Button variant="ghost" size="icon">
-                        <IconTrash size={16} />
-                    </Button>
-                </Tooltip>
-            </div>
-        ),
+        cell: ({ row, table }) => {
+            const [deleteOpen, setDeleteOpen] = useState(false);
+            const { mutate: deleteTagGroup, isPending: isDeleting } = useDeleteTagGroup({
+                onSuccess: () => {
+                    toast.success("Tag group deleted successfully");
+                    setDeleteOpen(false);
+                },
+                onError: () => {
+                    toast.error("Failed to delete tag group");
+                },
+            });
+
+            return (
+                <div className="flex gap-x-2">
+                    <Tooltip content="Edit tag group" delayDuration={500}>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => table.options.meta?.extra?.onEditTagGroup(row.original)}
+                        >
+                            <IconEdit size={16} />
+                        </Button>
+                    </Tooltip>
+                    <Tooltip content="Delete tag group" delayDuration={500}>
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteOpen(true)}>
+                            <IconTrash size={16} />
+                        </Button>
+                    </Tooltip>
+                    <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Delete "{row.original.name}" tag group</DialogTitle>
+
+                                <DialogDescription>
+                                    Are you sure you want to delete <b>{row.original.name}</b> tag group?
+                                </DialogDescription>
+                            </DialogHeader>
+                            All tags in this group will also be deleted. The positions associated with these tags will
+                            no longer have these tags.
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    loading={isDeleting}
+                                    onClick={() => deleteTagGroup(row.original.id)}
+                                >
+                                    Delete
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            );
+        },
         enableSorting: false,
         enableHiding: false,
     },
@@ -208,7 +245,6 @@ const TagGroupsTable: FC<{
     onEditTagGroup?: (tg: TagGroupWithTags) => void;
     onEditTag?: (tag: Tag) => void;
 }> = ({ tagGroups, onEditTagGroup, onEditTag }) => {
-    // Manage open state and groupId for create Tag modal
     const [openCreateTagModalGroupId, setOpenCreateTagModalGroupId] = useState<string | null>(null);
 
     return (

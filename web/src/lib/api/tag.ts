@@ -89,3 +89,7 @@ export function updateTagGroup({ tag_group_id, name, description }: UpdateTagGro
         description,
     });
 }
+
+export function deleteTagGroup(tag_group_id: string) {
+    return client.delete(API_ROUTES.tag.deleteGroup(tag_group_id));
+}

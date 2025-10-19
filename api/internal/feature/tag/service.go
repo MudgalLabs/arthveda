@@ -74,6 +74,20 @@ func (s *Service) UpdateTagGroup(ctx context.Context, userID uuid.UUID, payload 
 	return &UpdateTagGroupResult{TagGroup: tagGroup}, service.ErrNone, nil
 }
 
+func (s *Service) DeleteTagGroup(ctx context.Context, userID uuid.UUID, tagGroupID uuid.UUID) (service.Error, error) {
+	tagGroup, err := s.repo.GetTagGroupByID(ctx, tagGroupID)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("repo read tag group failed: %w", err)
+	}
+	if tagGroup.UserID != userID {
+		return service.ErrUnauthorized, fmt.Errorf("user does not own this tag group")
+	}
+	if err := s.repo.DeleteTagGroup(ctx, tagGroupID); err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("repo delete tag group failed: %w", err)
+	}
+	return service.ErrNone, nil
+}
+
 type CreateTagPayload struct {
 	GroupID     uuid.UUID `json:"group_id"`
 	Name        string    `json:"name"`

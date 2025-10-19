@@ -22,6 +22,7 @@ type Writer interface {
 	DeleteTag(ctx context.Context, tagID uuid.UUID) error
 	AttachTagToPosition(ctx context.Context, positionID, tagID uuid.UUID, createdAt time.Time) error
 	UpdateTag(ctx context.Context, tag *Tag) error
+	DeleteTagGroup(ctx context.Context, tagGroupID uuid.UUID) error
 }
 
 type ReadWriter interface {
@@ -183,4 +184,11 @@ func (r *repository) GetTagByID(ctx context.Context, tagID uuid.UUID) (*Tag, err
 		return nil, fmt.Errorf("tag not found: %w", err)
 	}
 	return &t, nil
+}
+
+func (r *repository) DeleteTagGroup(ctx context.Context, tagGroupID uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `
+		DELETE FROM tag_group WHERE id = $1
+	`, tagGroupID)
+	return err
 }
