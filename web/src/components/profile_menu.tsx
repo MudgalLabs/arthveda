@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 
-import { Button, IconTag, IconTags, useIsMobile } from "netra";
+import { Button, IconTags, useIsMobile } from "netra";
 import { IconLogout, IconCreditCard } from "@/components/icons";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
