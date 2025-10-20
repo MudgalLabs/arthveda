@@ -159,6 +159,7 @@ func (s *Service) AttachTagToPosition(ctx context.Context, payload AttachTagToPo
 	if err := s.repo.AttachTagToPosition(ctx, payload.PositionID, payload.TagID, now); err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("repo attach tag to position failed: %w", err)
 	}
+
 	return &AttachTagToPositionResult{}, service.ErrNone, nil
 }
 

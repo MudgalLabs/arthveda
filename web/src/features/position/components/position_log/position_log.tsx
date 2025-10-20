@@ -42,7 +42,7 @@ import { DirectionTag } from "@/features/position/components/direction_tag";
 import { StatusTag } from "@/features/position/components/status_tag";
 import { apiErrorHandler } from "@/lib/api";
 import { WithDebounce } from "@/components/with_debounce";
-import { SymbolInput } from "@/features/position/components/symbol_input";
+import { SymbolSearch } from "@/features/position/components/symbol_search";
 import { usePositionStore } from "@/features/position/position_store_context";
 import { ComputePositionResponse } from "@/lib/api/position";
 import {
@@ -284,7 +284,7 @@ function PositionLog() {
                         >
                             {(value, setValue) => (
                                 <WithLabel Label={<Label>Symbol</Label>}>
-                                    <SymbolInput
+                                    <SymbolSearch
                                         variant={value ? "default" : "error"}
                                         value={value}
                                         onChange={(v) => setValue(v)}

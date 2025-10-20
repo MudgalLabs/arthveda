@@ -11,7 +11,7 @@ import { PositionStatusFilterValue, PositionStatusSelect } from "@/components/se
 import { WithCompare } from "@/components/with_compare";
 import { CompareOperator, CompareSelect } from "@/components/select/compare_select";
 import { DecimalInput } from "@/components/input/decimal_input";
-import { SymbolInput } from "@/features/position/components/symbol_input";
+import { SymbolSearch } from "@/features/position/components/symbol_search";
 import { positionSearchFiltersLabel } from "@/features/position/utils";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import { PositionDirection, PositionInstrument } from "../position";
@@ -142,7 +142,7 @@ const SymbolInputField = memo(() => {
 
     return (
         <WithLabel Label={<Label>{positionSearchFiltersLabel.symbol}</Label>}>
-            <SymbolInput value={symbol} onChange={(v) => updateFilter("symbol", v)} />
+            <SymbolSearch value={symbol} onChange={(v) => updateFilter("symbol", v)} />
         </WithLabel>
     );
 });

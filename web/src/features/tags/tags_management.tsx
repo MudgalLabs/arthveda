@@ -489,7 +489,7 @@ const TagModal: FC<TagModalProps> = ({ renderTrigger, groupId, mode, tag, open, 
                     <Label>Name</Label>
                     <Input
                         className="w-full!"
-                        placeholder="Typo"
+                        placeholder="FOMO"
                         type="text"
                         required
                         maxLength={64}
@@ -499,7 +499,7 @@ const TagModal: FC<TagModalProps> = ({ renderTrigger, groupId, mode, tag, open, 
                     <Label>Description</Label>
                     <Input
                         className="w-full!"
-                        placeholder="Typographical error"
+                        placeholder="Fear of missing out"
                         type="text"
                         maxLength={128}
                         value={description}

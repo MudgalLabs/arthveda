@@ -15,7 +15,7 @@ interface SymbolInputProps extends Omit<InputProps, "value" | "onChange"> {
     onChange?: (value: string) => void;
 }
 
-export const SymbolInput: FC<SymbolInputProps> = memo((props) => {
+export const SymbolSearch: FC<SymbolInputProps> = memo((props) => {
     const { value: valueProp, onChange: onChangeProp, variant, errorMsg, ...restProps } = props;
 
     const [inputValue, setInputValue] = useState("");
