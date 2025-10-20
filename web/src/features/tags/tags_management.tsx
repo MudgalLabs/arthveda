@@ -21,6 +21,8 @@ import {
     IconTrash,
     IconChevronDown,
     IconChevronRight,
+    DataTable,
+    DataTableSmart,
 } from "netra";
 
 import {
@@ -33,9 +35,7 @@ import {
     useDeleteTag,
 } from "@/hooks/api_hooks/tag";
 import { TagGroupWithTags, Tag } from "@/lib/api/tag";
-import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { toast } from "@/components/toast";
-import { DataTable } from "@/s8ly";
 
 export function TagsManagement() {
     const { data, isLoading } = useListTagGroups();

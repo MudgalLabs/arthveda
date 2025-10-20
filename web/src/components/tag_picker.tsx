@@ -9,12 +9,12 @@ import {
     useControlled,
     LoadingScreen,
     IconSettings,
+    ScrollArea,
 } from "netra";
 
-import { ScrollArea } from "@/s8ly";
 import { Tag, TagGroup } from "@/lib/api/tag";
 import { useListTagGroups } from "@/hooks/api_hooks/tag";
-import { Link } from "./link";
+import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
 
 interface TagPickerProps {
@@ -135,11 +135,11 @@ export default function TagPicker({ value: valueProp, onChange }: TagPickerProps
                         </div>
                     )}
 
-                    <div className="flex justify-end p-2">
+                    <div className="flex justify-end px-2 py-2">
                         <Link to={ROUTES.tags}>
-                            <Button variant="link" size="small">
-                                <IconSettings size={16} /> Manage tags
-                            </Button>
+                            <span className="flex-x text-xs">
+                                <IconSettings size={14} /> Manage tags
+                            </span>
                         </Link>
                     </div>
                 </PopoverContent>

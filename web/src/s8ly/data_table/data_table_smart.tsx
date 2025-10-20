@@ -76,7 +76,7 @@ function DataTableSmart<TData, TValue>({
         getFacetedRowModel: getFacetedRowModel(),
         getFacetedUniqueValues: getFacetedUniqueValues(),
         getExpandedRowModel: getExpandedRowModel(),
-        getRowCanExpand: getRowCanExpand,
+        getRowCanExpand,
         meta: {
             isFetching,
             extra,
