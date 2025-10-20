@@ -148,19 +148,24 @@ func (s *Service) DeleteTag(ctx context.Context, payload DeleteTagPayload) (serv
 }
 
 type AttachTagToPositionPayload struct {
-	PositionID uuid.UUID `json:"position_id"`
-	TagID      uuid.UUID `json:"tag_id"`
+	PositionID uuid.UUID   `json:"position_id"`
+	TagIDs     []uuid.UUID `json:"tag_ids"`
 }
 
-type AttachTagToPositionResult struct{}
-
-func (s *Service) AttachTagToPosition(ctx context.Context, payload AttachTagToPositionPayload) (*AttachTagToPositionResult, service.Error, error) {
+func (s *Service) AttachTagToPosition(ctx context.Context, payload AttachTagToPositionPayload) (service.Error, error) {
 	now := time.Now().UTC()
-	if err := s.repo.AttachTagToPosition(ctx, payload.PositionID, payload.TagID, now); err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("repo attach tag to position failed: %w", err)
+
+	if err := s.repo.RemoveAllTagsFromPosition(ctx, payload.PositionID); err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("repo remove all tags from position failed: %w", err)
 	}
 
-	return &AttachTagToPositionResult{}, service.ErrNone, nil
+	if len(payload.TagIDs) > 0 {
+		if err := s.repo.AttachTagsToPosition(ctx, payload.PositionID, payload.TagIDs, now); err != nil {
+			return service.ErrInternalServerError, fmt.Errorf("repo attach tags to position failed: %w", err)
+		}
+	}
+
+	return service.ErrNone, nil
 }
 
 type ListTagGroupsResult struct {

@@ -32,6 +32,8 @@ export * from "@/s8ly/popover/popover";
 export * from "@/s8ly/progress/progress";
 // RadioGroup
 export * from "@/s8ly/radio_group/radio_group";
+// ScrollArea
+export * from "@/s8ly/scroll_area/scroll_area";
 // Select
 export * from "@/s8ly/select/select";
 // Seperator

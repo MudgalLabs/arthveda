@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -13,6 +14,8 @@ type Reader interface {
 	ListTagGroupsWithTags(ctx context.Context, userID uuid.UUID) ([]*TagGroupWithTags, error)
 	GetTagGroupByID(ctx context.Context, tagGroupID uuid.UUID) (*TagGroup, error)
 	GetTagByID(ctx context.Context, tagID uuid.UUID) (*Tag, error)
+	GetTagsByIDs(ctx context.Context, tagIDs []uuid.UUID) ([]*Tag, error)
+	GetTagsByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Tag, error)
 }
 
 type Writer interface {
@@ -21,6 +24,8 @@ type Writer interface {
 	CreateTag(ctx context.Context, tag *Tag) error
 	DeleteTag(ctx context.Context, tagID uuid.UUID) error
 	AttachTagToPosition(ctx context.Context, positionID, tagID uuid.UUID, createdAt time.Time) error
+	AttachTagsToPosition(ctx context.Context, positionID uuid.UUID, tagIDs []uuid.UUID, createdAt time.Time) error
+	RemoveAllTagsFromPosition(ctx context.Context, positionID uuid.UUID) error
 	UpdateTag(ctx context.Context, tag *Tag) error
 	DeleteTagGroup(ctx context.Context, tagGroupID uuid.UUID) error
 }
@@ -90,6 +95,39 @@ func (r *repository) AttachTagToPosition(ctx context.Context, positionID, tagID 
 		VALUES ($1, $2, $3)
 		ON CONFLICT DO NOTHING
 	`, positionID, tagID, createdAt)
+	return err
+}
+
+func (r *repository) AttachTagsToPosition(ctx context.Context, positionID uuid.UUID, tagIDs []uuid.UUID, createdAt time.Time) error {
+	if len(tagIDs) == 0 {
+		return nil
+	}
+
+	batch := &pgx.Batch{}
+	for _, tagID := range tagIDs {
+		batch.Queue(`
+			INSERT INTO position_tag (position_id, tag_id, created_at)
+			VALUES ($1, $2, $3)
+			ON CONFLICT DO NOTHING
+		`, positionID, tagID, createdAt)
+	}
+
+	br := r.db.SendBatch(ctx, batch)
+	defer br.Close()
+
+	for range tagIDs {
+		if _, err := br.Exec(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *repository) RemoveAllTagsFromPosition(ctx context.Context, positionID uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `
+		DELETE FROM position_tag WHERE position_id = $1
+	`, positionID)
 	return err
 }
 
@@ -173,17 +211,74 @@ func (r *repository) UpdateTag(ctx context.Context, tag *Tag) error {
 }
 
 func (r *repository) GetTagByID(ctx context.Context, tagID uuid.UUID) (*Tag, error) {
-	row := r.db.QueryRow(ctx, `
+	tags, err := r.GetTagsByIDs(ctx, []uuid.UUID{tagID})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tag by ID: %w", err)
+	}
+
+	if len(tags) == 0 {
+		return nil, pgx.ErrNoRows
+	}
+
+	t := *tags[0]
+	return &t, nil
+}
+
+func (r *repository) GetTagsByIDs(ctx context.Context, tagIDs []uuid.UUID) ([]*Tag, error) {
+	if len(tagIDs) == 0 {
+		return []*Tag{}, nil
+	}
+
+	query := `
 		SELECT id, group_id, name, description, created_at, updated_at
 		FROM tag
-		WHERE id = $1
-	`, tagID)
-	var t Tag
-	err := row.Scan(&t.ID, &t.GroupID, &t.Name, &t.Description, &t.CreatedAt, &t.UpdatedAt)
+		WHERE id = ANY($1)
+	`
+	rows, err := r.db.Query(ctx, query, tagIDs)
 	if err != nil {
-		return nil, fmt.Errorf("tag not found: %w", err)
+		return nil, fmt.Errorf("failed to query tags by IDs: %w", err)
 	}
-	return &t, nil
+	defer rows.Close()
+
+	var tags []*Tag
+	for rows.Next() {
+		var t Tag
+		err := rows.Scan(&t.ID, &t.GroupID, &t.Name, &t.Description, &t.CreatedAt, &t.UpdatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan tag: %w", err)
+		}
+		tags = append(tags, &t)
+	}
+
+	return tags, nil
+}
+
+func (r *repository) GetTagsByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Tag, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT t.id, t.group_id, t.name, t.description, t.created_at, t.updated_at
+		FROM tag t
+		JOIN position_tag pt ON pt.tag_id = t.id
+		WHERE pt.position_id = $1
+	`, positionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query tags by position ID: %w", err)
+	}
+
+	defer rows.Close()
+
+	tags := []*Tag{}
+	for rows.Next() {
+		var t Tag
+
+		err := rows.Scan(&t.ID, &t.GroupID, &t.Name, &t.Description, &t.CreatedAt, &t.UpdatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan tag: %w", err)
+		}
+
+		tags = append(tags, &t)
+	}
+
+	return tags, nil
 }
 
 func (r *repository) DeleteTagGroup(ctx context.Context, tagGroupID uuid.UUID) error {

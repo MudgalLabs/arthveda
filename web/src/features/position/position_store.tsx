@@ -56,6 +56,7 @@ const defaultState: State = {
         user_broker_account_id: null,
 
         trades: [],
+        tags: [],
         user_broker_account: null,
         journal_content: undefined,
         is_duplicate: false,

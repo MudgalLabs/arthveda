@@ -113,8 +113,6 @@ func main() {
 	currencyService := currency.NewService()
 	dashboardService := dashboard.NewService(dashboardRepository, positionRepository, tradeRepository)
 	journalEntryService := journal_entry.NewService(journalEntryRepository, journalEntryContentRepository)
-	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository,
-		userBrokerAccountRepository, journalEntryService, uploadRepository)
 	subcriptionService := subscription.NewService(subscriptionRepository)
 	symbolService := symbol.NewService(positionRepository)
 	uploadService := upload.NewService(s3, uploadRepository)
@@ -123,6 +121,8 @@ func main() {
 	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository,
 		positionRepository, uploadRepository)
 	tagService := tag.NewService(tagRepository)
+	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository,
+		userBrokerAccountRepository, journalEntryService, uploadRepository, tagService, tagRepository)
 
 	services := services{
 		BrokerService:            brokerService,

@@ -30,7 +30,7 @@ import {
     useUpdateTagGroup,
     useUpdateTag,
     useDeleteTagGroup,
-    useDeleteTag, // <-- Add this import
+    useDeleteTag,
 } from "@/hooks/api_hooks/tag";
 import { TagGroupWithTags, Tag } from "@/lib/api/tag";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";

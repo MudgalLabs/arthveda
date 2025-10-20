@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/domain/types"
+	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
 	"encoding/json"
@@ -59,16 +60,22 @@ type Position struct {
 
 	UserBrokerAccountID *uuid.UUID `json:"user_broker_account_id" db:"user_broker_account_id"` // The ID of the UserBrokerAccount to which this Position belongs.
 
+	//
+	// Everything above is present in the position table but everything below isn't.
+	// The fields below are populated separately as needed.
+	//
+
+	// The Journal Content associated with this Position.
 	JournalContent json.RawMessage `json:"journal_content"`
 
-	//
-	// Everything above is present in the DATABASE but everything below isn't.
-	//
+	// The Tags attached to this Position.
+	Tags []*tag.Tag `json:"tags"`
 
 	// Simplified UserBrokerAccount with only required fields
 	UserBrokerAccount *UserBrokerAccountSearchValue `json:"user_broker_account"` // The UserBrokerAccount to which this Position belongs.
 
-	Trades []*trade.Trade `json:"trades"` // All the trade(s) that are RELATED to this Position.
+	// All the trade(s) that are RELATED to this Position.
+	Trades []*trade.Trade `json:"trades"`
 
 	// Whether this Position is a duplicate of another Position or not.
 	// This flag is used when we are importing positions from Brokers.

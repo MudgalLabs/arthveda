@@ -61,6 +61,7 @@ import { Link } from "@/components/link";
 import { PositionLogTrades } from "@/features/position/components/position_log/position_log_trades";
 import { PositionLogNotes } from "@/features/position/components/position_log/position_log_notes";
 import { collectUploadIds } from "@/features/position/utils";
+import TagPicker from "@/components/tag_picker";
 
 const enum PositionLogTab {
     Trades = "trades",
@@ -153,6 +154,7 @@ function PositionLog() {
             user_broker_account_id: position.user_broker_account_id,
             journal_content: position.journal_content || null,
             active_upload_ids: collectUploadIds(position.journal_content ?? []),
+            tag_ids: position.tags.map((t) => t.id),
             trades: (position.trades || []).map((t) => {
                 // Removing fields that are not required by the API.
                 // We are removing these fields because the API will throw an error if we send them.
@@ -245,7 +247,7 @@ function PositionLog() {
             </PageHeading>
 
             <div className="flex flex-col gap-y-8 lg:flex-row!">
-                <div className="border-r-border-subtle min-w-[360px] border-r-1 lg:pr-4">
+                <div className="lg:border-r-border-subtle min-w-[360px] lg:border-r-1 lg:pr-4">
                     <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row lg:flex-col!">
                         <div className="flex h-fit gap-x-2">
                             <StatusTag
@@ -351,6 +353,11 @@ function PositionLog() {
                                 errorMsg="Broker Account is required to calculate charges"
                             />
                         </WithLabel>
+
+                        <WithLabel Label={<Label>Tags</Label>}>
+                            <TagPicker value={position.tags} onChange={(v) => updatePosition({ tags: v })} />
+                        </WithLabel>
+
                         <div className="h-4" />
                     </div>
                 </div>

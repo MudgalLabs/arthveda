@@ -8,6 +8,7 @@ import (
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/journal_entry"
+	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/feature/upload"
 	"arthveda/internal/feature/userbrokeraccount"
@@ -36,11 +37,14 @@ type Service struct {
 	userBrokerAccountRepository userbrokeraccount.Reader
 	journalEntryService         *journal_entry.Service
 	uploadRepository            upload.ReadWriter
+	tagService                  *tag.Service
+	tagRepository               tag.Reader
 }
 
 func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWriter,
 	tradeRepository trade.ReadWriter, userBrokerAccountRepository userbrokeraccount.Reader,
 	journalEntryService *journal_entry.Service, uploadRepository upload.ReadWriter,
+	tagService *tag.Service, tagRepository tag.Reader,
 ) *Service {
 	return &Service{
 		brokerRepository,
@@ -49,6 +53,8 @@ func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWrite
 		userBrokerAccountRepository,
 		journalEntryService,
 		uploadRepository,
+		tagService,
+		tagRepository,
 	}
 }
 
@@ -123,6 +129,7 @@ type CreatePayload struct {
 	UserBrokerAccountID *uuid.UUID            `json:"user_broker_account_id"`
 	JournalContent      json.RawMessage       `json:"journal_content"`
 	ActiveUploadIDs     []uuid.UUID           `json:"active_upload_ids"`
+	TagIDs              []uuid.UUID           `json:"tag_ids"`
 }
 
 // FIXME: use transaction.
@@ -168,6 +175,16 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePa
 	if err != nil {
 		logger.Errorw("failed to sync uploads after creating a position", "error", err, "position_id", position.ID)
 		// Not returning an error here, as the position was created successfully.
+	}
+
+	svcErr, err := s.tagService.AttachTagToPosition(ctx, tag.AttachTagToPositionPayload{
+		PositionID: position.ID,
+		TagIDs:     payload.TagIDs,
+	})
+
+	if err != nil {
+		logger.Errorw("failed to attach tags to position after creating a position", "error", err, "position_id", position.ID)
+		return nil, svcErr, err
 	}
 
 	return position, service.ErrNone, nil
@@ -989,6 +1006,13 @@ func (s *Service) Get(ctx context.Context, userID, positionID uuid.UUID) (*Posit
 		position.JournalContent = *journalContent
 	}
 
+	tags, err := s.tagRepository.GetTagsByPositionID(ctx, position.ID)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get tags for position ID %s: %w", position.ID, err)
+	}
+
+	position.Tags = tags
+
 	return position, service.ErrNone, nil
 }
 
@@ -1061,6 +1085,16 @@ func (s *Service) Update(ctx context.Context, userID, positionID uuid.UUID, payl
 	if err != nil {
 		l.Errorw("failed to update position in repository", "error", err, "position_id", originalPosition.ID)
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to update position in repository: %w", err)
+	}
+
+	svcErr, err := s.tagService.AttachTagToPosition(ctx, tag.AttachTagToPositionPayload{
+		PositionID: positionID,
+		TagIDs:     payload.TagIDs,
+	})
+
+	if err != nil {
+		l.Errorw("failed to attach tags to position after creating a position", "error", err, "position_id", positionID)
+		return nil, svcErr, err
 	}
 
 	return &updatedPosition, service.ErrNone, nil
