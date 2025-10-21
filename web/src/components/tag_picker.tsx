@@ -45,8 +45,8 @@ export default function TagPicker({ value: valueProp, onChange }: TagPickerProps
     const isTagSelected = (tagId: string) => value.some((t) => t.id === tagId);
 
     const toggleTag = (tag: Tag) => {
-        if (value.includes(tag)) {
-            const newValue = value.filter((id) => id !== tag);
+        if (isTagSelected(tag.id)) {
+            const newValue = value.filter((t) => t.id !== tag.id);
             onChange?.(newValue);
             setValue(newValue);
         } else {
