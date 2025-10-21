@@ -333,5 +333,7 @@ const columns: ColumnDef<Position>[] = [
                 ))}
             </div>
         ),
+        enableHiding: true,
+        enableSorting: false,
     },
 ];
