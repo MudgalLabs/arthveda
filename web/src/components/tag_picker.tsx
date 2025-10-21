@@ -20,9 +20,10 @@ import { ROUTES } from "@/constants";
 interface TagPickerProps {
     value?: Tag[];
     onChange?: (value: Tag[]) => void;
+    container?: HTMLElement | null;
 }
 
-export default function TagPicker({ value: valueProp, onChange }: TagPickerProps) {
+export default function TagPicker({ value: valueProp, onChange, container }: TagPickerProps) {
     const { data, isLoading } = useListTagGroups();
     const tagGroups: TagGroup[] = data?.data?.tag_groups || [];
 
@@ -82,7 +83,7 @@ export default function TagPicker({ value: valueProp, onChange }: TagPickerProps
                     </PopoverTrigger>
                 </div>
 
-                <PopoverContent className="min-w-[320px] p-0">
+                <PopoverContent className="min-w-[320px] p-0" container={container}>
                     {isLoading ? (
                         <LoadingScreen />
                     ) : (

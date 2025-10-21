@@ -19,6 +19,7 @@ interface State {
 
 interface Action {
     updatePosition: (newState: Partial<Position>) => void;
+    updateInitialPosition: (newState: Partial<Position>) => void;
     setEnableAutoCharges: (enable: boolean) => void;
     setTrades: Setter<Trade[]>;
     insertNewTrade: () => void;
@@ -88,6 +89,19 @@ export const createPositionStore = (initProp?: Position) => {
 
                 return {
                     position: updatedPosition,
+                };
+            });
+        },
+
+        updateInitialPosition: (newState) => {
+            set(() => {
+                const updatedInitialPosition = {
+                    ...get().initialPosition,
+                    ...newState,
+                } as Position;
+
+                return {
+                    initialPosition: updatedInitialPosition,
                 };
             });
         },

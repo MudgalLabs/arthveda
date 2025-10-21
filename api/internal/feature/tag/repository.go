@@ -16,6 +16,7 @@ type Reader interface {
 	GetTagByID(ctx context.Context, tagID uuid.UUID) (*Tag, error)
 	GetTagsByIDs(ctx context.Context, tagIDs []uuid.UUID) ([]*Tag, error)
 	GetTagsByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Tag, error)
+	GetTagsByPositionIDs(ctx context.Context, positionIDs []uuid.UUID) ([]*TagWithPositionID, error)
 }
 
 type Writer interface {
@@ -279,6 +280,37 @@ func (r *repository) GetTagsByPositionID(ctx context.Context, positionID uuid.UU
 	}
 
 	return tags, nil
+}
+
+func (r *repository) GetTagsByPositionIDs(ctx context.Context, positionIDs []uuid.UUID) ([]*TagWithPositionID, error) {
+	if len(positionIDs) == 0 {
+		return []*TagWithPositionID{}, nil
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT pt.position_id, t.id, t.group_id, t.name, t.description, t.created_at, t.updated_at
+		FROM tag t
+		JOIN position_tag pt ON pt.tag_id = t.id
+		WHERE pt.position_id = ANY($1)
+	`, positionIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query tags by position IDs: %w", err)
+	}
+	defer rows.Close()
+
+	var result []*TagWithPositionID
+	for rows.Next() {
+		var twp TagWithPositionID
+		var tag Tag
+		err := rows.Scan(&twp.PositionID, &tag.ID, &tag.GroupID, &tag.Name, &tag.Description, &tag.CreatedAt, &tag.UpdatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan tag with position ID: %w", err)
+		}
+		twp.Tag = tag
+		result = append(result, &twp)
+	}
+
+	return result, nil
 }
 
 func (r *repository) DeleteTagGroup(ctx context.Context, tagGroupID uuid.UUID) error {

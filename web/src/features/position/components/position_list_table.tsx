@@ -315,4 +315,23 @@ const columns: ColumnDef<Position>[] = [
             );
         },
     },
+    {
+        id: "tags",
+        meta: {
+            columnVisibilityHeader: "Tags",
+        },
+        accessorKey: "tags",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Tags" disabled={table.options.meta?.isFetching} column={column} />
+        ),
+        cell: ({ row }) => (
+            <div className="flex flex-wrap gap-1">
+                {row.original.tags?.map((tag) => (
+                    <span key={tag.id} className="bg-secondary text-secondary-foreground rounded px-2 py-1 text-xs">
+                        {tag.name}
+                    </span>
+                ))}
+            </div>
+        ),
+    },
 ];

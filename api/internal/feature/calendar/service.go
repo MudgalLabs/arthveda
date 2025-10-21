@@ -66,7 +66,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 		},
 	}
 
-	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload, true)
+	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload, true, false)
 	if err != nil {
 		return nil, service.ErrInternalServerError, err
 	}

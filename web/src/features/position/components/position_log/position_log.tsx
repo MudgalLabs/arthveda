@@ -95,6 +95,7 @@ function PositionLog() {
     const { mutateAsync: update, isPending: isUpdating } = apiHooks.position.useUpdate({
         onSuccess: async () => {
             toast.success("Position Updated");
+            updateInitialPosition(position);
         },
         onError: apiErrorHandler,
     });
@@ -137,6 +138,7 @@ function PositionLog() {
     const positionLatest = useLatest(position);
     const discard = usePositionStore((s) => s.discard);
     const updatePosition = usePositionStore((s) => s.updatePosition);
+    const updateInitialPosition = usePositionStore((s) => s.updateInitialPosition);
     const [canCompute, setCanCompute] = usePositionCanBeComputed();
     const canSave = usePositionCanBeSaved();
     const hasPositionDataChanged = useHasPositionDataChanged();

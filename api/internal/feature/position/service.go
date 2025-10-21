@@ -268,7 +268,7 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 		}
 	}
 
-	positions, totalItems, err := s.positionRepository.Search(ctx, payload, false)
+	positions, totalItems, err := s.positionRepository.Search(ctx, payload, false, true)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("position repository list: %w", err)
 	}
@@ -583,7 +583,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		Pagination: common.Pagination{Limit: 100}, // Surely no one is having more than 100 open positions at a time. Right?
 	}
 
-	existingOpenPositions, _, err := s.positionRepository.Search(ctx, searchPayload, true)
+	existingOpenPositions, _, err := s.positionRepository.Search(ctx, searchPayload, true, false)
 	if err != nil {
 		l.Errorw("failed to fetch open positions for user broker account", "error", err, "user_broker_account_id", payload.UserBrokerAccountID)
 		// Not returning error, just log and continue

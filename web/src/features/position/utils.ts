@@ -7,6 +7,7 @@ import {
     positionStatusToString,
 } from "@/features/position/position";
 import { Content } from "@tiptap/react";
+import { Tag } from "@/lib/api/tag";
 
 export const defaultPositionSearchFilters: PositionSearchFilters = {
     opened: {},
@@ -24,6 +25,8 @@ export const defaultPositionSearchFilters: PositionSearchFilters = {
     net_return_percentage_operator: CompareOperator.GTE,
     charges_percentage: "",
     charges_percentage_operator: CompareOperator.GTE,
+    tag_ids: [],
+    tags: [],
 };
 
 export const positionSearchFiltersLabel: Partial<Record<keyof PositionSearchFilters, string>> = {
@@ -37,6 +40,7 @@ export const positionSearchFiltersLabel: Partial<Record<keyof PositionSearchFilt
     net_pnl: "Net PnL",
     net_return_percentage: "Net Return %",
     charges_percentage: "Charges %",
+    tags: "Tags",
 };
 
 export const positionSearchFiltersValueFormatter: Partial<
@@ -72,45 +76,58 @@ export const positionSearchFiltersValueFormatter: Partial<
         if (v === "" || !filters.charges_percentage_operator) return "Any";
         return `${compareOperatorToString(filters.charges_percentage_operator)} ${v}%`;
     },
+    tags: (_, filters) => {
+        if (!filters.tags || filters.tags.length === 0) return "Any";
+        return filters.tags.map((t) => t.name).join(", ");
+    },
 };
 
 export function prepareFilters(filters: PositionSearchFilters): PositionSearchFilters {
-    if (filters.gross_pnl) {
-        filters.gross_pnl = String(filters.gross_pnl);
+    const copy: PositionSearchFilters = { ...filters };
+
+    if (copy.gross_pnl) {
+        copy.gross_pnl = String(copy.gross_pnl);
     }
 
-    if (filters.net_pnl) {
-        filters.net_pnl = String(filters.net_pnl);
+    if (copy.net_pnl) {
+        copy.net_pnl = String(copy.net_pnl);
     }
 
-    if (filters.r_factor) {
-        filters.r_factor = String(filters.r_factor);
+    if (copy.r_factor) {
+        copy.r_factor = String(copy.r_factor);
     }
 
-    if (filters.charges_percentage) {
-        filters.charges_percentage = String(filters.charges_percentage);
+    if (copy.charges_percentage) {
+        copy.charges_percentage = String(copy.charges_percentage);
     }
 
-    if (filters.net_return_percentage) {
-        filters.net_return_percentage = String(filters.net_return_percentage);
+    if (copy.net_return_percentage) {
+        copy.net_return_percentage = String(copy.net_return_percentage);
+    }
+
+    if (copy.tags && copy.tags.length > 0) {
+        copy.tag_ids = copy.tags.map((tag: Tag) => tag.id);
     }
 
     //
     // Remove filter if it's empty because the client expects a number.
     // Empty means don't apply this filter.
     //
-    if (filters.r_factor === "") {
-        delete filters.r_factor;
+    if (copy.r_factor === "") {
+        delete copy.r_factor;
     }
 
-    if (filters.net_return_percentage === "") {
-        delete filters.net_return_percentage;
+    if (copy.net_return_percentage === "") {
+        delete copy.net_return_percentage;
     }
 
-    if (filters.charges_percentage === "") {
-        delete filters.charges_percentage;
+    if (copy.charges_percentage === "") {
+        delete copy.charges_percentage;
     }
-    return filters;
+
+    delete copy.tags;
+
+    return copy;
 }
 
 export const URL_KEY_FILTERS = "filters";
