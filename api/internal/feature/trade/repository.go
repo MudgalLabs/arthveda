@@ -14,6 +14,7 @@ import (
 
 type Reader interface {
 	FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error)
+	FindByPositionIDs(ctx context.Context, positionIDs []uuid.UUID) ([]*Trade, error)
 	GetAllBrokerTradeIDs(ctx context.Context, userID, brokerID *uuid.UUID) (map[string]uuid.UUID, error)
 }
 
@@ -32,7 +33,7 @@ type ReadWriter interface {
 //
 
 type filter struct {
-	PositionID *uuid.UUID
+	PositionIDs []uuid.UUID
 }
 
 type tradeRepository struct {
@@ -111,14 +112,17 @@ func (r *tradeRepository) DeleteByPositionID(ctx context.Context, positionID uui
 }
 
 func (r *tradeRepository) FindByPositionID(ctx context.Context, positionID uuid.UUID) ([]*Trade, error) {
+	return r.FindByPositionIDs(ctx, []uuid.UUID{positionID})
+}
+
+func (r *tradeRepository) FindByPositionIDs(ctx context.Context, positionIDs []uuid.UUID) ([]*Trade, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin: %w", err)
 	}
-
 	defer tx.Rollback(ctx)
 
-	trades, err := r.findTrades(ctx, tx, &filter{PositionID: &positionID})
+	trades, err := r.findTrades(ctx, tx, &filter{PositionIDs: positionIDs})
 	if err != nil {
 		return nil, fmt.Errorf("find trades: %w", err)
 	}
@@ -178,9 +182,9 @@ func (r *tradeRepository) findTrades(ctx context.Context, tx pgx.Tx, f *filter) 
 	var where []string
 	args := make(pgx.NamedArgs)
 
-	if v := f.PositionID; v != nil {
-		where = append(where, "position_id = @position_id")
-		args["position_id"] = v
+	if len(f.PositionIDs) > 0 {
+		where = append(where, "position_id = ANY(@position_ids)")
+		args["position_ids"] = f.PositionIDs
 	}
 
 	sql := `

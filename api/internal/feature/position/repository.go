@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/common"
 	"arthveda/internal/dbx"
 	"arthveda/internal/domain/types"
+	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/repository"
 	"context"
@@ -19,7 +20,7 @@ import (
 
 type Reader interface {
 	GetByID(ctx context.Context, createdBy, positionID uuid.UUID) (*Position, error)
-	Search(ctx context.Context, payload SearchPayload, attachTrades bool) ([]*Position, int, error)
+	Search(ctx context.Context, payload SearchPayload, attachTrades, attachTags bool) ([]*Position, int, error)
 	SearchSymbols(ctx context.Context, userID uuid.UUID, query string) ([]string, error)
 	NoOfPositionsOlderThanTwelveMonths(ctx context.Context, userID uuid.UUID) (int, error)
 	TotalPositions(ctx context.Context, userID uuid.UUID) (int, error)
@@ -41,11 +42,13 @@ type ReadWriter interface {
 //
 
 type positionRepository struct {
-	db *pgxpool.Pool
+	db              *pgxpool.Pool
+	tradeRepository trade.ReadWriter
+	tagRepository   tag.ReadWriter
 }
 
-func NewRepository(db *pgxpool.Pool) *positionRepository {
-	return &positionRepository{db}
+func NewRepository(db *pgxpool.Pool, tradeRepository trade.ReadWriter, tagRepository tag.ReadWriter) *positionRepository {
+	return &positionRepository{db, tradeRepository, tagRepository}
 }
 
 const (
@@ -262,8 +265,8 @@ func (r *positionRepository) Delete(ctx context.Context, positionID uuid.UUID) e
 }
 
 // Add a flag argument like `attachTrades` and if true, join trade and attach trades to positions.
-func (r *positionRepository) Search(ctx context.Context, p SearchPayload, attachTrades bool) ([]*Position, int, error) {
-	return r.findPositions(ctx, p, attachTrades)
+func (r *positionRepository) Search(ctx context.Context, p SearchPayload, attachTrades bool, attachTags bool) ([]*Position, int, error) {
+	return r.findPositions(ctx, p, attachTrades, attachTags)
 }
 
 func (r *positionRepository) GetByID(ctx context.Context, createdBy, positionID uuid.UUID) (*Position, error) {
@@ -275,7 +278,7 @@ func (r *positionRepository) GetByID(ctx context.Context, createdBy, positionID 
 		Pagination: common.Pagination{Limit: 1},
 	}
 
-	positions, _, err := r.findPositions(ctx, payload, true)
+	positions, _, err := r.findPositions(ctx, payload, true, true) // Attach trades and tags
 	if err != nil {
 		return nil, err
 	}
@@ -287,38 +290,21 @@ func (r *positionRepository) GetByID(ctx context.Context, createdBy, positionID 
 	return positions[0], nil
 }
 
-// findPositions fetches positions and, if attachTrades is true, joins and attaches trades for each position.
-func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload, attachTrades bool) ([]*Position, int, error) {
-	var baseSQL string
-	if attachTrades {
-		baseSQL = `
-			SELECT
-				p.id, p.created_by, p.created_at, p.updated_at,
-				p.symbol, p.instrument, p.currency, p.risk_amount, p.notes, p.total_charges_amount,
-				p.direction, p.status, p.opened_at, p.closed_at,
-				p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
-				p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
-				p.broker_id, p.user_broker_account_id,
-				uba.id, uba.broker_id, uba.name,
-				t.id, t.position_id, t.created_at, t.updated_at, t.kind, t.time, t.quantity, t.price, t.charges_amount, t.broker_trade_id
-			FROM
-				position p
-			LEFT JOIN user_broker_account uba ON uba.id = p.user_broker_account_id
-			LEFT JOIN trade t ON t.position_id = p.id`
-	} else {
-		baseSQL = `
-			SELECT
-				p.id, p.created_by, p.created_at, p.updated_at,
-				p.symbol, p.instrument, p.currency, p.risk_amount, p.notes, p.total_charges_amount,
-				p.direction, p.status, p.opened_at, p.closed_at,
-				p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
-				p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
-				p.broker_id, p.user_broker_account_id,
-				uba.id, uba.broker_id, uba.name
-			FROM
-				position p
-			LEFT JOIN user_broker_account uba ON uba.id = p.user_broker_account_id`
-	}
+// findPositions fetches positions and, if attachTrades/attachTags is true, joins and attaches trades/tags for each position.
+func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload, attachTrades bool, attachTags bool) ([]*Position, int, error) {
+	baseSQL := `
+		SELECT
+			p.id, p.created_by, p.created_at, p.updated_at,
+			p.symbol, p.instrument, p.currency, p.risk_amount, p.notes, p.total_charges_amount,
+			p.direction, p.status, p.opened_at, p.closed_at,
+			p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.net_return_percentage,
+			p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
+			p.broker_id, p.user_broker_account_id,
+			uba.id, uba.broker_id, uba.name
+		FROM
+			position p
+		LEFT JOIN user_broker_account uba ON uba.id = p.user_broker_account_id
+	`
 
 	b := dbx.NewSQLBuilder(baseSQL)
 
@@ -420,64 +406,57 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 
 	positions := []*Position{}
 	positionMap := map[uuid.UUID]*Position{}
+	positionIDs := []uuid.UUID{}
 
-	if attachTrades {
-		for rows.Next() {
-			var pos Position
-			var trade trade.Trade
-			var tradeID *uuid.UUID // to check if trade is null (no trade)
-			var ubaID *uuid.UUID   // to check if user_broker_account is null
+	for rows.Next() {
+		var pos Position
+		var ubaID *uuid.UUID
+		var ubaBrokerID *uuid.UUID
+		var ubaName *string
 
-			var ubaBrokerID *uuid.UUID
-			var ubaName *string
-
-			// Scan all position fields + broker name + user_broker_account fields + trade fields (LEFT JOIN)
-			err := rows.Scan(
-				&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
-				&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
-				&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
-				&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
-				&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
-				&pos.BrokerID, &pos.UserBrokerAccountID,
-				&ubaID, &ubaBrokerID, &ubaName,
-				&tradeID, &trade.PositionID, &trade.CreatedAt, &trade.UpdatedAt, &trade.Kind, &trade.Time, &trade.Quantity, &trade.Price, &trade.ChargesAmount, &trade.BrokerTradeID,
-			)
-
-			if err != nil {
-				return nil, 0, fmt.Errorf("scan: %w", err)
-			}
-
-			// Only add position once
-			if _, exists := positionMap[pos.ID]; !exists {
-				// Set UserBrokerAccount if it exists
-				if ubaID != nil {
-					ubaSummary := UserBrokerAccountSearchValue{
-						ID:       *ubaID,
-						BrokerID: *ubaBrokerID,
-						Name:     *ubaName,
-					}
-					pos.UserBrokerAccount = &ubaSummary
-				}
-
-				pos.Symbol = strings.ToUpper(pos.Symbol)
-				positionMap[pos.ID] = &pos
-				positions = append(positions, &pos)
-			}
-
-			// If tradeID is not null, append trade
-			if tradeID != nil {
-				trade.ID = *tradeID
-				positionMap[pos.ID].Trades = append(positionMap[pos.ID].Trades, &trade)
-			}
+		err := rows.Scan(
+			&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
+			&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
+			&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
+			&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
+			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
+			&pos.BrokerID, &pos.UserBrokerAccountID,
+			&ubaID, &ubaBrokerID, &ubaName,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("scan: %w", err)
 		}
 
-		// Ensure that the Trades slice is set for each position in the positions array
-		for i := range positions {
-			if pm, ok := positionMap[positions[i].ID]; ok {
-				positions[i].Trades = pm.Trades
+		if ubaID != nil {
+			ubaSummary := UserBrokerAccountSearchValue{
+				ID:       *ubaID,
+				BrokerID: *ubaBrokerID,
+				Name:     *ubaName,
 			}
+			pos.UserBrokerAccount = &ubaSummary
 		}
 
+		pos.Symbol = strings.ToUpper(pos.Symbol)
+		positionMap[pos.ID] = &pos
+		positions = append(positions, &pos)
+		positionIDs = append(positionIDs, pos.ID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("rows err: %w", err)
+	}
+
+	// Attach trades if requested
+	if attachTrades && len(positionIDs) > 0 {
+		trades, err := r.tradeRepository.FindByPositionIDs(ctx, positionIDs)
+		if err != nil {
+			return nil, 0, fmt.Errorf("fetch trades: %w", err)
+		}
+		for _, t := range trades {
+			if pos, ok := positionMap[t.PositionID]; ok {
+				pos.Trades = append(pos.Trades, t)
+			}
+		}
 		// Sort trades for each position by trade.Time
 		for _, pos := range positions {
 			if len(pos.Trades) > 1 {
@@ -486,44 +465,19 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 				})
 			}
 		}
-	} else {
-		for rows.Next() {
-			var pos Position
-
-			var ubaID *uuid.UUID // to check if user_broker_account is null
-			var ubaBrokerID *uuid.UUID
-			var ubaName *string
-
-			err := rows.Scan(
-				&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
-				&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
-				&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
-				&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.NetReturnPercentage,
-				&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
-				&pos.BrokerID, &pos.UserBrokerAccountID,
-				&ubaID, &ubaBrokerID, &ubaName,
-			)
-			if err != nil {
-				return nil, 0, fmt.Errorf("scan: %w", err)
-			}
-
-			// Set UserBrokerAccount if it exists
-			if ubaID != nil {
-				ubaSummary := UserBrokerAccountSearchValue{
-					ID:       *ubaID,
-					BrokerID: *ubaBrokerID,
-					Name:     *ubaName,
-				}
-				pos.UserBrokerAccount = &ubaSummary
-			}
-
-			pos.Symbol = strings.ToUpper(pos.Symbol)
-			positions = append(positions, &pos)
-		}
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("rows err: %w", err)
+	// Attach tags if requested
+	if attachTags && len(positionIDs) > 0 {
+		tagWithPosIDs, err := r.tagRepository.GetTagsByPositionIDs(ctx, positionIDs)
+		if err != nil {
+			return nil, 0, fmt.Errorf("fetch tags: %w", err)
+		}
+		for _, twp := range tagWithPosIDs {
+			if pos, ok := positionMap[twp.PositionID]; ok {
+				pos.Tags = append(pos.Tags, &twp.Tag)
+			}
+		}
 	}
 
 	// Use b.Count() directly for the count query.

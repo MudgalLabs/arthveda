@@ -33,8 +33,12 @@ type PositionTag struct {
 
 type TagGroupWithTags struct {
 	TagGroup
-
 	Tags []*Tag `json:"tags"`
+}
+
+type TagWithPositionID struct {
+	Tag
+	PositionID uuid.UUID `json:"position_id"`
 }
 
 func NewTagGroup(userID uuid.UUID, name string, description *string) (*TagGroup, error) {

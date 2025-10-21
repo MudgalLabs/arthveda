@@ -99,7 +99,6 @@ func main() {
 	dashboardRepository := dashboard.NewRepository(db)
 	journalEntryRepository := journal_entry.NewRepository(db)
 	journalEntryContentRepository := journal_entry_content.NewRepository(db)
-	positionRepository := position.NewRepository(db)
 	subscriptionRepository := subscription.NewRepository(db)
 	tradeRepository := trade.NewRepository(db)
 	uploadRepository := upload.NewRepository(db)
@@ -107,6 +106,7 @@ func main() {
 	userBrokerAccountRepository := userbrokeraccount.NewRepository(db)
 	userIdentityRepository := user_identity.NewRepository(db)
 	tagRepository := tag.NewRepository(db)
+	positionRepository := position.NewRepository(db, tradeRepository, tagRepository)
 
 	brokerService := broker.NewService(brokerRepository)
 	calendarService := calendar.NewService(positionRepository)
