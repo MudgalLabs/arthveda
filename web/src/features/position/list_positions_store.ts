@@ -60,6 +60,8 @@ export const useListPositionsStore = create<ListPositionsStore>((set, get) => ({
             Object.keys(defaultPositionSearchFilters).map((key) => [key, get()[key as keyof PositionSearchFilters]])
         ) as PositionSearchFilters;
 
+        console.log({ applied });
+
         set({ appliedFilters: applied });
         saveToURL(URL_KEY_FILTERS, applied);
     },

@@ -13,6 +13,7 @@ import { CreateTrade } from "@/features/trade/trade";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { ApiRes, client } from "@/lib/api/client";
 import { DateRangeFilter, DecimalString, SearchRequest, SearchResponse } from "@/lib/types";
+import { Tag } from "@/lib/api/tag";
 
 export interface ComputePositionRequest {
     trades: CreateTrade[];
@@ -98,6 +99,8 @@ export interface PositionSearchFilters {
     charges_percentage_operator?: CompareOperator;
     user_broker_account_id?: string | "";
     trade_time?: DateRangeFilter;
+    tag_ids?: string[];
+    tags?: Tag[]; // For client-side only use
 }
 
 export interface PositionSearchRequest extends SearchRequest<PositionSearchFilters> {}

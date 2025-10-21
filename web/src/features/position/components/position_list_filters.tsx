@@ -15,6 +15,7 @@ import { SymbolSearch } from "@/features/position/components/symbol_search";
 import { positionSearchFiltersLabel } from "@/features/position/utils";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import { PositionDirection, PositionInstrument } from "../position";
+import TagPicker from "@/components/tag_picker";
 
 export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: boolean }) => {
     const applyFilters = useListPositionsStore((s) => s.applyFilters);
@@ -78,6 +79,7 @@ export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: 
                                 <NetPnlFilter container={drawerEl} />
                                 <NetReturnPercentageFilter container={drawerEl} />
                                 <ChargesPercentageFilter container={drawerEl} />
+                                <TagFilter container={drawerEl} />
                             </div>
 
                             <div className="h-8" />
@@ -314,6 +316,17 @@ const ChargesPercentageFilter = memo(({ container }: { container: HTMLElement | 
                     onChange={(e) => updateFilter("charges_percentage", e.target.value)}
                 />
             </WithCompare>
+        </WithLabel>
+    );
+});
+
+const TagFilter = memo(({ container }: { container: HTMLElement | null }) => {
+    const tags = useListPositionsStore((s) => s.tags);
+    const updateFilter = useListPositionsStore((s) => s.updateFilter);
+
+    return (
+        <WithLabel Label={<Label>Tags</Label>}>
+            <TagPicker value={tags} onChange={(v) => updateFilter("tags", v)} container={container} />
         </WithLabel>
     );
 });

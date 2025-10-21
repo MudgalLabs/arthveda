@@ -102,6 +102,7 @@ type SearchFilter struct {
 	UserBrokerAccountID         *uuid.UUID              `json:"user_broker_account_id"`
 
 	TradeTime *common.DateRangeFilter `json:"trade_time"`
+	TagIDs    []uuid.UUID             `json:"tag_ids"`
 }
 
 var allowedSortFields = []common.SearchField{
@@ -264,7 +265,6 @@ func (r *positionRepository) Delete(ctx context.Context, positionID uuid.UUID) e
 	return nil
 }
 
-// Add a flag argument like `attachTrades` and if true, join trade and attach trades to positions.
 func (r *positionRepository) Search(ctx context.Context, p SearchPayload, attachTrades bool, attachTags bool) ([]*Position, int, error) {
 	return r.findPositions(ctx, p, attachTrades, attachTags)
 }
@@ -325,6 +325,14 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 		}
 		// Manually add the filter to the builder
 		b.AppendWhere(fmt.Sprintf("p.id IN (%s)", subQuery), subArgs...)
+	}
+
+	// Add TagIDs filter if present and non-empty
+	if len(p.Filters.TagIDs) > 0 {
+		// Subquery for positions having at least one of the tag_ids
+		subQuery := "SELECT DISTINCT position_id FROM position_tag WHERE tag_id = ANY($%d)"
+		argIdx := b.ArgNum()
+		b.AppendWhere(fmt.Sprintf("p.id IN ("+subQuery+")", argIdx), p.Filters.TagIDs)
 	}
 
 	if p.Filters.ID != nil {
