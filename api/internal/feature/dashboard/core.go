@@ -43,66 +43,73 @@ func getGeneralStats(positions []*position.Position) generalStats {
 	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount, tradesWithRiskAmountCount int
 	var maxWinStreak, maxLossStreak, currentWin, currentLoss int
 
+	// Initialize maxLoss to zero instead of default (for proper comparison)
+	maxLoss = decimal.Zero
+
 	for _, p := range positions {
 		// Calculate open trades count.
 		// Will be used to calculate win rate.
 		if p.Status == position.StatusOpen {
 			openTradesCount++
+			continue // Skip further processing for open positions
 		}
 
 		// "Win" and "Breakeven" trades are considered winning trades
 		// for the purpose of calculating win rate.
-		if p.Status == position.StatusWin || p.Status == position.StatusBreakeven {
+		isWin := p.Status == position.StatusWin || p.Status == position.StatusBreakeven
+		isLoss := p.Status == position.StatusLoss
+
+		if isWin {
 			winTradesCount++
 		}
 
+		// Accumulate PnL values for all closed positions
 		grossPnL = grossPnL.Add(p.GrossPnLAmount)
 		netPnL = netPnL.Add(p.NetPnLAmount)
 		charges = charges.Add(p.TotalChargesAmount)
 
+		// Process R-Factor calculations
 		if p.RiskAmount.GreaterThan(decimal.Zero) {
 			tradesWithRiskAmountCount++
 			avgRFactor = avgRFactor.Add(p.RFactor)
 
-			switch p.Status {
-			case position.StatusWin, position.StatusBreakeven:
+			if isWin {
 				avgWinRFactor = avgWinRFactor.Add(p.RFactor)
-			case position.StatusLoss:
+			} else if isLoss {
 				avgLossRFactor = avgLossRFactor.Add(p.RFactor)
 			}
 		}
 
-		if p.Status == position.StatusWin {
+		// Process win/loss specific calculations
+		if isWin {
 			avgWin = avgWin.Add(p.NetPnLAmount)
-
 			if p.NetPnLAmount.GreaterThan(maxWin) {
 				maxWin = p.NetPnLAmount
 			}
-		}
-
-		if p.Status == position.StatusLoss {
+		} else if isLoss {
 			avgLoss = avgLoss.Add(p.NetPnLAmount)
-
 			if p.NetPnLAmount.LessThan(maxLoss) {
 				maxLoss = p.NetPnLAmount
 			}
 		}
 
 		// Calculate win/loss streaks
-		switch p.Status {
-		case position.StatusWin:
+		if isWin {
 			currentWin++
 			currentLoss = 0
-		case position.StatusLoss:
+			if currentWin > maxWinStreak {
+				maxWinStreak = currentWin
+			}
+		} else if isLoss {
 			currentLoss++
 			currentWin = 0
-		default:
+			if currentLoss > maxLossStreak {
+				maxLossStreak = currentLoss
+			}
+		} else {
 			currentWin = 0
 			currentLoss = 0
 		}
-
-		maxWinStreak = max(maxWinStreak, currentWin)
-		maxLossStreak = max(maxLossStreak, currentLoss)
 	}
 
 	// Trades that are not open are considered settled.
@@ -110,8 +117,10 @@ func getGeneralStats(positions []*position.Position) generalStats {
 	// Trades that are settled and not winning are considered losing.
 	lossTradesCount = settledTradesCount - winTradesCount
 
+	// Calculate averages once at the end
 	if tradesWithRiskAmountCount > 0 {
-		avgRFactor = avgRFactor.Div(decimal.NewFromInt(int64(tradesWithRiskAmountCount)))
+		divisor := decimal.NewFromInt(int64(tradesWithRiskAmountCount))
+		avgRFactor = avgRFactor.Div(divisor)
 	}
 
 	if settledTradesCount > 0 {
@@ -119,13 +128,15 @@ func getGeneralStats(positions []*position.Position) generalStats {
 	}
 
 	if winTradesCount > 0 {
-		avgWinRFactor = avgWinRFactor.Div(decimal.NewFromInt(int64(winTradesCount)))
-		avgWin = avgWin.Div(decimal.NewFromInt(int64(winTradesCount)))
+		divisor := decimal.NewFromInt(int64(winTradesCount))
+		avgWinRFactor = avgWinRFactor.Div(divisor)
+		avgWin = avgWin.Div(divisor)
 	}
 
 	if lossTradesCount > 0 {
-		avgLossRFactor = avgLossRFactor.Div(decimal.NewFromInt(int64(lossTradesCount)))
-		avgLoss = avgLoss.Div(decimal.NewFromInt(int64(lossTradesCount)))
+		divisor := decimal.NewFromInt(int64(lossTradesCount))
+		avgLossRFactor = avgLossRFactor.Div(divisor)
+		avgLoss = avgLoss.Div(divisor)
 	}
 
 	lossRate := 100.0 - winRate
@@ -182,9 +193,6 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 		return []pnlBucket{}
 	}
 
-	positionByID := make(map[uuid.UUID]*position.Position)
-	realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID(positions)
-
 	// Generate buckets
 	buckets := common.GenerateBuckets(period, start, end, loc)
 	results := make([]pnlBucket, len(buckets))
@@ -199,41 +207,59 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 		}
 	}
 
-	// Collect all trades and sort them by time
-	var allTrades []*trade.Trade
+	// Pre-calculate total trades count for pre-allocation
+	totalTrades := 0
+	for _, pos := range positions {
+		totalTrades += len(pos.Trades)
+	}
+
+	// Pre-allocate slice with exact capacity to avoid reallocation
+	allTrades := make([]*trade.Trade, 0, totalTrades)
 
 	for _, pos := range positions {
-		positionByID[pos.ID] = pos
 		allTrades = append(allTrades, pos.Trades...)
 	}
 
+	// Sort trades by time once
 	sort.Slice(allTrades, func(i, j int) bool {
 		return allTrades[i].Time.Before(allTrades[j].Time)
 	})
 
-	chargesByPositionID := make(map[uuid.UUID]decimal.Decimal)
+	// Compute realised stats once for all positions
+	realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID(positions)
 
-	for _, t := range allTrades {
-		// Find the active bucket for this trade
-		var activeBucket *pnlBucket
-		for i := range results {
-			if !t.Time.Before(results[i].Start) && t.Time.Before(results[i].End) {
-				activeBucket = &results[i]
-				break
+	// Pre-allocate charge tracking map with estimated capacity
+	chargesByPositionID := make(map[uuid.UUID]decimal.Decimal, len(positions))
+
+	// Optimization: Use binary search to find bucket index instead of linear search
+	findBucketIndex := func(tradeTime time.Time) int {
+		// Binary search for the correct bucket
+		left, right := 0, len(results)-1
+		for left <= right {
+			mid := (left + right) / 2
+			if tradeTime.Before(results[mid].Start) {
+				right = mid - 1
+			} else if !tradeTime.Before(results[mid].End) {
+				left = mid + 1
+			} else {
+				return mid
 			}
 		}
+		return -1 // Not found
+	}
 
-		if activeBucket == nil {
+	for _, t := range allTrades {
+		// Binary search for active bucket (O(log n) instead of O(n))
+		bucketIdx := findBucketIndex(t.Time)
+		if bucketIdx == -1 {
 			continue // Skip trades outside the bucket range
 		}
 
+		activeBucket := &results[bucketIdx]
 		stats := realisedStatsByTradeID[t.ID]
 
-		chargesAmount, exists := chargesByPositionID[t.PositionID]
-		if !exists {
-			chargesByPositionID[t.PositionID] = decimal.Zero
-			chargesAmount = decimal.Zero
-		}
+		// Get previous charges or zero (map returns zero value if key doesn't exist)
+		chargesAmount := chargesByPositionID[t.PositionID]
 
 		grossPnL := t.RealisedGrossPnL
 		charges := stats.ChargesAmount.Sub(chargesAmount)
@@ -244,6 +270,7 @@ func getPnLBuckets(positions []*position.Position, period common.BucketPeriod, s
 			activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
 			activeBucket.Charges = activeBucket.Charges.Add(charges)
 
+			// Update the charges for this position
 			chargesByPositionID[t.PositionID] = stats.ChargesAmount
 		}
 	}
