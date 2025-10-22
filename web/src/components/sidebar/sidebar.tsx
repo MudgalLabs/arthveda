@@ -2,7 +2,16 @@ import { FC, ReactNode, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useNotificationsUnreadCount } from "@bodhveda/react";
 
-import { useSidebar, Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent, IconCalendarSingle } from "netra";
+import {
+    useSidebar,
+    Popover,
+    IconBell,
+    Tooltip,
+    PopoverTrigger,
+    PopoverContent,
+    IconCalendarSingle,
+    IconChartPie,
+} from "netra";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
 import { IconCandlestick, IconDashboard } from "@/components/icons";
@@ -21,6 +30,7 @@ const SIDEBAR_ROUTES = [
     ROUTES.newPositions,
     ROUTES.importPositions,
     ROUTES.calendar,
+    ROUTES.analytics,
 ];
 
 export const Sidebar = () => {
@@ -100,6 +110,16 @@ export const Sidebar = () => {
                         open={isOpen}
                         isActive={activeRoute === ROUTES.calendar}
                         onClick={() => handleClick(ROUTES.calendar)}
+                    />
+                </Link>
+
+                <Link to={ROUTES.analytics} variant="unstyled">
+                    <SidebarItem
+                        label="Analytics"
+                        icon={<IconChartPie size={20} />}
+                        open={isOpen}
+                        isActive={activeRoute === ROUTES.analytics}
+                        onClick={() => handleClick(ROUTES.analytics)}
                     />
                 </Link>
             </div>

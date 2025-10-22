@@ -286,18 +286,13 @@ export function loadFromURL<T>(key: string, defaultValue?: T, customParsers?: Lo
         return defaultValue as T;
     }
 
-    if (Object.keys(parsedQuery as object).length === 0 && parsedQuery !== undefined) {
-        // We found a value in URL, but it's not an object (e.g., empty string).
-        return parsedQuery as T;
-    }
-
-    if (Object.keys(parsedQuery as object).length > 0) {
-        // Parsed query is an object with keys, return it.
+    // Only merge if parsedQuery is a plain object
+    if (isPlainObject(parsedQuery)) {
         return { ...defaultValue, ...parsedQuery };
     }
 
-    // Fallback to default value if nothing else matches.
-    return defaultValue as T;
+    // If it's not an object (string, number, etc.), just return it
+    return parsedQuery as T;
 }
 
 export function saveToURL<T>(key: string, value: T) {

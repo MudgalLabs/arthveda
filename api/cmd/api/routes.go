@@ -168,6 +168,13 @@ func initRouter(a *app) http.Handler {
 		r.Route("/webhooks", func(r chi.Router) {
 			r.Post("/paddle", paddleWebhookHandler(a.service.SubscriptionService))
 		})
+
+		r.Route("/analytics", func(r chi.Router) {
+			r.Use(authMiddleware)
+			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
+
+			r.Get("/tags", getAnalyticsTagsHandler(a.service.AnalyticsService))
+		})
 	})
 
 	return r

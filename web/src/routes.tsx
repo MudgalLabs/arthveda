@@ -16,6 +16,7 @@ import BrokerAccountsLazy from "@/features/settings/broker_accounts/broker_accou
 import PlanAndBillingLazy from "@/features/settings/plan_and_billing/plan_and_billing_lazy";
 import NotificationPreferencesLazy from "@/features/settings/notification_preferences/notification_preferences_lazy";
 import TagsManagementLazy from "@/features/tags/tags_management_lazy";
+import AnalyticsLazy from "@/features/analytics/analytics_lazy";
 
 export const routes: Array<RouteObject> = [
     /**
@@ -61,6 +62,10 @@ export const routes: Array<RouteObject> = [
     {
         path: ROUTES.calendar,
         element: <CalendarLazy />,
+    },
+    {
+        path: ROUTES.analytics,
+        element: <AnalyticsLazy />,
     },
     {
         path: ROUTES.brokerAccounts,

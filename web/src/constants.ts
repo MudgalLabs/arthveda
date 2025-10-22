@@ -14,6 +14,7 @@ export const ROUTES = {
     // But for ROUTES_PROTECTED and RouteHandler, we don't pass `id`.
     viewPosition: (id = "") => `/positions/${id}`,
     calendar: "/calendar",
+    analytics: "/analytics",
 
     planAndBilling: "/settings/plan-and-billing",
     brokerAccounts: "/settings/broker-accounts",
@@ -31,6 +32,7 @@ export const ROUTES_PROTECTED = [
     ROUTES.importPositions,
     ROUTES.viewPosition(),
     ROUTES.calendar,
+    ROUTES.analytics,
     ROUTES.planAndBilling,
     ROUTES.brokerAccounts,
     ROUTES.feedbackAndSupport,
