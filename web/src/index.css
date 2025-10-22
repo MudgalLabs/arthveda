@@ -16,6 +16,21 @@
     src: url("./assets/fonts/Inter.ttf");
 }
 
+@layer base {
+    :root {
+        --color-chart-1: #00e0ff;
+        --color-chart-2: #00d18a;
+        --color-chart-3: #3fe0b8;
+        --color-chart-4: #a8ff60;
+        --color-chart-5: #e8b15c;
+        --color-chart-6: #ff6b6b;
+        --color-chart-7: #f26ca7;
+        --color-chart-8: #9fa8f2;
+        --color-chart-9: #67b7ff;
+        --color-chart-10: #c47cff;
+    }
+}
+
 /* Theme*/
 
 @theme {
@@ -107,18 +122,7 @@
     --color-chart-primary: var(--color-primary);
     --color-chart-muted: var(--color-muted-foreground);
 
-    --color-chart-1: #00e0ff; /* Aqua Cyan */
-    --color-chart-2: #00d18a; /* Soft Teal */
-    --color-chart-3: #3fe0b8; /* Neon Green */
-    --color-chart-4: #a8ff60; /* Lime Accent */
-    --color-chart-5: #e8b15c; /* Golden Amber */
-    --color-chart-6: #ff6b6b; /* Coral Red */
-    --color-chart-7: #f26ca7; /* Deep Pink */
-    --color-chart-8: #9fa8f2; /* Lavender Blue */
-    --color-chart-9: #67b7ff; /* Sky Blue */
-    --color-chart-10: #c47cff; /* Violet Magenta */
-
-    --color-gross-pnl: var(--color-chart-1);
+    --color-gross-pnl: #8b5cf6;
     --color-net-pnl: var(--color-primary);
     --color-charges: #f43f5e;
 
