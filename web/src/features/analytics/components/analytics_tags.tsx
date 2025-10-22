@@ -125,6 +125,8 @@ export function AnalyticsTags() {
                     </div>
                 </div>
             ))}
+
+            <p className="text-chart-1">Testing</p>
         </div>
     );
 }
