@@ -107,10 +107,6 @@
     --color-chart-primary: var(--color-primary);
     --color-chart-muted: var(--color-muted-foreground);
 
-    --color-gross-pnl: #8b5cf6;
-    --color-net-pnl: var(--color-primary);
-    --color-charges: #f43f5e;
-
     --color-chart-1: #00e0ff; /* Aqua Cyan */
     --color-chart-2: #00d18a; /* Soft Teal */
     --color-chart-3: #3fe0b8; /* Neon Green */
@@ -121,6 +117,10 @@
     --color-chart-8: #9fa8f2; /* Lavender Blue */
     --color-chart-9: #67b7ff; /* Sky Blue */
     --color-chart-10: #c47cff; /* Violet Magenta */
+
+    --color-gross-pnl: var(--color-chart-1);
+    --color-net-pnl: var(--color-primary);
+    --color-charges: #f43f5e;
 
     /* === Misc === */
     --color-logo: var(--color-azure-500);
