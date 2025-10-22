@@ -28,6 +28,7 @@ import { useListPositionsStore } from "@/features/position/list_positions_store"
 import Decimal from "decimal.js";
 import { BrokerLogo } from "@/components/broker_logo";
 import { ROUTES } from "@/constants";
+import { PnL } from "@/components/pnl";
 
 export interface PositionListTable {
     positions: Position[];
@@ -235,10 +236,7 @@ const columns: ColumnDef<Position>[] = [
         header: ({ column, table }) => (
             <DataTableColumnHeader title="R Factor" column={column} disabled={table.options.meta?.isFetching} />
         ),
-        cell: ({ row }) => {
-            const value = Number(row.original.r_factor);
-            return <span className={value < 0 ? "text-text-destructive" : "text-text-success"}>{value}</span>;
-        },
+        cell: ({ row }) => <PnL value={new Decimal(row.original.r_factor)}>{Number(row.original.r_factor)}</PnL>,
     },
     {
         id: "gross_pnl",
@@ -249,10 +247,13 @@ const columns: ColumnDef<Position>[] = [
         header: ({ column, table }) => (
             <DataTableColumnHeader title="Gross PnL" column={column} disabled={table.options.meta?.isFetching} />
         ),
-        cell: ({ row }) =>
-            formatCurrency(row.original.gross_pnl_amount, {
-                currency: row.original.currency,
-            }),
+        cell: ({ row }) => (
+            <PnL value={new Decimal(row.original.gross_pnl_amount)}>
+                {formatCurrency(row.original.gross_pnl_amount, {
+                    currency: row.original.currency,
+                })}
+            </PnL>
+        ),
     },
     {
         id: "net_pnl",
@@ -264,17 +265,11 @@ const columns: ColumnDef<Position>[] = [
             <DataTableColumnHeader title="Net PnL" column={column} disabled={table.options.meta?.isFetching} />
         ),
         cell: ({ row }) => (
-            <span
-                className={
-                    new Decimal(row.original.net_pnl_amount).isNegative()
-                        ? "text-text-destructive"
-                        : "text-text-success"
-                }
-            >
+            <PnL value={new Decimal(row.original.net_pnl_amount)}>
                 {formatCurrency(row.original.net_pnl_amount, {
                     currency: row.original.currency,
                 })}
-            </span>
+            </PnL>
         ),
     },
     {
@@ -308,12 +303,11 @@ const columns: ColumnDef<Position>[] = [
         header: ({ column, table }) => (
             <DataTableColumnHeader title="Net Return %" disabled={table.options.meta?.isFetching} column={column} />
         ),
-        cell: ({ row }) => {
-            const value = Number(row.original.net_return_percentage);
-            return (
-                <span className={value < 0 ? "text-text-destructive" : "text-text-success"}>{value.toFixed(2)}%</span>
-            );
-        },
+        cell: ({ row }) => (
+            <PnL value={new Decimal(row.original.net_return_percentage)}>
+                {Number(row.original.net_return_percentage).toFixed(2)}%
+            </PnL>
+        ),
     },
     {
         id: "tags",

@@ -1,3 +1,4 @@
+import * as analytics from "@/hooks/api_hooks/analytics";
 import * as auth from "@/hooks/api_hooks/auth";
 import * as broker from "@/hooks/api_hooks/broker";
 import * as calendar from "@/hooks/api_hooks/calendar";
@@ -11,6 +12,7 @@ import * as user from "@/hooks/api_hooks/user";
 import * as userBrokerAccount from "@/hooks/api_hooks/user_broker_account";
 
 export const apiHooks = {
+    analytics,
     auth,
     broker,
     calendar,

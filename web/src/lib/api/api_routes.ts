@@ -1,4 +1,7 @@
 export const API_ROUTES = {
+    analytics: {
+        tags: "/v1/analytics/tags",
+    },
     auth: {
         signin: "/v1/auth/sign-in",
         signup: "/v1/auth/sign-up",

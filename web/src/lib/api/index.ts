@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 
 import { ApiRes } from "@/lib/api/client";
 import { toast } from "@/components/toast";
+import * as analytics from "@/lib/api/analytics";
 import * as auth from "@/lib/api/auth";
 import * as broker from "@/lib/api/broker";
 import * as calendar from "@/lib/api/calendar";
@@ -17,6 +18,7 @@ import * as userBrokerAccount from "@/lib/api/user_broker_account";
 import { useUpgradeModalStore } from "@/components/plan_limit_exceeded_modal";
 
 export const api = {
+    analytics,
     auth,
     broker,
     calendar,
