@@ -89,3 +89,20 @@ func GenerateBuckets(period BucketPeriod, start, end time.Time, loc *time.Locati
 
 	return buckets
 }
+
+// GetBucketPeriodForRange determines the appropriate bucket period based on the length of the date range.
+func GetBucketPeriodForRange(rangeStart, rangeEnd time.Time) BucketPeriod {
+	var bucketPeriod BucketPeriod
+	dateRange := rangeEnd.Sub(rangeStart)
+
+	switch {
+	case dateRange.Hours() <= 24*31:
+		bucketPeriod = BucketPeriodDaily
+	case dateRange.Hours() <= 24*90:
+		bucketPeriod = BucketPeriodWeekly
+	default:
+		bucketPeriod = BucketPeriodMonthly
+	}
+
+	return bucketPeriod
+}

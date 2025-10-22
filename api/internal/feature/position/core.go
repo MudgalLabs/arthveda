@@ -768,3 +768,19 @@ func GetPnLBuckets(positions []*Position, period common.BucketPeriod, start, end
 
 	return results
 }
+
+// GetCumulativePnLBuckets calculates cumulative realized PnL using pnL buckets.
+func GetCumulativePnLBuckets(positions []*Position, period common.BucketPeriod, start, end time.Time, loc *time.Location) []PnlBucket {
+	pnlBuckets := GetPnLBuckets(positions, period, start, end, loc)
+
+	// Convert bucket PnL and charges to cumulative values with rounding
+	for i := range pnlBuckets {
+		if i > 0 {
+			pnlBuckets[i].NetPnL = pnlBuckets[i].NetPnL.Add(pnlBuckets[i-1].NetPnL)
+			pnlBuckets[i].GrossPnL = pnlBuckets[i].GrossPnL.Add(pnlBuckets[i-1].GrossPnL)
+			pnlBuckets[i].Charges = pnlBuckets[i].Charges.Add(pnlBuckets[i-1].Charges)
+		}
+	}
+
+	return pnlBuckets
+}

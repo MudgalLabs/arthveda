@@ -111,6 +111,17 @@
     --color-net-pnl: var(--color-primary);
     --color-charges: #f43f5e;
 
+    --color-chart-1: #00e0ff; /* Aqua Cyan */
+    --color-chart-2: #00d18a; /* Soft Teal */
+    --color-chart-3: #3fe0b8; /* Neon Green */
+    --color-chart-4: #a8ff60; /* Lime Accent */
+    --color-chart-5: #e8b15c; /* Golden Amber */
+    --color-chart-6: #ff6b6b; /* Coral Red */
+    --color-chart-7: #f26ca7; /* Deep Pink */
+    --color-chart-8: #9fa8f2; /* Lavender Blue */
+    --color-chart-9: #67b7ff; /* Sky Blue */
+    --color-chart-10: #c47cff; /* Violet Magenta */
+
     /* === Misc === */
     --color-logo: var(--color-azure-500);
     --color-logo: #7ca6d8;

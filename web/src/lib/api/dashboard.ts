@@ -21,7 +21,7 @@ interface GeneralStats {
     losses_count: number;
 }
 
-interface PnLBucket {
+export interface PnLBucket {
     label: string;
     start: string;
     end: string;

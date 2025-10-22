@@ -5,6 +5,7 @@ import (
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/tag"
+	"arthveda/internal/logger"
 	"fmt"
 
 	"context"
@@ -39,11 +40,30 @@ type tagsSummaryItem struct {
 	RFactor        decimal.Decimal `json:"r_factor"`
 }
 
+type tagsSummaryGroup struct {
+	TagGroup string            `json:"tag_group"`
+	Tags     []tagsSummaryItem `json:"tags"`
+}
+
+type cumulativePnLByTag struct {
+	TagGroup string               `json:"tag_group"`
+	TagName  string               `json:"tag_name"`
+	Buckets  []position.PnlBucket `json:"buckets"`
+}
+
+type cumulativePnLByTagGroup struct {
+	TagGroup string               `json:"tag_group"`
+	Tags     []cumulativePnLByTag `json:"tags"`
+}
+
 type GetTabsResult struct {
-	Summary []tagsSummaryItem `json:"summary"`
+	Summary                 []tagsSummaryItem         `json:"summary"`
+	SummaryGroup            []tagsSummaryGroup        `json:"summary_group"`
+	CumulativePnLByTagGroup []cumulativePnLByTagGroup `json:"cumulative_pnl_by_tag_group"`
 }
 
 func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetTabsResult, service.Error, error) {
+	l := logger.Get()
 	yearAgo := time.Now().In(tz).AddDate(-1, 0, 0)
 	tradeTimeRange := &common.DateRangeFilter{}
 
@@ -62,7 +82,7 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 		},
 	}
 
-	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload, false, true)
+	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload, true, true)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to search positions: %w", err)
 	}
@@ -84,6 +104,74 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 				GroupName: tg.TagGroup.Name,
 				TagName:   t.Name,
 			}
+		}
+	}
+
+	// Prepare: tagID -> positions
+	tagIDToPositions := make(map[string][]*position.Position)
+	for _, pos := range positions {
+		for _, tagObj := range pos.Tags {
+			tagID := tagObj.ID.String()
+			tagIDToPositions[tagID] = append(tagIDToPositions[tagID], pos)
+		}
+	}
+
+	fmt.Println("TagID to Positions Map:", tagIDToPositions)
+	// Debug print the tagIDToPositions map
+	for tagID, posList := range tagIDToPositions {
+		fmt.Printf("TagID: %s, Positions Count: %d\n", tagIDToMeta[tagID].TagName, len(posList))
+	}
+
+	// For each tag, compute cumulative PnL buckets
+	cumulativePnLByTagGroupData := []cumulativePnLByTagGroup{}
+
+	for _, tg := range tagGroupsWithTags {
+		group := cumulativePnLByTagGroup{
+			TagGroup: tg.TagGroup.Name,
+			Tags:     []cumulativePnLByTag{},
+		}
+
+		for _, t := range tg.Tags {
+			tagID := t.ID.String()
+			tagPositions := tagIDToPositions[tagID]
+			if len(tagPositions) == 0 {
+				fmt.Printf("Tag '%s' has no positions\n", t.Name)
+				continue
+			}
+
+			rangeStart, rangeEnd := position.GetRangeBasedOnTrades(tagPositions)
+			fmt.Printf("Tag '%s': rangeStart=%v, rangeEnd=%v, positions=%d\n", t.Name, rangeStart, rangeEnd, len(tagPositions))
+
+			// Fallback: If rangeStart or rangeEnd is zero, use global positions' range
+			if rangeStart.IsZero() || rangeEnd.IsZero() || !rangeEnd.After(rangeStart) {
+				fmt.Printf("Tag '%s': Invalid range, skipping or fallback\n", t.Name)
+				// Optionally, fallback to global range if you want to always show something:
+				// rangeStart, rangeEnd = position.GetRangeBasedOnTrades(positions)
+				continue
+			}
+
+			bucketPeriod := common.GetBucketPeriodForRange(rangeStart, rangeEnd)
+
+			positionsFiltered := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
+
+			for _, pos := range positionsFiltered {
+				_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction)
+				if err != nil {
+					l.Errorw("failed to compute smart trades for position", "position_id", pos.ID, "error", err)
+					continue
+				}
+			}
+
+			cumulative := position.GetCumulativePnLBuckets(tagPositions, bucketPeriod, rangeStart, rangeEnd, tz)
+
+			group.Tags = append(group.Tags, cumulativePnLByTag{
+				TagGroup: tg.TagGroup.Name,
+				TagName:  t.Name,
+				Buckets:  cumulative,
+			})
+		}
+		if len(group.Tags) > 0 {
+			cumulativePnLByTagGroupData = append(cumulativePnLByTagGroupData, group)
 		}
 	}
 
@@ -138,5 +226,32 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 		return summary[i].TagGroup < summary[j].TagGroup
 	})
 
-	return &GetTabsResult{Summary: summary}, service.ErrNone, nil
+	// Group summary by TagGroup for bar chart
+	groupMap := make(map[string][]tagsSummaryItem)
+	for _, item := range summary {
+		groupMap[item.TagGroup] = append(groupMap[item.TagGroup], item)
+	}
+
+	var summaryGroup []tagsSummaryGroup
+	for group, items := range groupMap {
+		// Sort tags within group by NetPnL desc
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].NetPnL.GreaterThan(items[j].NetPnL)
+		})
+		summaryGroup = append(summaryGroup, tagsSummaryGroup{
+			TagGroup: group,
+			Tags:     items,
+		})
+	}
+
+	// Sort groups by name
+	sort.Slice(summaryGroup, func(i, j int) bool {
+		return summaryGroup[i].TagGroup < summaryGroup[j].TagGroup
+	})
+
+	return &GetTabsResult{
+		Summary:                 summary,
+		SummaryGroup:            summaryGroup,
+		CumulativePnLByTagGroup: cumulativePnLByTagGroupData,
+	}, service.ErrNone, nil
 }

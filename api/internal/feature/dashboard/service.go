@@ -36,7 +36,7 @@ type GetDashboardPayload struct {
 type GetDashboardResult struct {
 	generalStats
 	PositionsCount       int                  `json:"positions_count"`
-	CumulativePnLBuckets []pnlBucket          `json:"cumulative_pnl_buckets"`
+	CumulativePnLBuckets []position.PnlBucket `json:"cumulative_pnl_buckets"`
 	PnLBuckets           []position.PnlBucket `json:"pnl_buckets"`
 	NoOfPositionsHidden  int                  `json:"no_of_positions_hidden"`
 }
@@ -142,7 +142,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 
 	generalStats := getGeneralStats(positionsFiltered)
 	pnlBuckets := position.GetPnLBuckets(positionsFiltered, bucketPeriod, rangeStart, rangeEnd, tz)
-	cumulativePnLBuckets := getCumulativePnLBuckets(positionsFiltered, bucketPeriod, rangeStart, rangeEnd, tz)
+	cumulativePnLBuckets := position.GetCumulativePnLBuckets(positionsFiltered, bucketPeriod, rangeStart, rangeEnd, tz)
 
 	result := &GetDashboardResult{
 		PositionsCount:       len(positionsFiltered),
