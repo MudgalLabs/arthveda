@@ -130,9 +130,7 @@ const tagGroupColumns: ColumnDef<TagGroupWithTags>[] = [
     {
         accessorKey: "description",
         header: ({ column }) => <DataTableColumnHeader title="Tag group description" column={column} />,
-        cell: ({ row }) => (
-            <span>{row.original.description || <span className="text-text-muted">No description</span>}</span>
-        ),
+        cell: ({ row }) => <span>{row.original.description}</span>,
         enableSorting: false,
         enableHiding: false,
     },
@@ -209,9 +207,7 @@ const tagColumns: ColumnDef<Tag>[] = [
     {
         accessorKey: "description",
         header: ({ column }) => <DataTableColumnHeader title="Tag description" column={column} />,
-        cell: ({ row }) => (
-            <span>{row.original.description || <span className="text-text-muted">No description</span>}</span>
-        ),
+        cell: ({ row }) => <span>{row.original.description}</span>,
         enableSorting: false,
         enableHiding: false,
     },

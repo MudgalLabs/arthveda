@@ -28,7 +28,7 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
 
     const posthog = usePostHog();
 
-    const label = "Add positions";
+    const label = "Positions";
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
