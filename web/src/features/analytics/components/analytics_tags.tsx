@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { DataTable, DataTableSmart, DataTableColumnHeader } from "netra";
+import { DataTable, DataTableSmart, DataTableColumnHeader, LoadingScreen, ErrorMessage } from "netra";
 import { ColumnDef } from "@tanstack/react-table";
 import Decimal from "decimal.js";
 
@@ -92,8 +92,9 @@ export function AnalyticsTags() {
         }));
     }, [summaryGroup, cumulativePnLByTagGroup]);
 
-    if (isLoading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error.message}</div>;
+    if (isLoading) return <LoadingScreen />;
+
+    if (error) return <ErrorMessage errorMsg="Failed to load tags based analytics." />;
 
     return (
         <div>
