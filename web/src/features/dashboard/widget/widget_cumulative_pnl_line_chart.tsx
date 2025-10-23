@@ -106,7 +106,9 @@ export const WidgetCumulativePnLLineChart: FC<Props> = ({ data, tags, isLoading,
                                 dataKey={tag.tag_name}
                                 name={tag.tag_name}
                                 stroke={tagColors[tag.tag_name]}
-                                strokeWidth={2}
+                                strokeWidth={1.5}
+                                strokeOpacity={1}
+                                fillOpacity={1}
                                 dot={false}
                             />
                         ))}
