@@ -116,7 +116,6 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 		}
 	}
 
-	fmt.Println("TagID to Positions Map:", tagIDToPositions)
 	// Debug print the tagIDToPositions map
 	for tagID, posList := range tagIDToPositions {
 		fmt.Printf("TagID: %s, Positions Count: %d\n", tagIDToMeta[tagID].TagName, len(posList))
