@@ -121,7 +121,7 @@ func main() {
 	symbolService := symbol.NewService(positionRepository)
 	uploadService := upload.NewService(s3, uploadRepository)
 	userBrokerAccountService := userbrokeraccount.NewService(userBrokerAccountRepository, brokerRepository)
-	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository)
+	userIdentityService := user_identity.NewService(userIdentityRepository, userProfileRepository, subcriptionService)
 	userProfileService := userprofile.NewService(userProfileRepository, subscriptionRepository,
 		positionRepository, uploadRepository)
 	tagService := tag.NewService(tagRepository)

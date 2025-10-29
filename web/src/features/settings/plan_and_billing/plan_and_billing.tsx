@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loading } from "@/components/loading";
 import { toast } from "@/components/toast";
-import { useAuthentication, useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
+import {
+    useAuthentication,
+    useSubscription,
+    useUserHasProSubscription,
+    useUserIsOnTrial,
+} from "@/features/auth/auth_context";
 import { apiHooks } from "@/hooks/api_hooks";
 import {
     Alert,
@@ -29,6 +34,7 @@ import { useEffectOnce } from "@/hooks/use_effect_once";
 import { Pricing } from "./components/pricing";
 import { IconDownload } from "@/components/icons";
 import { CancelSubscription } from "@/features/settings/plan_and_billing/components/cancel_subscription";
+import { TrialCountdown } from "@/components/trial_countdown";
 
 export const PlanAndBilling = () => {
     useDocumentTitle("Plan and billing • Arthveda");
@@ -37,6 +43,7 @@ export const PlanAndBilling = () => {
 
     const subscription = useSubscription();
     const hasPro = useUserHasProSubscription();
+    const onTrial = useUserIsOnTrial();
 
     const storageUsedPercent = useMemo(() => {
         if (!userData) return 0;
@@ -81,17 +88,35 @@ export const PlanAndBilling = () => {
                     <div className="w-full space-y-2">
                         <div className="w-full space-y-2 sm:flex sm:flex-row sm:justify-between">
                             <p className="font-semibold">
-                                You are currently {hasPro ? "subscribed" : "not subscribed"}.
+                                {onTrial && subscription ? (
+                                    <div>
+                                        You are currently on a free trial.
+                                        <TrialCountdown validUntil={subscription.valid_until} />
+                                    </div>
+                                ) : (
+                                    `You are currently ${hasPro ? "subscribed" : "not subscribed"}.`
+                                )}
                             </p>
 
-                            {hasPro && !subscription?.cancel_at_period_end ? (
+                            {subscription?.plan_id !== "trial" && hasPro && !subscription?.cancel_at_period_end ? (
                                 <CancelSubscription />
                             ) : (
                                 <SubscribeButton />
                             )}
                         </div>
 
-                        {hasPro ? (
+                        {onTrial && subscription ? (
+                            <div className="text-text-muted space-y-2">
+                                <p>
+                                    Your free trial is active and will end on{" "}
+                                    {formatDate(new Date(subscription.valid_until))}.
+                                </p>
+                                <p>
+                                    Subscribe if you would like to upgrade now itself and continue using Arthveda or do
+                                    it after your trial ends.
+                                </p>
+                            </div>
+                        ) : hasPro ? (
                             <div className="text-text-muted space-y-2">
                                 {subscription?.cancel_at_period_end ? (
                                     <p>

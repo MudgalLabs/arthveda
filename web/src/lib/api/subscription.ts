@@ -2,11 +2,11 @@ import { client } from "@/lib/api/client";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { CurrencyCode } from "@/lib/api/currency";
 
-export type PlanID = "pro";
+export type PlanID = "pro" | "trial";
 
 export type SubscriptionStatus = "active" | "canceled" | "expired";
 
-export type BillingInterval = "monthly" | "yearly";
+export type BillingInterval = "monthly" | "yearly" | "once";
 
 export function BillingIntervalToString(interval: BillingInterval): string {
     switch (interval) {
@@ -20,7 +20,7 @@ export function BillingIntervalToString(interval: BillingInterval): string {
     return "Unknown";
 }
 
-export type PaymentProvider = "paddle";
+export type PaymentProvider = "paddle" | "internal";
 
 export function PaymentProviderToString(provider: PaymentProvider): string {
     switch (provider) {

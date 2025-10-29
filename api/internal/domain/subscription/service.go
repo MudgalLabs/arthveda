@@ -241,3 +241,30 @@ func (s *Service) GetUserSubscriptionInvoiceDownloadLink(ctx context.Context, in
 	downloadLink := res.URL
 	return downloadLink, service.ErrNone, nil
 }
+
+func (s *Service) Start30DaysTrial(
+	ctx context.Context, userID uuid.UUID, from time.Time,
+) (*UserSubscription, service.Error, error) {
+	// Start a 30-day trial subscription for the user.
+	validUntil := from.Add(30 * 24 * time.Hour)
+	now := time.Now().UTC()
+
+	sub := &UserSubscription{
+		UserID:          userID,
+		PlanID:          PlanTrial,
+		Status:          StatusActive,
+		ValidFrom:       from,
+		ValidUntil:      validUntil,
+		BillingInterval: IntervalOnce,
+		Provider:        ProviderInternal,
+		ExternalRef:     "",
+		CreatedAt:       now,
+	}
+
+	err := s.CreateOrUpdate(ctx, sub)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("create trial subscription: %w", err)
+	}
+
+	return sub, service.ErrNone, nil
+}

@@ -4,7 +4,12 @@ import { initializePaddle, Paddle } from "@paddle/paddle-js";
 import { Button } from "netra";
 import { isProd } from "@/lib/utils";
 import { ROUTES } from "@/constants";
-import { useAuthentication, useSubscription, useUserHasProSubscription } from "@/features/auth/auth_context";
+import {
+    useAuthentication,
+    useSubscription,
+    useUserHasProSubscription,
+    useUserIsOnTrial,
+} from "@/features/auth/auth_context";
 
 // FIXME: Instead of this, we should add a `is_banned` flag for users in the backend.
 const BLOCKED_EMAILS_FOR_PRO = ["budhiparkash97@gmail.com"];
@@ -19,6 +24,7 @@ export function UpgradeToPro(props: UpgradeToProProps) {
     const { priceId, className, onClick } = props;
     const { data } = useAuthentication();
     const hasPro = useUserHasProSubscription();
+    const onTrial = useUserIsOnTrial();
     const subscription = useSubscription();
 
     if (!data) {
@@ -73,7 +79,7 @@ export function UpgradeToPro(props: UpgradeToProProps) {
         });
     };
 
-    const disabled = hasPro && !subscription?.cancel_at_period_end;
+    const disabled = !onTrial && hasPro && !subscription?.cancel_at_period_end;
 
     if (BLOCKED_EMAILS_FOR_PRO.includes(data.email)) {
         return (

@@ -75,5 +75,5 @@ func (e *PlanEnforcer) CanUpload(currBytesUsed int64) bool {
 }
 
 func isPro(subscription *UserSubscription) bool {
-	return subscription != nil && subscription.PlanID == PlanPro && subscription.Status == StatusActive
+	return subscription != nil && (subscription.PlanID == PlanPro || subscription.PlanID == PlanTrial) && subscription.Status == StatusActive
 }

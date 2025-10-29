@@ -388,3 +388,23 @@ export function formatBytes(bytes: number): string {
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
 }
+
+export function daysBetweenTodayAnd(dateStr: string): number {
+    const today = new Date();
+    const target = new Date(dateStr);
+    // Zero out time for both dates
+    today.setHours(0, 0, 0, 0);
+    target.setHours(0, 0, 0, 0);
+    const diff = target.getTime() - today.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+export function isDateToday(dateStr: string): boolean {
+    const today = new Date();
+    const target = new Date(dateStr);
+    return (
+        today.getFullYear() === target.getFullYear() &&
+        today.getMonth() === target.getMonth() &&
+        today.getDate() === target.getDate()
+    );
+}

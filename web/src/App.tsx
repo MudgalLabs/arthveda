@@ -8,7 +8,7 @@ import "@/index.css";
 import "netra/styles.css";
 
 import { toast, ToastProvider } from "@/components/toast";
-import { useAuthentication, useUserHasProSubscription } from "@/features/auth/auth_context";
+import { useAuthentication, useUserHasProSubscription, useUserIsOnTrial } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ROUTES, ROUTES_PROTECTED, ROUTES_PUBLIC } from "@/constants";
 import { useURLState } from "@/hooks/use_url_state";
@@ -23,6 +23,7 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, isLoading, data } = useAuthentication();
     const { isLoading: isLoadingBrokerContext } = useBroker();
     const hasPro = useUserHasProSubscription();
+    const onTrial = useUserIsOnTrial();
     const { pathname } = useLocation();
 
     const [isOAuthSuccess] = useURLState("oauth_success", false);
@@ -74,7 +75,7 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
     }
 
     if (isAuthenticated) {
-        if (!hasPro && pathname !== ROUTES.planAndBilling) {
+        if (!hasPro && !onTrial && pathname !== ROUTES.planAndBilling) {
             return <Navigate to={ROUTES.planAndBilling} />;
         }
 

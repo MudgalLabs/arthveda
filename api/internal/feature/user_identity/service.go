@@ -1,6 +1,7 @@
 package user_identity
 
 import (
+	"arthveda/internal/domain/subscription"
 	"arthveda/internal/feature/notification"
 	"arthveda/internal/feature/userprofile"
 	"arthveda/internal/oauth"
@@ -9,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -16,16 +18,23 @@ import (
 type Service struct {
 	userIdentityRepository ReadWriter
 	userProfileRepository  userprofile.ReadWriter
+	subscriptionService    *subscription.Service
 }
 
-func NewService(uir ReadWriter, upr userprofile.ReadWriter) *Service {
+func NewService(
+	uir ReadWriter, upr userprofile.ReadWriter,
+	subscriptionService *subscription.Service,
+) *Service {
 	return &Service{
 		userIdentityRepository: uir,
 		userProfileRepository:  upr,
+		subscriptionService:    subscriptionService,
 	}
 }
 
 func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*userprofile.UserProfile, service.Error, error) {
+	now := time.Now().UTC()
+
 	// Exchanging the code for an access token
 	googleOAuthToken, err := oauth.GoogleConfig.Exchange(context.Background(), code)
 	if err != nil {
@@ -76,6 +85,11 @@ func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*userpr
 			return nil, service.ErrInternalServerError, fmt.Errorf("sign up: %w", err)
 		}
 
+		_, svcErr, err := s.subscriptionService.Start30DaysTrial(ctx, userProfile.UserID, now)
+		if err != nil {
+			return nil, svcErr, fmt.Errorf("start 30 days trial: %w", err)
+		}
+
 		_, err = notification.CreateRecipient(ctx, userProfile)
 		if err != nil {
 			return nil, service.ErrInternalServerError, fmt.Errorf("create notification recipient: %w", err)
@@ -90,6 +104,21 @@ func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*userpr
 		userProfile, err = s.userProfileRepository.FindUserProfileByUserID(ctx, userIdentity.ID)
 		if err != nil {
 			return nil, service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
+		}
+
+		// Check if the user has an existing subscription.
+		// If no subscription exists, start a new 30-day trial.
+		_, err := s.subscriptionService.SubscriptionRepository.FindUserSubscriptionByUserID(ctx, userProfile.UserID)
+		if err != nil {
+			if err != repository.ErrNotFound {
+				return nil, service.ErrInternalServerError, fmt.Errorf("find user subscription by user id: %w", err)
+			}
+
+			// No subscription found, start a new 30-day trial.
+			_, svcErr, err := s.subscriptionService.Start30DaysTrial(ctx, userProfile.UserID, now)
+			if err != nil {
+				return nil, svcErr, fmt.Errorf("start 30 days trial: %w", err)
+			}
 		}
 	}
 
@@ -134,12 +163,28 @@ func (s *Service) SignUp(ctx context.Context, payload SignUpPayload) (*userprofi
 		return nil, service.ErrInternalServerError, fmt.Errorf("new user identity: %w", err)
 	}
 
-	newUserProfile, err := s.userIdentityRepository.SignUp(ctx, payload.Name, newUserIdentity)
+	userProfile, err := s.userIdentityRepository.SignUp(ctx, payload.Name, newUserIdentity)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("repository sign up: %w", err)
 	}
 
-	return newUserProfile, service.ErrNone, nil
+	now := time.Now().UTC()
+	_, svcErr, err := s.subscriptionService.Start30DaysTrial(ctx, userProfile.UserID, now)
+	if err != nil {
+		return nil, svcErr, fmt.Errorf("start 30 days trial: %w", err)
+	}
+
+	_, err = notification.CreateRecipient(ctx, userProfile)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("create notification recipient: %w", err)
+	}
+
+	err = notification.SendWelcomeNotification(ctx, userProfile.UserID.String())
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("send welcome notification: %w", err)
+	}
+
+	return userProfile, service.ErrNone, nil
 }
 
 type SignInPayload struct {
@@ -177,6 +222,23 @@ func (s *Service) SignIn(ctx context.Context, payload SignInPayload) (*userprofi
 			return nil, service.ErrBadRequest, errors.New("Incorrect email or password")
 		} else {
 			return nil, service.ErrInternalServerError, fmt.Errorf("compare hash and password: %w", err)
+		}
+	}
+
+	now := time.Now().UTC()
+
+	// Check if the user has an existing subscription.
+	// If no subscription exists, start a new 30-day trial.
+	_, err = s.subscriptionService.SubscriptionRepository.FindUserSubscriptionByUserID(ctx, userProfile.UserID)
+	if err != nil {
+		if err != repository.ErrNotFound {
+			return nil, service.ErrInternalServerError, fmt.Errorf("find user subscription by user id: %w", err)
+		}
+
+		// No subscription found, start a new 30-day trial.
+		_, svcErr, err := s.subscriptionService.Start30DaysTrial(ctx, userProfile.UserID, now)
+		if err != nil {
+			return nil, svcErr, fmt.Errorf("start 30 days trial: %w", err)
 		}
 	}
 

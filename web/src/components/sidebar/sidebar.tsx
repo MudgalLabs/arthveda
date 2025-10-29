@@ -19,10 +19,11 @@ import { IconCandlestick, IconDashboard } from "@/components/icons";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/constants";
 import { ProfileMenu } from "@/components/profile_menu";
-import { useAuthentication } from "@/features/auth/auth_context";
+import { useAuthentication, useUserIsOnTrial } from "@/features/auth/auth_context";
 import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
 import { NotificationsInbox } from "@/components/notification/notification_inbox";
+import { TrialCountdown } from "../trial_countdown";
 
 const SIDEBAR_ROUTES = [
     ROUTES.dashboard,
@@ -66,6 +67,7 @@ export const Sidebar = () => {
     const unreadCount = unreadCountData?.unread_count ?? 0;
 
     const notificationUnreadCountDot = <div className="bg-accent text-foreground flex-center size-2 rounded-full" />;
+    const onTrial = useUserIsOnTrial();
 
     return (
         <div
@@ -169,6 +171,10 @@ export const Sidebar = () => {
                         displayName={data.name}
                         profileImageURL={data.avatar_url}
                     />
+                )}
+
+                {onTrial && data?.subscription?.valid_until && isOpen && (
+                    <TrialCountdown validUntil={data.subscription.valid_until} />
                 )}
             </div>
         </div>

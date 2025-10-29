@@ -14,8 +14,8 @@ import (
 var client *bodhveda.Client
 
 func Init() {
-	apiURL := ""
-	if !env.IsProd() {
+	apiURL := env.BODHVEDA_API_URL
+	if !env.IsProd() && apiURL == "" {
 		apiURL = "http://localhost:1338"
 	}
 

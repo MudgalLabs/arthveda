@@ -169,16 +169,30 @@ func planEnforcerMiddleware(subscriptionService *subscription.Service) func(http
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			userID := getUserIDFromContext(ctx)
-			us, err := subscriptionService.SubscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
+			now := time.Now().UTC()
+
+			sub, err := subscriptionService.SubscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
 			if err != nil {
 				if err != repository.ErrNotFound {
 					internalServerErrorResponse(w, r, err)
 					return
 				}
-				us = nil // User is on FREE plan
+
+				sub = nil
 			}
 
-			planEnforcer := subscription.NewPlanEnforcer(us)
+			if sub.ValidUntil.Before(now) {
+				// Mark the subscription as expired.
+				err = subscriptionService.Expired(ctx, sub.Provider, sub.ExternalRef)
+				if err != nil {
+					internalServerErrorResponse(w, r, err)
+					return
+				}
+
+				sub = nil
+			}
+
+			planEnforcer := subscription.NewPlanEnforcer(sub)
 			updatedCtx := context.WithValue(r.Context(), ctxPlanEnforcerKey, planEnforcer)
 			next.ServeHTTP(w, r.WithContext(updatedCtx))
 		})

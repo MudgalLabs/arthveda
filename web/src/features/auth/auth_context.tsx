@@ -65,6 +65,12 @@ export function useSubscription(): Subscription | null {
     return data?.subscription;
 }
 
+export function useUserIsOnTrial(): boolean {
+    const subscription = useSubscription();
+    if (!subscription) return false;
+    return subscription.status === "active" && subscription.plan_id === "trial";
+}
+
 export function useUserHasProSubscription(): boolean {
     const subscription = useSubscription();
     if (!subscription) return false;

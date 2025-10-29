@@ -3,7 +3,7 @@ import { getUserTimezone } from "netra";
 import { Card } from "@/components/card";
 import { IconBadgeCheck } from "@/components/icons";
 import { UpgradeToPro } from "@/features/settings/plan_and_billing/components/upgrade_to_pro";
-import { useUserHasProSubscription } from "@/features/auth/auth_context";
+import { useUserHasProSubscription, useUserIsOnTrial } from "@/features/auth/auth_context";
 import { cn, formatCurrency } from "@/lib/utils";
 import { PADDLE_PRICE_ID } from "@/constants";
 import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
@@ -31,12 +31,13 @@ export function Pricing(props: PricingProps) {
     const currency = isIndia ? "inr" : "usd";
 
     const hasPro = useUserHasProSubscription();
+    const onTrial = useUserIsOnTrial();
 
     return (
         <div className="text-text-primary mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
             <Card className="flex flex-col justify-between">
                 <div className="space-y-2">
-                    {hasPro && <p className="label-muted absolute right-4">Current plan</p>}
+                    {hasPro && !onTrial && <p className="label-muted absolute right-4">Current plan</p>}
 
                     <h3 className="heading mb-1">Subscribe to Arthveda</h3>
 

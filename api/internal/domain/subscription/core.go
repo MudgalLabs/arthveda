@@ -34,20 +34,23 @@ type BillingInterval string
 const (
 	IntervalMonthly BillingInterval = "monthly"
 	IntervalYearly  BillingInterval = "yearly"
+	IntervalOnce    BillingInterval = "once"
 )
 
 // PaymentProvider enum
 type PaymentProvider string
 
 const (
-	ProviderPaddle PaymentProvider = "paddle"
+	ProviderPaddle   PaymentProvider = "paddle"
+	ProviderInternal PaymentProvider = "internal"
 )
 
 // PlanID enum (can grow later)
 type PlanID string
 
 const (
-	PlanPro PlanID = "pro"
+	PlanPro   PlanID = "pro"
+	PlanTrial PlanID = "trial"
 )
 
 // UserSubscription represents a user's subscription to a plan.
