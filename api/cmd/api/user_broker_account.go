@@ -205,11 +205,9 @@ func syncUserBrokerAccountHandler(s *userbrokeraccount.Service, ps *position.Ser
 			Currency:                 currency.CurrencyINR,
 			ChargesCalculationMethod: position.ChargesCalculationMethodAuto,
 			ManualChargeAmount:       decimal.Zero,
-			Confirm:                  true,
-			Force:                    true,
 		}
 
-		importResult, errKind, err = ps.Import(ctx, syncResult.ImportableTrades, options)
+		importResult, errKind, err = ps.Sync(ctx, syncResult.ImportableTrades, options)
 		if err != nil {
 			serviceErrResponse(w, r, errKind, err)
 			return

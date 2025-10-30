@@ -975,6 +975,323 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 	return result, service.ErrNone, nil
 }
 
+func (s *Service) Sync(ctx context.Context, importableTrades []*types.ImportableTrade, payload ImportPayload) (*ImportResult, service.Error, error) {
+	l := logger.FromCtx(ctx)
+
+	// Fetch all open positions for this user broker account.
+	open := StatusOpen
+	searchPayload := SearchPayload{
+		Filters: SearchFilter{
+			UserBrokerAccountID: &payload.UserBrokerAccountID,
+			Status:              &open,
+		},
+		Pagination: common.Pagination{Limit: 100},
+	}
+
+	existingOpenPositions, _, err := s.positionRepository.Search(ctx, searchPayload, true, false)
+	if err != nil {
+		l.Errorw("failed to fetch open positions for user broker account", "error", err, "user_broker_account_id", payload.UserBrokerAccountID)
+		return nil, service.ErrInternalServerError, err
+	}
+
+	// Map open positions by symbol (from Arthveda)
+	openPositions := make(map[string]*Position)
+	for _, pos := range existingOpenPositions {
+		openPositions[pos.Symbol] = pos
+	}
+
+	// Fetch all existing brokerTradeIDs for this user/broker
+	brokerTradeIDs, err := s.tradeRepository.GetAllBrokerTradeIDs(ctx, &payload.UserID, &payload.Broker.ID)
+	if err != nil {
+		l.Errorw("failed to get all broker trade IDs", "error", err, "broker_id", payload.Broker.ID)
+	}
+
+	// Filter out trades whose brokerTradeID already exists
+	filteredTrades := []*types.ImportableTrade{}
+	for _, t := range importableTrades {
+		if t.OrderID == "" {
+			continue
+		}
+		if !common.ExistsInSet(brokerTradeIDs, t.OrderID) {
+			filteredTrades = append(filteredTrades, t)
+		}
+	}
+
+	// Map to store parsed rows by Order ID.
+	parsedRowByOrderID := map[string]*types.ImportableTrade{}
+	type aggregatedTrade struct {
+		TradeKind  types.TradeKind
+		Time       time.Time
+		Quantity   decimal.Decimal
+		TotalPrice decimal.Decimal
+		Charges    decimal.Decimal
+		Symbol     string
+		Instrument types.Instrument
+	}
+
+	aggregatedTrades := make(map[string]aggregatedTrade)
+	for _, filteredTrade := range filteredTrades {
+		parsedRowByOrderID[filteredTrade.OrderID] = filteredTrade
+
+		if existing, found := aggregatedTrades[filteredTrade.OrderID]; found {
+			existing.Quantity = existing.Quantity.Add(filteredTrade.Quantity)
+			existing.TotalPrice = existing.TotalPrice.Add(filteredTrade.Price.Mul(filteredTrade.Quantity))
+			existing.Time = filteredTrade.Time
+			aggregatedTrades[filteredTrade.OrderID] = existing
+		} else {
+			aggregatedTrades[filteredTrade.OrderID] = aggregatedTrade{
+				TradeKind:  filteredTrade.TradeKind,
+				Time:       filteredTrade.Time,
+				Quantity:   filteredTrade.Quantity,
+				TotalPrice: filteredTrade.Price.Mul(filteredTrade.Quantity),
+				Charges:    decimal.NewFromInt(0),
+				Symbol:     filteredTrade.Symbol,
+				Instrument: filteredTrade.Instrument,
+			}
+		}
+	}
+
+	type TradeWithOrderID struct {
+		OrderID    string
+		Payload    trade.CreatePayload
+		Symbol     string
+		Instrument types.Instrument
+	}
+
+	tradesWithOrderIDs := []TradeWithOrderID{}
+	for orderID, aggregatedTrade := range aggregatedTrades {
+		averagePrice := aggregatedTrade.TotalPrice.Div(aggregatedTrade.Quantity)
+		tradesWithOrderIDs = append(tradesWithOrderIDs, TradeWithOrderID{
+			OrderID: orderID,
+			Payload: trade.CreatePayload{
+				Kind:          aggregatedTrade.TradeKind,
+				Quantity:      aggregatedTrade.Quantity,
+				Price:         averagePrice,
+				Time:          aggregatedTrade.Time,
+				ChargesAmount: aggregatedTrade.Charges,
+			},
+			Symbol:     aggregatedTrade.Symbol,
+			Instrument: aggregatedTrade.Instrument,
+		})
+	}
+
+	// Sort the trades by execution time
+	sort.Slice(tradesWithOrderIDs, func(i, j int) bool {
+		return tradesWithOrderIDs[i].Payload.Time.Before(tradesWithOrderIDs[j].Payload.Time)
+	})
+
+	finalizedPositions := []*Position{}
+	invalidPositions := []*Position{}
+	unsupportedPositions := []*Position{}
+	openPositionsUpdatedOrCreated := make(map[uuid.UUID]bool)
+	positionsImported := 0
+	unsupportedPositionsCount := 0
+
+	// For each trade, append to open position or create new one, similar to Import
+	for _, t := range tradesWithOrderIDs {
+		symbol := t.Symbol
+		tradePayload := t.Payload
+
+		newTrade, err := trade.New(tradePayload)
+		if err != nil {
+			l.Errorw("failed to create trade from payload", "error", err)
+			continue
+		}
+
+		if openPos, exists := openPositions[symbol]; exists {
+			openPositionsUpdatedOrCreated[openPos.ID] = true
+			newTrade.PositionID = openPos.ID
+			newTrade.BrokerTradeID = &t.OrderID
+			openPos.Trades = append(openPos.Trades, newTrade)
+
+			// Compute and update position
+			computePayload := ComputePayload{
+				RiskAmount: openPos.RiskAmount,
+				Trades:     ConvertTradesToCreatePayload(openPos.Trades),
+			}
+
+			computeResult, err := Compute(computePayload)
+			if err != nil {
+				l.Debugw("failed to compute position, marking as invalid", "error", err, "position_id", openPos.ID, "symbol", openPos.Symbol)
+				invalidPositions = append(invalidPositions, openPos)
+				delete(openPositions, symbol)
+				continue
+			}
+
+			ApplyComputeResultToPosition(openPos, computeResult)
+
+			// If position is closed, finalize and remove from open positions
+			if computeResult.OpenQuantity.IsZero() {
+				finalizedPositions = append(finalizedPositions, openPos)
+				delete(openPositions, symbol)
+			}
+		} else {
+			// Create new position
+			createPayload := CreatePayload{
+				ComputePayload: ComputePayload{
+					Trades:     []trade.CreatePayload{tradePayload},
+					RiskAmount: payload.RiskAmount,
+				},
+				Symbol:              t.Symbol,
+				Instrument:          t.Instrument,
+				Currency:            payload.Currency,
+				UserBrokerAccountID: &payload.UserBrokerAccountID,
+			}
+
+			newPos, userErr, err := new(payload.UserID, createPayload)
+			if err != nil {
+				l.Errorw("failed to create new position", "error", err)
+				if userErr {
+					invalidPositions = append(invalidPositions, newPos)
+				}
+				continue
+			}
+
+			openPositionsUpdatedOrCreated[newPos.ID] = true
+
+			newPos.BrokerID = &payload.Broker.ID
+			if len(newPos.Trades) > 0 {
+				newPos.Trades[0].BrokerTradeID = &t.OrderID
+			}
+
+			openPositions[symbol] = newPos
+		}
+	}
+
+	// Add any remaining open positions to finalized positions.
+	for _, openPos := range openPositions {
+		if _, updatedOrCreated := openPositionsUpdatedOrCreated[openPos.ID]; updatedOrCreated {
+			// Only finalize positions that were updated or created during this sync.
+			finalizedPositions = append(finalizedPositions, openPos)
+		}
+	}
+
+	for _, finalizedPos := range finalizedPositions {
+		computePayload := ComputePayload{
+			RiskAmount: finalizedPos.RiskAmount,
+			Trades:     ConvertTradesToCreatePayload(finalizedPos.Trades),
+		}
+
+		computeResult, err := Compute(computePayload)
+		if err != nil {
+			l.Debugw("failed to compute position, marking as invalid", "error", err, "position_id", finalizedPos.ID, "symbol", finalizedPos.Symbol)
+			invalidPositions = append(invalidPositions, finalizedPos)
+			continue
+		}
+
+		ApplyComputeResultToPosition(finalizedPos, computeResult)
+
+		switch payload.ChargesCalculationMethod {
+		case ChargesCalculationMethodAuto:
+			_, userErr, err := CalculateAndApplyChargesToTrades(finalizedPos.Trades, finalizedPos.Instrument, payload.Broker.Name)
+			if err != nil {
+				if userErr {
+					invalidPositions = append(invalidPositions, finalizedPos)
+					continue
+				} else {
+					l.Errorw("failed to auto-calculate charges", "error", err)
+					invalidPositions = append(invalidPositions, finalizedPos)
+					continue
+				}
+			}
+		case ChargesCalculationMethodManual:
+			for _, trade := range finalizedPos.Trades {
+				trade.ChargesAmount = payload.ManualChargeAmount
+			}
+		}
+
+		finalizedPos.TotalChargesAmount = calculateTotalChargesAmountFromTrades(finalizedPos.Trades)
+
+		// Recompute after charges
+		computePayload = ComputePayload{
+			RiskAmount: finalizedPos.RiskAmount,
+			Trades:     ConvertTradesToCreatePayload(finalizedPos.Trades),
+		}
+
+		computeResult, err = Compute(computePayload)
+		if err != nil {
+			l.Debugw("failed to compute position after charges, marking as invalid", "error", err, "position_id", finalizedPos.ID, "symbol", finalizedPos.Symbol)
+			invalidPositions = append(invalidPositions, finalizedPos)
+			continue
+		}
+
+		ApplyComputeResultToPosition(finalizedPos, computeResult)
+
+		if !payload.Broker.IsInstrumentSupportedForImport(finalizedPos.Instrument) {
+			unsupportedPositions = append(unsupportedPositions, finalizedPos)
+			unsupportedPositionsCount++
+			continue
+		}
+
+		found := false
+
+		for _, existing := range existingOpenPositions {
+			if existing.ID == finalizedPos.ID {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			svcErr, err := s.Delete(ctx, payload.UserID, finalizedPos.ID)
+			if err != nil {
+				return nil, svcErr, fmt.Errorf("failed to delete existing position: %w", err)
+			}
+
+			err = s.positionRepository.Create(ctx, finalizedPos)
+			if err != nil {
+				return nil, service.ErrInternalServerError, err
+			}
+
+			_, err = s.tradeRepository.CreateForPosition(ctx, finalizedPos.Trades)
+			if err != nil {
+				// Delete the position if trades creation fails.
+				s.positionRepository.Delete(ctx, finalizedPos.ID)
+				return nil, service.ErrInternalServerError, err
+			}
+		} else {
+			err := s.positionRepository.Create(ctx, finalizedPos)
+			if err != nil {
+				l.Errorw("failed to create position", "error", err, "position_id", finalizedPos.ID)
+				return nil, service.ErrInternalServerError, err
+			}
+
+			_, err = s.tradeRepository.CreateForPosition(ctx, finalizedPos.Trades)
+			if err != nil {
+				l.Errorw("failed to create trades for new position", "error", err, "position_id", finalizedPos.ID)
+				s.positionRepository.Delete(ctx, finalizedPos.ID)
+				return nil, service.ErrInternalServerError, err
+			}
+		}
+
+		positionsImported++
+	}
+
+	sort.Slice(finalizedPositions, func(i, j int) bool {
+		return finalizedPositions[i].OpenedAt.After(finalizedPositions[j].OpenedAt)
+	})
+
+	for _, position := range finalizedPositions {
+		sort.Slice(position.Trades, func(i, j int) bool {
+			return position.Trades[i].Time.Before(position.Trades[j].Time)
+		})
+	}
+
+	result := &ImportResult{
+		Positions:                 finalizedPositions,
+		InvalidPositions:          invalidPositions,
+		UnsupportedPositions:      unsupportedPositions,
+		PositionsCount:            len(finalizedPositions) + len(invalidPositions) + len(unsupportedPositions),
+		DuplicatePositionsCount:   0,
+		PositionsImportedCount:    positionsImported,
+		InvalidPositionsCount:     len(invalidPositions),
+		ForcedPositionsCount:      0,
+		UnsupportedPositionsCount: unsupportedPositionsCount,
+	}
+
+	return result, service.ErrNone, nil
+}
+
 func (s *Service) Get(ctx context.Context, userID, positionID uuid.UUID) (*Position, service.Error, error) {
 	l := logger.FromCtx(ctx)
 
