@@ -994,6 +994,11 @@ func (s *Service) Sync(ctx context.Context, importableTrades []*types.Importable
 		return nil, service.ErrInternalServerError, err
 	}
 
+	existingOpenPositionsByID := make(map[uuid.UUID]*Position)
+	for _, pos := range existingOpenPositions {
+		existingOpenPositionsByID[pos.ID] = pos
+	}
+
 	// Map open positions by symbol (from Arthveda)
 	openPositions := make(map[string]*Position)
 	for _, pos := range existingOpenPositions {
@@ -1099,6 +1104,13 @@ func (s *Service) Sync(ctx context.Context, importableTrades []*types.Importable
 		}
 
 		if openPos, exists := openPositions[symbol]; exists {
+			// Mark this position as duplicate if it already existed in Arthveda
+			// so that frontend can show appropriate UI.
+			_, isExistingPos := existingOpenPositionsByID[openPos.ID]
+			if isExistingPos {
+				openPos.IsDuplicate = true
+			}
+
 			openPositionsUpdatedOrCreated[openPos.ID] = true
 			newTrade.PositionID = openPos.ID
 			newTrade.BrokerTradeID = &t.OrderID
@@ -1223,16 +1235,12 @@ func (s *Service) Sync(ctx context.Context, importableTrades []*types.Importable
 			continue
 		}
 
-		found := false
+		_, isExistingPos := existingOpenPositionsByID[finalizedPos.ID]
 
-		for _, existing := range existingOpenPositions {
-			if existing.ID == finalizedPos.ID {
-				found = true
-				break
-			}
-		}
+		if isExistingPos {
+			// Marking as duplicate so that frontend can show appropriate UI.
+			finalizedPos.IsDuplicate = true
 
-		if found {
 			svcErr, err := s.Delete(ctx, payload.UserID, finalizedPos.ID)
 			if err != nil {
 				return nil, svcErr, fmt.Errorf("failed to delete existing position: %w", err)
