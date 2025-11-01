@@ -53,7 +53,7 @@ export function Pricing(props: PricingProps) {
                     </p>
 
                     <p className="text-text-muted text-center text-xs">
-                        (inclusive of {isIndia ? "GST" : "VAT if applicable"})
+                        (exclusive of {isIndia ? "GST" : "VAT if applicable"})
                     </p>
                 </div>
 

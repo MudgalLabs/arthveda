@@ -40,11 +40,8 @@ export const Branding: FC<BrandingProps> = (props) => {
             }}
             content={
                 <p onClick={(e) => e.stopPropagation()} className="text-balance">
-                    Arthveda is in Beta. Please help us make it better by reporting issues or suggesting features on{" "}
-                    <a href="https://github.com/MudgalLabs/arthveda" target="_blank" rel="noopener noreferrer">
-                        GitHub
-                    </a>{" "}
-                    or by writing to us <a href="mailto:hey@arthveda.app">hey@arthveda.app</a>.
+                    Arthveda is in Beta. Please help us make it better by reporting issues or suggesting features by
+                    writing to us <a href="mailto:hey@arthveda.app">hey@arthveda.app</a>.
                 </p>
             }
         >

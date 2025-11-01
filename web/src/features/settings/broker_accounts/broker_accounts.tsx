@@ -847,14 +847,7 @@ const ConnectBrokerAccountModal: FC<ConnectBrokerAccountModalProps> = ({ userBro
                         <ul className="list-disc">
                             <li>
                                 <span>
-                                    <a
-                                        href="https://github.com/MudgalLabs/arthveda"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        Arthveda
-                                    </a>{" "}
-                                    uses your OAuth app only to access and sync your trading positions. It does{" "}
+                                    Arthveda uses your OAuth app only to access and sync your trading positions. It does{" "}
                                     <strong>not</strong> use it for any other purpose.
                                 </span>
                             </li>

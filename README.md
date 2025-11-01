@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./.github/screenshots/banner.png"  alt="arthveda banner" />
 
-### Open source trading journal for Indian markets
+### Trading journal for Indian markets
 
 [Discord](https://discord.gg/RB89u64cWH) | [Website](https://arthveda.app) | [App](https://web.arthveda.app)
 
@@ -9,7 +9,7 @@
 
 # Arthveda
 
-[Arthveda](http://arthveda.app) is an open-source trading journal for the Indian markets that offers seamless broker imports, reveals powerful analytics, and helps you improve.
+[Arthveda](http://arthveda.app) is an trading journal for the Indian markets that offers seamless broker imports, reveals powerful analytics, and helps you improve.
 
 **Arthveda is in open beta right now!**
 
