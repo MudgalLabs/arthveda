@@ -60,6 +60,28 @@ export const WidgetCumulativePnLLineChart: FC<Props> = ({ data, tags, isLoading,
         );
     }, [tags]);
 
+    // Compute global min and max across all tags.
+    const [yMin, yMax] = useMemo(() => {
+        let min = Number.POSITIVE_INFINITY;
+        let max = Number.NEGATIVE_INFINITY;
+
+        for (const row of data) {
+            for (const tag of tags) {
+                const val = Number(row[tag.tag_name]);
+                if (!isNaN(val)) {
+                    if (val < min) min = val;
+                    if (val > max) max = val;
+                }
+            }
+        }
+
+        // fallback if no data
+        if (!isFinite(min)) min = 0;
+        if (!isFinite(max)) max = 0;
+
+        return [min, max];
+    }, [data, tags]);
+
     return (
         <Card className="relative h-full w-full overflow-hidden">
             {isLoading && <LoadingScreen className="absolute-center" />}
@@ -88,6 +110,7 @@ export const WidgetCumulativePnLLineChart: FC<Props> = ({ data, tags, isLoading,
                                     hideSymbol: true,
                                 })
                             }
+                            domain={[yMin * 1.1, yMax * 1.1]}
                         />
                         <Tooltip
                             cursor={tooltipCursor}

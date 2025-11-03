@@ -19,15 +19,15 @@
 @layer base {
     :root {
         --color-chart-1: #00e0ff;
-        --color-chart-2: #00d18a;
-        --color-chart-3: #3fe0b8;
-        --color-chart-4: #a8ff60;
-        --color-chart-5: #e8b15c;
-        --color-chart-6: #ff6b6b;
-        --color-chart-7: #f26ca7;
-        --color-chart-8: #9fa8f2;
-        --color-chart-9: #67b7ff;
-        --color-chart-10: #c47cff;
+        --color-chart-2: #10b981;
+        --color-chart-3: #ffb026;
+        --color-chart-4: #ff6464;
+        --color-chart-5: #4a8df8;
+        --color-chart-6: #a855f7;
+        --color-chart-7: #14b8a6;
+        --color-chart-8: #f97316;
+        --color-chart-9: #84cc16;
+        --color-chart-10: #ec4899;
     }
 }
 
