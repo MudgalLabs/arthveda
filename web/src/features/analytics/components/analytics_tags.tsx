@@ -110,7 +110,7 @@ export function AnalyticsTags() {
                 <div key={group.tag_group} className="mb-8">
                     <h3 className="mb-2 text-lg font-semibold">{group.tag_group}</h3>
 
-                    <div className="flex flex-wrap gap-x-8">
+                    <div className="flex flex-wrap gap-x-8 gap-y-4">
                         <div className="h-[40vh] min-h-[300px] min-w-[300px] flex-1">
                             <WidgetBarPnLGraph data={group.totalPnL} isResizable />
                         </div>
