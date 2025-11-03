@@ -65,7 +65,7 @@ export default function TagPicker({ value: valueProp, onChange, container }: Tag
 
     return (
         <div className="space-y-3">
-            <Popover open={open} onOpenChange={setOpen}>
+            <Popover open={open} onOpenChange={setOpen} modal>
                 <div className="flex-x w-full">
                     <div className="flex flex-wrap gap-2">
                         {Object.entries(selectedByGroup).map(([group, tags]) => (

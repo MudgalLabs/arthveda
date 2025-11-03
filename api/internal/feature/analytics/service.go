@@ -97,6 +97,7 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 		GroupName string
 		TagName   string
 	}
+
 	tagIDToMeta := make(map[string]tagMeta)
 	for _, tg := range tagGroupsWithTags {
 		for _, t := range tg.Tags {
@@ -114,11 +115,6 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 			tagID := tagObj.ID.String()
 			tagIDToPositions[tagID] = append(tagIDToPositions[tagID], pos)
 		}
-	}
-
-	// Debug print the tagIDToPositions map
-	for tagID, posList := range tagIDToPositions {
-		fmt.Printf("TagID: %s, Positions Count: %d\n", tagIDToMeta[tagID].TagName, len(posList))
 	}
 
 	// For each tag, compute cumulative PnL buckets
