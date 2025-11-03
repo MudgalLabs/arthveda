@@ -117,6 +117,11 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 		}
 	}
 
+	// Debug print the tagIDToPositions map
+	for tagID, posList := range tagIDToPositions {
+		l.Debugln("TagID: %s, Positions Count: %d\n", tagIDToMeta[tagID].TagName, len(posList))
+	}
+
 	// For each tag, compute cumulative PnL buckets
 	cumulativePnLByTagGroupData := []cumulativePnLByTagGroup{}
 
@@ -129,19 +134,17 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 		for _, t := range tg.Tags {
 			tagID := t.ID.String()
 			tagPositions := tagIDToPositions[tagID]
+
 			if len(tagPositions) == 0 {
-				fmt.Printf("Tag '%s' has no positions\n", t.Name)
+				l.Debugln("Tag '%s' has no positions\n", t.Name)
 				continue
 			}
 
 			rangeStart, rangeEnd := position.GetRangeBasedOnTrades(tagPositions)
-			fmt.Printf("Tag '%s': rangeStart=%v, rangeEnd=%v, positions=%d\n", t.Name, rangeStart, rangeEnd, len(tagPositions))
 
 			// Fallback: If rangeStart or rangeEnd is zero, use global positions' range
 			if rangeStart.IsZero() || rangeEnd.IsZero() || !rangeEnd.After(rangeStart) {
-				fmt.Printf("Tag '%s': Invalid range, skipping or fallback\n", t.Name)
-				// Optionally, fallback to global range if you want to always show something:
-				// rangeStart, rangeEnd = position.GetRangeBasedOnTrades(positions)
+				l.Debugln("Tag '%s': Invalid range, skipping or fallback\n", t.Name)
 				continue
 			}
 
