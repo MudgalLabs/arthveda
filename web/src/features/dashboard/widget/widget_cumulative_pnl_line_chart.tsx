@@ -1,15 +1,5 @@
 import { FC, useMemo } from "react";
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Legend,
-    ReferenceLine,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { axisDefaults, ChartContainer, ChartTooltipContent, tooltipCursor } from "netra";
 
 import { formatCurrency } from "@/lib/utils";
@@ -135,13 +125,6 @@ export const WidgetCumulativePnLLineChart: FC<Props> = ({ data, tags, isLoading,
                                 dot={false}
                             />
                         ))}
-                        <ReferenceLine
-                            y={0}
-                            stroke="var(--color-muted-foreground)"
-                            strokeDasharray="3 3"
-                            strokeWidth={1}
-                            strokeOpacity={0.5}
-                        />
                     </LineChart>
                 </ResponsiveContainer>
             </ChartContainer>

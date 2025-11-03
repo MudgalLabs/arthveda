@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import {
     formatCurrency,
@@ -187,13 +187,6 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                                 fill="url(#splitColorCharges)"
                             />
                         )}
-                        <ReferenceLine
-                            y={0}
-                            stroke="var(--color-muted-foreground)"
-                            strokeDasharray="3 3"
-                            strokeWidth={1}
-                            strokeOpacity={0.5}
-                        />
                     </AreaChart>
                 </ResponsiveContainer>
             </ChartContainer>
