@@ -522,6 +522,7 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 		default:
 			logger.Get().Errorw("getBrokerageChargesConfig: unknown broker for equity trade charges config", "broker", brokerName)
 		}
+
 	case types.InstrumentFuture:
 		switch brokerName {
 		case broker.BrokerNameAngelOne:
@@ -537,6 +538,7 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 			config.percent = 0.03
 			config.max = 20
 		}
+
 	case types.InstrumentOption:
 		switch brokerName {
 		case broker.BrokerNameAngelOne:

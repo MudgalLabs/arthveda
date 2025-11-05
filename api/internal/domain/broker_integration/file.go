@@ -223,17 +223,54 @@ func (adapter *angelOneFileAdapter) ParseRow(row []string, metadata *importFileM
 		return nil, fmt.Errorf("Invalid time at row : %s", timeStr)
 	}
 
-	// For now, we will assume that all trades are equity trades.
-	instrument := types.InstrumentEquity
-
 	shouldIgnore := false
 
 	if quantity == 0 {
 		shouldIgnore = true
 	}
 
-	if segment != "CAPITAL" {
+	if segment != "CAPITAL" && segment != "FUTURES" {
 		shouldIgnore = true
+	}
+
+	// For now, we will assume that all trades are equity trades.
+	var instrument types.Instrument
+
+	switch segment {
+	case "CAPITAL":
+		instrument = types.InstrumentEquity
+	case "FUTURES":
+		if strings.Contains(symbol, "OPT") && (strings.Contains(symbol, "CE") || strings.Contains(symbol, "PE")) {
+			instrument = types.InstrumentOption
+		} else if strings.Contains(symbol, "FUT") {
+			instrument = types.InstrumentFuture
+		} else {
+			shouldIgnore = true
+		}
+	default:
+		shouldIgnore = true
+	}
+
+	switch instrument {
+	case types.InstrumentOption:
+		fields := strings.Fields(symbol)
+
+		underlying := fields[1]                    // e.g. "NIFTY"
+		month := strings.ToUpper(fields[2][:3])    // "Oct" -> "OCT"
+		day := fmt.Sprintf("%02s", fields[3])      // "1" -> "01"
+		strike := strings.Split(fields[5], ".")[0] // "24900.00" -> "24900"
+		optionType := fields[6]                    // "CE" or "PE"
+
+		// We need to format `symbol` to a standard symbol name we use in Arthveda.
+		// Example - NIFTY31JUL24900CE
+		symbol = fmt.Sprintf("%s%s%s%s%s", underlying, day, month, strike, optionType)
+
+	case types.InstrumentFuture:
+		fields := strings.Fields(symbol)
+
+		underlying := fields[1]              // e.g. "NIFTY"
+		expiry := strings.ToUpper(fields[2]) // "20OCT25"
+		symbol = fmt.Sprintf("%s%sFUT", underlying, expiry)
 	}
 
 	return &types.ImportableTrade{
@@ -438,8 +475,8 @@ func (adapter *kotakSecuritiesFileAdapter) GetMetadata(rows [][]string) (*import
 }
 
 func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
-	symbolStr := row[metadata.symbolColumnIdx]
-	if symbolStr == "" {
+	symbol := row[metadata.symbolColumnIdx]
+	if symbol == "" {
 		return nil, fmt.Errorf("Symbol is empty in row")
 	}
 
@@ -481,18 +518,18 @@ func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *impo
 	// We will create our own order ID because Kotak Securities does not provide a unique order ID for each order.
 	// We will use the "Symbol + Trade Date + Order Exec Time" as the order ID.
 	orderExecTimeStr := row[metadata.orderExecutionTimeColumnIdx]
-	orderID := symbolStr + " " + dateStr + " " + orderExecTimeStr
+	orderID := symbol + " " + dateStr + " " + orderExecTimeStr
 
 	instrument := types.InstrumentEquity
 	shouldIgnore := false
 
 	if strings.Contains(exchange, "DERV") {
-		if strings.HasPrefix(symbolStr, "OPT") {
+		if strings.HasPrefix(symbol, "OPT") {
 			instrument = types.InstrumentOption
 
-			// We need to format `symbolStr` to a standard symbol name we use in Arthveda.
+			// We need to format `symbol` to a standard symbol name we use in Arthveda.
 			// Example - NIFTY31JUL24900CE
-			fields := strings.Fields(symbolStr) // splits by spaces
+			fields := strings.Fields(symbol) // splits by spaces
 			// Example: ["OPTIDXNIFTY", "31JUL2025CE", "24900.00"]
 
 			underlying := strings.TrimPrefix(fields[0], "OPTIDX")
@@ -503,7 +540,7 @@ func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *impo
 			expiry := expiryAndType[:5]
 			optionType := expiryAndType[len(expiryAndType)-2:]
 
-			symbolStr = fmt.Sprintf("%s%s%s%s", underlying, expiry, strike, optionType)
+			symbol = fmt.Sprintf("%s%s%s%s", underlying, expiry, strike, optionType)
 		} else {
 			// We do not support any other derivative other than Options.
 			shouldIgnore = true
@@ -511,7 +548,7 @@ func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *impo
 	}
 
 	return &types.ImportableTrade{
-		Symbol:       symbolStr,
+		Symbol:       symbol,
 		Instrument:   instrument,
 		TradeKind:    tradeKind,
 		Quantity:     quantity,

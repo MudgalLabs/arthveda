@@ -25,7 +25,7 @@ const (
 )
 
 var supportedInstrumentsByBroker = map[Name][]types.Instrument{
-	BrokerNameAngelOne:        {types.InstrumentEquity},
+	BrokerNameAngelOne:        {types.InstrumentEquity, types.InstrumentFuture, types.InstrumentOption},
 	BrokerNameGroww:           {types.InstrumentEquity},
 	BrokerNameKotakSecurities: {types.InstrumentEquity, types.InstrumentOption},
 	BrokerNameUpstox:          {types.InstrumentEquity, types.InstrumentOption},
