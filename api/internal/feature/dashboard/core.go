@@ -11,20 +11,22 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type generalStats struct {
+type GeneralStats struct {
 	WinRate  float64 `json:"win_rate"`
 	LossRate float64 `json:"loss_rate"`
 
-	GrossPnL       string `json:"gross_pnl"`
-	NetPnL         string `json:"net_pnl"`
-	Charges        string `json:"charges"`
-	AvgWin         string `json:"avg_win"`
-	AvgLoss        string `json:"avg_loss"`
-	MaxWin         string `json:"max_win"`
-	MaxLoss        string `json:"max_loss"`
-	AvgRFactor     string `json:"avg_r_factor"`
-	AvgWinRFactor  string `json:"avg_win_r_factor"`
-	AvgLossRFactor string `json:"avg_loss_r_factor"`
+	GrossPnL       string          `json:"gross_pnl"`
+	NetPnL         decimal.Decimal `json:"net_pnl"`
+	Charges        string          `json:"charges"`
+	AvgWin         string          `json:"avg_win"`
+	AvgLoss        string          `json:"avg_loss"`
+	MaxWin         string          `json:"max_win"`
+	MaxLoss        string          `json:"max_loss"`
+	AvgRFactor     string          `json:"avg_r_factor"`
+	AvgWinRFactor  string          `json:"avg_win_r_factor"`
+	AvgLossRFactor string          `json:"avg_loss_r_factor"`
+	AvgWinROI      string          `json:"avg_win_roi"`
+	AvgLossROI     string          `json:"avg_loss_roi"`
 
 	WinStreak  int `json:"win_streak"`
 	LossStreak int `json:"loss_streak"`
@@ -33,13 +35,13 @@ type generalStats struct {
 	LossesCount int `json:"losses_count"`
 }
 
-func getGeneralStats(positions []*position.Position) generalStats {
+func GetGeneralStats(positions []*position.Position) GeneralStats {
 	if len(positions) == 0 {
-		return generalStats{}
+		return GeneralStats{}
 	}
 
 	var winRate float64
-	var grossPnL, netPnL, charges, avgRFactor, avgWinRFactor, avgLossRFactor, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
+	var grossPnL, netPnL, charges, avgRFactor, avgWinRFactor, avgLossRFactor, avgWinROI, avgLossROI, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
 	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount, tradesWithRiskAmountCount int
 	var maxWinStreak, maxLossStreak, currentWin, currentLoss int
 
@@ -67,8 +69,10 @@ func getGeneralStats(positions []*position.Position) generalStats {
 			switch p.Status {
 			case position.StatusWin, position.StatusBreakeven:
 				avgWinRFactor = avgWinRFactor.Add(p.RFactor)
+				avgWinROI = avgWinROI.Add(p.NetReturnPercentage)
 			case position.StatusLoss:
 				avgLossRFactor = avgLossRFactor.Add(p.RFactor)
+				avgLossROI = avgLossROI.Add(p.NetReturnPercentage)
 			}
 		}
 
@@ -120,29 +124,33 @@ func getGeneralStats(positions []*position.Position) generalStats {
 
 	if winTradesCount > 0 {
 		avgWinRFactor = avgWinRFactor.Div(decimal.NewFromInt(int64(winTradesCount)))
+		avgWinROI = avgWinROI.Div(decimal.NewFromInt(int64(winTradesCount)))
 		avgWin = avgWin.Div(decimal.NewFromInt(int64(winTradesCount)))
 	}
 
 	if lossTradesCount > 0 {
 		avgLossRFactor = avgLossRFactor.Div(decimal.NewFromInt(int64(lossTradesCount)))
+		avgLossROI = avgLossROI.Div(decimal.NewFromInt(int64(lossTradesCount)))
 		avgLoss = avgLoss.Div(decimal.NewFromInt(int64(lossTradesCount)))
 	}
 
 	lossRate := 100.0 - winRate
 
-	result := generalStats{
+	result := GeneralStats{
 		WinRate:        winRate,
 		LossRate:       lossRate,
 		GrossPnL:       grossPnL.String(),
-		NetPnL:         netPnL.String(),
+		NetPnL:         netPnL,
 		Charges:        charges.String(),
 		AvgRFactor:     avgRFactor.StringFixed(2),
-		AvgWin:         avgWin.String(),
-		AvgLoss:        avgLoss.String(),
+		AvgWin:         avgWin.StringFixed(2),
+		AvgLoss:        avgLoss.StringFixed(2),
 		MaxWin:         maxWin.String(),
 		MaxLoss:        maxLoss.String(),
 		AvgWinRFactor:  avgWinRFactor.StringFixed(2),
 		AvgLossRFactor: avgLossRFactor.StringFixed(2),
+		AvgWinROI:      avgWinROI.StringFixed(2),
+		AvgLossROI:     avgLossROI.StringFixed(2),
 		WinStreak:      maxWinStreak,
 		LossStreak:     maxLossStreak,
 		WinsCount:      winTradesCount,

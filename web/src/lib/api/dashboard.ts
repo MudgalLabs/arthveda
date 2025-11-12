@@ -2,7 +2,7 @@ import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
 import { DateRangeFilter, DecimalString } from "@/lib/types";
 
-interface GeneralStats {
+export interface GeneralStats {
     win_rate: number;
     loss_rate: number;
     gross_pnl: DecimalString;
@@ -10,9 +10,11 @@ interface GeneralStats {
     charges: DecimalString;
     avg_r_factor: DecimalString;
     avg_win_r_factor: DecimalString;
+    avg_win_roi: string;
     avg_win: DecimalString;
     max_win: DecimalString;
     avg_loss_r_factor: DecimalString;
+    avg_loss_roi: string;
     avg_loss: DecimalString;
     max_loss: DecimalString;
     win_streak: number;

@@ -1,13 +1,10 @@
 import { client, ApiRes } from "@/lib/api/client";
 import { API_ROUTES } from "@/lib/api/api_routes";
-import { PnLBucket } from "@/lib/api/dashboard";
+import { GeneralStats, PnLBucket } from "@/lib/api/dashboard";
 
-export interface AnalyticsTagsSummaryItem {
+export interface AnalyticsTagsSummaryItem extends GeneralStats {
     tag_group: string;
     tag_name: string;
-    gross_pnl: string;
-    net_pnl: string;
-    charges: string;
     positions_count: number;
     r_factor: string;
 }

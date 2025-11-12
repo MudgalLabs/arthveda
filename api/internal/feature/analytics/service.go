@@ -3,6 +3,7 @@ package analytics
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/subscription"
+	"arthveda/internal/feature/dashboard"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/tag"
 	"arthveda/internal/logger"
@@ -31,11 +32,10 @@ func NewService(positionRepository position.ReadWriter, tagRepository tag.ReadWr
 }
 
 type tagsSummaryItem struct {
+	dashboard.GeneralStats
+
 	TagGroup       string          `json:"tag_group"`
 	TagName        string          `json:"tag_name"`
-	GrossPnL       decimal.Decimal `json:"gross_pnl"`
-	NetPnL         decimal.Decimal `json:"net_pnl"`
-	Charges        decimal.Decimal `json:"charges"`
 	PositionsCount int             `json:"positions_count"`
 	RFactor        decimal.Decimal `json:"r_factor"`
 }
@@ -168,55 +168,46 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 				Buckets:  cumulative,
 			})
 		}
+
 		if len(group.Tags) > 0 {
 			cumulativePnLByTagGroupData = append(cumulativePnLByTagGroupData, group)
 		}
 	}
 
-	// Aggregate analytics by tag group and tag name.
-	type tagKey struct {
-		Group string
-		Name  string
-	}
+	var summary []tagsSummaryItem
 
-	summaryMap := make(map[tagKey]*tagsSummaryItem)
+	for _, tg := range tagGroupsWithTags {
+		for _, t := range tg.Tags {
+			tagID := t.ID.String()
+			tagPositions := tagIDToPositions[tagID]
 
-	for _, pos := range positions {
-		for _, tagObj := range pos.Tags {
-			meta, ok := tagIDToMeta[tagObj.ID.String()]
-			if !ok {
-				continue // Skip tags not found in user's tag groups.
+			if len(tagPositions) == 0 {
+				summary = append(summary, tagsSummaryItem{
+					TagGroup: tg.TagGroup.Name,
+					TagName:  t.Name,
+				})
+
+				continue
 			}
 
-			key := tagKey{Group: meta.GroupName, Name: meta.TagName}
-			item, exists := summaryMap[key]
-			if !exists {
-				item = &tagsSummaryItem{
-					TagGroup:       meta.GroupName,
-					TagName:        meta.TagName,
-					GrossPnL:       decimal.Zero,
-					NetPnL:         decimal.Zero,
-					Charges:        decimal.Zero,
-					PositionsCount: 0,
-					RFactor:        decimal.Zero,
-				}
-				summaryMap[key] = item
+			gen := dashboard.GetGeneralStats(tagPositions)
+
+			rfactor := decimal.Zero
+			for _, pos := range tagPositions {
+				rfactor = rfactor.Add(pos.RFactor)
 			}
 
-			item.GrossPnL = item.GrossPnL.Add(pos.GrossPnLAmount)
-			item.NetPnL = item.NetPnL.Add(pos.NetPnLAmount)
-			item.Charges = item.Charges.Add(pos.TotalChargesAmount)
-			item.RFactor = item.RFactor.Add(pos.RFactor)
-			item.PositionsCount += 1
+			summary = append(summary, tagsSummaryItem{
+				GeneralStats:   gen,
+				TagGroup:       tg.TagGroup.Name,
+				TagName:        t.Name,
+				PositionsCount: len(tagPositions),
+				RFactor:        rfactor,
+			})
 		}
 	}
 
-	// Convert map to slice and sort by group_name, net_pnl desc.
-	var summary []tagsSummaryItem
-	for _, item := range summaryMap {
-		summary = append(summary, *item)
-	}
-
+	// Sort summary by group_name, net_pnl desc.
 	sort.Slice(summary, func(i, j int) bool {
 		if summary[i].TagGroup == summary[j].TagGroup {
 			return summary[i].NetPnL.GreaterThan(summary[j].NetPnL)
