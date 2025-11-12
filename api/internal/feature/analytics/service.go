@@ -174,7 +174,7 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 		}
 	}
 
-	var summary []tagsSummaryItem
+	summary := []tagsSummaryItem{}
 
 	for _, tg := range tagGroupsWithTags {
 		for _, t := range tg.Tags {
@@ -182,10 +182,10 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 			tagPositions := tagIDToPositions[tagID]
 
 			if len(tagPositions) == 0 {
-				summary = append(summary, tagsSummaryItem{
-					TagGroup: tg.TagGroup.Name,
-					TagName:  t.Name,
-				})
+				// summary = append(summary, tagsSummaryItem{
+				// 	TagGroup: tg.TagGroup.Name,
+				// 	TagName:  t.Name,
+				// })
 
 				continue
 			}
@@ -221,7 +221,7 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 		groupMap[item.TagGroup] = append(groupMap[item.TagGroup], item)
 	}
 
-	var summaryGroup []tagsSummaryGroup
+	summaryGroup := []tagsSummaryGroup{}
 	for group, items := range groupMap {
 		// Sort tags within group by NetPnL desc
 		sort.Slice(items, func(i, j int) bool {
