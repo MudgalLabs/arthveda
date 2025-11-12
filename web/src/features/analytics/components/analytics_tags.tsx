@@ -9,6 +9,7 @@ import {
     DataTableState,
     DEFAULT_DATA_TABLE_STATE,
     DataTableVisibility,
+    Card,
 } from "netra";
 import { ColumnDef } from "@tanstack/react-table";
 import Decimal from "decimal.js";
@@ -238,6 +239,15 @@ export function AnalyticsTags() {
     if (isLoading) return <LoadingScreen />;
 
     if (error) return <ErrorMessage errorMsg="Failed to load tags based analytics." />;
+
+    if (summary.length === 0) {
+        return (
+            <Card className="absolute-center text-text-muted w-[90%] max-w-md flex-col space-y-4 p-6 text-center text-balance">
+                <p>No data available for tags based analytics.</p>
+                <p>Start tagging your positions to see analytics here.</p>
+            </Card>
+        );
+    }
 
     return (
         <div>
