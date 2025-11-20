@@ -242,7 +242,7 @@ export function AnalyticsTags() {
 
     if (summary.length === 0) {
         return (
-            <Card className="absolute-center text-text-muted w-[90%] max-w-md flex-col space-y-4 p-6 text-center text-balance">
+            <Card className="absolute-center text-text-muted space-y-2 text-center text-balance">
                 <p>No data available for tags based analytics.</p>
                 <p>Start tagging your positions to see analytics here.</p>
             </Card>
