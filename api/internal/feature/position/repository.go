@@ -3,6 +3,7 @@ package position
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/dbx"
+	"arthveda/internal/domain/symbol"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
@@ -161,7 +162,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"created_by":                       position.CreatedBy,
 		"created_at":                       position.CreatedAt,
 		"updated_at":                       position.UpdatedAt,
-		"symbol":                           strings.ToUpper(position.Symbol),
+		"symbol":                           symbol.Sanitize(position.Symbol, position.Instrument),
 		"instrument":                       position.Instrument,
 		"currency":                         position.Currency,
 		"risk_amount":                      position.RiskAmount,
@@ -223,7 +224,7 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
 		"created_by":                       position.CreatedBy,
 		"created_at":                       position.CreatedAt,
 		"updated_at":                       position.UpdatedAt,
-		"symbol":                           position.Symbol,
+		"symbol":                           symbol.Sanitize(position.Symbol, position.Instrument),
 		"instrument":                       position.Instrument,
 		"currency":                         position.Currency,
 		"risk_amount":                      position.RiskAmount,

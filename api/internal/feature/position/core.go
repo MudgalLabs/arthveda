@@ -134,21 +134,9 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 		Notes:               payload.Notes,
 		UserBrokerAccountID: payload.UserBrokerAccountID,
 		Trades:              trades,
-
-		// TODO: use ApplyComputeResultToPosition instead.
-		TotalChargesAmount:          computeResult.TotalChargesAmount,
-		Direction:                   computeResult.Direction,
-		Status:                      computeResult.Status,
-		OpenedAt:                    computeResult.OpenedAt,
-		ClosedAt:                    computeResult.ClosedAt,
-		GrossPnLAmount:              computeResult.GrossPnLAmount,
-		NetPnLAmount:                computeResult.NetPnLAmount,
-		RFactor:                     computeResult.RFactor,
-		NetReturnPercentage:         computeResult.NetReturnPercentage,
-		ChargesAsPercentageOfNetPnL: computeResult.ChargesAsPercentageOfNetPnL,
-		OpenQuantity:                computeResult.OpenQuantity,
-		OpenAveragePriceAmount:      computeResult.OpenAveragePriceAmount,
 	}
+
+	ApplyComputeResultToPosition(position, computeResult)
 
 	return position, false, nil
 }
