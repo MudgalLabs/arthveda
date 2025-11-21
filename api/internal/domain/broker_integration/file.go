@@ -555,9 +555,6 @@ func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *impo
 				// The pattern is: underlying + expiry (2 digits + 3 letters) + year (4 digits) + option type (CE/PE)
 				// e.g. BAJAJAUTO24APR2025CE
 
-				// fmt.Println("Parsing option symbol:", symbol)
-				// fmt.Println("Fields:", strings.Fields(symbol))
-
 				stockOptPattern := regexp.MustCompile(`^([A-Z0-9\-]+)(\d{2}[A-Z]{3}\d{4}(CE|PE))$`)
 				// Remove "OPTSTK" prefix
 				raw := strings.TrimPrefix(fields[0], "OPTSTK")
@@ -585,7 +582,6 @@ func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *impo
 				}
 
 				symbol = fmt.Sprintf("%s%s%s%s", underlying, expiry, strike, optionType)
-				// fmt.Println("Parsed stock option symbol:", symbol)
 			} else {
 				expiryAndType := fields[1]                 // e.g. "31JUL2025CE"
 				strike := strings.Split(fields[2], ".")[0] // remove decimals
