@@ -6,6 +6,7 @@ import (
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -523,28 +524,106 @@ func (adapter *kotakSecuritiesFileAdapter) ParseRow(row []string, metadata *impo
 	instrument := types.InstrumentEquity
 	shouldIgnore := false
 
-	if strings.Contains(exchange, "DERV") {
+	if strings.Contains(exchange, "DERV") || strings.Contains(exchange, "MCX") {
 		if strings.HasPrefix(symbol, "OPT") {
 			instrument = types.InstrumentOption
 
-			// We need to format `symbol` to a standard symbol name we use in Arthveda.
-			// Example - NIFTY31JUL24900CE
 			fields := strings.Fields(symbol) // splits by spaces
-			// Example: ["OPTIDXNIFTY", "31JUL2025CE", "24900.00"]
 
-			underlying := strings.TrimPrefix(fields[0], "OPTIDX")
-			expiryAndType := fields[1]                 // e.g. "31JUL2025CE"
-			strike := strings.Split(fields[2], ".")[0] // remove decimals
+			var underlying string
+			isStockOption := false
 
-			// expiry = first 5 chars (31JUL), optionType = last 2 chars (CE/PE)
-			expiry := expiryAndType[:5]
-			optionType := expiryAndType[len(expiryAndType)-2:]
+			if strings.HasPrefix(fields[0], "OPTIDX") {
+				underlying = strings.TrimPrefix(fields[0], "OPTIDX")
+			} else if strings.HasPrefix(fields[0], "OPTSTK") {
+				underlying = strings.TrimPrefix(fields[0], "OPTSTK")
+				isStockOption = true
+			} else if strings.HasPrefix(fields[0], "OPTFUT") {
+				underlying = strings.TrimPrefix(fields[0], "OPTFUT")
+			} else {
+				underlying = fields[0]
+			}
 
-			symbol = fmt.Sprintf("%s%s%s%s", underlying, expiry, strike, optionType)
+			if isStockOption {
+				// Example: ["OPTSTKBAJAJ-AUTO24APR2025CE", "8000.00"]
+				// underlying: BAJAJ-AUTO
+				// expiry+type: 24APR2025CE
+				// strike: 8000.00
+
+				// Remove "-" from underlying
+				// Use regex to split underlying from expiry/type/year/option suffix
+				// The pattern is: underlying + expiry (2 digits + 3 letters) + year (4 digits) + option type (CE/PE)
+				// e.g. BAJAJAUTO24APR2025CE
+
+				// fmt.Println("Parsing option symbol:", symbol)
+				// fmt.Println("Fields:", strings.Fields(symbol))
+
+				stockOptPattern := regexp.MustCompile(`^([A-Z0-9\-]+)(\d{2}[A-Z]{3}\d{4}(CE|PE))$`)
+				// Remove "OPTSTK" prefix
+				raw := strings.TrimPrefix(fields[0], "OPTSTK")
+				raw = strings.ReplaceAll(raw, "-", "")
+				matches := stockOptPattern.FindStringSubmatch(raw)
+
+				var underlying, expiryAndType string
+				if len(matches) == 4 {
+					underlying = matches[1]
+					expiryAndType = matches[2]
+				} else {
+					// fallback to previous logic if regex fails
+					underlying = raw
+					expiryAndType = ""
+				}
+
+				strike := strings.Split(fields[1], ".")[0] // remove decimals
+
+				// expiry = first 5 chars (24APR), optionType = last 2 chars (CE/PE)
+				expiry := ""
+				optionType := ""
+				if len(expiryAndType) >= 7 {
+					expiry = expiryAndType[:5]
+					optionType = expiryAndType[len(expiryAndType)-2:]
+				}
+
+				symbol = fmt.Sprintf("%s%s%s%s", underlying, expiry, strike, optionType)
+				// fmt.Println("Parsed stock option symbol:", symbol)
+			} else {
+				expiryAndType := fields[1]                 // e.g. "31JUL2025CE"
+				strike := strings.Split(fields[2], ".")[0] // remove decimals
+
+				expiry := expiryAndType[:5]
+				optionType := expiryAndType[len(expiryAndType)-2:]
+
+				symbol = fmt.Sprintf("%s%s%s%s", underlying, expiry, strike, optionType)
+			}
+		} else if strings.HasPrefix(symbol, "FUT") {
+			instrument = types.InstrumentFuture
+			fields := strings.Fields(symbol)
+			var underlying, expiry string
+
+			// FUTIDXBANKNIFTY 29MAY2025 or FUTCOMCRUDEOIL 19MAY2025
+			if len(fields) >= 2 {
+				// Remove "FUTIDX" or "FUTCOM" or "FUTSTK" prefix if present
+				raw := fields[0]
+				raw = strings.TrimPrefix(raw, "FUTIDX")
+				raw = strings.TrimPrefix(raw, "FUTCOM")
+				raw = strings.TrimPrefix(raw, "FUTSTK")
+				underlying = raw
+
+				expiryRaw := fields[1]
+				// expiryRaw is like "29MAY2025", we want "29MAY"
+				if len(expiryRaw) >= 5 {
+					expiry = expiryRaw[:5]
+				}
+				symbol = fmt.Sprintf("%s%s", underlying, expiry)
+			}
 		} else {
-			// We do not support any other derivative other than Options.
+			// We do not know which instrument this is, so we will ignore it.
 			shouldIgnore = true
 		}
+	}
+
+	if shouldIgnore {
+		fmt.Printf("Ignoring trade for symbol: %s on exchange: %s\n", symbol, exchange)
 	}
 
 	return &types.ImportableTrade{
