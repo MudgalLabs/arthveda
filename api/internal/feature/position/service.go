@@ -5,6 +5,7 @@ import (
 	"arthveda/internal/domain/broker_integration"
 	"arthveda/internal/domain/currency"
 	"arthveda/internal/domain/subscription"
+	"arthveda/internal/domain/symbol"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/journal_entry"
@@ -478,6 +479,11 @@ type ImportResult struct {
 func (s *Service) Import(ctx context.Context, importableTrades []*types.ImportableTrade, payload ImportPayload) (*ImportResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
 	now := time.Now().UTC()
+
+	// Sanitize symbols in importable trades.
+	for _, trade := range importableTrades {
+		trade.Symbol = symbol.Sanitize(trade.Symbol, trade.Instrument)
+	}
 
 	// All the symbols that are found in the `importableTrades`.
 	isSymbolBeingImported := make(map[string]bool)
@@ -977,6 +983,11 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 
 func (s *Service) Sync(ctx context.Context, importableTrades []*types.ImportableTrade, payload ImportPayload) (*ImportResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
+
+	// Sanitize symbols in importable trades.
+	for _, trade := range importableTrades {
+		trade.Symbol = symbol.Sanitize(trade.Symbol, trade.Instrument)
+	}
 
 	// Fetch all open positions for this user broker account.
 	open := StatusOpen

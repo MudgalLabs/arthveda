@@ -3,6 +3,7 @@ package position
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/currency"
+	"arthveda/internal/domain/symbol"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
@@ -127,7 +128,7 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 		ID:                  positionID,
 		CreatedBy:           userID,
 		CreatedAt:           now,
-		Symbol:              payload.Symbol,
+		Symbol:              symbol.Sanitize(payload.Symbol, payload.Instrument),
 		Instrument:          payload.Instrument,
 		Currency:            payload.Currency,
 		RiskAmount:          payload.RiskAmount,
