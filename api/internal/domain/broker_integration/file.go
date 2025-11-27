@@ -307,7 +307,8 @@ func (adapter *growwFileAdapter) GetMetadata(rows [][]string) (*importFileMetada
 				quantityColumnIdx = columnIdx
 			}
 
-			if strings.Contains(colCell, "Price") {
+			// Groww's old format had "Price", new format has "Value".
+			if strings.Contains(colCell, "Price") || strings.Contains(colCell, "Value") {
 				priceColumnIdx = columnIdx
 			}
 
