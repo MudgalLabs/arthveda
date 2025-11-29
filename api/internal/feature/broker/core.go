@@ -18,6 +18,7 @@ type Name string
 
 const (
 	BrokerNameAngelOne        Name = "Angel One"
+	BrokerNameFyers           Name = "Fyers"
 	BrokerNameGroww           Name = "Groww"
 	BrokerNameKotakSecurities Name = "Kotak Securities"
 	BrokerNameUpstox          Name = "Upstox"
@@ -26,6 +27,7 @@ const (
 
 var supportedInstrumentsByBroker = map[Name][]types.Instrument{
 	BrokerNameAngelOne:        {types.InstrumentEquity, types.InstrumentFuture, types.InstrumentOption},
+	BrokerNameFyers:           {types.InstrumentOption},
 	BrokerNameGroww:           {types.InstrumentEquity},
 	BrokerNameKotakSecurities: {types.InstrumentEquity, types.InstrumentFuture, types.InstrumentOption},
 	BrokerNameUpstox:          {types.InstrumentEquity, types.InstrumentOption},

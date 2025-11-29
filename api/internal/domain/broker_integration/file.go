@@ -92,6 +92,8 @@ func GetFileAdapter(b *broker.Broker) (FileAdapter, error) {
 	switch b.Name {
 	case broker.BrokerNameAngelOne:
 		return &angelOneFileAdapter{}, nil
+	case broker.BrokerNameFyers:
+		return &fyersFileAdapter{}, nil
 	case broker.BrokerNameGroww:
 		return &growwFileAdapter{}, nil
 	case broker.BrokerNameKotakSecurities:
@@ -282,6 +284,175 @@ func (adapter *angelOneFileAdapter) ParseRow(row []string, metadata *importFileM
 		Price:        price,
 		OrderID:      orderID,
 		Time:         tradeDateTime,
+		ShouldIgnore: shouldIgnore,
+	}, nil
+}
+
+type fyersFileAdapter struct{}
+
+func (adapter *fyersFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
+	var headerRowIdx int
+	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, dateColumnIdx, timeColumnIdx int
+
+	for rowIdx, row := range rows {
+		for columnIdx, colCell := range row {
+
+			if strings.Contains(colCell, "symbol") {
+				symbolColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "segment") {
+				segmentColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "type") {
+				tradeTypeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "qty") {
+				quantityColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "trade_price") {
+				priceColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "date") {
+				dateColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "time") {
+				timeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "order_id") {
+				orderIDColumnIdx = columnIdx
+				headerRowIdx = rowIdx
+			}
+
+			// If we have found the header row, and we are past it, we can stop.
+			if headerRowIdx > 0 && rowIdx > headerRowIdx {
+				break
+			}
+		}
+	}
+
+	return &importFileMetadata{
+		HeaderRowIdx:       headerRowIdx,
+		symbolColumnIdx:    symbolColumnIdx,
+		segmentColumnIdx:   segmentColumnIdx,
+		tradeTypeColumnIdx: tradeTypeColumnIdx,
+		quantityColumnIdx:  quantityColumnIdx,
+		priceColumnIdx:     priceColumnIdx,
+		orderIDColumnIdx:   orderIDColumnIdx,
+		dateColumnIdx:      dateColumnIdx,
+		timeColumnIdx:      timeColumnIdx,
+	}, nil
+}
+
+func (adapter *fyersFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
+	symbolColumnIdx := metadata.symbolColumnIdx
+	segmentColumnIdx := metadata.segmentColumnIdx
+	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
+	quantityColumnIdx := metadata.quantityColumnIdx
+	priceColumnIdx := metadata.priceColumnIdx
+	orderIDColumnIdx := metadata.orderIDColumnIdx
+	dateColumnIdx := metadata.dateColumnIdx
+	timeColumnIdx := metadata.timeColumnIdx
+
+	orderID := row[orderIDColumnIdx]
+	if orderID == "" {
+		return nil, fmt.Errorf("Order ID is empty in row")
+	}
+
+	// Parse trade details from the row
+	tradeTypeStr := row[tradeTypeColumnIdx]
+	quantityStr := row[quantityColumnIdx]
+	priceStr := row[priceColumnIdx]
+
+	tradeKind := types.TradeKind(strings.ToLower(tradeTypeStr))
+	quantity, err := strconv.ParseFloat(quantityStr, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid quantity at row : %s", quantityStr)
+	}
+
+	price, err := decimal.NewFromString(priceStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid price at row : %s", priceStr)
+	}
+
+	tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
+	ist, err := time.LoadLocation(string(tz))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
+	}
+
+	dateStr := row[dateColumnIdx]
+	timeStr := row[timeColumnIdx]
+
+	dateTimeStr := dateStr + " " + timeStr
+
+	tradeTime, err := time.ParseInLocation("02/01/2006 03:04 PM", dateTimeStr, ist)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid datetime at row: %s (err: %v)", dateTimeStr, err)
+	}
+
+	symbolStr := row[symbolColumnIdx]
+	if symbolStr == "" {
+		return nil, fmt.Errorf("Symbol is empty in row")
+	}
+
+	segment := row[segmentColumnIdx]
+	if segment == "" {
+		return nil, fmt.Errorf("Segment is empty in row")
+	}
+
+	var shouldIgnore bool
+	var instrument types.Instrument
+	var symbol string
+
+	if segment == "BSE_FNO" || segment == "NSE_FNO" {
+		instrument = types.InstrumentOption
+
+		// Parse option symbol: e.g. "IO PE SENSEX 27Nov2025 84300"
+		fields := strings.Fields(symbolStr)
+
+		fmt.Println("Fyers option fields:", fields)
+
+		if len(fields) == 5 {
+			// fields[2]: underlying, fields[3]: expiry (27Nov2025), fields[4]: strike, fields[1]: option type (PE/CE)
+			underlying := fields[2]
+			expiryRaw := fields[3] // e.g. 27Nov2025
+			strike := fields[4]
+			optionType := strings.ToUpper(fields[1]) // PE or CE
+
+			// Parse expiry to DDMMM (ignore year)
+			expiryDay := ""
+			expiryMonth := ""
+			if len(expiryRaw) >= 5 {
+				expiryDay = expiryRaw[:2]
+				expiryMonth = strings.ToUpper(expiryRaw[2:5])
+			}
+			expiry := expiryDay + expiryMonth
+
+			symbol = fmt.Sprintf("%s%s%s%s", underlying, expiry, strike, optionType)
+		} else {
+			// fallback to original symbol if parsing fails
+			symbol = symbolStr
+		}
+	} else {
+		shouldIgnore = true
+		symbol = symbolStr
+	}
+
+	return &types.ImportableTrade{
+		Symbol:       symbol,
+		Instrument:   instrument,
+		TradeKind:    tradeKind,
+		Quantity:     decimal.NewFromFloat(quantity),
+		Price:        price,
+		OrderID:      orderID,
+		Time:         tradeTime,
 		ShouldIgnore: shouldIgnore,
 	}, nil
 }

@@ -434,7 +434,17 @@ const GrowwTradingHistoryDirections: FC = () => {
             <li>
                 Select the time frame and click <strong>Download</strong>
             </li>
-            <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
+        </>
+    );
+};
+
+const FyersTradingHistoryDirections: FC = () => {
+    return (
+        <>
+            <li>Log into you Fyers account page</li>
+            <li>Open the trade book</li>
+            <li>Select your preferred instruments and the date range</li>
+            <li>Download this CSV file</li>
         </>
     );
 };
@@ -476,7 +486,6 @@ const UpstoxTradingHistoryDirections: FC = () => {
             <li>
                 Click <strong>Download XLSX</strong> from download dropdown to download the Excel file
             </li>
-            <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
         </>
     );
 };
@@ -498,7 +507,6 @@ const ZerodhaTradingHistoryDirections: FC = () => {
             <li>
                 Click <strong>XLSX </strong> to download the Excel file
             </li>
-            <li>Upload your Excel file below (You will be able to review the import before it is saved)</li>
         </>
     );
 };
@@ -550,6 +558,8 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
                     <AngelOneTradingHistoryDirections />
                 ) : name === "Groww" ? (
                     <GrowwTradingHistoryDirections />
+                ) : name === "Fyers" ? (
+                    <FyersTradingHistoryDirections />
                 ) : name === "Kotak Securities" ? (
                     <KotakSecuritiesTradingHistoryDirections />
                 ) : name === "Upstox" ? (
@@ -559,6 +569,8 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
                 ) : (
                     <p className="text-text-destructive">Unsupported broker for file import</p>
                 )}
+
+                <li>Upload your Excel file below. You will be able to review the trades before final import.</li>
             </ol>
 
             <div className="h-8" />
@@ -566,7 +578,14 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
             <Input
                 type="file"
                 onChange={handleFileChange}
-                accept=".xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                accept="
+                    .xlsx,
+                    .xls,
+                    .csv,
+                    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+                    application/vnd.ms-excel,
+                    text/csv
+                "
             />
         </>
     );
@@ -578,6 +597,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
     const supportedInstrumentsByBroker: Record<BrokerName, PositionInstrument[]> = {
         "Angel One": ["equity", "future", "option"],
         Groww: ["equity"],
+        Fyers: ["option"],
         "Kotak Securities": ["equity", "future", "option"],
         Upstox: ["equity", "option"],
         Zerodha: ["equity", "future", "option"],

@@ -166,7 +166,7 @@ func importHandler(s *position.Service) http.HandlerFunc {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
 
-		file, _, err := r.FormFile("file")
+		file, fileHeader, err := r.FormFile("file")
 		if err != nil {
 			badRequestResponse(w, r, errors.New("Unable to read file"))
 			invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(apires.NewApiError("Unable to read file", "", "file", nil)))
@@ -274,6 +274,7 @@ func importHandler(s *position.Service) http.HandlerFunc {
 
 		payload := position.FileImportPayload{
 			File:                     file,
+			FileHeader:               fileHeader,
 			BrokerID:                 brokerID,
 			UserBrokerAccountID:      userBrokerAccountID,
 			Currency:                 currencyCode,

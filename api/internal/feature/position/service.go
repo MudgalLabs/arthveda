@@ -17,13 +17,16 @@ import (
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -299,6 +302,9 @@ type FileImportPayload struct {
 	// These files are expected to be in .xlsx format and are provided by a broker.
 	File multipart.File `form:"file"`
 
+	// To get the extension of the uploaded file.
+	FileHeader *multipart.FileHeader `form:"file"`
+
 	// Currency is the currency in which the positions are denominated.
 	Currency currency.CurrencyCode `json:"currency"`
 
@@ -326,8 +332,10 @@ var errImportFileInvalid = errors.New("File seems invalid or unsupported")
 func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload FileImportPayload) (*ImportResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
 
+	ext := strings.ToLower(filepath.Ext(payload.FileHeader.Filename))
+
 	// Save it temporarily (excelize works with file paths or io.Reader)
-	tempFile, err := os.CreateTemp("", "upload-*.xlsx")
+	tempFile, err := os.CreateTemp("", "upload-*"+ext)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to create temp file: %w", err)
 	}
@@ -337,13 +345,43 @@ func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload File
 	io.Copy(tempFile, payload.File) // copy the uploaded file to the temp file
 	tempFile.Close()
 
-	// Open Excel file
-	excelFile, err := excelize.OpenFile(tempFile.Name())
-	if err != nil {
-		return nil, service.ErrBadRequest, fmt.Errorf("Unable to read excel file")
+	var rows [][]string
+
+	switch ext {
+	case ".xlsx":
+		excelFile, err := excelize.OpenFile(tempFile.Name())
+		if err != nil {
+			l.Warnw("Unable to read excel file", "error", err)
+			return nil, service.ErrBadRequest, fmt.Errorf("Unable to read excel file: %v. Please ensure the file is a valid .xlsx Excel file.", err)
+		}
+
+		defer excelFile.Close()
+
+		sheet := excelFile.GetSheetName(0)
+		rows, err = excelFile.GetRows(sheet)
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("failed to read rows from excel file: %w", err)
+		}
+	case ".csv":
+		f, err := os.Open(tempFile.Name())
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("failed to open csv file: %w", err)
+		}
+
+		defer f.Close()
+
+		csvReader := csv.NewReader(f)
+		rows, err = csvReader.ReadAll()
+		if err != nil {
+			return nil, service.ErrBadRequest, fmt.Errorf("Unable to read csv file: %v. Please ensure the file is a valid CSV file.", err)
+		}
+	default:
+		return nil, service.ErrBadRequest, fmt.Errorf("Unsupported file type: %s. Only .xlsx and .csv files are supported.", ext)
 	}
 
-	defer excelFile.Close()
+	if len(rows) == 0 {
+		return nil, service.ErrBadRequest, fmt.Errorf("File is empty")
+	}
 
 	broker, err := s.brokerRepository.GetByID(ctx, payload.BrokerID)
 	if err != nil {
@@ -370,19 +408,6 @@ func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload File
 	fileAdapter, err := broker_integration.GetFileAdapter(broker)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("failed to get broker importer: %w", err)
-	}
-
-	// Get first sheet name
-	sheet := excelFile.GetSheetName(0)
-
-	// Get all rows
-	rows, err := excelFile.GetRows(sheet)
-	if err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("failed to read rows from excel file: %w", err)
-	}
-
-	if len(rows) == 0 {
-		return nil, service.ErrBadRequest, fmt.Errorf("Excel file is empty")
 	}
 
 	metadata, err := fileAdapter.GetMetadata(rows)
