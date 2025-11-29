@@ -169,7 +169,6 @@ func planEnforcerMiddleware(subscriptionService *subscription.Service) func(http
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			userID := getUserIDFromContext(ctx)
-			now := time.Now().UTC()
 
 			sub, err := subscriptionService.SubscriptionRepository.FindUserSubscriptionByUserID(ctx, userID)
 			if err != nil {
@@ -181,9 +180,9 @@ func planEnforcerMiddleware(subscriptionService *subscription.Service) func(http
 				sub = nil
 			}
 
-			if sub.ValidUntil.Before(now) {
+			if sub != nil && sub.ShouldExpire() && !sub.IsExpired() {
 				// Mark the subscription as expired.
-				err = subscriptionService.Expired(ctx, sub.Provider, sub.ExternalRef)
+				err = subscriptionService.ExpireByUserID(ctx, userID)
 				if err != nil {
 					internalServerErrorResponse(w, r, err)
 					return

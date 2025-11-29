@@ -265,7 +265,7 @@ func paddleWebhookHandler(s *subscription.Service) http.HandlerFunc {
 			}
 
 			subscriptionID := paddleSubscription.Data.ID
-			err = s.Expired(ctx, subscription.ProviderPaddle, subscriptionID)
+			err = s.ExpireByProvider(ctx, subscription.ProviderPaddle, subscriptionID)
 			if err != nil {
 				l.Errorw("failed to mark subscription as expired", "error", err)
 				http.Error(w, "Failed to mark subscription as expired", http.StatusInternalServerError)
