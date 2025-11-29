@@ -417,8 +417,6 @@ func (adapter *fyersFileAdapter) ParseRow(row []string, metadata *importFileMeta
 		// Parse option symbol: e.g. "IO PE SENSEX 27Nov2025 84300"
 		fields := strings.Fields(symbolStr)
 
-		fmt.Println("Fyers option fields:", fields)
-
 		if len(fields) == 5 {
 			// fields[2]: underlying, fields[3]: expiry (27Nov2025), fields[4]: strike, fields[1]: option type (PE/CE)
 			underlying := fields[2]
