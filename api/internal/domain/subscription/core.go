@@ -68,6 +68,19 @@ type UserSubscription struct {
 	UpdatedAt         *time.Time         `db:"updated_at" json:"updated_at"`
 }
 
+func (sub *UserSubscription) IsExpired() bool {
+	return sub.Status == StatusExpired
+}
+
+func (sub *UserSubscription) ShouldExpire() bool {
+	if sub == nil {
+		return false
+	}
+
+	now := time.Now().UTC()
+	return sub.ValidUntil.Before(now)
+}
+
 // UserPaymentProviderProfile represents a user's payment provider configuration.
 // When a Paddle customer is created, we store the provider and customer ID (external_id).
 type UserPaymentProviderProfile struct {

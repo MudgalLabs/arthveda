@@ -17,14 +17,19 @@ type Service struct {
 	subscriptionRepository subscription.Reader
 	positionRepository     position.Reader
 	uploadRepository       upload.Reader
+	subscriptionService    *subscription.Service
 }
 
-func NewService(upr ReadWriter, sr subscription.Reader, pr position.Reader, ur upload.Reader) *Service {
+func NewService(
+	upr ReadWriter, sr subscription.Reader, pr position.Reader, ur upload.Reader,
+	ss *subscription.Service,
+) *Service {
 	return &Service{
 		userProfileRepository:  upr,
 		subscriptionRepository: sr,
 		positionRepository:     pr,
 		uploadRepository:       ur,
+		subscriptionService:    ss,
 	}
 }
 
@@ -47,13 +52,23 @@ func (s *Service) GetUserMe(ctx context.Context, id uuid.UUID) (*GetUserMeResult
 		return nil, service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
 	}
 
-	userSubscription, err := s.subscriptionRepository.FindUserSubscriptionByUserID(ctx, id)
+	sub, err := s.subscriptionRepository.FindUserSubscriptionByUserID(ctx, id)
 	if err != nil {
 		if err == repository.ErrNotFound {
-			userSubscription = nil // no subscription found, this is fine
+			sub = nil // no subscription found, this is fine
 		} else {
 			return nil, service.ErrInternalServerError, fmt.Errorf("find user subscription by user id: %w", err)
 		}
+	}
+
+	if sub != nil && sub.ShouldExpire() && !sub.IsExpired() {
+		// Mark the subscription as expired.
+		err = s.subscriptionService.ExpireByUserID(ctx, id)
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("expire user subscription by user id: %w", err)
+		}
+
+		sub = nil
 	}
 
 	positionsExistOlderThanTwelveMonths, err := s.positionRepository.NoOfPositionsOlderThanTwelveMonths(ctx, id)
@@ -63,7 +78,7 @@ func (s *Service) GetUserMe(ctx context.Context, id uuid.UUID) (*GetUserMeResult
 
 	var PositionsHidden int
 
-	if userSubscription == nil || userSubscription.Status != subscription.StatusActive {
+	if sub == nil || sub.Status != subscription.StatusActive {
 		PositionsHidden = positionsExistOlderThanTwelveMonths
 	}
 
@@ -79,7 +94,7 @@ func (s *Service) GetUserMe(ctx context.Context, id uuid.UUID) (*GetUserMeResult
 
 	GetUserMeResult := &GetUserMeResult{
 		*userProfile,
-		userSubscription,
+		sub,
 		PositionsHidden,
 		TotalPositions,
 		TotalUploadBytesUsed,
