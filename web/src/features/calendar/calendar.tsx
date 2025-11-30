@@ -1,5 +1,14 @@
 import { useMemo } from "react";
-import { ErrorMessage, IconCalendarSingle, Loading, LoadingScreen, PageHeading, useDocumentTitle } from "netra";
+
+import {
+    ErrorMessage,
+    IconCalendarSingle,
+    Loading,
+    LoadingScreen,
+    PageHeading,
+    useDocumentTitle,
+    useIsMobile,
+} from "netra";
 
 import { TradingCalendar } from "@/features/calendar/components/trading_calendar";
 import { apiHooks } from "@/hooks/api_hooks";
@@ -9,6 +18,7 @@ export function Calendar() {
     useDocumentTitle("Calendar • Arthveda");
 
     const { data, isLoading, isFetching, isError } = apiHooks.calendar.useGetCalendar();
+    const isMobile = useIsMobile();
 
     const content = useMemo(() => {
         if (isError) {
@@ -27,14 +37,10 @@ export function Calendar() {
             <div className="flex-1 space-y-2">
                 <FreePlanLimitTag />
 
-                <TradingCalendar
-                    data={data}
-                    //
-                    // shrinkedView={true}
-                />
+                <TradingCalendar data={data} shrinkedView={isMobile} />
             </div>
         );
-    }, [data, isLoading, isError]);
+    }, [data, isLoading, isError, isMobile]);
 
     return (
         <div className="flex h-full flex-col">
