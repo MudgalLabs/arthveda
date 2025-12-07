@@ -286,6 +286,28 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
         return data[Number(year)]?.monthly[month];
     }, [data, month, year]);
 
+    // Group days into weeks (arrays of 7 days)
+    const weeks: DPDay[][] = [];
+    for (let i = 0; i < days.length; i += 7) {
+        weeks.push(days.slice(i, i + 7));
+    }
+
+    // Calculate weekly PnL and total positions (sum of each day's positions count)
+    const weeklyStats = weeks.map((week) => {
+        let pnl = new Decimal(0);
+        let totalPositions = 0;
+        week.forEach((dpDay) => {
+            if (dpDay.inCurrentMonth) {
+                const day = Number(dpDay.day);
+                const dayPnl = new Decimal(monthData?.daily[day]?.pnl ?? 0);
+                const dayPositions = monthData?.daily[day]?.positions_count ?? 0;
+                pnl = pnl.add(dayPnl);
+                totalPositions += dayPositions;
+            }
+        });
+        return { pnl, totalPositions };
+    });
+
     return (
         <section
             className={cn("flex h-full w-full flex-col", {
@@ -304,32 +326,66 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                 </div>
             )}
 
-            <ul className="mb-4 grid flex-1 grid-cols-7 gap-x-2">
+            {/* Weekday header row */}
+            <ul
+                className={cn("mb-4 grid w-full min-w-0 flex-1 gap-x-2", {
+                    "grid-cols-8": !shrink,
+                    "grid-cols-7": shrink,
+                })}
+            >
                 {weekDays.map((weekDay) => (
-                    <li key={weekDay}>
+                    <li key={weekDay} className="w-full min-w-0">
                         <WeekDay weekDay={weekDay} />
                     </li>
                 ))}
+                {!shrink && (
+                    <li className="w-full min-w-0">
+                        <div className="border-border-subtle flex-center rounded-md border p-2 font-medium">Weekly</div>
+                    </li>
+                )}
             </ul>
 
             <section className="flex h-full w-full flex-col">
-                <ul className="grid flex-1 grid-cols-7 [grid-template-rows:repeat(6,1fr)] gap-x-2 gap-y-2">
-                    {days.map((dpDay) => {
-                        const day = Number(dpDay.day);
-                        const pnl = new Decimal(monthData?.daily[day]?.pnl ?? 0);
-                        const numberOfPositions = monthData?.daily[day]?.positions_count ?? 0;
-
-                        return (
-                            <li key={dpDay.$date.toDateString()} className="h-full w-full">
-                                <Day
-                                    dpDay={dpDay}
-                                    pnl={pnl}
-                                    numberOfPositions={numberOfPositions}
-                                    shrinkedView={shrink}
-                                />
-                            </li>
-                        );
+                <ul
+                    className={cn("grid w-full min-w-0 flex-1 gap-x-2 gap-y-2", {
+                        "grid-cols-8 [grid-template-rows:repeat(6,1fr)]": !shrink,
+                        "grid-cols-7 [grid-template-rows:repeat(6,1fr)]": shrink,
                     })}
+                >
+                    {weeks.map((week, weekIdx) => (
+                        <>
+                            {week.map((dpDay) => {
+                                const day = Number(dpDay.day);
+                                const pnl = new Decimal(monthData?.daily[day]?.pnl ?? 0);
+                                const numberOfPositions = monthData?.daily[day]?.positions_count ?? 0;
+
+                                return (
+                                    <li key={dpDay.$date.toDateString()} className="h-full w-full min-w-0">
+                                        <Day
+                                            dpDay={dpDay}
+                                            pnl={pnl}
+                                            numberOfPositions={numberOfPositions}
+                                            shrinkedView={shrink}
+                                        />
+                                    </li>
+                                );
+                            })}
+                            {/* Fill empty cells if week has less than 7 days */}
+                            {Array.from({ length: 7 - week.length }).map((_, idx) => (
+                                <li key={`empty-${weekIdx}-${idx}`} className="h-full w-full min-w-0" />
+                            ))}
+                            {/* Weekly performance cell, only if not shrinked */}
+                            {!shrink && (
+                                <li key={`weekly-${weekIdx}`} className="h-full w-full min-w-0">
+                                    <WeeklyPerformanceTile
+                                        weekNumber={weekIdx + 1}
+                                        pnl={weeklyStats[weekIdx].pnl}
+                                        totalPositions={weeklyStats[weekIdx].totalPositions}
+                                    />
+                                </li>
+                            )}
+                        </>
+                    ))}
                 </ul>
             </section>
         </section>
@@ -445,7 +501,7 @@ function PnLTile(props: PnLTileProps) {
         <button
             className={cn(
                 "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md",
-                "min-h-30 min-w-40 border p-2 enabled:hover:brightness-110",
+                "w-full min-w-0 border p-2 enabled:hover:brightness-110",
                 {
                     "bg-success-border border-success-border": isWin,
                     "bg-error-border border-error-border": isLoss,
@@ -468,5 +524,42 @@ function PnLTile(props: PnLTileProps) {
                 <span>{noOfPositions} positions</span>
             </div>
         </button>
+    );
+}
+
+interface WeeklyPerformanceTileProps {
+    weekNumber: number;
+    pnl: Decimal;
+    totalPositions: number;
+}
+
+function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
+    const { weekNumber, pnl, totalPositions } = props;
+    const isWin = pnl.isPositive();
+    const isLoss = pnl.isNegative();
+
+    return (
+        <div
+            className={cn(
+                "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md",
+                "w-full min-w-0 border p-2 py-3",
+                {
+                    "bg-success-border border-success-border": isWin,
+                    "bg-error-border border-error-border": isLoss,
+                    "bg-surface-2 text-text-muted border-none": totalPositions === 0,
+                }
+            )}
+        >
+            <span className="mb-1 font-semibold">Week {weekNumber}</span>
+            {totalPositions > 0 && (
+                <div className="flex w-full flex-col">
+                    <PnL value={pnl} className="absolute-center text-lg font-bold">
+                        {formatCurrency(pnl.toString(), { compact: false })}
+                    </PnL>
+
+                    <span className="absolute bottom-2 left-2 text-xs">{totalPositions} positions</span>
+                </div>
+            )}
+        </div>
     );
 }
