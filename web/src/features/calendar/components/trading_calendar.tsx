@@ -544,7 +544,7 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
             {totalPositions > 0 && (
                 <div className="flex w-full flex-col">
                     <PnL value={pnl} className="absolute-center text-lg font-bold">
-                        {formatCurrency(pnl.toString(), { compact: false })}
+                        {formatCurrency(pnl.toString(), { compact: true })}
                     </PnL>
 
                     <span className="absolute bottom-2 left-2 text-xs">{totalPositions} positions</span>
