@@ -292,20 +292,12 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
         weeks.push(days.slice(i, i + 7));
     }
 
-    // Calculate weekly PnL and total positions (sum of each day's positions count)
-    const weeklyStats = weeks.map((week) => {
-        let pnl = new Decimal(0);
-        let totalPositions = 0;
-        week.forEach((dpDay) => {
-            if (dpDay.inCurrentMonth) {
-                const day = Number(dpDay.day);
-                const dayPnl = new Decimal(monthData?.daily[day]?.pnl ?? 0);
-                const dayPositions = monthData?.daily[day]?.positions_count ?? 0;
-                pnl = pnl.add(dayPnl);
-                totalPositions += dayPositions;
-            }
-        });
-        return { pnl, totalPositions };
+    // Use backend weekly stats, week-of-month index (starting from 1)
+    const weeklyStats = weeks.map((_, weekIdx) => {
+        const weekNumber = weekIdx + 1;
+        const weekly = monthData?.weekly?.[weekNumber];
+        if (!weekly) return { pnl: new Decimal(0), totalPositions: 0 };
+        return { pnl: new Decimal(weekly.pnl), totalPositions: weekly.positions_count };
     });
 
     return (
@@ -501,7 +493,7 @@ function PnLTile(props: PnLTileProps) {
         <button
             className={cn(
                 "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md",
-                "w-full min-w-0 border p-2 enabled:hover:brightness-110",
+                "min-h-[120px] w-full min-w-[180px] border p-2 enabled:hover:brightness-110",
                 {
                     "bg-success-border border-success-border": isWin,
                     "bg-error-border border-error-border": isLoss,
@@ -513,14 +505,12 @@ function PnLTile(props: PnLTileProps) {
             disabled={disabled}
         >
             <span>{title}</span>
-
             <div className="flex flex-col">
                 <PnL value={pnl} className="absolute-center text-lg font-medium">
                     {formatCurrency(pnl.toString(), {
                         compact: true,
                     })}
                 </PnL>
-
                 <span>{noOfPositions} positions</span>
             </div>
         </button>

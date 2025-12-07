@@ -6,6 +6,7 @@ import (
 	"arthveda/internal/feature/position"
 	"arthveda/internal/logger"
 	"context"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -28,12 +29,19 @@ type calendarDaily struct {
 	PositionsCount int             `json:"positions_count"`
 }
 
+type calendarWeekly struct {
+	PnL            decimal.Decimal `json:"pnl"`
+	PositionsCount int             `json:"positions_count"`
+	WeekNumber     int             `json:"week_number"`
+}
+
 type calendarMonthly struct {
-	Year           int                   `json:"year"`
-	Month          time.Month            `json:"month"`
-	PnL            decimal.Decimal       `json:"pnl"`
-	PositionsCount int                   `json:"positions_count"`
-	Daily          map[int]calendarDaily `json:"daily"`
+	Year           int                    `json:"year"`
+	Month          time.Month             `json:"month"`
+	PnL            decimal.Decimal        `json:"pnl"`
+	PositionsCount int                    `json:"positions_count"`
+	Daily          map[int]calendarDaily  `json:"daily"`
+	Weekly         map[int]calendarWeekly `json:"weekly"` // week number -> weekly stats
 }
 
 // type calendarYearly = map[string]calendarMonthly // key is month (e.g., "September")
@@ -141,6 +149,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 				PnL:            decimal.Zero,
 				PositionsCount: 0,
 				Daily:          make(map[int]calendarDaily),
+				Weekly:         make(map[int]calendarWeekly),
 			}
 		}
 
@@ -169,6 +178,58 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 
 		for monthStr, monthlyEntry := range yearlyEntry.Monthly {
 			monthlyEntry.PositionsCount = len(positionIDsByMonth[year][monthStr])
+
+			// Calculate weekly stats (week-of-month: 1-based index, week starts on Sunday, ends on Saturday).
+			weeklyStats := make(map[int]calendarWeekly)
+			weekPositions := make(map[int]map[uuid.UUID]struct{})
+			var daysInMonth []int
+			for day := range monthlyEntry.Daily {
+				daysInMonth = append(daysInMonth, day)
+			}
+			sort.Ints(daysInMonth)
+
+			weekOfMonthByDay := make(map[int]int)
+			weekIdx := 1
+			for _, day := range daysInMonth {
+				date := time.Date(monthlyEntry.Year, monthlyEntry.Month, day, 0, 0, 0, 0, tz)
+				// If it's the first day of the month, start week 1.
+				if day == 1 {
+					weekIdx = 1
+				}
+
+				// If it's Sunday and not the first day, start a new week.
+				if date.Weekday() == time.Sunday && day != 1 {
+					weekIdx++
+				}
+				weekOfMonthByDay[day] = weekIdx
+			}
+
+			// Aggregate stats by week-of-month.
+			for _, day := range daysInMonth {
+				week := weekOfMonthByDay[day]
+				dailyEntry := monthlyEntry.Daily[day]
+				if _, ok := weeklyStats[week]; !ok {
+					weeklyStats[week] = calendarWeekly{
+						PnL:            decimal.Zero,
+						PositionsCount: 0,
+						WeekNumber:     week,
+					}
+					weekPositions[week] = make(map[uuid.UUID]struct{})
+				}
+				weekly := weeklyStats[week]
+				weekly.PnL = weekly.PnL.Add(dailyEntry.PnL)
+				// Track unique position IDs for this week
+				for posID := range positionIDsByDay[year][monthStr][day] {
+					weekPositions[week][posID] = struct{}{}
+				}
+				weeklyStats[week] = weekly
+			}
+
+			// Set positions count for each week based on unique position IDs
+			for week, weekly := range weeklyStats {
+				weekly.PositionsCount = len(weekPositions[week])
+				monthlyEntry.Weekly[week] = weekly
+			}
 
 			for day, dailyEntry := range monthlyEntry.Daily {
 				dailyEntry.PositionsCount = len(positionIDsByDay[year][monthStr][day])
