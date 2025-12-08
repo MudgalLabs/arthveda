@@ -272,12 +272,7 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 		}
 	}
 
-	attachTrades := false
-	if payload.Filters.AttachTrades {
-		attachTrades = true
-	}
-
-	positions, totalItems, err := s.positionRepository.Search(ctx, payload, attachTrades, true)
+	positions, totalItems, err := s.positionRepository.Search(ctx, payload, payload.Filters.AttachTrades, true)
 	if err != nil {
 		return nil, service.ErrInternalServerError, fmt.Errorf("position repository list: %w", err)
 	}

@@ -82,6 +82,7 @@ export function deletePosition(id: string) {
 }
 
 export interface PositionSearchFilters {
+    attach_trades?: boolean;
     ids?: string[];
     opened?: DateRangeFilter;
     symbol?: string | "";
