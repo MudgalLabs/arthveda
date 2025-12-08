@@ -27,6 +27,7 @@ func NewService(positionRepository position.ReadWriter) *Service {
 type calendarDaily struct {
 	PnL            decimal.Decimal `json:"pnl"`
 	PositionsCount int             `json:"positions_count"`
+	PositionIDs    []uuid.UUID     `json:"position_ids"`
 }
 
 type calendarWeekly struct {
@@ -44,7 +45,6 @@ type calendarMonthly struct {
 	Weekly         map[int]calendarWeekly `json:"weekly"` // week number -> weekly stats
 }
 
-// type calendarYearly = map[string]calendarMonthly // key is month (e.g., "September")
 type calendarYearly struct {
 	PnL            decimal.Decimal            `json:"pnl"`
 	PositionsCount int                        `json:"positions_count"`
@@ -159,6 +159,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 			dailyEntry = calendarDaily{
 				PnL:            decimal.Zero,
 				PositionsCount: 0,
+				PositionIDs:    []uuid.UUID{},
 			}
 		}
 
@@ -192,12 +193,9 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 			weekIdx := 1
 			for _, day := range daysInMonth {
 				date := time.Date(monthlyEntry.Year, monthlyEntry.Month, day, 0, 0, 0, 0, tz)
-				// If it's the first day of the month, start week 1.
 				if day == 1 {
 					weekIdx = 1
 				}
-
-				// If it's Sunday and not the first day, start a new week.
 				if date.Weekday() == time.Sunday && day != 1 {
 					weekIdx++
 				}
@@ -218,7 +216,6 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 				}
 				weekly := weeklyStats[week]
 				weekly.PnL = weekly.PnL.Add(dailyEntry.PnL)
-				// Track unique position IDs for this week
 				for posID := range positionIDsByDay[year][monthStr][day] {
 					weekPositions[week][posID] = struct{}{}
 				}
@@ -232,6 +229,12 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 			}
 
 			for day, dailyEntry := range monthlyEntry.Daily {
+				positionIDs := make([]uuid.UUID, 0, len(positionIDsByDay[year][monthStr][day]))
+				for posID := range positionIDsByDay[year][monthStr][day] {
+					positionIDs = append(positionIDs, posID)
+				}
+
+				dailyEntry.PositionIDs = positionIDs
 				dailyEntry.PositionsCount = len(positionIDsByDay[year][monthStr][day])
 				monthlyEntry.Daily[day] = dailyEntry
 			}

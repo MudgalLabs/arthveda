@@ -100,7 +100,7 @@ export function TradingCalendar(props: TradingCalendarProps) {
                                 <PnLTile
                                     title={year}
                                     pnl={new Decimal(yearData?.pnl ?? 0)}
-                                    noOfPositions={yearData?.positions_count ?? 0}
+                                    positionsCount={yearData?.positions_count ?? 0}
                                     onClick={() => {
                                         setViewMode(ViewMode.YEARLY);
                                         onOffsetChange(new Date(Number(year), now.getMonth(), now.getDate()));
@@ -128,7 +128,7 @@ export function TradingCalendar(props: TradingCalendarProps) {
                                 <PnLTile
                                     title={month}
                                     pnl={new Decimal(monthData?.pnl ?? 0)}
-                                    noOfPositions={monthData?.positions_count ?? 0}
+                                    positionsCount={monthData?.positions_count ?? 0}
                                     onClick={() => {
                                         setViewMode(ViewMode.MONTHLY);
                                         onOffsetChange(new Date(Number(year), idx, now.getDate()));
@@ -286,18 +286,19 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
         return data[Number(year)]?.monthly[month];
     }, [data, month, year]);
 
-    // Group days into weeks (arrays of 7 days)
     const weeks: DPDay[][] = [];
     for (let i = 0; i < days.length; i += 7) {
         weeks.push(days.slice(i, i + 7));
     }
 
-    // Use backend weekly stats, week-of-month index (starting from 1)
     const weeklyStats = weeks.map((_, weekIdx) => {
         const weekNumber = weekIdx + 1;
         const weekly = monthData?.weekly?.[weekNumber];
         if (!weekly) return { pnl: new Decimal(0), totalPositions: 0 };
-        return { pnl: new Decimal(weekly.pnl), totalPositions: weekly.positions_count };
+        return {
+            pnl: new Decimal(weekly.pnl),
+            totalPositions: weekly.positions_count,
+        };
     });
 
     return (
@@ -318,7 +319,6 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                 </div>
             )}
 
-            {/* Weekday header row */}
             <ul
                 className={cn("mb-4 grid w-full min-w-0 flex-1 gap-x-2", {
                     "grid-cols-8": !shrink,
@@ -356,17 +356,16 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                                         <Day
                                             dpDay={dpDay}
                                             pnl={pnl}
-                                            numberOfPositions={numberOfPositions}
+                                            positionsCount={numberOfPositions}
+                                            positionIDs={monthData?.daily[day]?.position_ids ?? []}
                                             shrinkedView={shrink}
                                         />
                                     </li>
                                 );
                             })}
-                            {/* Fill empty cells if week has less than 7 days */}
                             {Array.from({ length: 7 - week.length }).map((_, idx) => (
                                 <li key={`empty-${weekIdx}-${idx}`} className="h-full w-full min-w-0" />
                             ))}
-                            {/* Weekly performance cell, only if not shrinked */}
                             {!shrink && (
                                 <li key={`weekly-${weekIdx}`} className="h-full w-full min-w-0">
                                     <WeeklyPerformanceTile
@@ -387,25 +386,24 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
 interface DayProps {
     dpDay: DPDay;
     pnl: Decimal;
-    numberOfPositions: number;
+    positionsCount: number;
+    positionIDs: string[];
     shrinkedView?: boolean;
 }
 
 function Day(props: DayProps) {
-    const { dpDay, pnl, numberOfPositions, shrinkedView } = props;
+    const { dpDay, pnl, positionsCount, positionIDs, shrinkedView } = props;
 
     const isWin = dpDay.inCurrentMonth && pnl.isPositive();
     const isLoss = dpDay.inCurrentMonth && pnl.isNegative();
-    const isNoTradeDay = dpDay.inCurrentMonth && pnl.isZero() && numberOfPositions === 0;
+    const isNoTradeDay = dpDay.inCurrentMonth && pnl.isZero() && positionsCount === 0;
 
     const [open, setOpen] = useState(false);
     const { data, isFetching } = apiHooks.position.useSearch(
         {
             filters: {
-                trade_time: {
-                    from: dpDay.$date,
-                    to: dpDay.$date,
-                },
+                ids: positionIDs,
+                attach_trades: true,
             },
         },
         {
@@ -431,7 +429,7 @@ function Day(props: DayProps) {
                         )}
                     >
                         <span
-                            className={cn({
+                            className={cn("font-semibold", {
                                 "text-text-muted": !dpDay.inCurrentMonth,
                                 "flex-center h-full w-full": shrinkedView,
                             })}
@@ -440,7 +438,7 @@ function Day(props: DayProps) {
                         </span>
 
                         {dpDay.inCurrentMonth && !shrinkedView && (
-                            <div className="flex flex-col">
+                            <div className="flex w-full justify-between">
                                 {!isNoTradeDay && (
                                     <PnL value={pnl} className="absolute-center text-lg font-medium">
                                         {formatCurrency(pnl.toString(), {
@@ -449,7 +447,7 @@ function Day(props: DayProps) {
                                     </PnL>
                                 )}
 
-                                {numberOfPositions > 0 && <span>{numberOfPositions} positions</span>}
+                                {positionsCount > 0 && <span className="text-xs">{positionsCount} positions</span>}
                             </div>
                         )}
                     </div>
@@ -478,13 +476,13 @@ function WeekDay(props: WeekDayProps) {
 interface PnLTileProps {
     title: string;
     pnl: Decimal;
-    noOfPositions: number;
+    positionsCount: number;
     onClick?: () => void;
-    disabled?: boolean; // <-- add disabled prop
+    disabled?: boolean;
 }
 
 function PnLTile(props: PnLTileProps) {
-    const { title, pnl, noOfPositions, onClick, disabled } = props;
+    const { title, pnl, positionsCount, onClick, disabled } = props;
 
     const isWin = pnl.isPositive();
     const isLoss = pnl.isNegative();
@@ -497,21 +495,21 @@ function PnLTile(props: PnLTileProps) {
                 {
                     "bg-success-border border-success-border": isWin,
                     "bg-error-border border-error-border": isLoss,
-                    "bg-surface-2 text-text-muted border-none": noOfPositions === 0 || disabled,
+                    "bg-surface-2 text-text-muted border-none": positionsCount === 0 || disabled,
                     "cursor-not-allowed opacity-60": disabled,
                 }
             )}
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
         >
-            <span>{title}</span>
-            <div className="flex flex-col">
-                <PnL value={pnl} className="absolute-center text-lg font-medium">
-                    {formatCurrency(pnl.toString(), {
-                        compact: true,
-                    })}
+            <span className="font-semibold">{title}</span>
+
+            <div className="flex w-full justify-between">
+                <PnL value={pnl} className="absolute-center text-lg font-bold">
+                    {formatCurrency(pnl.toString(), { compact: true })}
                 </PnL>
-                <span>{noOfPositions} positions</span>
+
+                <p className="text-xs">{positionsCount} positions</p>
             </div>
         </button>
     );
@@ -532,7 +530,7 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
         <div
             className={cn(
                 "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md",
-                "w-full min-w-0 border p-2 py-3",
+                "w-full min-w-0 border p-2",
                 {
                     "bg-success-border border-success-border": isWin,
                     "bg-error-border border-error-border": isLoss,
@@ -540,16 +538,15 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
                 }
             )}
         >
-            <span className="mb-1 font-semibold">Week {weekNumber}</span>
-            {totalPositions > 0 && (
-                <div className="flex w-full flex-col">
-                    <PnL value={pnl} className="absolute-center text-lg font-bold">
-                        {formatCurrency(pnl.toString(), { compact: true })}
-                    </PnL>
+            <span className="font-semibold">Week {weekNumber}</span>
 
-                    <span className="absolute bottom-2 left-2 text-xs">{totalPositions} positions</span>
-                </div>
-            )}
+            <div className="flex w-full justify-between">
+                <PnL value={pnl} className="absolute-center text-lg font-bold">
+                    {formatCurrency(pnl.toString(), { compact: true })}
+                </PnL>
+
+                <p className="text-xs">{totalPositions} positions</p>
+            </div>
         </div>
     );
 }

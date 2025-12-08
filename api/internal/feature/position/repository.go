@@ -54,6 +54,7 @@ func NewRepository(db *pgxpool.Pool, tradeRepository trade.ReadWriter, tagReposi
 
 const (
 	searchFieldID                  common.SearchField = "id"
+	searchFieldIDs                 common.SearchField = "ids"
 	searchFieldCreatedBy           common.SearchField = "created_by"
 	searchFieldOpened              common.SearchField = "opened"
 	searchFieldSymbol              common.SearchField = "symbol"
@@ -77,10 +78,17 @@ const (
 )
 
 type SearchFilter struct {
+	AttachTrades bool `json:"attach_trades"`
+
 	// If a user is serching for a specific position, we will make sure
 	// that the Position.CreatedBy matches the current user ID otherwise we will
 	// return a repository.ErrNotFound error.
 	ID *uuid.UUID `json:"id"`
+
+	// Pass multiple position IDs to filter positions by those IDs but also make sure
+	// the CreatedBy matches the current user ID.
+	IDs []uuid.UUID `json:"ids"`
+
 	// Only ADMIN clients should have access to `CreatedBy`
 	// For people using arthveda.io client, this filter will be set to their user ID.
 	CreatedBy *uuid.UUID `json:"created_by"`
@@ -123,6 +131,7 @@ var allowedSortFields = []common.SearchField{
 
 var searchFieldsSQLColumn = map[common.SearchField]string{
 	searchFieldID:                  "p.id",
+	searchFieldIDs:                 "p.id",
 	searchFieldCreatedBy:           "p.created_by",
 	searchFieldOpened:              "p.opened_at",
 	searchFieldSymbol:              "p.symbol",
@@ -338,6 +347,14 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 
 	if p.Filters.ID != nil {
 		b.AddCompareFilter(searchFieldsSQLColumn[searchFieldID], "=", p.Filters.ID)
+	}
+
+	if len(p.Filters.IDs) > 0 {
+		var ids []any
+		for _, id := range p.Filters.IDs {
+			ids = append(ids, id)
+		}
+		b.AddArrayFilter(searchFieldsSQLColumn[searchFieldIDs], ids)
 	}
 
 	if p.Filters.CreatedBy != nil {

@@ -50,3 +50,12 @@ func NormalizeDateRangeFromTimezone(from, to time.Time, loc *time.Location) (tim
 
 	return fromLocal.UTC(), toLocal.UTC(), nil
 }
+
+func IsSameDay(t1, t2 time.Time, loc *time.Location) bool {
+	t1InLoc := t1.In(loc)
+	t2InLoc := t2.In(loc)
+
+	return t1InLoc.Year() == t2InLoc.Year() &&
+		t1InLoc.Month() == t2InLoc.Month() &&
+		t1InLoc.Day() == t2InLoc.Day()
+}

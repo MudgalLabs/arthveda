@@ -4,6 +4,7 @@ import { client } from "@/lib/api/client";
 interface CalendarDaily {
     pnl: string;
     positions_count: number;
+    position_ids: string[];
 }
 
 interface CalendarWeekly {
