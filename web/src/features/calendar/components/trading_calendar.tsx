@@ -540,13 +540,15 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
         >
             <span className="font-semibold">Week {weekNumber}</span>
 
-            <div className="flex w-full justify-between">
-                <PnL value={pnl} className="absolute-center text-lg font-bold">
-                    {formatCurrency(pnl.toString(), { compact: true })}
-                </PnL>
+            {totalPositions > 0 && (
+                <div className="flex w-full justify-between">
+                    <PnL value={pnl} className="absolute-center text-lg font-bold">
+                        {formatCurrency(pnl.toString(), { compact: true })}
+                    </PnL>
 
-                <p className="text-xs">{totalPositions} positions</p>
-            </div>
+                    <p className="text-xs">{totalPositions} positions</p>
+                </div>
+            )}
         </div>
     );
 }
