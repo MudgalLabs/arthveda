@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/feature/position"
+	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
 	"context"
 	"sort"
@@ -244,6 +245,92 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 
 		result[year] = yearlyEntry
 	}
+
+	return &result, service.ErrNone, nil
+}
+
+type GetCalendarDayResult struct {
+	Date      time.Time            `json:"date"`
+	GrossPnL  decimal.Decimal      `json:"gross_pnl"`
+	NetPnL    decimal.Decimal      `json:"net_pnl"`
+	Positions []*position.Position `json:"positions"`
+}
+
+func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer, date time.Time) (*GetCalendarDayResult, service.Error, error) {
+	l := logger.Get()
+
+	dateInTZ := date.In(tz)
+	result := GetCalendarDayResult{
+		Date:      dateInTZ,
+		GrossPnL:  decimal.Zero,
+		NetPnL:    decimal.Zero,
+		Positions: []*position.Position{},
+	}
+
+	from, to, err := common.NormalizeDateRangeFromTimezone(date, date, tz)
+	if err != nil {
+		l.Errorw("failed to normalize date range from timezone", "user_id", userID, "date", dateInTZ, "error", err)
+		return nil, service.ErrInternalServerError, err
+	}
+
+	tradeTimeRange := &common.DateRangeFilter{
+		From: &from,
+		To:   &to,
+	}
+
+	searchPositionPayload := position.SearchPayload{
+		Filters: position.SearchFilter{
+			CreatedBy: &userID,
+			TradeTime: tradeTimeRange,
+		},
+		Sort: common.Sorting{
+			Field: "opened_at",
+			Order: common.SortOrderASC,
+		},
+	}
+
+	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload, true, false)
+	if err != nil {
+		l.Errorw("failed to search positions for calendar day", "user_id", userID, "date", dateInTZ, "error", err)
+		return nil, service.ErrInternalServerError, err
+	}
+
+	_, rangeEnd := position.GetRangeBasedOnTrades(positions)
+	positionsWithRealizedTrades := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
+	filteredPositions := []*position.Position{}
+
+	for _, pos := range positionsWithRealizedTrades {
+		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction)
+		if err != nil {
+			l.Errorw("failed to compute smart trades for position", "position_id", pos.ID, "error", err)
+			continue
+		}
+
+		filteredTrades := []*trade.Trade{}
+
+		var grossPnL, netPnL, charges, roi decimal.Decimal
+
+		for _, trade := range pos.Trades {
+			if common.IsSameDay(trade.Time, date, tz) && len(trade.MatchedLots) > 0 {
+				filteredTrades = append(filteredTrades, trade)
+				grossPnL = grossPnL.Add(trade.RealisedGrossPnL)
+				charges = charges.Add(trade.ChargesAmount)
+				netPnL = grossPnL.Sub(charges)
+				roi = roi.Add(trade.ROI)
+			}
+		}
+
+		if len(filteredTrades) > 0 {
+			pos.GrossPnLAmount = grossPnL
+			pos.NetPnLAmount = netPnL
+			pos.TotalChargesAmount = charges
+			pos.NetReturnPercentage = roi
+			pos.Trades = filteredTrades
+			filteredPositions = append(filteredPositions, pos)
+		}
+	}
+
+	result.Positions = filteredPositions
 
 	return &result, service.ErrNone, nil
 }

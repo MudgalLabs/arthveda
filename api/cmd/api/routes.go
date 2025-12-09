@@ -81,6 +81,7 @@ func initRouter(a *app) http.Handler {
 			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
 
 			r.Get("/", getCalendarHandler(a.service.CalendarService))
+			r.Get("/day", getCalendarDayHandler(a.service.CalendarService))
 		})
 
 		r.Route("/currencies", func(r chi.Router) {
