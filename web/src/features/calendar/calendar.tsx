@@ -17,7 +17,7 @@ import { FreePlanLimitTag } from "@/components/free_plan_limit_tag";
 export function Calendar() {
     useDocumentTitle("Calendar • Arthveda");
 
-    const { data, isLoading, isFetching, isError } = apiHooks.calendar.useGetCalendar();
+    const { data, isLoading, isFetching, isError } = apiHooks.calendar.useGetCalendarAll();
     const isMobile = useIsMobile();
 
     const content = useMemo(() => {

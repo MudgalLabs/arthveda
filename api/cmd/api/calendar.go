@@ -10,14 +10,14 @@ import (
 	"github.com/mudgallabs/tantra/service"
 )
 
-func getCalendarHandler(s *calendar.Service) http.HandlerFunc {
+func getCalendarAllHandler(s *calendar.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
 		tz := getUserTimezoneFromCtx(ctx)
 		enforcer := getPlanEnforcerFromCtx(ctx)
 
-		result, errKind, err := s.Get(ctx, userID, tz, enforcer)
+		result, errKind, err := s.GetAll(ctx, userID, tz, enforcer)
 		if err != nil {
 			httpx.ServiceErrResponse(w, r, errKind, err)
 			return
@@ -40,9 +40,9 @@ func getCalendarDayHandler(s *calendar.Service) http.HandlerFunc {
 			return
 		}
 
-		date, err := time.ParseInLocation("2006-01-02", dateStr, tz)
+		date, err := time.Parse(time.RFC3339, dateStr)
 		if err != nil {
-			httpx.ServiceErrResponse(w, r, service.ErrBadRequest, errors.New("invalid date format, expected YYYY-MM-DD"))
+			httpx.ServiceErrResponse(w, r, service.ErrInvalidInput, errors.New("invalid date format, expected ISO 8601 string"))
 			return
 		}
 

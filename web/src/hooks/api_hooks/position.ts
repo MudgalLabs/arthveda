@@ -27,6 +27,7 @@ import {
 const QueriesToInvalidateOnPositionChange = [
     "useGetDashboard",
     "useGetCalendar",
+    "useGetCalendarDay",
     "useGetPosition",
     "usePositionsSearch",
     "useMe",

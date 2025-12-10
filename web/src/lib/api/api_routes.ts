@@ -11,7 +11,8 @@ export const API_ROUTES = {
         list: "/v1/brokers",
     },
     calendar: {
-        get: "/v1/calendar",
+        getAll: "/v1/calendar",
+        getDay: "/v1/calendar/day",
     },
     currency: {
         list: "/v1/currencies",

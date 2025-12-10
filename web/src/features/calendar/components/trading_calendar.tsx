@@ -2,19 +2,10 @@ import { Fragment, useMemo, useState } from "react";
 import { DPDay, useDatePicker } from "@rehookify/datepicker";
 import Decimal from "decimal.js";
 
-import {
-    Button,
-    cn,
-    formatCurrency,
-    formatDate,
-    IconChevronLeft,
-    IconChevronRight,
-    Separator,
-    useControlled,
-} from "netra";
-import { GetCalendarResponse } from "@/lib/api/calendar";
+import { Button, cn, formatCurrency, IconChevronLeft, IconChevronRight, Separator, useControlled } from "netra";
+import { GetCalendarAllResponse } from "@/lib/api/calendar";
 import { PnL } from "@/components/pnl";
-import { ListPositionsModal } from "@/components/list_positions_modal";
+import { CalendarDayInfoModal } from "@/features/calendar/components/calendar_day_info_modal";
 import { apiHooks } from "@/hooks/api_hooks";
 
 const enum ViewMode {
@@ -39,7 +30,7 @@ const MONTHS = [
 ];
 
 interface TradingCalendarProps {
-    data: GetCalendarResponse;
+    data: GetCalendarAllResponse;
     shrinkedView?: boolean;
 }
 
@@ -253,7 +244,7 @@ export function TradingCalendar(props: TradingCalendarProps) {
 }
 
 interface MonthlyCalendarProps {
-    data: GetCalendarResponse;
+    data: GetCalendarAllResponse;
     offsetDate?: Date;
     shrink?: boolean;
     onClickOpen?: () => void;
@@ -357,7 +348,6 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                                             dpDay={dpDay}
                                             pnl={pnl}
                                             positionsCount={numberOfPositions}
-                                            positionIDs={monthData?.daily[day]?.position_ids ?? []}
                                             shrinkedView={shrink}
                                         />
                                     </li>
@@ -387,32 +377,23 @@ interface DayProps {
     dpDay: DPDay;
     pnl: Decimal;
     positionsCount: number;
-    positionIDs: string[];
     shrinkedView?: boolean;
 }
 
 function Day(props: DayProps) {
-    const { dpDay, pnl, positionsCount, positionIDs, shrinkedView } = props;
+    const { dpDay, pnl, positionsCount, shrinkedView } = props;
 
     const isWin = dpDay.inCurrentMonth && pnl.isPositive();
     const isLoss = dpDay.inCurrentMonth && pnl.isNegative();
     const isNoTradeDay = dpDay.inCurrentMonth && pnl.isZero() && positionsCount === 0;
 
     const [open, setOpen] = useState(false);
-    const { data, isFetching } = apiHooks.position.useSearch(
-        {
-            filters: {
-                ids: positionIDs,
-                attach_trades: true,
-            },
-        },
-        {
-            enabled: open,
-        }
-    );
+    const { data, isFetching } = apiHooks.calendar.useGetCalendarDay(dpDay.$date, {
+        enabled: open,
+    });
 
     return (
-        <ListPositionsModal
+        <CalendarDayInfoModal
             renderTrigger={() => (
                 <button
                     className={cn("h-full w-full enabled:hover:brightness-110")}
@@ -456,9 +437,8 @@ function Day(props: DayProps) {
             open={open}
             setOpen={setOpen}
             isLoading={isFetching}
-            data={data?.data}
-            title="Day info"
-            description={`Positions on ${formatDate(dpDay.$date)}`}
+            data={data}
+            date={dpDay.$date}
         />
     );
 }

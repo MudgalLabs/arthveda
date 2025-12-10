@@ -34,16 +34,17 @@ type Trade struct {
 	// They are used for dashboard analytics. I am still not sure if we should store them in the database.
 	// I am storing ChargesAmount, so I think we should store these too??
 	RealisedGrossPnL decimal.Decimal `json:"realised_gross_pnl" db:"realised_gross_pnl"`
+	RealisedNetPnL   decimal.Decimal `json:"realised_net_pnl" db:"realised_net_pnl"`
 	ROI              decimal.Decimal `json:"roi" db:"roi"`
 
 	MatchedLots []MatchedLot `json:"matched_lots" db:"matched_lots"`
 }
 
 type MatchedLot struct {
-	Qty      decimal.Decimal
-	PriceIn  decimal.Decimal
-	PriceOut decimal.Decimal
-	PnL      decimal.Decimal
+	Qty      decimal.Decimal `json:"qty" db:"qty"`
+	PriceIn  decimal.Decimal `json:"price_in" db:"price_in"`
+	PriceOut decimal.Decimal `json:"price_out" db:"price_out"`
+	PnL      decimal.Decimal `json:"pnl" db:"pnl"`
 }
 
 type CreatePayload struct {

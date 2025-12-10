@@ -80,7 +80,7 @@ func initRouter(a *app) http.Handler {
 			r.Use(authMiddleware)
 			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
 
-			r.Get("/", getCalendarHandler(a.service.CalendarService))
+			r.Get("/", getCalendarAllHandler(a.service.CalendarService))
 			r.Get("/day", getCalendarDayHandler(a.service.CalendarService))
 		})
 

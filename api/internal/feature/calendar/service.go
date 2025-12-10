@@ -26,7 +26,9 @@ func NewService(positionRepository position.ReadWriter) *Service {
 }
 
 type calendarDaily struct {
+	GrossPnL       decimal.Decimal `json:"gross_pnl"`
 	PnL            decimal.Decimal `json:"pnl"`
+	Charges        decimal.Decimal `json:"charges"`
 	PositionsCount int             `json:"positions_count"`
 	PositionIDs    []uuid.UUID     `json:"position_ids"`
 }
@@ -52,11 +54,11 @@ type calendarYearly struct {
 	Monthly        map[string]calendarMonthly `json:"monthly"` // key is month (e.g., "September")
 }
 
-type GetCalendarResult map[int]calendarYearly // key is year (e.g., 2025)
+type GetCalendarAllResult map[int]calendarYearly // key is year (e.g., 2025)
 
-func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetCalendarResult, service.Error, error) {
+func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetCalendarAllResult, service.Error, error) {
 	l := logger.Get()
-	result := GetCalendarResult{}
+	result := GetCalendarAllResult{}
 	yearAgo := time.Now().In(tz).AddDate(-1, 0, 0)
 	tradeTimeRange := &common.DateRangeFilter{}
 
@@ -158,14 +160,19 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 		dailyEntry, exists := monthlyEntry.Daily[day]
 		if !exists {
 			dailyEntry = calendarDaily{
+				GrossPnL:       decimal.Zero,
 				PnL:            decimal.Zero,
+				Charges:        decimal.Zero,
 				PositionsCount: 0,
 				PositionIDs:    []uuid.UUID{},
 			}
 		}
 
 		// Add bucket PnL to daily/monthly/yearly
+		dailyEntry.GrossPnL = dailyEntry.GrossPnL.Add(bucket.GrossPnL)
 		dailyEntry.PnL = dailyEntry.PnL.Add(bucket.NetPnL)
+		dailyEntry.Charges = dailyEntry.Charges.Add(bucket.Charges)
+
 		monthlyEntry.PnL = monthlyEntry.PnL.Add(bucket.NetPnL)
 		yearlyEntry.PnL = yearlyEntry.PnL.Add(bucket.NetPnL)
 
@@ -250,9 +257,11 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 }
 
 type GetCalendarDayResult struct {
-	Date      time.Time            `json:"date"`
-	GrossPnL  decimal.Decimal      `json:"gross_pnl"`
-	NetPnL    decimal.Decimal      `json:"net_pnl"`
+	Date     time.Time       `json:"date"`
+	GrossPnL decimal.Decimal `json:"gross_pnl"`
+	NetPnL   decimal.Decimal `json:"net_pnl"`
+	Charges  decimal.Decimal `json:"charges"`
+
 	Positions []*position.Position `json:"positions"`
 }
 
@@ -261,9 +270,11 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 	dateInTZ := date.In(tz)
 	result := GetCalendarDayResult{
-		Date:      dateInTZ,
-		GrossPnL:  decimal.Zero,
-		NetPnL:    decimal.Zero,
+		Date:     dateInTZ,
+		GrossPnL: decimal.Zero,
+		NetPnL:   decimal.Zero,
+		Charges:  decimal.Zero,
+
 		Positions: []*position.Position{},
 	}
 
@@ -295,8 +306,7 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 		return nil, service.ErrInternalServerError, err
 	}
 
-	_, rangeEnd := position.GetRangeBasedOnTrades(positions)
-	positionsWithRealizedTrades := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
+	positionsWithRealizedTrades := position.FilterPositionsWithRealisingTradesUpTo(positions, to, tz)
 	filteredPositions := []*position.Position{}
 
 	for _, pos := range positionsWithRealizedTrades {
@@ -306,34 +316,47 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 			continue
 		}
 
-		realisedStats := position.GetRealisedStatsUptoATradeByTradeID([]*position.Position{pos})
+		realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID([]*position.Position{pos})
 
 		filteredTrades := []*trade.Trade{}
+		var grossPnL, charges, roi decimal.Decimal
 
-		var grossPnL, netPnL, charges, roi decimal.Decimal
+		prevCharges := decimal.Zero
 
 		for _, trade := range pos.Trades {
-			if common.IsSameDay(trade.Time, date, tz) && len(trade.MatchedLots) > 0 {
-				filteredTrades = append(filteredTrades, trade)
-				grossPnL = grossPnL.Add(trade.RealisedGrossPnL)
-				charges = realisedStats[trade.ID].ChargesAmount
-				netPnL = grossPnL.Sub(charges)
-				roi = roi.Add(trade.ROI)
+			stat := realisedStatsByTradeID[trade.ID]
+
+			if len(trade.MatchedLots) > 0 {
+				if common.IsSameDay(trade.Time, date, tz) {
+					grossPnL = grossPnL.Add(trade.RealisedGrossPnL)
+					roi = roi.Add(trade.ROI)
+
+					incrementalCharges := stat.ChargesAmount.Sub(prevCharges)
+					prevCharges = stat.ChargesAmount
+
+					charges = charges.Add(incrementalCharges)
+
+					trade.ChargesAmount = incrementalCharges
+					filteredTrades = append(filteredTrades, trade)
+				} else if trade.Time.In(tz).Before(date.In(tz)) {
+					prevCharges = stat.ChargesAmount
+				}
 			}
 		}
 
 		if len(filteredTrades) > 0 {
-			pos.GrossPnLAmount = grossPnL
-			pos.TotalChargesAmount = charges
-			pos.NetPnLAmount = netPnL
-			pos.NetReturnPercentage = roi
 			pos.Trades = filteredTrades
 			filteredPositions = append(filteredPositions, pos)
 
-			result.GrossPnL = result.GrossPnL.Add(pos.GrossPnLAmount)
-			result.NetPnL = result.NetPnL.Add(pos.NetPnLAmount)
+			result.GrossPnL = result.GrossPnL.Add(grossPnL)
+			result.Charges = result.Charges.Add(charges)
+			result.NetPnL = result.NetPnL.Add(grossPnL.Sub(charges))
 		}
 	}
+
+	sort.SliceStable(filteredPositions, func(i, j int) bool {
+		return filteredPositions[i].Symbol < filteredPositions[j].Symbol
+	})
 
 	result.Positions = filteredPositions
 

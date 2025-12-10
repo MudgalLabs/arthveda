@@ -1,22 +1,32 @@
 import { DecimalString } from "@/lib/types";
 
-type TradeKind = "buy" | "sell";
+export type TradeKind = "buy" | "sell";
 
-interface CreateTrade {
-    kind: TradeKind;
+export interface CreateTrade {
     time: Date;
+    kind: TradeKind;
     quantity: DecimalString;
     price: DecimalString;
     charges_amount: DecimalString;
+
     broker_trade_id: string | null;
 }
 
-interface Trade extends CreateTrade {
+export interface Trade extends CreateTrade {
     id: string;
     position_id: string;
-    broker_trade_id: string | null;
     created_at: Date;
     updated_at: Date | null;
+
+    realised_gross_pnl?: DecimalString;
+    realised_net_pnl?: DecimalString;
+    roi?: DecimalString;
+    matched_lots?: MatchedLot[];
 }
 
-export type { CreateTrade, Trade, TradeKind };
+interface MatchedLot {
+    qty: DecimalString;
+    price_in: DecimalString;
+    price_out: DecimalString;
+    pnl: DecimalString;
+}

@@ -1,5 +1,7 @@
+import { Position } from "@/features/position/position";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
+import { DecimalString } from "@/lib/types";
 
 interface CalendarDaily {
     pnl: string;
@@ -28,8 +30,20 @@ interface CalendarYearly {
     monthly: Record<string, CalendarMonthly>; // Key is month (e.g., "September")
 }
 
-export type GetCalendarResponse = Record<number, CalendarYearly>; // Key is year.
+export type GetCalendarAllResponse = Record<number, CalendarYearly>; // Key is year.
 
-export function get() {
-    return client.get(API_ROUTES.calendar.get);
+export function getAll() {
+    return client.get(API_ROUTES.calendar.getAll);
+}
+
+export interface GetCalendarDayResponse {
+    date: string;
+    gross_pnl: DecimalString;
+    net_pnl: DecimalString;
+    charges: DecimalString;
+    positions: Position[];
+}
+
+export function getDay(date: Date) {
+    return client.get(API_ROUTES.calendar.getDay, { params: { date } });
 }

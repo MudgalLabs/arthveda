@@ -394,7 +394,7 @@ func GetRealisedStatsUptoATradeByTradeID(positions []*Position) map[uuid.UUID]Re
 
 			stats := RealisedStatsUptoATrade{
 				ChargesAmount: charges,
-				IsScaleOut:    isScaleOut(t, pos),
+				IsScaleOut:    isScaleOut(t, pos.Direction),
 			}
 			realisedStats[t.ID] = stats
 		}
@@ -423,15 +423,11 @@ func ApplyComputeResultToPosition(
 
 func isScaleOut(
 	t *trade.Trade,
-	position *Position,
+	positionDirection Direction,
 ) bool {
-	if position == nil || t == nil {
-		return false
-	}
-
 	// If the trade is opposite direction of the position, it means the trade is realising PnL.
-	if (position.Direction == DirectionLong && t.Kind == types.TradeKindSell) ||
-		(position.Direction == DirectionShort && t.Kind == types.TradeKindBuy) {
+	if (positionDirection == DirectionLong && t.Kind == types.TradeKindSell) ||
+		(positionDirection == DirectionShort && t.Kind == types.TradeKindBuy) {
 		return true
 	}
 
@@ -480,7 +476,7 @@ func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmar
 			}
 
 			matched := []trade.MatchedLot{}
-			realisedPnL := decimal.Zero
+			realisedGrossPnL := decimal.Zero
 			costBasis := decimal.Zero
 
 			for qtyLeft.GreaterThan(decimal.Zero) && len(fifo) > 0 {
@@ -501,7 +497,7 @@ func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmar
 					PnL:      pnl,
 				})
 
-				realisedPnL = realisedPnL.Add(pnl)
+				realisedGrossPnL = realisedGrossPnL.Add(pnl)
 				costBasis = costBasis.Add(matchQty.Mul(lot.Price))
 
 				lot.Qty = lot.Qty.Sub(matchQty)
@@ -514,9 +510,11 @@ func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmar
 				t.MatchedLots = matched
 			}
 
-			t.RealisedGrossPnL = realisedPnL
+			t.RealisedGrossPnL = realisedGrossPnL
+			t.RealisedNetPnL = realisedGrossPnL.Sub(t.ChargesAmount)
+
 			if !costBasis.IsZero() {
-				t.ROI = realisedPnL.Div(costBasis).Mul(decimal.NewFromInt(100))
+				t.ROI = realisedGrossPnL.Div(costBasis).Mul(decimal.NewFromInt(100))
 			}
 
 			netOpenQty = netOpenQty.Sub(t.Quantity.Mul(directionSignDecimal(direction)))
