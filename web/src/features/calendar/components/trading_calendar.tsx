@@ -522,7 +522,7 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
 
             {totalPositions > 0 && (
                 <div className="flex w-full justify-between">
-                    <PnL value={pnl} className="absolute-center text-lg font-bold">
+                    <PnL value={pnl} className="absolute-center text-lg font-medium">
                         {formatCurrency(pnl.toString(), { compact: true })}
                     </PnL>
 
