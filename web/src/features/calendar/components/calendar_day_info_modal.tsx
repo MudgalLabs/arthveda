@@ -45,33 +45,33 @@ export function CalendarDayInfoModal(props: CalendarDayInfoModalProps) {
                 <div className="mt-0 inline-flex w-[80%] gap-x-8">
                     <div>
                         <p>Net</p>
-                        <PnL className="text-base font-medium" value={new Decimal(data.net_pnl)}>
+                        <PnL className="text-lg font-medium" value={new Decimal(data.net_pnl)}>
                             {formatCurrency(data.net_pnl)}
                         </PnL>
                     </div>
                     <div>
                         <p>Gross</p>
-                        <PnL className="text-base font-medium" value={new Decimal(data.gross_pnl)}>
+                        <PnL className="text-lg font-medium" value={new Decimal(data.gross_pnl)}>
                             {formatCurrency(data.gross_pnl)}
                         </PnL>
                     </div>
                     <div>
                         <p>Charges</p>
-                        <PnL className="text-base font-medium" variant="negative" value={new Decimal(data.charges)}>
+                        <PnL className="text-lg font-medium" variant="negative" value={new Decimal(data.charges)}>
                             {formatCurrency(data.charges)}
                         </PnL>
                     </div>
                 </div>
 
-                <ul className="mt-4 w-full space-y-4 overflow-x-auto">
+                <ul className="mt-8 w-full space-y-8 overflow-x-auto">
                     {data.positions.map((position, idx) => (
                         <li key={position.id}>
-                            <h3 className="flex-x mb-2 text-lg font-medium">
+                            <h3 className="flex-x mb-2 text-base font-medium">
                                 {idx + 1}.
                                 <Link
                                     to={ROUTES.viewPosition(position.id)}
                                     target="_blank"
-                                    className="flex-x inline-block w-fit gap-x-1 text-lg!"
+                                    className="flex-x inline-block w-fit gap-x-1 text-base!"
                                 >
                                     {position.symbol}
                                     <IconArrowUpRight size={18} />
@@ -134,8 +134,9 @@ const columns: ColumnDef<Trade>[] = [
             <DataTableColumnHeader title="Net" column={column} disabled={table.options.meta?.isFetching} />
         ),
         cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.realised_net_pnl || 0)}>
-                {formatCurrency(row.original.realised_net_pnl || 0)} | {Number(row.original.roi).toFixed(2)}%
+            <PnL className="flex-x gap-x-4" value={new Decimal(row.original.realised_net_pnl || 0)}>
+                <span>{formatCurrency(row.original.realised_net_pnl || 0)} </span>
+                <span>{Number(row.original.roi).toFixed(2)}%</span>
             </PnL>
         ),
     },

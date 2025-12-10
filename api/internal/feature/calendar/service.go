@@ -328,15 +328,15 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 			if len(trade.MatchedLots) > 0 {
 				if common.IsSameDay(trade.Time, date, tz) {
-					grossPnL = grossPnL.Add(trade.RealisedGrossPnL)
-					roi = roi.Add(trade.ROI)
-
 					incrementalCharges := stat.ChargesAmount.Sub(prevCharges)
 					prevCharges = stat.ChargesAmount
-
 					charges = charges.Add(incrementalCharges)
 
+					grossPnL = grossPnL.Add(trade.RealisedGrossPnL)
+					roi = roi.Add(trade.ROI)
 					trade.ChargesAmount = incrementalCharges
+					trade.RealisedNetPnL = trade.RealisedGrossPnL.Sub(incrementalCharges)
+
 					filteredTrades = append(filteredTrades, trade)
 				} else if trade.Time.In(tz).Before(date.In(tz)) {
 					prevCharges = stat.ChargesAmount
