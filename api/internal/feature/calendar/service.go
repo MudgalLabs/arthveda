@@ -306,6 +306,8 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 			continue
 		}
 
+		realisedStats := position.GetRealisedStatsUptoATradeByTradeID([]*position.Position{pos})
+
 		filteredTrades := []*trade.Trade{}
 
 		var grossPnL, netPnL, charges, roi decimal.Decimal
@@ -314,7 +316,7 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 			if common.IsSameDay(trade.Time, date, tz) && len(trade.MatchedLots) > 0 {
 				filteredTrades = append(filteredTrades, trade)
 				grossPnL = grossPnL.Add(trade.RealisedGrossPnL)
-				charges = charges.Add(trade.ChargesAmount)
+				charges = realisedStats[trade.ID].ChargesAmount
 				netPnL = grossPnL.Sub(charges)
 				roi = roi.Add(trade.ROI)
 			}
@@ -322,11 +324,14 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 		if len(filteredTrades) > 0 {
 			pos.GrossPnLAmount = grossPnL
-			pos.NetPnLAmount = netPnL
 			pos.TotalChargesAmount = charges
+			pos.NetPnLAmount = netPnL
 			pos.NetReturnPercentage = roi
 			pos.Trades = filteredTrades
 			filteredPositions = append(filteredPositions, pos)
+
+			result.GrossPnL = result.GrossPnL.Add(pos.GrossPnLAmount)
+			result.NetPnL = result.NetPnL.Add(pos.NetPnLAmount)
 		}
 	}
 

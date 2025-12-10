@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { DPDay, useDatePicker } from "@rehookify/datepicker";
 import Decimal from "decimal.js";
 
@@ -345,7 +345,7 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                     })}
                 >
                     {weeks.map((week, weekIdx) => (
-                        <>
+                        <Fragment key={weekIdx}>
                             {week.map((dpDay) => {
                                 const day = Number(dpDay.day);
                                 const pnl = new Decimal(monthData?.daily[day]?.pnl ?? 0);
@@ -375,7 +375,7 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                                     />
                                 </li>
                             )}
-                        </>
+                        </Fragment>
                     ))}
                 </ul>
             </section>
