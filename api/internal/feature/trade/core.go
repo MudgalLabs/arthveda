@@ -91,17 +91,21 @@ func IsSymbolFuture(symbol string) bool {
 	if symbol == "" {
 		return false
 	}
+
 	lowercaseSymbol := strings.ToLower(symbol)
 	hasMonthSeries := false
+
 	for _, series := range FnOSeries {
 		if strings.Contains(lowercaseSymbol, series) {
 			hasMonthSeries = true
 			break
 		}
 	}
+
 	if hasMonthSeries && strings.Contains(lowercaseSymbol, "fut") {
 		return true
 	}
+
 	return false
 }
 
@@ -110,17 +114,25 @@ func IsSymbolOption(symbol string) bool {
 	if symbol == "" {
 		return false
 	}
+
 	lowercaseSymbol := strings.ToLower(symbol)
 	hasMonthSeries := false
+
 	for _, series := range FnOSeries {
 		if strings.Contains(lowercaseSymbol, series) {
 			hasMonthSeries = true
 			break
 		}
 	}
+
 	if hasMonthSeries && (strings.Contains(lowercaseSymbol, "ce") || strings.Contains(lowercaseSymbol, "pe")) {
 		return true
 	}
+
+	if strings.HasSuffix(lowercaseSymbol, "ce") || strings.HasSuffix(lowercaseSymbol, "pe") {
+		return true
+	}
+
 	return false
 }
 

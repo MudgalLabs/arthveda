@@ -13,6 +13,7 @@ func GetSymbolFromCode(code string) (string, bool) {
 	}
 }
 
+// Sanitize removes the "-" dashes from equity symbols.
 func Sanitize(symbol string, instrument types.Instrument) string {
 	santizedSymbol := strings.ToUpper(symbol)
 
