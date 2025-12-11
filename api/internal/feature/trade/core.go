@@ -3,6 +3,7 @@ package trade
 import (
 	"arthveda/internal/domain/types"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -117,6 +118,7 @@ func IsSymbolOption(symbol string) bool {
 
 	lowercaseSymbol := strings.ToLower(symbol)
 	hasMonthSeries := false
+	hasOptionSuffix := strings.HasSuffix(lowercaseSymbol, "ce") || strings.HasSuffix(lowercaseSymbol, "pe")
 
 	for _, series := range FnOSeries {
 		if strings.Contains(lowercaseSymbol, series) {
@@ -125,11 +127,17 @@ func IsSymbolOption(symbol string) bool {
 		}
 	}
 
-	if hasMonthSeries && (strings.Contains(lowercaseSymbol, "ce") || strings.Contains(lowercaseSymbol, "pe")) {
+	if hasMonthSeries && hasOptionSuffix {
 		return true
 	}
 
-	if strings.HasSuffix(lowercaseSymbol, "ce") || strings.HasSuffix(lowercaseSymbol, "pe") {
+	// Simple check (matches if string contains two numeric groups anywhere)
+	// This is to catch symbols like "BANKNIFTY24JAN35000CE" or "NIFTY24FEB15000PE".
+	// We look for patterns like digits + non-digits + digits. One set of digits is usually the year/expiry,
+	// and the other set is the strike price.
+	re := regexp.MustCompile(`[0-9]+[^0-9]+[0-9]+`)
+
+	if re.MatchString(lowercaseSymbol) && hasOptionSuffix {
 		return true
 	}
 
@@ -178,8 +186,10 @@ func GetInstrumentFromSymbol(symbol string) types.Instrument {
 	if IsSymbolFuture(symbol) {
 		return types.InstrumentFuture
 	}
+
 	if IsSymbolOption(symbol) {
 		return types.InstrumentOption
 	}
+
 	return types.InstrumentEquity
 }
