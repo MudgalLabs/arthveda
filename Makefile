@@ -16,9 +16,9 @@ dev:
 	$(MAKE) up
 	tmux new-session -d -s arthveda \
 		"cd web && npm run dev" \; \
-		split-window -v -t 0 "cd api && air -c air.toml" \; \
+		split-window -v -t 0 "sleep 1 && cd api && air -c air.toml" \; \
 		select-pane -t 0 \; \
-		split-window -h -t 0 "bash" \; \
+		split-window -h -t 0 "zsh" \; \
 		select-pane -t 2 \; \
 		send-keys "clear" C-m
 
