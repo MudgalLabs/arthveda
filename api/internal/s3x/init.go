@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/env"
 	"arthveda/internal/logger"
 	"context"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -24,9 +25,19 @@ func Init() (*minio.Client, error) {
 		return nil, err
 	}
 
-	l.Info("connected to s3")
-
 	ctx := context.Background()
+
+	_, err = client.HealthCheck(time.Second)
+	if err != nil {
+		l.Fatalf("Failed to start healtcheck: %v", err)
+	}
+
+	isOnline := client.IsOnline()
+	if isOnline {
+		l.Info("connected to s3")
+	} else {
+		l.Fatal("failed to connect to s3")
+	}
 
 	err = client.MakeBucket(ctx, BucketUserUploads, minio.MakeBucketOptions{})
 	if err != nil {
