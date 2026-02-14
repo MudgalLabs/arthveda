@@ -133,7 +133,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 	positionsFiltered := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
 
 	for _, pos := range positionsFiltered {
-		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction)
+		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction, pos.RiskAmount)
 		if err != nil {
 			l.Errorw("failed to compute smart trades for position", "position_id", pos.ID, "error", err)
 			continue

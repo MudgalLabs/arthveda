@@ -20,7 +20,10 @@ export interface Trade extends CreateTrade {
 
     realised_gross_pnl?: DecimalString;
     realised_net_pnl?: DecimalString;
-    roi?: DecimalString;
+    gross_roi?: DecimalString;
+    r_factor?: DecimalString;
+    gross_r_factor?: DecimalString;
+
     matched_lots?: MatchedLot[];
 }
 

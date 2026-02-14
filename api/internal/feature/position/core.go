@@ -273,7 +273,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 		return result, ErrInvalidTradeData
 	}
 
-	computeTradesResult, err := ComputeSmartTrades(trades, direction)
+	computeTradesResult, err := ComputeSmartTrades(trades, direction, payload.RiskAmount)
 	if err != nil {
 		l.Debugw("ComputeSmartTrades", "error", err, "trades", trades)
 		return result, ErrInvalidTradeData
@@ -304,23 +304,25 @@ func Compute(payload ComputePayload) (computeResult, error) {
 		}
 	}
 
-	netReturnPercentage := decimal.Zero
-	if !capitalUsed.IsZero() {
-		netReturnPercentage = grossPnL.Div(capitalUsed).Mul(decimal.NewFromInt(100))
-	}
-
-	result.GrossPnLAmount = grossPnL
-	result.NetPnLAmount = grossPnL
-	result.NetReturnPercentage = netReturnPercentage
-
 	var netPnL, rFactor, grossRFactor, chargesAsPercentageOfNetPnL decimal.Decimal
 
 	totalCharges := calculateTotalChargesAmountFromTrades(trades)
+	netPnL = grossPnL.Sub(totalCharges)
+
+	result.GrossPnLAmount = grossPnL
+	result.NetPnLAmount = netPnL
+
+	netReturnPercentage := decimal.Zero
+	if !capitalUsed.IsZero() {
+		netReturnPercentage = netPnL.Div(capitalUsed).Mul(decimal.NewFromInt(100))
+	}
+
+	result.NetReturnPercentage = netReturnPercentage
+
 	var status Status
 
 	// Position is closed.
 	if netOpenQty.IsZero() {
-		netPnL = grossPnL.Sub(totalCharges)
 
 		if payload.RiskAmount.IsPositive() {
 			rFactor = netPnL.Div(payload.RiskAmount)
@@ -449,7 +451,7 @@ type ComputeSmartTradesResult struct {
 	openAvgPrice decimal.Decimal
 }
 
-func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmartTradesResult, error) {
+func ComputeSmartTrades(trades []*trade.Trade, direction Direction, riskAmount decimal.Decimal) (ComputeSmartTradesResult, error) {
 	result := ComputeSmartTradesResult{}
 
 	if len(trades) == 0 {
@@ -520,7 +522,14 @@ func ComputeSmartTrades(trades []*trade.Trade, direction Direction) (ComputeSmar
 			t.RealisedNetPnL = realisedGrossPnL.Sub(t.ChargesAmount)
 
 			if !costBasis.IsZero() {
-				t.ROI = realisedGrossPnL.Div(costBasis).Mul(decimal.NewFromInt(100))
+				t.GrossROI = realisedGrossPnL.Div(costBasis).Mul(decimal.NewFromInt(100))
+				// NOTE: t.NetROI calculation to be handled from the caller.
+			}
+
+			if riskAmount.IsPositive() {
+				t.GrossRFactor = t.RealisedGrossPnL.Div(riskAmount)
+				// NOTE: We aren't updating the t.RFactor because we don't know the charges
+				// accumulated upto this point. This must be handled from the caller of this function.
 			}
 
 			netOpenQty = netOpenQty.Sub(t.Quantity.Mul(directionSignDecimal(direction)))

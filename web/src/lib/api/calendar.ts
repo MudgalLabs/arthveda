@@ -41,6 +41,8 @@ export interface GetCalendarDayResponse {
     gross_pnl: DecimalString;
     net_pnl: DecimalString;
     charges: DecimalString;
+    gross_r_factor: DecimalString;
+    net_r_factor: DecimalString;
     positions: Position[];
 }
 

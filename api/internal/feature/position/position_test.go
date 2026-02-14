@@ -45,7 +45,7 @@ func TestComputeSmartTrades_LongPosition(t *testing.T) {
 	for i, t := range pos.Trades {
 		fmt.Printf("%2d. %s %s @ %s\n", i+1, t.Kind, t.Quantity.String(), t.Price.String())
 		fmt.Printf("    Realised PnL: ₹%s\n", t.RealisedGrossPnL.StringFixed(2))
-		fmt.Printf("    ROI: %s%%\n", t.ROI.StringFixed(2))
+		fmt.Printf("    ROI: %s%%\n", t.GrossROI.StringFixed(2))
 	}
 
 	fmt.Println("--- Position Summary ---")

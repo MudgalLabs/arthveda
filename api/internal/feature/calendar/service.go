@@ -86,7 +86,7 @@ func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 	positionsFiltered := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
 
 	for _, pos := range positionsFiltered {
-		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction)
+		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction, pos.RiskAmount)
 		if err != nil {
 			l.Errorw("failed to compute smart trades for position", "position_id", pos.ID, "error", err)
 			continue
@@ -257,10 +257,12 @@ func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 }
 
 type GetCalendarDayResult struct {
-	Date     time.Time       `json:"date"`
-	GrossPnL decimal.Decimal `json:"gross_pnl"`
-	NetPnL   decimal.Decimal `json:"net_pnl"`
-	Charges  decimal.Decimal `json:"charges"`
+	Date         time.Time       `json:"date"`
+	GrossPnL     decimal.Decimal `json:"gross_pnl"`
+	NetPnL       decimal.Decimal `json:"net_pnl"`
+	Charges      decimal.Decimal `json:"charges"`
+	GrossRFactor decimal.Decimal `json:"gross_r_factor"`
+	NetRFactor   decimal.Decimal `json:"net_r_factor"`
 
 	Positions []*position.Position `json:"positions"`
 }
@@ -270,10 +272,12 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 	dateInTZ := date.In(tz)
 	result := GetCalendarDayResult{
-		Date:     dateInTZ,
-		GrossPnL: decimal.Zero,
-		NetPnL:   decimal.Zero,
-		Charges:  decimal.Zero,
+		Date:         dateInTZ,
+		GrossPnL:     decimal.Zero,
+		NetPnL:       decimal.Zero,
+		Charges:      decimal.Zero,
+		GrossRFactor: decimal.Zero,
+		NetRFactor:   decimal.Zero,
 
 		Positions: []*position.Position{},
 	}
@@ -310,7 +314,7 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 	filteredPositions := []*position.Position{}
 
 	for _, pos := range positionsWithRealizedTrades {
-		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction)
+		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction, pos.RiskAmount)
 		if err != nil {
 			l.Errorw("failed to compute smart trades for position", "position_id", pos.ID, "error", err)
 			continue
@@ -319,7 +323,7 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 		realisedStatsByTradeID := position.GetRealisedStatsUptoATradeByTradeID([]*position.Position{pos})
 
 		filteredTrades := []*trade.Trade{}
-		var grossPnL, charges, roi decimal.Decimal
+		var grossPnL, netPnL, charges, roi, grossRFactor, netRFactor decimal.Decimal
 
 		prevCharges := decimal.Zero
 
@@ -333,9 +337,17 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 					charges = charges.Add(incrementalCharges)
 
 					grossPnL = grossPnL.Add(trade.RealisedGrossPnL)
-					roi = roi.Add(trade.ROI)
+					roi = roi.Add(trade.GrossROI)
+
 					trade.ChargesAmount = incrementalCharges
 					trade.RealisedNetPnL = trade.RealisedGrossPnL.Sub(incrementalCharges)
+
+					netPnL = netPnL.Add(trade.RealisedNetPnL)
+
+					trade.NetRFactor = trade.RealisedNetPnL.Div(pos.RiskAmount)
+
+					grossRFactor = grossRFactor.Add(trade.GrossRFactor)
+					netRFactor = netRFactor.Add(trade.NetRFactor)
 
 					filteredTrades = append(filteredTrades, trade)
 				} else if trade.Time.In(tz).Before(date.In(tz)) {
@@ -350,7 +362,9 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 			result.GrossPnL = result.GrossPnL.Add(grossPnL)
 			result.Charges = result.Charges.Add(charges)
-			result.NetPnL = result.NetPnL.Add(grossPnL.Sub(charges))
+			result.NetPnL = result.NetPnL.Add(netPnL)
+			result.GrossRFactor = result.GrossRFactor.Add(grossRFactor)
+			result.NetRFactor = result.NetRFactor.Add(netRFactor)
 		}
 	}
 

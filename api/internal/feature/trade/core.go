@@ -36,7 +36,9 @@ type Trade struct {
 	// I am storing ChargesAmount, so I think we should store these too??
 	RealisedGrossPnL decimal.Decimal `json:"realised_gross_pnl" db:"realised_gross_pnl"`
 	RealisedNetPnL   decimal.Decimal `json:"realised_net_pnl" db:"realised_net_pnl"`
-	ROI              decimal.Decimal `json:"roi" db:"roi"`
+	GrossROI         decimal.Decimal `json:"gross_roi" db:"roi"`
+	NetRFactor       decimal.Decimal `json:"r_factor"`
+	GrossRFactor     decimal.Decimal `json:"gross_r_factor"`
 
 	MatchedLots []MatchedLot `json:"matched_lots" db:"matched_lots"`
 }

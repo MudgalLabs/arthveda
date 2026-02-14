@@ -40,15 +40,12 @@ export function CalendarDayInfoModal(props: CalendarDayInfoModalProps) {
 
         if (!data) return null;
 
+        const grossRFactor = new Decimal(data.gross_r_factor);
+        const netRFactor = new Decimal(data.net_r_factor);
+
         return (
             <div>
                 <div className="mt-0 inline-flex w-[80%] gap-x-8">
-                    <div>
-                        <p>Net</p>
-                        <PnL className="text-lg font-medium" value={new Decimal(data.net_pnl)}>
-                            {formatCurrency(data.net_pnl)}
-                        </PnL>
-                    </div>
                     <div>
                         <p>Gross</p>
                         <PnL className="text-lg font-medium" value={new Decimal(data.gross_pnl)}>
@@ -56,9 +53,27 @@ export function CalendarDayInfoModal(props: CalendarDayInfoModalProps) {
                         </PnL>
                     </div>
                     <div>
+                        <p>Gross R</p>
+                        <PnL className="text-lg font-medium" value={grossRFactor}>
+                            {grossRFactor.toFixed(2)}
+                        </PnL>
+                    </div>
+                    <div>
                         <p>Charges</p>
                         <PnL className="text-lg font-medium" variant="negative" value={new Decimal(data.charges)}>
                             {formatCurrency(data.charges)}
+                        </PnL>
+                    </div>
+                    <div>
+                        <p>Net</p>
+                        <PnL className="text-lg font-medium" value={new Decimal(data.net_pnl)}>
+                            {formatCurrency(data.net_pnl)}
+                        </PnL>
+                    </div>
+                    <div>
+                        <p>Net R</p>
+                        <PnL className="text-lg font-medium" value={netRFactor}>
+                            {netRFactor.toFixed(2)}
                         </PnL>
                     </div>
                 </div>
@@ -134,7 +149,7 @@ const columns: ColumnDef<Trade>[] = [
         cell: ({ row }) => (
             <PnL className="flex-x gap-x-4" value={new Decimal(row.original.realised_net_pnl || 0)}>
                 <span>{formatCurrency(row.original.realised_net_pnl || 0)} </span>
-                <span>{Number(row.original.roi).toFixed(2)}%</span>
+                <span>{Number(row.original.r_factor).toFixed(2)}R</span>
             </PnL>
         ),
     },
@@ -145,8 +160,9 @@ const columns: ColumnDef<Trade>[] = [
             <DataTableColumnHeader title="Gross" column={column} disabled={table.options.meta?.isFetching} />
         ),
         cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.realised_gross_pnl || 0)}>
+            <PnL className="flex-x gap-x-4" value={new Decimal(row.original.realised_gross_pnl || 0)}>
                 {formatCurrency(row.original.realised_gross_pnl || 0)}
+                <span>{Number(row.original.gross_r_factor).toFixed(2)}R</span>
             </PnL>
         ),
     },
