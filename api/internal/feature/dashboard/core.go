@@ -15,18 +15,19 @@ type GeneralStats struct {
 	WinRate  float64 `json:"win_rate"`
 	LossRate float64 `json:"loss_rate"`
 
-	GrossPnL       string          `json:"gross_pnl"`
-	NetPnL         decimal.Decimal `json:"net_pnl"`
-	Charges        string          `json:"charges"`
-	AvgWin         string          `json:"avg_win"`
-	AvgLoss        string          `json:"avg_loss"`
-	MaxWin         string          `json:"max_win"`
-	MaxLoss        string          `json:"max_loss"`
-	AvgRFactor     string          `json:"avg_r_factor"`
-	AvgWinRFactor  string          `json:"avg_win_r_factor"`
-	AvgLossRFactor string          `json:"avg_loss_r_factor"`
-	AvgWinROI      string          `json:"avg_win_roi"`
-	AvgLossROI     string          `json:"avg_loss_roi"`
+	GrossPnL        string          `json:"gross_pnl"`
+	NetPnL          decimal.Decimal `json:"net_pnl"`
+	Charges         string          `json:"charges"`
+	AvgWin          string          `json:"avg_win"`
+	AvgLoss         string          `json:"avg_loss"`
+	MaxWin          string          `json:"max_win"`
+	MaxLoss         string          `json:"max_loss"`
+	AvgRFactor      string          `json:"avg_r_factor"`
+	AvgGrossRFactor string          `json:"avg_gross_r_factor"`
+	AvgWinRFactor   string          `json:"avg_win_r_factor"`
+	AvgLossRFactor  string          `json:"avg_loss_r_factor"`
+	AvgWinROI       string          `json:"avg_win_roi"`
+	AvgLossROI      string          `json:"avg_loss_roi"`
 
 	WinStreak  int `json:"win_streak"`
 	LossStreak int `json:"loss_streak"`
@@ -41,7 +42,7 @@ func GetGeneralStats(positions []*position.Position) GeneralStats {
 	}
 
 	var winRate float64
-	var grossPnL, netPnL, charges, avgRFactor, avgWinRFactor, avgLossRFactor, avgWinROI, avgLossROI, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
+	var grossPnL, netPnL, charges, avgRFactor, avgGrossRFactor, avgWinRFactor, avgLossRFactor, avgWinROI, avgLossROI, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
 	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount, tradesWithRiskAmountCount int
 	var maxWinStreak, maxLossStreak, currentWin, currentLoss int
 
@@ -65,6 +66,7 @@ func GetGeneralStats(positions []*position.Position) GeneralStats {
 		if p.RiskAmount.GreaterThan(decimal.Zero) {
 			tradesWithRiskAmountCount++
 			avgRFactor = avgRFactor.Add(p.RFactor)
+			avgGrossRFactor = avgGrossRFactor.Add(p.GrossRFactor)
 
 			switch p.Status {
 			case position.StatusWin, position.StatusBreakeven:
@@ -116,6 +118,7 @@ func GetGeneralStats(positions []*position.Position) GeneralStats {
 
 	if tradesWithRiskAmountCount > 0 {
 		avgRFactor = avgRFactor.Div(decimal.NewFromInt(int64(tradesWithRiskAmountCount)))
+		avgGrossRFactor = avgGrossRFactor.Div(decimal.NewFromInt(int64(tradesWithRiskAmountCount)))
 	}
 
 	if settledTradesCount > 0 {
@@ -137,24 +140,25 @@ func GetGeneralStats(positions []*position.Position) GeneralStats {
 	lossRate := 100.0 - winRate
 
 	result := GeneralStats{
-		WinRate:        winRate,
-		LossRate:       lossRate,
-		GrossPnL:       grossPnL.String(),
-		NetPnL:         netPnL,
-		Charges:        charges.String(),
-		AvgRFactor:     avgRFactor.StringFixed(2),
-		AvgWin:         avgWin.StringFixed(2),
-		AvgLoss:        avgLoss.StringFixed(2),
-		MaxWin:         maxWin.String(),
-		MaxLoss:        maxLoss.String(),
-		AvgWinRFactor:  avgWinRFactor.StringFixed(2),
-		AvgLossRFactor: avgLossRFactor.StringFixed(2),
-		AvgWinROI:      avgWinROI.StringFixed(2),
-		AvgLossROI:     avgLossROI.StringFixed(2),
-		WinStreak:      maxWinStreak,
-		LossStreak:     maxLossStreak,
-		WinsCount:      winTradesCount,
-		LossesCount:    lossTradesCount,
+		WinRate:         winRate,
+		LossRate:        lossRate,
+		GrossPnL:        grossPnL.String(),
+		NetPnL:          netPnL,
+		Charges:         charges.String(),
+		AvgRFactor:      avgRFactor.StringFixed(2),
+		AvgGrossRFactor: avgGrossRFactor.StringFixed(2),
+		AvgWin:          avgWin.StringFixed(2),
+		AvgLoss:         avgLoss.StringFixed(2),
+		MaxWin:          maxWin.String(),
+		MaxLoss:         maxLoss.String(),
+		AvgWinRFactor:   avgWinRFactor.StringFixed(2),
+		AvgLossRFactor:  avgLossRFactor.StringFixed(2),
+		AvgWinROI:       avgWinROI.StringFixed(2),
+		AvgLossROI:      avgLossROI.StringFixed(2),
+		WinStreak:       maxWinStreak,
+		LossStreak:      maxLossStreak,
+		WinsCount:       winTradesCount,
+		LossesCount:     lossTradesCount,
 	}
 
 	return result

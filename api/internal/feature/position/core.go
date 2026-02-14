@@ -50,6 +50,7 @@ type Position struct {
 	GrossPnLAmount              decimal.Decimal `json:"gross_pnl_amount" db:"gross_pnl_amount"`
 	NetPnLAmount                decimal.Decimal `json:"net_pnl_amount" db:"net_pnl_amount"`
 	RFactor                     decimal.Decimal `json:"r_factor" db:"r_factor"`
+	GrossRFactor                decimal.Decimal `json:"gross_r_factor" db:"gross_r_factor"`
 	NetReturnPercentage         decimal.Decimal `json:"net_return_percentage" db:"net_return_percentage"`
 	ChargesAsPercentageOfNetPnL decimal.Decimal `json:"charges_as_percentage_of_net_pnl" db:"charges_as_percentage_of_net_pnl"`
 	OpenQuantity                decimal.Decimal `json:"open_quantity" db:"open_quantity"`
@@ -205,6 +206,7 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 	updatedPosition.GrossPnLAmount = computeResult.GrossPnLAmount
 	updatedPosition.NetPnLAmount = computeResult.NetPnLAmount
 	updatedPosition.RFactor = computeResult.RFactor
+	updatedPosition.GrossRFactor = computeResult.GrossRFactor
 	updatedPosition.NetReturnPercentage = computeResult.NetReturnPercentage
 	updatedPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
 	updatedPosition.OpenQuantity = computeResult.OpenQuantity
@@ -224,6 +226,7 @@ type computeResult struct {
 	NetPnLAmount                decimal.Decimal `json:"net_pnl_amount"`
 	TotalChargesAmount          decimal.Decimal `json:"total_charges_amount"`
 	RFactor                     decimal.Decimal `json:"r_factor"`
+	GrossRFactor                decimal.Decimal `json:"gross_r_factor"`
 	NetReturnPercentage         decimal.Decimal `json:"net_return_percentage"`
 	ChargesAsPercentageOfNetPnL decimal.Decimal `json:"charges_as_percentage_of_net_pnl"`
 	OpenQuantity                decimal.Decimal `json:"open_quantity"`
@@ -310,7 +313,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 	result.NetPnLAmount = grossPnL
 	result.NetReturnPercentage = netReturnPercentage
 
-	var netPnL, rFactor, chargesAsPercentageOfNetPnL decimal.Decimal
+	var netPnL, rFactor, grossRFactor, chargesAsPercentageOfNetPnL decimal.Decimal
 
 	totalCharges := calculateTotalChargesAmountFromTrades(trades)
 	var status Status
@@ -321,6 +324,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 
 		if payload.RiskAmount.IsPositive() {
 			rFactor = netPnL.Div(payload.RiskAmount)
+			grossRFactor = grossPnL.Div(payload.RiskAmount)
 		}
 
 		if netPnL.IsZero() {
@@ -347,6 +351,7 @@ func Compute(payload ComputePayload) (computeResult, error) {
 	result.GrossPnLAmount = grossPnL
 	result.NetPnLAmount = netPnL
 	result.RFactor = rFactor
+	result.GrossRFactor = grossRFactor
 	result.TotalChargesAmount = totalCharges
 	result.NetReturnPercentage = netReturnPercentage
 	result.ChargesAsPercentageOfNetPnL = chargesAsPercentageOfNetPnL
@@ -415,6 +420,7 @@ func ApplyComputeResultToPosition(
 	position.NetPnLAmount = computeResult.NetPnLAmount
 	position.TotalChargesAmount = computeResult.TotalChargesAmount
 	position.RFactor = computeResult.RFactor
+	position.GrossRFactor = computeResult.GrossRFactor
 	position.NetReturnPercentage = computeResult.NetReturnPercentage
 	position.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
 	position.OpenQuantity = computeResult.OpenQuantity

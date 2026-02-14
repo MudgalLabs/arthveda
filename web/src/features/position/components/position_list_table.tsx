@@ -230,13 +230,26 @@ const columns: ColumnDef<Position>[] = [
     {
         id: "r_factor",
         meta: {
-            columnVisibilityHeader: "R Factor",
+            columnVisibilityHeader: "Net R",
         },
         accessorKey: "r_factor",
         header: ({ column, table }) => (
-            <DataTableColumnHeader title="R Factor" column={column} disabled={table.options.meta?.isFetching} />
+            <DataTableColumnHeader title="Net R" column={column} disabled={table.options.meta?.isFetching} />
         ),
         cell: ({ row }) => <PnL value={new Decimal(row.original.r_factor)}>{Number(row.original.r_factor)}</PnL>,
+    },
+    {
+        id: "gross_r_factor",
+        meta: {
+            columnVisibilityHeader: "Gross R",
+        },
+        accessorKey: "gross_r_factor",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Gross R" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        cell: ({ row }) => (
+            <PnL value={new Decimal(row.original.gross_r_factor)}>{Number(row.original.gross_r_factor)}</PnL>
+        ),
     },
     {
         id: "gross_pnl",

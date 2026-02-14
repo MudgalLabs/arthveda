@@ -9,6 +9,7 @@ export interface GeneralStats {
     net_pnl: DecimalString;
     charges: DecimalString;
     avg_r_factor: DecimalString;
+    avg_gross_r_factor: DecimalString;
     avg_win_r_factor: DecimalString;
     avg_win_roi: string;
     avg_win: DecimalString;

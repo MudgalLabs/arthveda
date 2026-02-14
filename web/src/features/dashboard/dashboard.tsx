@@ -226,6 +226,7 @@ export const Dashboard = () => {
                             net_pnl_amount={data.net_pnl}
                             total_charges_amount={data.charges}
                             r_factor={data.avg_r_factor}
+                            gross_r_factor={data.avg_gross_r_factor}
                         />
                     </WidgetContainer>
                 </div>

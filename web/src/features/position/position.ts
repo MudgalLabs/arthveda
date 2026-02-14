@@ -75,6 +75,7 @@ interface Position {
     gross_pnl_amount: DecimalString;
     net_pnl_amount: DecimalString;
     r_factor: DecimalString;
+    gross_r_factor: DecimalString;
     net_return_percentage: DecimalString;
     charges_as_percentage_of_net_pnl: DecimalString;
     open_quantity: DecimalString;
