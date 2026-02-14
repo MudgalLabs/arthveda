@@ -51,6 +51,7 @@ const defaultState: State = {
         net_pnl_amount: "0",
         net_return_percentage: "0",
         r_factor: "0",
+        gross_r_factor: "0",
         charges_as_percentage_of_net_pnl: "0",
         open_quantity: "0",
         open_average_price_amount: "0",

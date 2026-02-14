@@ -13,7 +13,6 @@ import {
     DialogTrigger,
     formatCurrency,
     formatDate,
-    IconArrowUpRight,
     LoadingScreen,
 } from "netra";
 
