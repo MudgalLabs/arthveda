@@ -13,6 +13,7 @@ interface Props {
     gross_pnl_amount: DecimalString;
     total_charges_amount: DecimalString;
     r_factor: DecimalString;
+    gross_r_factor: DecimalString;
     charges_as_percentage_of_net_pnl?: DecimalString;
     net_return_percentage?: DecimalString;
     currency?: CurrencyCode;
@@ -25,6 +26,7 @@ export const OverviewCard = memo(
         gross_pnl_amount,
         total_charges_amount,
         r_factor,
+        gross_r_factor,
         charges_as_percentage_of_net_pnl,
         net_return_percentage,
         currency,
@@ -37,6 +39,7 @@ export const OverviewCard = memo(
         const charges = new Decimal(total_charges_amount || "0");
         const netReturnPercentage = new Decimal(net_return_percentage || "0");
         const rFactor = new Decimal(r_factor || "0");
+        const grossRFactor = new Decimal(gross_r_factor || "0");
 
         if (!netPnL.isZero() && netPnL.isPositive()) {
             trendingIcon = <IconTrendingUp size={20} />;
@@ -76,7 +79,7 @@ export const OverviewCard = memo(
                         </div>
 
                         <div>
-                            <span className="label-muted">R Factor</span>
+                            <span className="label-muted">Net R</span>
                             <div className={`flex items-end gap-x-2`}>
                                 <p className="sub-heading leading-none">{rFactor.toFixed(2).toString()}</p>
                             </div>
@@ -116,6 +119,15 @@ export const OverviewCard = memo(
                                         {formatCurrency(grossPnL.toFixed(2).toString(), {
                                             currency,
                                         })}
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div>
+                                <span className="label-muted">Gross R</span>
+                                <p className="text-foreground text-base">
+                                    <span className={cn("font-semibold", {})}>
+                                        {grossRFactor.toFixed(2).toString()}
                                     </span>
                                 </p>
                             </div>

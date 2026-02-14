@@ -70,11 +70,9 @@ export function CalendarDayInfoModal(props: CalendarDayInfoModalProps) {
                                 {idx + 1}.
                                 <Link
                                     to={ROUTES.viewPosition(position.id)}
-                                    target="_blank"
                                     className="flex-x inline-block w-fit gap-x-1 text-base!"
                                 >
                                     {position.symbol}
-                                    <IconArrowUpRight size={18} />
                                 </Link>
                             </h3>
 

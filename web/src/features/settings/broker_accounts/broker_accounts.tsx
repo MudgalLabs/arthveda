@@ -1029,10 +1029,8 @@ const SyncSummaryModal: FC<SyncSummaryModalProps> = ({ syncSummary, open, setOpe
                                 {syncSummary.PositionsData.map((position) => (
                                     <TableRow key={position.id}>
                                         <TableCell className="flex-x gap-x-4">
-                                            <Link to={ROUTES.viewPosition(position.id)} target="_blank">
-                                                <span className="flex-x">
-                                                    {position.symbol} <IconArrowUpRight />{" "}
-                                                </span>
+                                            <Link to={ROUTES.viewPosition(position.id)}>
+                                                <span className="flex-x">{position.symbol}</span>
                                             </Link>
 
                                             {!position.is_duplicate && <Tag size="small">New</Tag>}
