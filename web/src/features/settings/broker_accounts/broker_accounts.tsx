@@ -4,7 +4,6 @@ import isEqual from "lodash/isEqual";
 
 import { BrokerLogo } from "@/components/broker_logo";
 import {
-    IconArrowUpRight,
     IconBadgeAlert,
     IconBadgeInfo,
     IconEdit,
