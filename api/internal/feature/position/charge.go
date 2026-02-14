@@ -496,6 +496,10 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 			config.percent = 0.1
 			config.max = 20
 			config.min = 5
+		case broker.BrokerNameINDmoney:
+			config.percent = 0.1
+			config.max = 20
+			config.min = 2
 		case broker.BrokerNameKotakSecurities:
 			if etk != nil && *etk == EquityTradeIntraday {
 				config.percent = 0.05
@@ -673,6 +677,8 @@ func getDpChargesAmount(b broker.Name, etk *equityTradeKind) dpChargesConfig {
 		config.min = 20.0
 	case broker.BrokerNameGroww:
 		config.min = 16.5
+	case broker.BrokerNameINDmoney:
+		config.min = 18.5
 	case broker.BrokerNameKotakSecurities:
 		config.percent = 0.04
 		config.min = 20

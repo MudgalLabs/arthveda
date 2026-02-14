@@ -449,6 +449,20 @@ const FyersTradingHistoryDirections: FC = () => {
     );
 };
 
+const INDmoneyTradingHistoryDirections: FC = () => {
+    return (
+        <>
+            <li>Log in to the INDmoney app.</li>
+            <li>Navigate to Stocks {`->`} Manage (or look for the Reports section).</li>
+            <li>Select "Tradebook" or "Transaction History".</li>
+            <li>Choose the specific Date Range.</li>
+            <li>Click Download/Export and select the Excel/CSV format.</li>
+            Note: If that isn't available, the "Tax Filing Report" usually contains a "Trades" tab with all these
+            details
+        </>
+    );
+};
+
 const KotakSecuritiesTradingHistoryDirections: FC = () => {
     return (
         <>
@@ -560,6 +574,8 @@ const FileStep: FC<ImportStepProps> = ({ state, setState }) => {
                     <GrowwTradingHistoryDirections />
                 ) : name === "Fyers" ? (
                     <FyersTradingHistoryDirections />
+                ) : name === "INDmoney" ? (
+                    <INDmoneyTradingHistoryDirections />
                 ) : name === "Kotak Securities" ? (
                     <KotakSecuritiesTradingHistoryDirections />
                 ) : name === "Upstox" ? (
@@ -598,6 +614,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
         "Angel One": ["equity", "future", "option"],
         Groww: ["equity"],
         Fyers: ["option"],
+        INDmoney: ["equity", "option"],
         "Kotak Securities": ["equity", "future", "option"],
         Upstox: ["equity", "option"],
         Zerodha: ["equity", "future", "option"],

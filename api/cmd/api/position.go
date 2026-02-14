@@ -6,13 +6,20 @@ import (
 	"arthveda/internal/feature/position"
 	"arthveda/internal/logger"
 	"arthveda/internal/service"
+	"encoding/csv"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"github.com/xuri/excelize/v2"
 )
 
 func computePositionHandler(s *position.Service) http.HandlerFunc {
@@ -164,6 +171,7 @@ func searchPositionsHandler(s *position.Service) http.HandlerFunc {
 func importHandler(s *position.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+		l := logger.FromCtx(ctx)
 		userID := getUserIDFromContext(ctx)
 
 		file, fileHeader, err := r.FormFile("file")
@@ -273,8 +281,6 @@ func importHandler(s *position.Service) http.HandlerFunc {
 		}
 
 		payload := position.FileImportPayload{
-			File:                     file,
-			FileHeader:               fileHeader,
 			BrokerID:                 brokerID,
 			UserBrokerAccountID:      userBrokerAccountID,
 			Currency:                 currencyCode,
@@ -285,12 +291,83 @@ func importHandler(s *position.Service) http.HandlerFunc {
 			Force:                    force,
 		}
 
-		result, errKind, err := s.FileImport(ctx, userID, payload)
+		var errKind service.Error
+		var finalResult *position.ImportResult = nil
+
+		ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+
+		// Save it temporarily (excelize works with file paths or io.Reader)
+		tempFile, err := os.CreateTemp("", "upload-*"+ext)
 		if err != nil {
-			serviceErrResponse(w, r, errKind, err)
-			return
+			internalServerErrorResponse(w, r, fmt.Errorf("failed to create temp file: %w", err))
 		}
 
-		successResponse(w, r, http.StatusOK, "Positions imported successfully", result)
+		defer os.Remove(tempFile.Name()) // clean up
+
+		io.Copy(tempFile, file) // copy the uploaded file to the temp file
+		tempFile.Close()
+
+		switch ext {
+		case ".xlsx":
+			excelFile, err := excelize.OpenFile(tempFile.Name())
+			if err != nil {
+				l.Warnw("Unable to read excel file", "error", err)
+				badRequestResponse(w, r, fmt.Errorf("Unable to read excel file: %v. Please ensure the file is a valid .xlsx Excel file.", err))
+				return
+			}
+
+			defer excelFile.Close()
+
+			sheets := excelFile.GetSheetList()
+
+			for _, sheet := range sheets {
+				rows, err := excelFile.GetRows(sheet)
+				if err != nil {
+					internalServerErrorResponse(w, r, fmt.Errorf("failed to read rows from excel file: %w", err))
+					return
+				}
+
+				payload.Rows = rows
+
+				result, errKind, err := s.FileImport(ctx, userID, payload)
+				if err != nil {
+					serviceErrResponse(w, r, errKind, err)
+					return
+				}
+
+				if finalResult == nil {
+					finalResult = result
+				} else {
+					finalResult.Merge(result)
+				}
+			}
+		case ".csv":
+			f, err := os.Open(tempFile.Name())
+			if err != nil {
+				internalServerErrorResponse(w, r, fmt.Errorf("failed to open csv file: %w", err))
+				return
+			}
+
+			defer f.Close()
+
+			csvReader := csv.NewReader(f)
+			rows, err := csvReader.ReadAll()
+			if err != nil {
+				badRequestResponse(w, r, fmt.Errorf("Unable to read csv file: %v. Please ensure the file is a valid CSV file.", err))
+				return
+			}
+
+			payload.Rows = rows
+
+			finalResult, errKind, err = s.FileImport(ctx, userID, payload)
+			if err != nil {
+				serviceErrResponse(w, r, errKind, err)
+				return
+			}
+		default:
+			badRequestResponse(w, r, fmt.Errorf("Unsupported file type: %s. Only .xlsx and .csv files are supported.", ext))
+		}
+
+		successResponse(w, r, http.StatusOK, "Positions imported successfully", finalResult)
 	}
 }

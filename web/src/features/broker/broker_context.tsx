@@ -6,6 +6,7 @@ import { apiHooks } from "@/hooks/api_hooks";
 import AngelOneLogo from "@/assets/brokers/angel_one.svg";
 import Fyers from "@/assets/brokers/fyers.svg";
 import GrowwLogo from "@/assets/brokers/groww.svg";
+import INDmoney from "@/assets/brokers/indmoney.svg";
 import KotakSecuritiesLogo from "@/assets/brokers/kotak_securities.svg";
 import UpstoxLogo from "@/assets/brokers/upstox.svg";
 import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
@@ -18,6 +19,8 @@ const getBrokerLogoByName = (name: BrokerName) => {
             return Fyers;
         case "Groww":
             return GrowwLogo;
+        case "INDmoney":
+            return INDmoney;
         case "Kotak Securities":
             return KotakSecuritiesLogo;
         case "Upstox":

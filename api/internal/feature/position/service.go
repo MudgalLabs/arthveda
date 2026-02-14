@@ -17,25 +17,18 @@ import (
 	"arthveda/internal/repository"
 	"arthveda/internal/service"
 	"context"
-	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"mime/multipart"
-	"os"
-	"path/filepath"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/xuri/excelize/v2"
 )
 
 type Service struct {
-	brokerRepository            broker.ReadWriter
+	BrokerRepository            broker.ReadWriter
 	positionRepository          ReadWriter
 	tradeRepository             trade.ReadWriter
 	userBrokerAccountRepository userbrokeraccount.Reader
@@ -94,7 +87,7 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 			return result, service.ErrBadRequest, fmt.Errorf("Broker Account is required to calculate charges")
 		}
 
-		broker, err := s.brokerRepository.GetByID(ctx, *payload.BrokerID)
+		broker, err := s.BrokerRepository.GetByID(ctx, *payload.BrokerID)
 		if err != nil {
 			if err == repository.ErrNotFound {
 				return result, service.ErrBadRequest, fmt.Errorf("Broker provided is invalid or does not exist")
@@ -292,18 +285,13 @@ const (
 )
 
 type FileImportPayload struct {
+	Rows [][]string
+
 	// Broker ID is the ID of the broker from which the positions are being imported.
 	BrokerID uuid.UUID `form:"broker_id"`
 
 	// To which UserBrokerAccount the positions are being imported to.
 	UserBrokerAccountID uuid.UUID `json:"user_broker_account_id"`
-
-	// The excel file from which we will import positions.
-	// These files are expected to be in .xlsx format and are provided by a broker.
-	File multipart.File `form:"file"`
-
-	// To get the extension of the uploaded file.
-	FileHeader *multipart.FileHeader `form:"file"`
 
 	// Currency is the currency in which the positions are denominated.
 	Currency currency.CurrencyCode `json:"currency"`
@@ -331,59 +319,14 @@ var errImportFileInvalid = errors.New("File seems invalid or unsupported")
 
 func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload FileImportPayload) (*ImportResult, service.Error, error) {
 	l := logger.FromCtx(ctx)
+	rows := payload.Rows
 
-	ext := strings.ToLower(filepath.Ext(payload.FileHeader.Filename))
-
-	// Save it temporarily (excelize works with file paths or io.Reader)
-	tempFile, err := os.CreateTemp("", "upload-*"+ext)
-	if err != nil {
-		return nil, service.ErrInternalServerError, fmt.Errorf("failed to create temp file: %w", err)
-	}
-
-	defer os.Remove(tempFile.Name()) // clean up
-
-	io.Copy(tempFile, payload.File) // copy the uploaded file to the temp file
-	tempFile.Close()
-
-	var rows [][]string
-
-	switch ext {
-	case ".xlsx":
-		excelFile, err := excelize.OpenFile(tempFile.Name())
-		if err != nil {
-			l.Warnw("Unable to read excel file", "error", err)
-			return nil, service.ErrBadRequest, fmt.Errorf("Unable to read excel file: %v. Please ensure the file is a valid .xlsx Excel file.", err)
-		}
-
-		defer excelFile.Close()
-
-		sheet := excelFile.GetSheetName(0)
-		rows, err = excelFile.GetRows(sheet)
-		if err != nil {
-			return nil, service.ErrInternalServerError, fmt.Errorf("failed to read rows from excel file: %w", err)
-		}
-	case ".csv":
-		f, err := os.Open(tempFile.Name())
-		if err != nil {
-			return nil, service.ErrInternalServerError, fmt.Errorf("failed to open csv file: %w", err)
-		}
-
-		defer f.Close()
-
-		csvReader := csv.NewReader(f)
-		rows, err = csvReader.ReadAll()
-		if err != nil {
-			return nil, service.ErrBadRequest, fmt.Errorf("Unable to read csv file: %v. Please ensure the file is a valid CSV file.", err)
-		}
-	default:
-		return nil, service.ErrBadRequest, fmt.Errorf("Unsupported file type: %s. Only .xlsx and .csv files are supported.", ext)
-	}
-
+	// Nothing to do if we have no rows in the file.
 	if len(rows) == 0 {
-		return nil, service.ErrBadRequest, fmt.Errorf("File is empty")
+		return &ImportResult{}, service.ErrNone, nil
 	}
 
-	broker, err := s.brokerRepository.GetByID(ctx, payload.BrokerID)
+	broker, err := s.BrokerRepository.GetByID(ctx, payload.BrokerID)
 	if err != nil {
 		if err == repository.ErrNotFound {
 			return nil, service.ErrBadRequest, fmt.Errorf("Broker provided is invalid or does not exist")
@@ -495,6 +438,34 @@ type ImportResult struct {
 	UnsupportedPositionsCount int         `json:"unsupported_positions_count"`
 	FromDate                  time.Time   `json:"from_date"`
 	ToDate                    time.Time   `json:"to_date"`
+}
+
+func (r *ImportResult) Merge(other *ImportResult) {
+	if other == nil {
+		return
+	}
+
+	// Merge slices
+	r.Positions = append(r.Positions, other.Positions...)
+	r.InvalidPositions = append(r.InvalidPositions, other.InvalidPositions...)
+	r.UnsupportedPositions = append(r.UnsupportedPositions, other.UnsupportedPositions...)
+
+	// Merge counters
+	r.PositionsCount += other.PositionsCount
+	r.DuplicatePositionsCount += other.DuplicatePositionsCount
+	r.PositionsImportedCount += other.PositionsImportedCount
+	r.InvalidPositionsCount += other.InvalidPositionsCount
+	r.ForcedPositionsCount += other.ForcedPositionsCount
+	r.UnsupportedPositionsCount += other.UnsupportedPositionsCount
+
+	// Merge date range
+	if r.FromDate.IsZero() || (!other.FromDate.IsZero() && other.FromDate.Before(r.FromDate)) {
+		r.FromDate = other.FromDate
+	}
+
+	if r.ToDate.IsZero() || (!other.ToDate.IsZero() && other.ToDate.After(r.ToDate)) {
+		r.ToDate = other.ToDate
+	}
 }
 
 // TOOD: If I'm Syncing my Zerodha account, due to `force` flag being true, a position that

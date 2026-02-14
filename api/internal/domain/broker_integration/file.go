@@ -96,6 +96,8 @@ func GetFileAdapter(b *broker.Broker) (FileAdapter, error) {
 		return &fyersFileAdapter{}, nil
 	case broker.BrokerNameGroww:
 		return &growwFileAdapter{}, nil
+	case broker.BrokerNameINDmoney:
+		return &indmoneyFileAdapter{}, nil
 	case broker.BrokerNameKotakSecurities:
 		return &kotakSecuritiesFileAdapter{}, nil
 	case broker.BrokerNameUpstox:
@@ -565,6 +567,132 @@ func (adapter *growwFileAdapter) ParseRow(row []string, metadata *importFileMeta
 	}
 
 	instrument := types.InstrumentEquity
+
+	return &types.ImportableTrade{
+		Symbol:     symbol,
+		Instrument: instrument,
+		TradeKind:  tradeKind,
+		Quantity:   decimal.NewFromFloat(quantity),
+		Price:      price,
+		OrderID:    orderID,
+		Time:       tradeTime,
+	}, nil
+}
+
+type indmoneyFileAdapter struct{}
+
+func (adapter *indmoneyFileAdapter) GetMetadata(rows [][]string) (*importFileMetadata, error) {
+	var headerRowIdx int
+	var symbolColumnIdx, segmentColumnIdx, tradeTypeColumnIdx, quantityColumnIdx, priceColumnIdx, orderIDColumnIdx, dateTimeColumnIdx int
+
+	for rowIdx, row := range rows {
+		for columnIdx, colCell := range row {
+
+			if strings.Contains(colCell, "Scrip Symbol") {
+				symbolColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Type") {
+				tradeTypeColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Quantity") {
+				quantityColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Price") {
+				priceColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Exchange Order Id") {
+				orderIDColumnIdx = columnIdx
+			}
+
+			if strings.Contains(colCell, "Execution Date") {
+				headerRowIdx = rowIdx
+				dateTimeColumnIdx = columnIdx
+			}
+
+			// If we have found the header row, and we are past it, we can stop.
+			if headerRowIdx > 0 && rowIdx > headerRowIdx {
+				break
+			}
+		}
+	}
+
+	return &importFileMetadata{
+		HeaderRowIdx:       headerRowIdx,
+		symbolColumnIdx:    symbolColumnIdx,
+		segmentColumnIdx:   segmentColumnIdx,
+		tradeTypeColumnIdx: tradeTypeColumnIdx,
+		quantityColumnIdx:  quantityColumnIdx,
+		priceColumnIdx:     priceColumnIdx,
+		orderIDColumnIdx:   orderIDColumnIdx,
+		dateTimeColumnIdx:  dateTimeColumnIdx,
+	}, nil
+}
+
+func (adapter *indmoneyFileAdapter) ParseRow(row []string, metadata *importFileMetadata) (*types.ImportableTrade, error) {
+	symbolColumnIdx := metadata.symbolColumnIdx
+	segmentColumnIdx := metadata.segmentColumnIdx
+	tradeTypeColumnIdx := metadata.tradeTypeColumnIdx
+	quantityColumnIdx := metadata.quantityColumnIdx
+	priceColumnIdx := metadata.priceColumnIdx
+	orderIDColumnIdx := metadata.orderIDColumnIdx
+	dateTimeColumnIdx := metadata.dateTimeColumnIdx
+
+	symbol := row[symbolColumnIdx]
+	if symbol == "" {
+		return nil, fmt.Errorf("Symbol is empty in row")
+	}
+
+	segment := row[segmentColumnIdx]
+	if segment == "" {
+		return nil, fmt.Errorf("Segment is empty in row")
+	}
+
+	orderID := row[orderIDColumnIdx]
+	if orderID == "" {
+		return nil, fmt.Errorf("Order ID is empty in row")
+	}
+
+	// Parse trade details from the row
+	tradeTypeStr := row[tradeTypeColumnIdx]
+	quantityStr := row[quantityColumnIdx]
+	priceStr := row[priceColumnIdx]
+	timeStr := row[dateTimeColumnIdx]
+
+	tradeKind := types.TradeKind(strings.ToLower(tradeTypeStr))
+	quantity, err := strconv.ParseFloat(quantityStr, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid quantity at row : %s", quantityStr)
+	}
+
+	price, err := decimal.NewFromString(priceStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid price at row : %s", priceStr)
+	}
+
+	tz, _ := common.GetTimeZoneForExchange(common.ExchangeNSE)
+	ist, err := time.LoadLocation(string(tz))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load timezone for trade: %s", tz)
+	}
+
+	timeStr = strings.TrimSpace(timeStr)
+
+	tradeTime, err := time.ParseInLocation("1/2/06 15:04", timeStr, ist)
+	if err != nil {
+		return nil, fmt.Errorf("invalid time at row: %q", timeStr)
+	}
+
+	optionSymbolRegex := regexp.MustCompile(`^([A-Z]+.*?)(\d+)(CE|PE)$`)
+
+	instrument := types.InstrumentEquity
+
+	if optionSymbolRegex.MatchString(symbol) {
+		instrument = types.InstrumentOption
+	}
 
 	return &types.ImportableTrade{
 		Symbol:     symbol,
