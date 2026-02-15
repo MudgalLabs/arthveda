@@ -35,14 +35,14 @@ compose:
 build:
 	@echo ""
 	@echo "🔨 Building api ..."
-	@if $(MAKE) build-api; then \
+	@if $(MAKE) build_api; then \
 		echo "✅ api build succeeded"; \
 	else \
 		echo "❌ api build failed"; exit 1; \
 	fi
 	@echo ""
 	@echo "🔨 Building web ..."
-	@if $(MAKE) build-web; then \
+	@if $(MAKE) build_web; then \
 		echo "✅ web build succeeded"; \
 	else \
 		echo "❌ web build failed"; exit 1; \
