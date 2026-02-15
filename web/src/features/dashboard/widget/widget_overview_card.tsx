@@ -1,8 +1,7 @@
-import { memo, ReactNode } from "react";
+import { memo } from "react";
 import Decimal from "decimal.js";
 
 import { Progress, Tooltip } from "netra";
-import { IconTrendingDown, IconTrendingUp } from "@/components/icons";
 import { CurrencyCode } from "@/features/position/position";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -32,21 +31,18 @@ export const OverviewCard = memo(
         currency,
         className,
     }: Props) => {
-        let trendingIcon: ReactNode = null;
-        let netPnLColor = "text-foreground";
+        let grossPnLColor = "text-foreground";
         const netPnL = new Decimal(net_pnl_amount || "0");
         const grossPnL = new Decimal(gross_pnl_amount || "0");
         const charges = new Decimal(total_charges_amount || "0");
         const netReturnPercentage = new Decimal(net_return_percentage || "0");
-        const rFactor = new Decimal(r_factor || "0");
+        const netRFactor = new Decimal(r_factor || "0");
         const grossRFactor = new Decimal(gross_r_factor || "0");
 
-        if (!netPnL.isZero() && netPnL.isPositive()) {
-            trendingIcon = <IconTrendingUp size={20} />;
-            netPnLColor = "text-text-success";
+        if (!grossPnL.isZero() && grossPnL.isPositive()) {
+            grossPnLColor = "text-text-success";
         } else if (netPnL.isNegative()) {
-            trendingIcon = <IconTrendingDown />;
-            netPnLColor = "text-text-destructive";
+            grossPnLColor = "text-text-destructive";
         }
 
         let chargesAsPercentageOfNetPnL = new Decimal(charges_as_percentage_of_net_pnl || "0");
@@ -69,19 +65,17 @@ export const OverviewCard = memo(
                     <div className="flex w-full justify-between gap-x-4">
                         <div>
                             <span className="label-muted">Net</span>
-                            <div className={`flex items-end gap-x-2 ${netPnLColor}`}>
-                                <p className={`heading leading-none ${netPnLColor}`}>
-                                    {formatCurrency(netPnL.toFixed(2).toString(), { currency })}
+                            <div className={`flex items-end gap-x-2 ${grossPnLColor}`}>
+                                <p className={`heading leading-none ${grossPnLColor}`}>
+                                    {formatCurrency(grossPnL.toFixed(2).toString(), { currency })}
                                 </p>
-                                {net_return_percentage && <p>{netReturnPercentage.toFixed(2).toString()}%</p>}
-                                <p>{trendingIcon}</p>
                             </div>
                         </div>
 
                         <div>
-                            <span className="label-muted">Net R</span>
+                            <span className="label-muted">Gross R</span>
                             <div className={`flex items-end gap-x-2`}>
-                                <p className="sub-heading leading-none">{rFactor.toFixed(2).toString()}</p>
+                                <p className="sub-heading leading-none">{grossRFactor.toFixed(2).toString()}</p>
                             </div>
                         </div>
                     </div>
@@ -108,28 +102,22 @@ export const OverviewCard = memo(
                     <div className="w-full">
                         <div className="flex w-full justify-between">
                             <div>
-                                <span className="label-muted">Gross</span>
-                                <p className="text-foreground text-base">
-                                    <span
-                                        className={cn("font-semibold", {
-                                            // "text-text-destructive": grossPnL.isPositive(),
-                                            // "text-text-success": grossPnL.isNegative(),
-                                        })}
-                                    >
-                                        {formatCurrency(grossPnL.toFixed(2).toString(), {
-                                            currency,
-                                        })}
-                                    </span>
-                                </p>
-                            </div>
+                                <span className="label-muted">Net</span>
+                                <div className="flex-x">
+                                    <p className="text-text-primary text-base">
+                                        <span className="font-semibold">
+                                            {formatCurrency(netPnL.toFixed(2).toString(), {
+                                                currency,
+                                            })}
+                                        </span>
+                                    </p>
 
-                            <div>
-                                <span className="label-muted">Gross R</span>
-                                <p className="text-foreground text-base">
-                                    <span className={cn("font-semibold", {})}>
-                                        {grossRFactor.toFixed(2).toString()}
-                                    </span>
-                                </p>
+                                    {net_return_percentage && (
+                                        <p className="text-text-primary text-base font-semibold">
+                                            {netReturnPercentage.toFixed(2).toString()}%
+                                        </p>
+                                    )}
+                                </div>
                             </div>
 
                             <div>
@@ -140,6 +128,13 @@ export const OverviewCard = memo(
                                             currency,
                                         })}
                                     </span>
+                                </p>
+                            </div>
+
+                            <div>
+                                <span className="label-muted">Net R</span>
+                                <p className="text-foreground text-base">
+                                    <span className={cn("font-semibold", {})}>{netRFactor.toFixed(2).toString()}</span>
                                 </p>
                             </div>
                         </div>
