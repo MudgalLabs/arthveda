@@ -54,7 +54,7 @@ export function Calendar() {
         <div className="flex h-full flex-col">
             <PageHeading>
                 <div className="flex-center w-full justify-between">
-                    <div className="flex-center">
+                    <div className="flex-x">
                         <IconCalendarSingle size={18} />
                         <h1>Calendar</h1>
                         {isFetching && <Loading />}

@@ -358,12 +358,14 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                 )}
             </ul>
 
-            <section className="flex h-full w-full flex-col">
+            <section className="flex h-full w-full flex-col gap-3">
                 <ul
-                    className={cn("grid w-full min-w-0 flex-1 gap-x-2 gap-y-2", {
-                        "grid-cols-8 [grid-template-rows:repeat(6,1fr)]": !shrink,
-                        "grid-cols-7 [grid-template-rows:repeat(6,1fr)]": shrink,
-                    })}
+                    className={cn(
+                        "grid w-full min-w-0 flex-1 gap-x-2 gap-y-2",
+                        shrink
+                            ? "grid-cols-7 [grid-template-rows:repeat(6,1fr)]"
+                            : "grid-cols-8 [grid-template-rows:repeat(6,1fr)]"
+                    )}
                 >
                     {weeks.map((week, weekIdx) => (
                         <Fragment key={weekIdx}>
@@ -384,11 +386,14 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                                     </li>
                                 );
                             })}
-                            {Array.from({ length: 7 - week.length }).map((_, idx) => (
-                                <li key={`empty-${weekIdx}-${idx}`} className="h-full w-full min-w-0" />
-                            ))}
+
+                            {!shrink &&
+                                Array.from({ length: 7 - week.length }).map((_, idx) => (
+                                    <li key={`empty-${weekIdx}-${idx}`} className="h-full w-full min-w-0" />
+                                ))}
+
                             {!shrink && (
-                                <li key={`weekly-${weekIdx}`} className="h-full w-full min-w-0">
+                                <li className="h-full w-full min-w-0">
                                     <WeeklyPerformanceTile
                                         weekNumber={weekIdx + 1}
                                         pnl={weeklyStats[weekIdx][perfViewMode]}
@@ -400,6 +405,21 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                         </Fragment>
                     ))}
                 </ul>
+
+                {shrink && (
+                    <div className="grid h-20 grid-cols-5 gap-2">
+                        {weeklyStats.map((week, idx) => (
+                            <WeeklyPerformanceTile
+                                key={idx}
+                                weekNumber={idx + 1}
+                                pnl={week[perfViewMode]}
+                                perfViewMode={perfViewMode}
+                                totalPositions={week.totalPositions}
+                                shrinkedView={shrink}
+                            />
+                        ))}
+                    </div>
+                )}
             </section>
         </section>
     );
@@ -546,10 +566,11 @@ interface WeeklyPerformanceTileProps {
     pnl: Decimal;
     perfViewMode: CalendarPerfViewMode;
     totalPositions: number;
+    shrinkedView?: boolean;
 }
 
 function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
-    const { weekNumber, pnl, perfViewMode, totalPositions } = props;
+    const { weekNumber, pnl, perfViewMode, totalPositions, shrinkedView = false } = props;
     const isWin = pnl.isPositive();
     const isLoss = pnl.isNegative();
 
@@ -565,17 +586,28 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
                 }
             )}
         >
-            <span className="font-semibold">Week {weekNumber}</span>
+            <span
+                className={cn("font-semibold", {
+                    "text-xs": shrinkedView,
+                })}
+            >
+                Week {weekNumber}
+            </span>
 
             {totalPositions > 0 && (
                 <div className="flex w-full justify-between">
-                    <PnL value={pnl} className="absolute-center text-lg font-medium">
+                    <PnL
+                        value={pnl}
+                        className={cn("absolute-center text-lg font-medium", {
+                            "text-xs": shrinkedView,
+                        })}
+                    >
                         {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
                             ? formatCurrency(pnl.toString(), { compact: true })
                             : pnl.toFixed(2)}
                     </PnL>
 
-                    <p className="text-xs">{totalPositions} positions</p>
+                    {!shrinkedView && <p className="text-xs">{totalPositions} positions</p>}
                 </div>
             )}
         </div>
