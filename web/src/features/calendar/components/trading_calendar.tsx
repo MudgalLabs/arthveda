@@ -445,25 +445,33 @@ function Day(props: DayProps) {
                         <span
                             className={cn("font-semibold", {
                                 "text-text-muted": !dpDay.inCurrentMonth,
-                                "flex-center h-full w-full": shrinkedView,
+                                "h-full w-full text-sm": shrinkedView,
                             })}
                         >
                             {dpDay.day}
                         </span>
 
-                        {dpDay.inCurrentMonth && !shrinkedView && (
+                        {dpDay.inCurrentMonth && (
                             <div className="flex w-full justify-between">
                                 {!isNoTradeDay && (
-                                    <PnL value={netPnL} className="absolute-center text-lg font-medium">
+                                    <PnL
+                                        value={netPnL}
+                                        className={cn("absolute-center text-lg font-medium", {
+                                            "text-xs": shrinkedView,
+                                        })}
+                                    >
                                         {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
                                             ? formatCurrency(netPnL.toString(), {
                                                   compact: true,
+                                                  hideSymbol: true,
                                               })
                                             : netPnL.toFixed(2)}
                                     </PnL>
                                 )}
 
-                                {positionsCount > 0 && <span className="text-xs">{positionsCount} positions</span>}
+                                {positionsCount > 0 && !shrinkedView && (
+                                    <span className="text-xs">{positionsCount} positions</span>
+                                )}
                             </div>
                         )}
                     </div>
