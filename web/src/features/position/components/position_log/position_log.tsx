@@ -27,6 +27,7 @@ import {
     TabsList,
     TabsTrigger,
     TabsContent,
+    IconTrash,
 } from "netra";
 
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
@@ -215,37 +216,48 @@ function PositionLog() {
     return (
         <>
             <PageHeading>
-                {isCreatingPosition ? (
-                    <>
-                        <IconSquarePen size={18} />
-                        <h1>{title}</h1>
-                    </>
-                ) : (
-                    <div className="flex-x gap-x-8">
-                        <div className="flex-x">
-                            <IconCandlestick size={18} />
-                            <Breadcrumb>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem>
-                                        <BreadcrumbLink asChild>
-                                            <Link className="text-[16px]! font-medium!" to={ROUTES.listPositions}>
-                                                Positions
-                                            </Link>
-                                        </BreadcrumbLink>
-                                    </BreadcrumbItem>
+                <div className="flex-x w-full justify-between">
+                    <div className="flex-x">
+                        {isCreatingPosition ? (
+                            <>
+                                <IconSquarePen size={18} />
+                                <h1>{title}</h1>
+                            </>
+                        ) : (
+                            <div className="flex-x w-full justify-between gap-x-8">
+                                <div className="flex-x">
+                                    <IconCandlestick size={18} />
+                                    <Breadcrumb>
+                                        <BreadcrumbList>
+                                            <BreadcrumbItem>
+                                                <BreadcrumbLink asChild>
+                                                    <Link
+                                                        className="text-[16px]! font-medium!"
+                                                        to={ROUTES.listPositions}
+                                                    >
+                                                        Positions
+                                                    </Link>
+                                                </BreadcrumbLink>
+                                            </BreadcrumbItem>
 
-                                    <BreadcrumbSeparator />
+                                            <BreadcrumbSeparator />
 
-                                    <BreadcrumbItem>
-                                        <BreadcrumbPage>{title}</BreadcrumbPage>
-                                    </BreadcrumbItem>
-                                </BreadcrumbList>
-                            </Breadcrumb>
-                        </div>
+                                            <BreadcrumbItem>
+                                                <BreadcrumbPage>{title}</BreadcrumbPage>
+                                            </BreadcrumbItem>
+                                        </BreadcrumbList>
+                                    </Breadcrumb>
+                                </div>
+                            </div>
+                        )}
+
+                        {isComputing && <Loading />}
                     </div>
-                )}
 
-                {isComputing && <Loading />}
+                    {isEditingPosition && (
+                        <DeleteButton deletePosition={() => deletePosition(position.id)} isDeleting={isDeleting} />
+                    )}
+                </div>
             </PageHeading>
 
             <div className="flex flex-col gap-y-8 lg:flex-row!">
@@ -365,7 +377,7 @@ function PositionLog() {
                     </div>
                 </div>
 
-                <div className="w-full lg:pl-4">
+                <div className="w-full min-w-0 lg:pl-4">
                     <Tabs defaultValue="notes" value={tab} onValueChange={setTab}>
                         <TabsList>
                             <TabsTrigger value="notes">Notes</TabsTrigger>
@@ -385,33 +397,36 @@ function PositionLog() {
 
                     <div className="h-8" />
 
-                    <div className="flex flex-col justify-between gap-x-12 gap-y-4 sm:flex-row">
-                        <div className="flex flex-col justify-between gap-2 sm:flex-row">
-                            {isEditingPosition && (
-                                <DeleteButton
-                                    deletePosition={() => deletePosition(position.id)}
-                                    isDeleting={isDeleting}
-                                />
-                            )}
-                        </div>
+                    {hasPositionDataChanged && (
+                        <div className="bg-overlay-bg border-border-subtle absolute bottom-4 left-1/2 w-90 -translate-x-1/2 rounded-md border-1 p-4 md:w-110">
+                            <div className="flex-x justify-between">
+                                <div>
+                                    <p>Changes are made !</p>
+                                </div>
 
-                        <div className="flex flex-col justify-between gap-2 sm:flex-row">
-                            <DiscardButton hasSomethingToDiscard={hasPositionDataChanged} discard={discard} />
+                                <div className="flex-x">
+                                    <DiscardButton hasSomethingToDiscard={hasPositionDataChanged} discard={discard} />
 
-                            <Tooltip
-                                content={isEditingPosition ? "No changes to save" : "Some required fields are missing"}
-                                disabled={!disablePrimaryButton}
-                            >
-                                <Button
-                                    onClick={handleClickSave}
-                                    loading={isCreating || isUpdating}
-                                    disabled={disablePrimaryButton}
-                                >
-                                    {isCreatingPosition ? "Create" : "Update"}
-                                </Button>
-                            </Tooltip>
+                                    <Tooltip
+                                        content={
+                                            isEditingPosition
+                                                ? "No changes to save"
+                                                : "Some required fields are missing"
+                                        }
+                                        disabled={!disablePrimaryButton}
+                                    >
+                                        <Button
+                                            onClick={handleClickSave}
+                                            loading={isCreating || isUpdating}
+                                            disabled={disablePrimaryButton}
+                                        >
+                                            {isCreatingPosition ? "Create" : "Update"}
+                                        </Button>
+                                    </Tooltip>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="h-8" />
                 </div>
@@ -485,14 +500,18 @@ const DeleteButton = memo(
 
         return (
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="destructive">Delete</Button>
-                </DialogTrigger>
+                <Tooltip content="Delete this position" contentProps={{ align: "center", side: "left" }}>
+                    <DialogTrigger asChild>
+                        <Button variant="destructive" size="icon">
+                            <IconTrash size={20} />
+                        </Button>
+                    </DialogTrigger>
+                </Tooltip>
 
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Delete Position</DialogTitle>
-                        <DialogDescription>Are you sure you want to delete this position?</DialogDescription>
+                        <DialogDescription>Are you sure?</DialogDescription>
                     </DialogHeader>
 
                     <DialogFooter>

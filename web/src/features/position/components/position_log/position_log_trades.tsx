@@ -52,9 +52,9 @@ export function PositionLogTrades() {
 
             <TradesTable trades={position.trades || []} setTrades={setTrades} />
 
-            <div className="h-2" />
+            <div className="h-8" />
 
-            <div className="flex w-full justify-end">
+            <div className="flex w-full justify-center">
                 <AddTradeButton tradesAreValid={tradesAreValid} insertNewTrade={insertNewTrade} />
             </div>
         </>
