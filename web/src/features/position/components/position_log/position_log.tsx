@@ -216,38 +216,35 @@ function PositionLog() {
     return (
         <>
             <PageHeading>
-                <div className="flex-x w-full justify-between">
-                    <div className="flex-x">
+                <div className="flex w-full min-w-0 items-center justify-between">
+                    <div className="flex min-w-0 items-center gap-x-2">
                         {isCreatingPosition ? (
                             <>
                                 <IconSquarePen size={18} />
-                                <h1>{title}</h1>
+                                <h1 className="truncate">{title}</h1>
                             </>
                         ) : (
-                            <div className="flex-x w-full justify-between gap-x-8">
-                                <div className="flex-x">
-                                    <IconCandlestick size={18} />
-                                    <Breadcrumb>
-                                        <BreadcrumbList>
-                                            <BreadcrumbItem>
-                                                <BreadcrumbLink asChild>
-                                                    <Link
-                                                        className="text-[16px]! font-medium!"
-                                                        to={ROUTES.listPositions}
-                                                    >
-                                                        Positions
-                                                    </Link>
-                                                </BreadcrumbLink>
-                                            </BreadcrumbItem>
+                            <div className="flex w-full min-w-0 items-center gap-x-2">
+                                <IconCandlestick size={18} />
 
-                                            <BreadcrumbSeparator />
+                                <Breadcrumb className="min-w-0">
+                                    <BreadcrumbList className="flex min-w-0 items-center gap-x-2">
+                                        <BreadcrumbItem>
+                                            <BreadcrumbLink asChild>
+                                                <Link className="text-[16px]! font-medium!" to={ROUTES.listPositions}>
+                                                    Positions
+                                                </Link>
+                                            </BreadcrumbLink>
+                                        </BreadcrumbItem>
 
-                                            <BreadcrumbItem>
-                                                <BreadcrumbPage>{title}</BreadcrumbPage>
-                                            </BreadcrumbItem>
-                                        </BreadcrumbList>
-                                    </Breadcrumb>
-                                </div>
+                                        <BreadcrumbSeparator />
+
+                                        {/* THIS IS THE CRITICAL PART */}
+                                        <BreadcrumbItem className="min-w-0 flex-1">
+                                            <BreadcrumbPage className="block truncate">{title}</BreadcrumbPage>
+                                        </BreadcrumbItem>
+                                    </BreadcrumbList>
+                                </Breadcrumb>
                             </div>
                         )}
 
