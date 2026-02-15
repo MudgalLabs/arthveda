@@ -140,19 +140,6 @@ const columns: ColumnDef<Trade>[] = [
         cell: ({ row }) => <span>{formatDate(new Date(row.original.time), { time: true })}</span>,
     },
     {
-        id: "realised_net_pnl",
-        accessorKey: "realised_net_pnl",
-        header: ({ column, table }) => (
-            <DataTableColumnHeader title="Net" column={column} disabled={table.options.meta?.isFetching} />
-        ),
-        cell: ({ row }) => (
-            <PnL className="flex-x gap-x-4" value={new Decimal(row.original.realised_net_pnl || 0)}>
-                <span>{formatCurrency(row.original.realised_net_pnl || 0)} </span>
-                <span>{Number(row.original.r_factor).toFixed(2)}R</span>
-            </PnL>
-        ),
-    },
-    {
         id: "realised_gross_pnl",
         accessorKey: "realised_gross_pnl",
         header: ({ column, table }) => (
@@ -174,6 +161,19 @@ const columns: ColumnDef<Trade>[] = [
         cell: ({ row }) => (
             <PnL value={new Decimal(row.original.charges_amount || 0)} variant="negative">
                 {formatCurrency(row.original.charges_amount || 0)}
+            </PnL>
+        ),
+    },
+    {
+        id: "realised_net_pnl",
+        accessorKey: "realised_net_pnl",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Net" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        cell: ({ row }) => (
+            <PnL className="flex-x gap-x-4" value={new Decimal(row.original.realised_net_pnl || 0)}>
+                <span>{formatCurrency(row.original.realised_net_pnl || 0)} </span>
+                <span>{Number(row.original.r_factor).toFixed(2)}R</span>
             </PnL>
         ),
     },

@@ -26,6 +26,8 @@ export const LocalStorageKeyPnLShowNet: LocalStorageKey = "pnl_show_net";
 export const LocalStorageKeyPnLShowGross: LocalStorageKey = "pnl_show_gross";
 export const LocalStorageKeyPnLShowCharges: LocalStorageKey = "pnl_show_charges";
 
+export const LocalStorageKeyCalendarPerfViewMode: LocalStorageKey = "calendar_perf_view_mode";
+
 export function saveToLocalStorage(key: LocalStorageKey, value: string) {
     localStorage.setItem(key, value);
 }

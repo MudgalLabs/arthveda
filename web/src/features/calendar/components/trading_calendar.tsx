@@ -1,14 +1,15 @@
 import { Fragment, useMemo, useState } from "react";
 import { DPDay, useDatePicker } from "@rehookify/datepicker";
 import Decimal from "decimal.js";
-
 import { Button, cn, formatCurrency, IconChevronLeft, IconChevronRight, Separator, useControlled } from "netra";
+
 import { GetCalendarAllResponse } from "@/lib/api/calendar";
 import { PnL } from "@/components/pnl";
-import { CalendarDayInfoModal } from "@/features/calendar/components/calendar_day_info_modal";
 import { apiHooks } from "@/hooks/api_hooks";
+import { CalendarDayInfoModal } from "@/features/calendar/components/calendar_day_info_modal";
+import { CalendarPerfViewMode } from "@/features/calendar/components/calendar_perf_view_select";
 
-const enum ViewMode {
+const enum CalendarViewMode {
     ALL = "all",
     YEARLY = "yearly",
     MONTHLY = "monthly",
@@ -31,15 +32,16 @@ const MONTHS = [
 
 interface TradingCalendarProps {
     data: GetCalendarAllResponse;
+    perfViewMode: CalendarPerfViewMode;
     shrinkedView?: boolean;
 }
 
 export function TradingCalendar(props: TradingCalendarProps) {
-    const { data, shrinkedView } = props;
+    const { data, shrinkedView = false, perfViewMode } = props;
 
     const now = new Date();
 
-    const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.MONTHLY);
+    const [viewMode, setViewMode] = useState<CalendarViewMode>(CalendarViewMode.MONTHLY);
 
     const [selectedDates, onDatesChange] = useState<Date[]>([]);
     const [offsetDate, onOffsetChange] = useState<Date>(new Date());
@@ -55,9 +57,9 @@ export function TradingCalendar(props: TradingCalendarProps) {
         calendar: { mode: "fluid" },
     });
 
-    const isAllView = viewMode === ViewMode.ALL;
-    const isYearlyView = viewMode === ViewMode.YEARLY;
-    const isMonthlyView = viewMode === ViewMode.MONTHLY;
+    const isAllView = viewMode === CalendarViewMode.ALL;
+    const isYearlyView = viewMode === CalendarViewMode.YEARLY;
+    const isMonthlyView = viewMode === CalendarViewMode.MONTHLY;
 
     const { days, year, month } = calendars[0];
 
@@ -90,10 +92,11 @@ export function TradingCalendar(props: TradingCalendarProps) {
                             <li key={year}>
                                 <PnLTile
                                     title={year}
-                                    pnl={new Decimal(yearData?.pnl ?? 0)}
+                                    pnl={new Decimal(yearData?.[perfViewMode] ?? 0)}
+                                    perfViewMode={perfViewMode}
                                     positionsCount={yearData?.positions_count ?? 0}
                                     onClick={() => {
-                                        setViewMode(ViewMode.YEARLY);
+                                        setViewMode(CalendarViewMode.YEARLY);
                                         onOffsetChange(new Date(Number(year), now.getMonth(), now.getDate()));
                                     }}
                                     disabled={isFuture}
@@ -118,10 +121,11 @@ export function TradingCalendar(props: TradingCalendarProps) {
                             <li key={month}>
                                 <PnLTile
                                     title={month}
-                                    pnl={new Decimal(monthData?.pnl ?? 0)}
+                                    pnl={new Decimal(monthData?.[perfViewMode] ?? 0)}
+                                    perfViewMode={perfViewMode}
                                     positionsCount={monthData?.positions_count ?? 0}
                                     onClick={() => {
-                                        setViewMode(ViewMode.MONTHLY);
+                                        setViewMode(CalendarViewMode.MONTHLY);
                                         onOffsetChange(new Date(Number(year), idx, now.getDate()));
                                     }}
                                     disabled={isFuture}
@@ -134,7 +138,14 @@ export function TradingCalendar(props: TradingCalendarProps) {
         }
 
         if (isMonthlyView) {
-            return <MonthlyCalendar data={data} shrink={shrinkedView} offsetDate={offsetDate} />;
+            return (
+                <MonthlyCalendar
+                    data={data}
+                    perfViewMode={perfViewMode}
+                    shrink={shrinkedView}
+                    offsetDate={offsetDate}
+                />
+            );
         }
 
         return null;
@@ -183,12 +194,12 @@ export function TradingCalendar(props: TradingCalendarProps) {
 
                             <span className="space-x-2">
                                 {isMonthlyView && (
-                                    <Button variant="link" onClick={() => setViewMode(ViewMode.YEARLY)}>
+                                    <Button variant="link" onClick={() => setViewMode(CalendarViewMode.YEARLY)}>
                                         {month}
                                     </Button>
                                 )}
 
-                                <Button variant="link" onClick={() => setViewMode(ViewMode.ALL)}>
+                                <Button variant="link" onClick={() => setViewMode(CalendarViewMode.ALL)}>
                                     {year}
                                 </Button>
                             </span>
@@ -206,9 +217,14 @@ export function TradingCalendar(props: TradingCalendarProps) {
                         <div className="flex-center sm:flex-x gap-x-4!">
                             {isMonthlyView ? (
                                 <>
-                                    {monthData?.pnl && (
-                                        <PnL value={new Decimal(monthData.pnl)} className="text-xl font-semibold">
-                                            {formatCurrency(monthData.pnl)}
+                                    {monthData?.[perfViewMode] && (
+                                        <PnL
+                                            value={new Decimal(monthData[perfViewMode])}
+                                            className="text-xl font-semibold"
+                                        >
+                                            {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
+                                                ? formatCurrency(monthData[perfViewMode])
+                                                : new Decimal(monthData[perfViewMode]).toFixed(2)}
                                         </PnL>
                                     )}
 
@@ -218,9 +234,14 @@ export function TradingCalendar(props: TradingCalendarProps) {
                                 </>
                             ) : (
                                 <>
-                                    {yearlyData?.pnl && (
-                                        <PnL value={new Decimal(yearlyData.pnl)} className="text-xl font-semibold">
-                                            {formatCurrency(yearlyData.pnl)}
+                                    {yearlyData?.[perfViewMode] && (
+                                        <PnL
+                                            value={new Decimal(yearlyData[perfViewMode])}
+                                            className="text-xl font-semibold"
+                                        >
+                                            {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
+                                                ? formatCurrency(yearlyData[perfViewMode])
+                                                : new Decimal(yearlyData[perfViewMode]).toFixed(2)}
                                         </PnL>
                                     )}
 
@@ -245,13 +266,14 @@ export function TradingCalendar(props: TradingCalendarProps) {
 
 interface MonthlyCalendarProps {
     data: GetCalendarAllResponse;
+    perfViewMode: CalendarPerfViewMode;
     offsetDate?: Date;
     shrink?: boolean;
     onClickOpen?: () => void;
 }
 
 function MonthlyCalendar(props: MonthlyCalendarProps) {
-    const { data, shrink, offsetDate: offsetDateProp, onClickOpen } = props;
+    const { data, perfViewMode, shrink, offsetDate: offsetDateProp, onClickOpen } = props;
 
     const [selectedDates, onDatesChange] = useState<Date[]>([]);
     const [offsetDate, onOffsetChange] = useControlled({
@@ -285,9 +307,17 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
     const weeklyStats = weeks.map((_, weekIdx) => {
         const weekNumber = weekIdx + 1;
         const weekly = monthData?.weekly?.[weekNumber];
-        if (!weekly) return { pnl: new Decimal(0), totalPositions: 0 };
+        if (!weekly)
+            return {
+                net_pnl: new Decimal(0),
+                gross_pnl: new Decimal(0),
+                gross_r_factor: new Decimal(0),
+                totalPositions: 0,
+            };
         return {
-            pnl: new Decimal(weekly.pnl),
+            net_pnl: new Decimal(weekly.net_pnl),
+            gross_pnl: new Decimal(weekly.gross_pnl),
+            gross_r_factor: new Decimal(weekly.gross_r_factor),
             totalPositions: weekly.positions_count,
         };
     });
@@ -339,15 +369,16 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                         <Fragment key={weekIdx}>
                             {week.map((dpDay) => {
                                 const day = Number(dpDay.day);
-                                const pnl = new Decimal(monthData?.daily[day]?.pnl ?? 0);
+                                const pnl = new Decimal(monthData?.daily[day]?.[perfViewMode] ?? 0);
                                 const numberOfPositions = monthData?.daily[day]?.positions_count ?? 0;
 
                                 return (
                                     <li key={dpDay.$date.toDateString()} className="h-full w-full min-w-0">
                                         <Day
                                             dpDay={dpDay}
-                                            pnl={pnl}
+                                            netPnL={pnl}
                                             positionsCount={numberOfPositions}
+                                            perfViewMode={perfViewMode}
                                             shrinkedView={shrink}
                                         />
                                     </li>
@@ -360,7 +391,8 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                                 <li key={`weekly-${weekIdx}`} className="h-full w-full min-w-0">
                                     <WeeklyPerformanceTile
                                         weekNumber={weekIdx + 1}
-                                        pnl={weeklyStats[weekIdx].pnl}
+                                        pnl={weeklyStats[weekIdx][perfViewMode]}
+                                        perfViewMode={perfViewMode}
                                         totalPositions={weeklyStats[weekIdx].totalPositions}
                                     />
                                 </li>
@@ -375,17 +407,18 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
 
 interface DayProps {
     dpDay: DPDay;
-    pnl: Decimal;
+    netPnL: Decimal;
     positionsCount: number;
+    perfViewMode: CalendarPerfViewMode;
     shrinkedView?: boolean;
 }
 
 function Day(props: DayProps) {
-    const { dpDay, pnl, positionsCount, shrinkedView } = props;
+    const { dpDay, netPnL, positionsCount, perfViewMode, shrinkedView } = props;
 
-    const isWin = dpDay.inCurrentMonth && pnl.isPositive();
-    const isLoss = dpDay.inCurrentMonth && pnl.isNegative();
-    const isNoTradeDay = dpDay.inCurrentMonth && pnl.isZero() && positionsCount === 0;
+    const isWin = dpDay.inCurrentMonth && netPnL.isPositive();
+    const isLoss = dpDay.inCurrentMonth && netPnL.isNegative();
+    const isNoTradeDay = dpDay.inCurrentMonth && netPnL.isZero() && positionsCount === 0;
 
     const [open, setOpen] = useState(false);
     const { data, isFetching } = apiHooks.calendar.useGetCalendarDay(dpDay.$date, {
@@ -421,10 +454,12 @@ function Day(props: DayProps) {
                         {dpDay.inCurrentMonth && !shrinkedView && (
                             <div className="flex w-full justify-between">
                                 {!isNoTradeDay && (
-                                    <PnL value={pnl} className="absolute-center text-lg font-medium">
-                                        {formatCurrency(pnl.toString(), {
-                                            compact: true,
-                                        })}
+                                    <PnL value={netPnL} className="absolute-center text-lg font-medium">
+                                        {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
+                                            ? formatCurrency(netPnL.toString(), {
+                                                  compact: true,
+                                              })
+                                            : netPnL.toFixed(2)}
                                     </PnL>
                                 )}
 
@@ -456,13 +491,14 @@ function WeekDay(props: WeekDayProps) {
 interface PnLTileProps {
     title: string;
     pnl: Decimal;
+    perfViewMode: CalendarPerfViewMode;
     positionsCount: number;
     onClick?: () => void;
     disabled?: boolean;
 }
 
 function PnLTile(props: PnLTileProps) {
-    const { title, pnl, positionsCount, onClick, disabled } = props;
+    const { title, pnl, perfViewMode, positionsCount, onClick, disabled } = props;
 
     const isWin = pnl.isPositive();
     const isLoss = pnl.isNegative();
@@ -486,7 +522,9 @@ function PnLTile(props: PnLTileProps) {
 
             <div className="flex w-full justify-between">
                 <PnL value={pnl} className="absolute-center text-lg font-bold">
-                    {formatCurrency(pnl.toString(), { compact: true })}
+                    {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
+                        ? formatCurrency(pnl.toString(), { compact: true })
+                        : pnl.toFixed(2)}
                 </PnL>
 
                 <p className="text-xs">{positionsCount} positions</p>
@@ -498,11 +536,12 @@ function PnLTile(props: PnLTileProps) {
 interface WeeklyPerformanceTileProps {
     weekNumber: number;
     pnl: Decimal;
+    perfViewMode: CalendarPerfViewMode;
     totalPositions: number;
 }
 
 function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
-    const { weekNumber, pnl, totalPositions } = props;
+    const { weekNumber, pnl, perfViewMode, totalPositions } = props;
     const isWin = pnl.isPositive();
     const isLoss = pnl.isNegative();
 
@@ -523,7 +562,9 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
             {totalPositions > 0 && (
                 <div className="flex w-full justify-between">
                     <PnL value={pnl} className="absolute-center text-lg font-medium">
-                        {formatCurrency(pnl.toString(), { compact: true })}
+                        {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
+                            ? formatCurrency(pnl.toString(), { compact: true })
+                            : pnl.toFixed(2)}
                     </PnL>
 
                     <p className="text-xs">{totalPositions} positions</p>

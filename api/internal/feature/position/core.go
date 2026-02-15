@@ -684,13 +684,14 @@ func FilterPositionsWithRealisingTradesUpTo(positions []*Position, end time.Time
 }
 
 type PnlBucket struct {
-	Label     string                  `json:"label"`
-	Start     time.Time               `json:"start"`
-	End       time.Time               `json:"end"`
-	NetPnL    decimal.Decimal         `json:"net_pnl"`
-	GrossPnL  decimal.Decimal         `json:"gross_pnl"`
-	Charges   decimal.Decimal         `json:"charges"`
-	Positions map[uuid.UUID]*Position `json:"-"` // Positions that contributed to this bucket's PnL.
+	Label        string                  `json:"label"`
+	Start        time.Time               `json:"start"`
+	End          time.Time               `json:"end"`
+	GrossPnL     decimal.Decimal         `json:"gross_pnl"`
+	Charges      decimal.Decimal         `json:"charges"`
+	NetPnL       decimal.Decimal         `json:"net_pnl"`
+	GrossRFactor decimal.Decimal         `json:"gross_r_factor"`
+	Positions    map[uuid.UUID]*Position `json:"-"` // Positions that contributed to this bucket's PnL.
 }
 
 func GetPnLBuckets(positions []*Position, period common.BucketPeriod, start, end time.Time, loc *time.Location) []PnlBucket {
@@ -755,11 +756,13 @@ func GetPnLBuckets(positions []*Position, period common.BucketPeriod, start, end
 		grossPnL := t.RealisedGrossPnL
 		charges := stats.ChargesAmount.Sub(chargesAmount)
 		netPnL := grossPnL.Sub(charges)
+		grossRFactor := t.GrossRFactor
 
 		if stats.IsScaleOut {
 			activeBucket.GrossPnL = activeBucket.GrossPnL.Add(grossPnL)
-			activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
 			activeBucket.Charges = activeBucket.Charges.Add(charges)
+			activeBucket.NetPnL = activeBucket.NetPnL.Add(netPnL)
+			activeBucket.GrossRFactor = activeBucket.GrossRFactor.Add(grossRFactor)
 
 			chargesByPositionID[t.PositionID] = stats.ChargesAmount
 

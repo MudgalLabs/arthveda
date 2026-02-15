@@ -27,14 +27,17 @@ func NewService(positionRepository position.ReadWriter) *Service {
 
 type calendarDaily struct {
 	GrossPnL       decimal.Decimal `json:"gross_pnl"`
-	PnL            decimal.Decimal `json:"pnl"`
 	Charges        decimal.Decimal `json:"charges"`
+	NetPnL         decimal.Decimal `json:"net_pnl"`
+	GrossRFactor   decimal.Decimal `json:"gross_r_factor"`
 	PositionsCount int             `json:"positions_count"`
 	PositionIDs    []uuid.UUID     `json:"position_ids"`
 }
 
 type calendarWeekly struct {
-	PnL            decimal.Decimal `json:"pnl"`
+	GrossPnL       decimal.Decimal `json:"gross_pnl"`
+	NetPnL         decimal.Decimal `json:"net_pnl"`
+	GrossRFactor   decimal.Decimal `json:"gross_r_factor"`
 	PositionsCount int             `json:"positions_count"`
 	WeekNumber     int             `json:"week_number"`
 }
@@ -42,14 +45,18 @@ type calendarWeekly struct {
 type calendarMonthly struct {
 	Year           int                    `json:"year"`
 	Month          time.Month             `json:"month"`
-	PnL            decimal.Decimal        `json:"pnl"`
+	GrossPnL       decimal.Decimal        `json:"gross_pnl"`
+	NetPnL         decimal.Decimal        `json:"net_pnl"`
+	GrossRFactor   decimal.Decimal        `json:"gross_r_factor"`
 	PositionsCount int                    `json:"positions_count"`
 	Daily          map[int]calendarDaily  `json:"daily"`
 	Weekly         map[int]calendarWeekly `json:"weekly"` // week number -> weekly stats
 }
 
 type calendarYearly struct {
-	PnL            decimal.Decimal            `json:"pnl"`
+	GrossPnL       decimal.Decimal            `json:"gross_pnl"`
+	NetPnL         decimal.Decimal            `json:"net_pnl"`
+	GrossRFactor   decimal.Decimal            `json:"gross_r_factor"`
 	PositionsCount int                        `json:"positions_count"`
 	Monthly        map[string]calendarMonthly `json:"monthly"` // key is month (e.g., "September")
 }
@@ -137,7 +144,9 @@ func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 		yearlyEntry, exists := result[year]
 		if !exists {
 			yearlyEntry = calendarYearly{
-				PnL:            decimal.Zero,
+				NetPnL:         decimal.Zero,
+				GrossPnL:       decimal.Zero,
+				GrossRFactor:   decimal.Zero,
 				PositionsCount: 0,
 				Monthly:        make(map[string]calendarMonthly),
 			}
@@ -149,7 +158,9 @@ func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 			monthlyEntry = calendarMonthly{
 				Year:           year,
 				Month:          month,
-				PnL:            decimal.Zero,
+				NetPnL:         decimal.Zero,
+				GrossPnL:       decimal.Zero,
+				GrossRFactor:   decimal.Zero,
 				PositionsCount: 0,
 				Daily:          make(map[int]calendarDaily),
 				Weekly:         make(map[int]calendarWeekly),
@@ -161,8 +172,9 @@ func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 		if !exists {
 			dailyEntry = calendarDaily{
 				GrossPnL:       decimal.Zero,
-				PnL:            decimal.Zero,
 				Charges:        decimal.Zero,
+				NetPnL:         decimal.Zero,
+				GrossRFactor:   decimal.Zero,
 				PositionsCount: 0,
 				PositionIDs:    []uuid.UUID{},
 			}
@@ -170,11 +182,17 @@ func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 		// Add bucket PnL to daily/monthly/yearly
 		dailyEntry.GrossPnL = dailyEntry.GrossPnL.Add(bucket.GrossPnL)
-		dailyEntry.PnL = dailyEntry.PnL.Add(bucket.NetPnL)
 		dailyEntry.Charges = dailyEntry.Charges.Add(bucket.Charges)
+		dailyEntry.NetPnL = dailyEntry.NetPnL.Add(bucket.NetPnL)
+		dailyEntry.GrossRFactor = dailyEntry.GrossRFactor.Add(bucket.GrossRFactor)
 
-		monthlyEntry.PnL = monthlyEntry.PnL.Add(bucket.NetPnL)
-		yearlyEntry.PnL = yearlyEntry.PnL.Add(bucket.NetPnL)
+		monthlyEntry.GrossPnL = monthlyEntry.GrossPnL.Add(bucket.GrossPnL)
+		monthlyEntry.NetPnL = monthlyEntry.NetPnL.Add(bucket.NetPnL)
+		monthlyEntry.GrossRFactor = monthlyEntry.GrossRFactor.Add(bucket.GrossRFactor)
+
+		yearlyEntry.GrossPnL = yearlyEntry.GrossPnL.Add(bucket.GrossPnL)
+		yearlyEntry.NetPnL = yearlyEntry.NetPnL.Add(bucket.NetPnL)
+		yearlyEntry.GrossRFactor = yearlyEntry.GrossRFactor.Add(bucket.GrossRFactor)
 
 		monthlyEntry.Daily[day] = dailyEntry
 		yearlyEntry.Monthly[monthStr] = monthlyEntry
@@ -214,19 +232,27 @@ func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 			for _, day := range daysInMonth {
 				week := weekOfMonthByDay[day]
 				dailyEntry := monthlyEntry.Daily[day]
+
 				if _, ok := weeklyStats[week]; !ok {
 					weeklyStats[week] = calendarWeekly{
-						PnL:            decimal.Zero,
+						NetPnL:         decimal.Zero,
+						GrossPnL:       decimal.Zero,
+						GrossRFactor:   decimal.Zero,
 						PositionsCount: 0,
 						WeekNumber:     week,
 					}
 					weekPositions[week] = make(map[uuid.UUID]struct{})
 				}
+
 				weekly := weeklyStats[week]
-				weekly.PnL = weekly.PnL.Add(dailyEntry.PnL)
+				weekly.GrossPnL = weekly.GrossPnL.Add(dailyEntry.GrossPnL)
+				weekly.NetPnL = weekly.NetPnL.Add(dailyEntry.NetPnL)
+				weekly.GrossRFactor = weekly.GrossRFactor.Add(dailyEntry.GrossRFactor)
+
 				for posID := range positionIDsByDay[year][monthStr][day] {
 					weekPositions[week][posID] = struct{}{}
 				}
+
 				weeklyStats[week] = weekly
 			}
 
@@ -238,6 +264,7 @@ func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 			for day, dailyEntry := range monthlyEntry.Daily {
 				positionIDs := make([]uuid.UUID, 0, len(positionIDsByDay[year][monthStr][day]))
+
 				for posID := range positionIDsByDay[year][monthStr][day] {
 					positionIDs = append(positionIDs, posID)
 				}
@@ -344,7 +371,9 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 					netPnL = netPnL.Add(trade.RealisedNetPnL)
 
-					trade.NetRFactor = trade.RealisedNetPnL.Div(pos.RiskAmount)
+					if pos.RiskAmount.IsPositive() {
+						trade.NetRFactor = trade.RealisedNetPnL.Div(pos.RiskAmount)
+					}
 
 					grossRFactor = grossRFactor.Add(trade.GrossRFactor)
 					netRFactor = netRFactor.Add(trade.NetRFactor)
