@@ -64,7 +64,7 @@ export const OverviewCard = memo(
                 <CardContent className="flex-y h-full flex-col justify-between">
                     <div className="flex w-full justify-between gap-x-4">
                         <div>
-                            <span className="label-muted">Net</span>
+                            <span className="label-muted">Gross PnL</span>
                             <div className={`flex items-end gap-x-2 ${grossPnLColor}`}>
                                 <p className={`heading leading-none ${grossPnLColor}`}>
                                     {formatCurrency(grossPnL.toFixed(2).toString(), { currency })}
@@ -102,7 +102,7 @@ export const OverviewCard = memo(
                     <div className="w-full">
                         <div className="flex w-full justify-between">
                             <div>
-                                <span className="label-muted">Net</span>
+                                <span className="label-muted">Net PnL</span>
                                 <div className="flex-x">
                                     <p className="text-text-primary text-base">
                                         <span className="font-semibold">
