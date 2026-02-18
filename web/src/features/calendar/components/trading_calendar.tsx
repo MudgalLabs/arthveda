@@ -439,6 +439,7 @@ function Day(props: DayProps) {
     const isWin = dpDay.inCurrentMonth && netPnL.isPositive();
     const isLoss = dpDay.inCurrentMonth && netPnL.isNegative();
     const isNoTradeDay = dpDay.inCurrentMonth && netPnL.isZero() && positionsCount === 0;
+    const hideSymbol = perfViewMode === CalendarPerfViewMode.GROSS_R_FACTOR;
 
     const [open, setOpen] = useState(false);
     const { data, isFetching } = apiHooks.calendar.useGetCalendarDay(dpDay.$date, {
@@ -465,7 +466,7 @@ function Day(props: DayProps) {
                         <span
                             className={cn("font-semibold", {
                                 "text-text-muted": !dpDay.inCurrentMonth,
-                                "h-full w-full text-sm": shrinkedView,
+                                "h-full w-full text-xs": shrinkedView,
                             })}
                         >
                             {dpDay.day}
@@ -476,14 +477,14 @@ function Day(props: DayProps) {
                                 {!isNoTradeDay && (
                                     <PnL
                                         value={netPnL}
-                                        className={cn("absolute-center text-lg font-medium", {
-                                            "text-xs": shrinkedView,
+                                        className={cn("absolute-center text-base font-semibold", {
+                                            "text-[10px] font-medium": shrinkedView,
                                         })}
                                     >
                                         {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
                                             ? formatCurrency(netPnL.toString(), {
                                                   compact: true,
-                                                  hideSymbol: true,
+                                                  hideSymbol,
                                               })
                                             : netPnL.toFixed(2)}
                                     </PnL>
@@ -599,7 +600,7 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
                     <PnL
                         value={pnl}
                         className={cn("absolute-center text-lg font-medium", {
-                            "text-xs": shrinkedView,
+                            "text-xs font-medium": shrinkedView,
                         })}
                     >
                         {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
