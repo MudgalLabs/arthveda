@@ -599,7 +599,7 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
                 <div className="flex w-full justify-between">
                     <PnL
                         value={pnl}
-                        className={cn("absolute-center text-lg font-medium", {
+                        className={cn("absolute-center text-base font-semibold", {
                             "text-xs font-medium": shrinkedView,
                         })}
                     >
