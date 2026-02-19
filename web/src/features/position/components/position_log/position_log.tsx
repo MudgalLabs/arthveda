@@ -445,7 +445,8 @@ const DurationCard = memo(({ opened_at, closed_at }: { opened_at: Date; closed_a
 
             <CardContent className="flex-center flex h-full flex-col gap-y-2">
                 <p className="heading">
-                    {days} days {hours} hours {minutes} mins
+                    {days > 0 && <span>{days} days</span>} {hours > 0 && <span>{hours} hours</span>}{" "}
+                    {minutes > 0 && <span>{minutes} mins</span>}
                 </p>
 
                 <div className="flex items-center gap-x-1 text-sm">

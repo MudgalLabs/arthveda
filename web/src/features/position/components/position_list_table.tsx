@@ -16,7 +16,7 @@ import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableVisibility } from "@/s8ly/data_table/data_table_visibility";
 import { PositionListFilters } from "@/features/position/components/position_list_filters";
-import { Tag, Button, Tooltip } from "netra";
+import { Tag, Button, Tooltip, getElapsedTime, cn } from "netra";
 import { IconArrowUpRight, IconCross } from "@/components/icons";
 import {
     defaultPositionSearchFilters,
@@ -181,6 +181,30 @@ const columns: ColumnDef<Position>[] = [
             <DataTableColumnHeader title="Opened At" column={column} disabled={table.options.meta?.isFetching} />
         ),
         cell: ({ row }) => formatDate(new Date(row.original.opened_at), { time: true }),
+    },
+    {
+        id: "duration",
+        meta: {
+            columnVisibilityHeader: "Duration",
+        },
+        accessorKey: "closed_at",
+        header: ({ column, table }) => (
+            <DataTableColumnHeader title="Duration" column={column} disabled={table.options.meta?.isFetching} />
+        ),
+        cell: ({ row }) => {
+            const openedAt = new Date(row.original.opened_at);
+            const closedAt = row.original.closed_at ? new Date(row.original.closed_at) : new Date();
+
+            const { days, hours, minutes } = getElapsedTime(openedAt, closedAt);
+
+            return (
+                <p className="">
+                    {days > 0 && <span>{days} days</span>} {hours > 0 && <span>{hours} hours</span>}{" "}
+                    {minutes > 0 && <span>{minutes} mins</span>}
+                </p>
+            );
+        },
+        enableSorting: false,
     },
     {
         id: "symbol",
