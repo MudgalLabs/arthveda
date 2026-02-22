@@ -79,16 +79,8 @@ function PositionLog() {
     const { mutateAsync: create, isPending: isCreating } = apiHooks.position.useCreate({
         onSuccess: async (res) => {
             const positionID = res.data.data.position.id;
-            toast.success("Position Created", {
-                action: {
-                    label: "View",
-                    onClick: () => {
-                        navigate(ROUTES.viewPosition(positionID));
-                    },
-                },
-            });
-
-            discard();
+            toast.success("Position Created");
+            navigate(ROUTES.viewPosition(positionID));
         },
         onError: apiErrorHandler,
     });
