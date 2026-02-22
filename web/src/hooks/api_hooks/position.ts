@@ -31,10 +31,14 @@ const QueriesToInvalidateOnPositionChange = [
     "useGetPosition",
     "usePositionsSearch",
     "useMe",
-];
+] as const;
 
-function invalidatePositionRelatedQueries(queryClient: QueryClient) {
+type PositionQueryKey = (typeof QueriesToInvalidateOnPositionChange)[number];
+
+function invalidatePositionRelatedQueries(queryClient: QueryClient, exceptions: PositionQueryKey[] = []) {
     QueriesToInvalidateOnPositionChange.forEach((query) => {
+        if (exceptions.includes(query)) return;
+
         queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] === query });
     });
 }
@@ -96,7 +100,7 @@ export function useDelete(options: AnyUseMutationOptions = {}) {
             return api.position.deletePosition(id);
         },
         onSuccess: (...args) => {
-            invalidatePositionRelatedQueries(queryClient);
+            invalidatePositionRelatedQueries(queryClient, ["useGetPosition"]);
             onSuccess?.(...args);
         },
         ...restOptions,
