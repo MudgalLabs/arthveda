@@ -173,14 +173,12 @@ export function formatCurrency(
         locale = "en-IN",
         localizationOpts = {},
         compact = false,
-        disableFormatting = false,
     }: {
         currency?: CurrencyCode;
         hideSymbol?: boolean;
         locale?: string;
         localizationOpts?: Intl.NumberFormatOptions;
         compact?: boolean;
-        disableFormatting?: boolean;
     } = {}
 ): string {
     const _amount = Number(amount);
