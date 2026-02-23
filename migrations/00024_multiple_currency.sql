@@ -1,0 +1,47 @@
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE currency (
+    code         VARCHAR(3) PRIMARY KEY,
+    name         TEXT NOT NULL,
+    symbol       TEXT NOT NULL,
+    fx_supported BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE exchange_rate (
+    rate_date           DATE NOT NULL,
+    quote_currency_code VARCHAR(3) NOT NULL REFERENCES currency(code),
+    rate                NUMERIC(18,8) NOT NULL,
+    PRIMARY KEY (rate_date, quote_currency_code)
+);
+
+CREATE INDEX idx_exchange_rate_lookup
+ON exchange_rate (quote_currency_code, rate_date DESC);
+
+ALTER TABLE position
+ADD COLUMN currency_code VARCHAR(3) NOT NULL DEFAULT 'INR'
+    REFERENCES currency(code),
+ADD COLUMN fx_rate NUMERIC(18,8),
+ADD COLUMN fx_source TEXT NOT NULL DEFAULT 'system'
+    CHECK (fx_source IN ('system', 'manual'));
+
+ALTER TABLE user_profile
+ADD COLUMN home_currency_code VARCHAR(3) NOT NULL DEFAULT 'INR'
+    REFERENCES currency(code);
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+ALTER TABLE user_profile
+DROP COLUMN home_currency_code;
+
+ALTER TABLE position
+DROP COLUMN fx_source,
+DROP COLUMN fx_rate,
+DROP COLUMN currency_code;
+
+DROP INDEX IF EXISTS idx_exchange_rate_lookup;
+
+DROP TABLE exchange_rate;
+
+DROP TABLE currency;
+-- +goose StatementEnd

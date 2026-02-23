@@ -6,9 +6,12 @@ import { CurrencyCode } from "@/lib/api/currency";
 interface CurrencySelectProps extends Omit<SelectProps, "options"> {
     value?: CurrencyCode;
     onValueChange?: (value: CurrencyCode) => void;
+    onlyFxSupported?: boolean;
 }
 
 function CurrencySelect(props: CurrencySelectProps) {
+    const { onlyFxSupported = false, ...rest } = props;
+
     const { data, isLoading } = apiHooks.currency.useList();
 
     const items = data?.data || [];
@@ -17,17 +20,22 @@ function CurrencySelect(props: CurrencySelectProps) {
         value: i.code,
     }));
 
-    options.push({
-        value: "-1" as CurrencyCode,
-        label: (
-            <>
-                <p>Don't see your currency here? We are working on supporting more currencies!</p>
-            </>
-        ),
-        disabled: true,
-    });
+    if (onlyFxSupported) {
+        options.push({
+            value: "" as CurrencyCode,
+            label: (
+                <div className="text-xs">
+                    Don't see your currency here? Tell us what you need{" "}
+                    <a className="text-xs!" href="mailto:hey@arthveda.app">
+                        hey@arthveda.app
+                    </a>
+                </div>
+            ),
+            disabled: true,
+        });
+    }
 
-    return <Select loading={isLoading} options={options} {...props} />;
+    return <Select loading={isLoading} options={options} {...rest} />;
 }
 
 export { CurrencySelect };
