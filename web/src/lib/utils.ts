@@ -173,18 +173,21 @@ export function formatCurrency(
         locale = "en-IN",
         localizationOpts = {},
         compact = false,
+        disableFormatting = false,
     }: {
         currency?: CurrencyCode;
         hideSymbol?: boolean;
         locale?: string;
         localizationOpts?: Intl.NumberFormatOptions;
         compact?: boolean;
+        disableFormatting?: boolean;
     } = {}
 ): string {
     const _amount = Number(amount);
 
     if (compact) {
         const absAmount = Math.abs(_amount);
+
         let formatted = "";
 
         if (absAmount >= 1_00_00_000) {
@@ -204,7 +207,7 @@ export function formatCurrency(
         {
             style: hideSymbol ? "decimal" : "currency",
             currency: currency,
-            maximumFractionDigits: 2,
+            maximumFractionDigits: 8,
         },
         localizationOpts
     );
