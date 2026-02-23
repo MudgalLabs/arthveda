@@ -63,6 +63,7 @@ import { PositionLogTrades } from "@/features/position/components/position_log/p
 import { PositionLogNotes } from "@/features/position/components/position_log/position_log_notes";
 import { collectUploadIds } from "@/features/position/utils";
 import TagPicker from "@/components/tag_picker";
+import { CurrencySelect } from "@/components/select/currency_select";
 
 const enum PositionLogTab {
     Trades = "trades",
@@ -252,14 +253,20 @@ function PositionLog() {
             <div className="flex flex-col gap-y-8 lg:flex-row!">
                 <div className="lg:border-r-border-subtle min-w-[360px] lg:border-r-1 lg:pr-4">
                     <div className="flex flex-col items-stretch gap-x-6 gap-y-4 sm:flex-row lg:flex-col!">
-                        <div className="flex h-fit gap-x-2">
-                            <StatusTag
-                                currency={position.currency}
-                                status={position.status}
-                                openAvgPrice={position.open_average_price_amount}
-                                openQuantity={position.open_quantity}
-                            />
-                            <DirectionTag direction={position.direction} />
+                        <div className="flex h-fit justify-between gap-x-2">
+                            <div className="flex-x">
+                                <StatusTag
+                                    currency={position.currency}
+                                    status={position.status}
+                                    openAvgPrice={position.open_average_price_amount}
+                                    openQuantity={position.open_quantity}
+                                />
+                                <DirectionTag direction={position.direction} />
+                            </div>
+
+                            <div>
+                                <CurrencySelect defaultValue="INR" />
+                            </div>
                         </div>
 
                         <OverviewCard

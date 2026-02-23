@@ -8,27 +8,26 @@ import (
 
 // There is no database for Currency right now, that's why this is in Domain.
 
-// CurrencyCode is an ISO 4217 currency code (e.g., "inr", "usd")
+// CurrencyCode is an ISO 4217 currency code (e.g., "INR", "USD")
 type CurrencyCode string
 
 const (
-	CurrencyINR CurrencyCode = "inr"
+	CurrencyINR CurrencyCode = "INR"
 	// Add more as needed
 )
 
 type supportedCurrency struct {
-	Code   CurrencyCode `json:"code"`
-	Name   string       `json:"name"`
-	Symbol string       `json:"symbol"`
+	Code CurrencyCode `json:"code"`
+	Name string       `json:"name"`
 }
 
 // supportedCurrencies holds the list of currencies supported by Arthveda.
 var supportedCurrencies = []supportedCurrency{
-	{Code: CurrencyINR, Name: "Indian Rupee", Symbol: "₹"},
+	{Code: CurrencyINR, Name: "Indian Rupee"},
 }
 
 func ParseCurrencyCode(code string) (CurrencyCode, error) {
-	code = strings.ToLower(code)
+	code = strings.ToUpper(code)
 	cc := CurrencyCode(code)
 	if !cc.IsValid() {
 		return "", fmt.Errorf("invalid currency code: %s", code)
@@ -52,7 +51,7 @@ func (c *CurrencyCode) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &code); err != nil {
 		return err
 	}
-	code = strings.ToLower(code)
+	code = strings.ToUpper(code)
 	cc := CurrencyCode(code)
 	if !cc.IsValid() {
 		return fmt.Errorf("invalid currency code: %s", code)
@@ -61,9 +60,9 @@ func (c *CurrencyCode) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON ensures proper casing (lowercase)
+// MarshalJSON ensures proper casing (uppercase)
 func (c CurrencyCode) MarshalJSON() ([]byte, error) {
-	return json.Marshal(strings.ToLower(string(c)))
+	return json.Marshal(strings.ToUpper(string(c)))
 }
 
 // String returns the lowercase string representation

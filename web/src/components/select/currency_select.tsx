@@ -1,4 +1,4 @@
-import { Select, SelectOptionItem, SelectProps } from "netra";
+import { Select, SelectOptionItem, SelectProps, useControlled } from "netra";
 
 import { apiHooks } from "@/hooks/api_hooks";
 import { CurrencyCode } from "@/lib/api/currency";
@@ -10,32 +10,38 @@ interface CurrencySelectProps extends Omit<SelectProps, "options"> {
 }
 
 function CurrencySelect(props: CurrencySelectProps) {
-    const { onlyFxSupported = false, ...rest } = props;
+    const { value: valueProp, onValueChange, defaultValue, classNames, onlyFxSupported = false, ...rest } = props;
+
+    const [value, setValue] = useControlled({
+        controlled: valueProp,
+        default: defaultValue,
+        name: "CurrencySelect",
+    });
 
     const { data, isLoading } = apiHooks.currency.useList();
 
     const items = data?.data || [];
-    const options: SelectOptionItem<CurrencyCode>[] = items.map((i) => ({
-        label: `${i.name} (${i.code.toUpperCase()}) ${i.symbol}`,
-        value: i.code,
-    }));
+    const options: SelectOptionItem<CurrencyCode>[] = items.map((i) => {
+        return {
+            label: i.code,
+            value: i.code,
+        };
+    });
 
-    if (onlyFxSupported) {
-        options.push({
-            value: "" as CurrencyCode,
-            label: (
-                <div className="text-xs">
-                    Don't see your currency here? Tell us what you need{" "}
-                    <a className="text-xs!" href="mailto:hey@arthveda.app">
-                        hey@arthveda.app
-                    </a>
-                </div>
-            ),
-            disabled: true,
-        });
-    }
-
-    return <Select loading={isLoading} options={options} {...rest} />;
+    return (
+        <Select
+            classNames={{
+                trigger: "w-20!",
+                content: "w-20!",
+                ...classNames,
+            }}
+            loading={isLoading}
+            options={options}
+            value={value}
+            onValueChange={onValueChange ?? setValue}
+            {...rest}
+        />
+    );
 }
 
 export { CurrencySelect };

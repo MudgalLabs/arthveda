@@ -7,7 +7,6 @@ export type CurrencyCode = "inr" | "usd";
 export interface Currency {
     code: CurrencyCode;
     name: string;
-    symbol: string;
 }
 
 export function list() {

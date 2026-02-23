@@ -52,7 +52,6 @@ export function DecimalInput(props: DecimalInputProps) {
                     ? formatCurrency(value, {
                           currency,
                           hideSymbol: true,
-                          disableFormatting: true,
                       })
                     : value
             );
@@ -107,7 +106,7 @@ export function DecimalInput(props: DecimalInputProps) {
         if (variantProp === "error") return "error";
 
         // If it's passed as default, we check if there is an error.
-        if (variantProp === "default") {
+        if (variantProp == "default") {
             if (error) return "error";
         }
 
