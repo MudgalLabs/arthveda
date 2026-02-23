@@ -52,6 +52,7 @@ export function DecimalInput(props: DecimalInputProps) {
                     ? formatCurrency(value, {
                           currency,
                           hideSymbol: true,
+                          disableFormatting: true,
                       })
                     : value
             );
@@ -165,7 +166,7 @@ export function DecimalInput(props: DecimalInputProps) {
 type DecimalFieldKind = "amount" | "quantity";
 
 const decimalConstraints: Record<DecimalFieldKind, { precision: number; scale: number }> = {
-    amount: { precision: 14, scale: 2 },
+    amount: { precision: 16, scale: 4 },
     quantity: { precision: 20, scale: 8 },
 };
 
