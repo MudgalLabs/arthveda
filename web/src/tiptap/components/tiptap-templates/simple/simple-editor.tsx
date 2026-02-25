@@ -229,7 +229,7 @@ export function SimpleEditor(props: SimpleEditorProps) {
     }, [isMobile, mobileView]);
 
     return (
-        <div className="simple-editor-wrapper">
+        <div className="simple-editor-wrapper dark">
             <EditorContext.Provider value={{ editor }}>
                 <Toolbar
                     ref={toolbarRef}
@@ -240,7 +240,7 @@ export function SimpleEditor(props: SimpleEditorProps) {
                     //           }
                     //         : {}),
                     // }}
-                    // className="bg-surface-5!"
+                    // className="bg-surface-3!"
                     className="bg-transparent!"
                 >
                     {mobileView === "main" ? (
