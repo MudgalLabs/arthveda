@@ -1,7 +1,8 @@
-import { Select, SelectOptionItem, SelectProps, useControlled } from "netra";
+import { SelectOptionItem, SelectProps, useControlled } from "netra";
 
 import { apiHooks } from "@/hooks/api_hooks";
 import { CurrencyCode } from "@/lib/api/currency";
+import { Select } from "@/s8ly";
 
 interface CurrencySelectProps extends Omit<SelectProps, "options"> {
     value?: CurrencyCode;
@@ -28,11 +29,13 @@ function CurrencySelect(props: CurrencySelectProps) {
         };
     });
 
+    if (isLoading) return null;
+
     return (
         <Select
             classNames={{
                 trigger: "w-20!",
-                content: "w-20!",
+                content: "w-20! h-[400px]",
                 ...classNames,
             }}
             loading={isLoading}

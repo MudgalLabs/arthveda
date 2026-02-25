@@ -2,9 +2,9 @@ package position
 
 import (
 	"arthveda/internal/common"
-	"arthveda/internal/domain/currency"
 	"arthveda/internal/domain/symbol"
 	"arthveda/internal/domain/types"
+	"arthveda/internal/feature/currency"
 	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"

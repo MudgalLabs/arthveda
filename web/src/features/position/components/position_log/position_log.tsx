@@ -265,7 +265,10 @@ function PositionLog() {
                             </div>
 
                             <div>
-                                <CurrencySelect defaultValue="INR" />
+                                <CurrencySelect
+                                    defaultValue="INR"
+                                    // classNames={{ trigger: "w-28! h-9!" }}
+                                />
                             </div>
                         </div>
 

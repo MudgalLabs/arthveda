@@ -2,7 +2,7 @@ package main
 
 import (
 	"arthveda/internal/apires"
-	"arthveda/internal/domain/currency"
+	"arthveda/internal/feature/currency"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/logger"
 	"arthveda/internal/service"
@@ -199,7 +199,7 @@ func importHandler(s *position.Service) http.HandlerFunc {
 		currencyStr := r.FormValue("currency")
 
 		if currencyStr != "" {
-			currencyCode, err = currency.ParseCurrencyCode(currencyStr)
+			currencyCode = currency.ParseCurrencyCode(currencyStr)
 			if err != nil {
 				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
 					apires.NewApiError("Invalid currency", "", "currency", currencyStr),

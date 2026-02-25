@@ -1,8 +1,8 @@
 package main
 
 import (
-	"arthveda/internal/domain/currency"
 	"arthveda/internal/env"
+	"arthveda/internal/feature/currency"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/userbrokeraccount"
 	"arthveda/internal/logger"

@@ -2,12 +2,12 @@ package main
 
 import (
 	"arthveda/internal/dbx"
-	"arthveda/internal/domain/currency"
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/env"
 	"arthveda/internal/feature/analytics"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/calendar"
+	"arthveda/internal/feature/currency"
 	"arthveda/internal/feature/dashboard"
 	"arthveda/internal/feature/journal_entry"
 	"arthveda/internal/feature/journal_entry_content"
@@ -61,6 +61,7 @@ type services struct {
 // Write access only available to services.
 type repositories struct {
 	Broker            broker.Reader
+	Currency          currency.Reader
 	Dashboard         dashboard.Reader
 	Position          position.Reader
 	Subscription      subscription.Reader
@@ -99,6 +100,7 @@ func main() {
 	notification.Init()
 
 	brokerRepository := broker.NewRepository(db)
+	currencyRepository := currency.NewRepository(db)
 	dashboardRepository := dashboard.NewRepository(db)
 	journalEntryRepository := journal_entry.NewRepository(db)
 	journalEntryContentRepository := journal_entry_content.NewRepository(db)
@@ -114,7 +116,7 @@ func main() {
 
 	brokerService := broker.NewService(brokerRepository)
 	calendarService := calendar.NewService(positionRepository)
-	currencyService := currency.NewService()
+	currencyService := currency.NewService(currencyRepository)
 	dashboardService := dashboard.NewService(dashboardRepository, positionRepository, tradeRepository)
 	journalEntryService := journal_entry.NewService(journalEntryRepository, journalEntryContentRepository)
 	subscriptionService := subscription.NewService(subscriptionRepository)
@@ -147,6 +149,7 @@ func main() {
 
 	repositories := repositories{
 		Broker:            brokerRepository,
+		Currency:          currencyRepository,
 		Dashboard:         dashboardRepository,
 		Position:          positionRepository,
 		Subscription:      subscriptionRepository,

@@ -109,12 +109,12 @@ const Select: FC<SelectProps> = ({
                 <SelectPrimitive.Content
                     position="popper"
                     className={cn(
-                        "border-border-soft bg-surface-3 z-100 my-1 w-[240px] rounded-md border-1 text-sm",
+                        "border-border-soft bg-surface-3 z-100 my-1 h-[400px] w-[240px] rounded-md border-1 text-sm",
                         classNames?.content
                     )}
                 >
-                    <SelectPrimitive.ScrollUpButton>
-                        <IconChevronUp />
+                    <SelectPrimitive.ScrollUpButton className="flex-center py-2">
+                        <IconChevronUp size={18} />
                     </SelectPrimitive.ScrollUpButton>
 
                     <SelectPrimitive.Viewport>
@@ -130,8 +130,8 @@ const Select: FC<SelectProps> = ({
                         ))}
                     </SelectPrimitive.Viewport>
 
-                    <SelectPrimitive.ScrollDownButton>
-                        <IconChevronDown />
+                    <SelectPrimitive.ScrollDownButton className="flex-center py-2">
+                        <IconChevronDown size={18} />
                     </SelectPrimitive.ScrollDownButton>
                 </SelectPrimitive.Content>
             </SelectPrimitive.Portal>

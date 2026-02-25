@@ -3,11 +3,12 @@ package position
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/broker_integration"
-	"arthveda/internal/domain/currency"
+
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/domain/symbol"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/broker"
+	"arthveda/internal/feature/currency"
 	"arthveda/internal/feature/journal_entry"
 	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
