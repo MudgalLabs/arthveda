@@ -240,8 +240,8 @@ export function SimpleEditor(props: SimpleEditorProps) {
                     //           }
                     //         : {}),
                     // }}
-                    className="bg-surface-3!"
-                    // className="bg-transparent!"
+                    // className="bg-surface-5!"
+                    className="bg-transparent!"
                 >
                     {mobileView === "main" ? (
                         <MainToolbarContent
