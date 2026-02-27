@@ -4,6 +4,7 @@ import { usePostHog } from "posthog-js/react";
 import { apiHooks } from "@/hooks/api_hooks";
 import { UserMeResponse } from "@/lib/api/user";
 import { Subscription } from "@/lib/api/subscription";
+import { CurrencyCode } from "@/lib/api/currency";
 
 interface AuthenticationContextType {
     isLoading: boolean;
@@ -75,4 +76,9 @@ export function useUserHasProSubscription(): boolean {
     const subscription = useSubscription();
     if (!subscription) return false;
     return subscription.status === "active" && subscription.plan_id === "pro";
+}
+
+export function useHomeCurrency(): CurrencyCode {
+    const { data } = useAuthentication();
+    return data?.home_currency_code ?? "INR";
 }

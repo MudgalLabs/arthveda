@@ -16,6 +16,7 @@ export const ROUTES = {
     calendar: "/calendar",
     analytics: "/analytics",
 
+    settings: "/settings",
     planAndBilling: "/settings/plan-and-billing",
     brokerAccounts: "/settings/broker-accounts",
     feedbackAndSupport: "/settings/feedback-and-support",

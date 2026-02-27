@@ -73,7 +73,7 @@ const Select: FC<SelectProps> = ({
             <SelectPrimitive.Trigger
                 ref={ref}
                 className={cn(
-                    "bg-secondary text-text-primary border-border-soft hover:bg-secondary-hover flex h-10 w-full items-center justify-between gap-x-4 rounded-md border-1 p-3 text-sm transition-colors sm:w-[240px]",
+                    "bg-secondary text-text-primary border-border-soft enabled:hover:bg-secondary-hover flex h-10 w-full items-center justify-between gap-x-4 rounded-md border-1 p-3 text-sm transition-colors sm:w-[240px]",
                     {
                         "text-text-muted": !value,
                         "opacity-60": disabled || loading,

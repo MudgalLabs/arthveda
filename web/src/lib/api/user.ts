@@ -1,12 +1,14 @@
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { client } from "@/lib/api/client";
 import { Subscription } from "@/lib/api/subscription";
+import { CurrencyCode } from "@/lib/api/currency";
 
 export interface User {
     user_id: string;
     email: string;
     name: string;
     avatar_url: string;
+    home_currency_code: CurrencyCode;
     created_at: string;
     update_at: string;
 

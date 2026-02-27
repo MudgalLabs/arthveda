@@ -42,7 +42,7 @@ export default function NotificationPreferences() {
         if (!data || data.preferences.length === 0) return null;
 
         return (
-            <ul className="border-border-subtle mx-auto max-w-xl rounded-md border-1 p-2">
+            <ul className="border-border-subtle mx-auto max-w-3xl rounded-md border-1 px-4 py-3">
                 {data.preferences.map((preference, index) => {
                     return (
                         <li key={index} className="flex-x justify-between py-2">

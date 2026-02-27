@@ -15,7 +15,7 @@ function CurrencySelect(props: CurrencySelectProps) {
 
     const [value, setValue] = useControlled({
         controlled: valueProp,
-        default: defaultValue,
+        default: defaultValue ?? "INR",
         name: "CurrencySelect",
     });
 

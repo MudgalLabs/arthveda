@@ -1,6 +1,7 @@
 import { Select, SelectOptionItem, SelectProps } from "netra";
 
 import { apiHooks } from "@/hooks/api_hooks";
+import { ContactEmail } from "../contact_email";
 
 function BrokerSelect(props: Omit<SelectProps, "options">) {
     const { data, isLoading } = apiHooks.broker.useList();
@@ -15,10 +16,7 @@ function BrokerSelect(props: Omit<SelectProps, "options">) {
         value: "-1",
         label: (
             <div className="text-xs">
-                Don't see your broker here? Tell us what you need{" "}
-                <a className="text-xs!" href="mailto:hey@arthveda.app">
-                    hey@arthveda.app
-                </a>
+                Don't see your broker here? Tell us what you need <ContactEmail />
             </div>
         ),
         disabled: true,
