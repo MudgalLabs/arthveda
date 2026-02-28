@@ -5,8 +5,10 @@ import { IconBadgeCheck } from "@/components/icons";
 import { UpgradeToPro } from "@/features/settings/plan_and_billing/components/upgrade_to_pro";
 import { useUserHasProSubscription, useUserIsOnTrial } from "@/features/auth/auth_context";
 import { cn, formatCurrency } from "@/lib/utils";
-import { PADDLE_PRICE_ID } from "@/constants";
+import { PADDLE_PRICE_ID_YEARLY, PADDLE_PRICE_ID_MONTHLY } from "@/constants";
 import { BrokerAccountInfoTooltip } from "@/features/broker/components/broker_account_info_tooltip";
+import { BillingInterval } from "@/lib/api/subscription";
+import { useState } from "react";
 
 const FEATURES = [
     "Journal unlimited positions via import or manual entry",
@@ -27,14 +29,33 @@ export function Pricing(props: PricingProps) {
 
     const tz = getUserTimezone();
     const isIndia = tz === "Asia/Kolkata" || tz === "Asia/Calcutta";
-    const yearlyPrice = isIndia ? 1500 : 50;
+
     const currency = isIndia ? "inr" : "usd";
+    const monthlyPrice = isIndia ? 399 : 9;
+    const yearlyPrice = isIndia ? 1999 : 69;
+
+    const discountPercentage = Math.round((1 - yearlyPrice / (monthlyPrice * 12)) * 100);
+
+    const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
+
+    const activePrice = billingInterval === "monthly" ? monthlyPrice : yearlyPrice;
+    const activePriceId = billingInterval === "monthly" ? PADDLE_PRICE_ID_MONTHLY : PADDLE_PRICE_ID_YEARLY;
 
     const hasPro = useUserHasProSubscription();
     const onTrial = useUserIsOnTrial();
 
     return (
-        <div className="text-text-primary mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="text-text-primary mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <BillingIntervalToggle value={billingInterval} onChange={setBillingInterval} />
+
+            <div className="h-2" />
+
+            <p className="text-text-success text-center font-medium">
+                Save {discountPercentage}% on yearly subscription!
+            </p>
+
+            <div className="h-6" />
+
             <Card className="flex flex-col justify-between">
                 <div className="space-y-2">
                     {hasPro && !onTrial && <p className="label-muted absolute right-4">Current plan</p>}
@@ -46,7 +67,7 @@ export function Pricing(props: PricingProps) {
                     </p>
 
                     <p className="text-text-primary mt-8 text-center text-4xl font-bold">
-                        {formatCurrency(yearlyPrice, {
+                        {formatCurrency(activePrice, {
                             currency,
                         })}
                         <span className="text-muted-foreground text-base font-medium">/year</span>
@@ -57,11 +78,7 @@ export function Pricing(props: PricingProps) {
                     </p>
                 </div>
 
-                <UpgradeToPro
-                    className="mt-8 w-full px-4 py-2"
-                    priceId={PADDLE_PRICE_ID}
-                    onClick={closePricingDialog}
-                />
+                <UpgradeToPro className="mt-8 w-full px-4 py-2" priceId={activePriceId} onClick={closePricingDialog} />
             </Card>
 
             <p className="text-muted-foreground mt-2 text-xs">
@@ -97,6 +114,46 @@ export function Pricing(props: PricingProps) {
                         See what’s coming →
                     </a>
                 </p>
+            </div>
+        </div>
+    );
+}
+
+interface BillingIntervalToggleProps {
+    value: BillingInterval;
+    onChange: (value: BillingInterval) => void;
+}
+
+export function BillingIntervalToggle({ value, onChange }: BillingIntervalToggleProps) {
+    return (
+        <div className="flex items-center justify-center">
+            <div className="bg-muted relative flex rounded-full p-1">
+                <div
+                    className={cn(
+                        "bg-primary absolute top-1 bottom-1 w-1/2 rounded-full shadow-sm transition-all duration-200",
+                        value === "monthly" ? "left-1" : "left-1/2"
+                    )}
+                />
+
+                <button
+                    onClick={() => onChange("monthly")}
+                    className={cn(
+                        "relative z-10 w-28 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                        value === "monthly" ? "text-foreground" : "text-muted-foreground"
+                    )}
+                >
+                    Monthly
+                </button>
+
+                <button
+                    onClick={() => onChange("yearly")}
+                    className={cn(
+                        "relative z-10 flex w-28 items-center justify-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                        value === "yearly" ? "text-foreground" : "text-muted-foreground"
+                    )}
+                >
+                    Yearly
+                </button>
             </div>
         </div>
     );
