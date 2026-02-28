@@ -10,7 +10,6 @@ import { useDebounce } from "@/hooks/use_debounce";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
-import { useHomeCurrency } from "../auth/auth_context";
 
 interface State {
     initialPosition: Position | null;
