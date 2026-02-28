@@ -38,6 +38,7 @@ export function Pricing(props: PricingProps) {
 
     const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
 
+    const activeInterval = billingInterval === "monthly" ? "month" : "year";
     const activePrice = billingInterval === "monthly" ? monthlyPrice : yearlyPrice;
     const activePriceId = billingInterval === "monthly" ? PADDLE_PRICE_ID_MONTHLY : PADDLE_PRICE_ID_YEARLY;
 
@@ -50,8 +51,9 @@ export function Pricing(props: PricingProps) {
 
             <div className="h-2" />
 
-            <p className="text-text-success text-center font-medium">
-                Save {discountPercentage}% on yearly subscription!
+            <p className="text-text-muted text-center">
+                <span className="text-text-success text-lg font-semibold">Save {discountPercentage}%</span> on yearly
+                subscription!
             </p>
 
             <div className="h-6" />
@@ -70,7 +72,7 @@ export function Pricing(props: PricingProps) {
                         {formatCurrency(activePrice, {
                             currency,
                         })}
-                        <span className="text-muted-foreground text-base font-medium">/year</span>
+                        <span className="text-muted-foreground text-base font-medium">/{activeInterval}</span>
                     </p>
 
                     <p className="text-text-muted text-center text-xs">
