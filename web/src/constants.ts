@@ -43,4 +43,3 @@ export const ROUTES_PROTECTED = [
 
 export const PADDLE_PRICE_ID_MONTHLY = import.meta.env.ARTHVEDA_PADDLE_PRICE_ID_MONTHLY;
 export const PADDLE_PRICE_ID_YEARLY = import.meta.env.ARTHVEDA_PADDLE_PRICE_ID_YEARLY;
-export const PADDLE_PRICE_ID = import.meta.env.ARTHVEDA_PADDLE_PRICE_ID;
