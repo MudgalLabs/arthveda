@@ -28,6 +28,7 @@ import {
     TabsTrigger,
     TabsContent,
     IconTrash,
+    IconInfo,
 } from "netra";
 
 import { InstrumentToggle } from "@/components/toggle/instrument_toggle";
@@ -64,6 +65,7 @@ import { PositionLogNotes } from "@/features/position/components/position_log/po
 import { collectUploadIds } from "@/features/position/utils";
 import TagPicker from "@/components/tag_picker";
 import { CurrencySelect } from "@/components/select/currency_select";
+import { useHomeCurrency } from "@/features/auth/auth_context";
 
 const enum PositionLogTab {
     Trades = "trades",
@@ -136,6 +138,11 @@ function PositionLog() {
     const [canCompute, setCanCompute] = usePositionCanBeComputed();
     const canSave = usePositionCanBeSaved();
     const hasPositionDataChanged = useHasPositionDataChanged();
+    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
+
+    const homeCurrency = useHomeCurrency();
+    const notUsingHomeCurrency = position.currency !== homeCurrency;
+    console.log({ homeCurrency, currency: position.currency, notUsingHomeCurrency });
 
     const handleClickSave = () => {
         if (!canSave) return;
@@ -145,7 +152,6 @@ function PositionLog() {
             symbol: position.symbol,
             instrument: position.instrument,
             currency: position.currency,
-            // notes: position.notes,
             broker_id: position.user_broker_account?.broker_id || null,
             user_broker_account_id: position.user_broker_account_id,
             journal_content: position.journal_content || null,
@@ -163,6 +169,9 @@ function PositionLog() {
                     broker_trade_id: t.broker_trade_id,
                 };
             }),
+            enable_auto_charges: enableAutoCharges,
+            fx_rate: notUsingHomeCurrency ? position.fx_rate : "1",
+            currency_code: position.currency_code,
         };
 
         if (isCreatingPosition) {
@@ -171,8 +180,6 @@ function PositionLog() {
             update({ id: position.id, body: data });
         }
     };
-
-    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
 
     useEffect(() => {
         const position = positionLatest.current;
@@ -192,6 +199,7 @@ function PositionLog() {
                     return trade;
                 }),
                 risk_amount: position.risk_amount || "0",
+                fx_rate: position.fx_rate || null,
                 instrument: position.instrument,
                 enable_auto_charges: enableAutoCharges,
                 broker_id: position.user_broker_account?.broker_id || null,
@@ -263,20 +271,13 @@ function PositionLog() {
                                 />
                                 <DirectionTag direction={position.direction} />
                             </div>
-
-                            <div>
-                                <CurrencySelect
-                                    defaultValue="INR"
-                                    // classNames={{ trigger: "w-28! h-9!" }}
-                                />
-                            </div>
                         </div>
 
                         <OverviewCard
                             className="min-w-72"
                             total_charges_amount={position.total_charges_amount}
                             charges_as_percentage_of_net_pnl={position.charges_as_percentage_of_net_pnl}
-                            currency={position.currency}
+                            currency={homeCurrency}
                             gross_pnl_amount={position.gross_pnl_amount}
                             net_pnl_amount={position.net_pnl_amount}
                             net_return_percentage={position.net_return_percentage}
@@ -347,6 +348,47 @@ function PositionLog() {
                             )}
                         </WithDebounce>
 
+                        <WithLabel Label={<Label>Currency</Label>}>
+                            <div className="flex-x">
+                                <CurrencySelect
+                                    value={position.currency}
+                                    onValueChange={(v) =>
+                                        updatePosition({
+                                            currency: v,
+                                            currency_code: v,
+                                        })
+                                    }
+                                />
+
+                                {position.currency !== homeCurrency && (
+                                    <div className="flex-x">
+                                        <WithDebounce
+                                            state={position.fx_rate}
+                                            onDebounce={(v) => {
+                                                updatePosition({
+                                                    fx_rate: v,
+                                                });
+                                            }}
+                                        >
+                                            {(value, setValue) => (
+                                                <DecimalInput
+                                                    kind="amount"
+                                                    currency={homeCurrency}
+                                                    value={value}
+                                                    onChange={(e) => setValue(e.target.value)}
+                                                />
+                                            )}
+                                        </WithDebounce>
+                                        <Tooltip
+                                            content={`Conversion rate from ${position.currency} to ${homeCurrency}`}
+                                        >
+                                            <IconInfo />
+                                        </Tooltip>
+                                    </div>
+                                )}
+                            </div>
+                        </WithLabel>
+
                         <WithLabel
                             Label={
                                 <div className="flex-x">
@@ -400,11 +442,15 @@ function PositionLog() {
                         <div className="bg-overlay-bg border-border-subtle absolute bottom-4 left-1/2 w-90 -translate-x-1/2 rounded-md border-1 p-4 md:w-110">
                             <div className="flex-x justify-between">
                                 <div>
-                                    <p>Changes are made !</p>
+                                    <p>Unsaved changes!</p>
                                 </div>
 
                                 <div className="flex-x">
-                                    <DiscardButton hasSomethingToDiscard={hasPositionDataChanged} discard={discard} />
+                                    <DiscardButton
+                                        isComputing={isComputing}
+                                        hasSomethingToDiscard={hasPositionDataChanged}
+                                        discard={discard}
+                                    />
 
                                     <Tooltip
                                         content={
@@ -417,9 +463,9 @@ function PositionLog() {
                                         <Button
                                             onClick={handleClickSave}
                                             loading={isCreating || isUpdating}
-                                            disabled={disablePrimaryButton}
+                                            disabled={disablePrimaryButton || isComputing}
                                         >
-                                            {isCreatingPosition ? "Create" : "Update"}
+                                            {isCreatingPosition ? "Create" : "Save"}
                                         </Button>
                                     </Tooltip>
                                 </div>
@@ -464,12 +510,20 @@ const DurationCard = memo(({ opened_at, closed_at }: { opened_at: Date; closed_a
 });
 
 const DiscardButton = memo(
-    ({ hasSomethingToDiscard, discard }: { hasSomethingToDiscard: boolean; discard: () => void }) => {
+    ({
+        isComputing,
+        hasSomethingToDiscard,
+        discard,
+    }: {
+        isComputing: boolean;
+        hasSomethingToDiscard: boolean;
+        discard: () => void;
+    }) => {
         return (
             <Dialog>
                 <Tooltip content="No changes to discard" disabled={hasSomethingToDiscard}>
                     <DialogTrigger asChild>
-                        <Button variant="secondary" disabled={!hasSomethingToDiscard}>
+                        <Button variant="ghost" disabled={!hasSomethingToDiscard || isComputing}>
                             Discard
                         </Button>
                     </DialogTrigger>

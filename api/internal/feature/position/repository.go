@@ -155,14 +155,16 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
             risk_amount, notes, total_charges_amount, direction, status, opened_at, closed_at,
             gross_pnl_amount, net_pnl_amount, r_factor, gross_r_factor, net_return_percentage,
             charges_as_percentage_of_net_pnl, open_quantity, open_average_price_amount,
-            broker_id, user_broker_account_id
+            broker_id, user_broker_account_id, currency_code, fx_rate, fx_source, 
+			gross_pnl_amount_away, net_pnl_amount_away, total_charges_amount_away
         )
         VALUES (
             @id, @created_by, @created_at, @updated_at, @symbol, @instrument, @currency,
             @risk_amount, @notes, @total_charges_amount, @direction, @status, @opened_at, @closed_at,
             @gross_pnl_amount, @net_pnl_amount, @r_factor, @gross_r_factor, @net_return_percentage,
             @charges_as_percentage_of_net_pnl, @open_quantity, @open_average_price_amount,
-            @broker_id, @user_broker_account_id
+            @broker_id, @user_broker_account_id, @currency_code, @fx_rate, @fx_source,
+			@gross_pnl_amount_away, @net_pnl_amount_away, @total_charges_amount_away
         )
     `
 
@@ -191,6 +193,12 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"open_average_price_amount":        position.OpenAveragePriceAmount,
 		"broker_id":                        position.BrokerID,
 		"user_broker_account_id":           position.UserBrokerAccountID,
+		"currency_code":                    position.CurrencyCode,
+		"fx_rate":                          position.FxRate,
+		"fx_source":                        position.FxSource,
+		"gross_pnl_amount_away":            position.GrossPnLAmountAway,
+		"net_pnl_amount_away":              position.NetPnLAmountAway,
+		"total_charges_amount_away":        position.TotalChargesAmountAway,
 	})
 
 	if err != nil {
@@ -226,7 +234,13 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
             open_quantity = @open_quantity,
             open_average_price_amount = @open_average_price_amount,
             broker_id = @broker_id,
-            user_broker_account_id = @user_broker_account_id
+            user_broker_account_id = @user_broker_account_id,
+			currency_code = @currency_code, 
+			fx_rate = @fx_rate,
+			fx_source = @fx_source,
+			gross_pnl_amount_away = @gross_pnl_amount_away,
+			net_pnl_amount_away = @net_pnl_amount_away,
+			total_charges_amount_away = @total_charges_amount_away
         WHERE id = @id
     `
 
@@ -255,6 +269,12 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
 		"open_average_price_amount":        position.OpenAveragePriceAmount,
 		"broker_id":                        position.BrokerID,
 		"user_broker_account_id":           position.UserBrokerAccountID,
+		"currency_code":                    position.CurrencyCode,
+		"fx_rate":                          position.FxRate,
+		"fx_source":                        position.FxSource,
+		"gross_pnl_amount_away":            position.GrossPnLAmountAway,
+		"net_pnl_amount_away":              position.NetPnLAmountAway,
+		"total_charges_amount_away":        position.TotalChargesAmountAway,
 	})
 
 	if err != nil {
@@ -311,8 +331,10 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 			p.symbol, p.instrument, p.currency, p.risk_amount, p.notes, p.total_charges_amount,
 			p.direction, p.status, p.opened_at, p.closed_at,
 			p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.gross_r_factor, p.net_return_percentage,
-			p.charges_as_percentage_of_net_pnl, p.open_quantity, p.open_average_price_amount,
-			p.broker_id, p.user_broker_account_id,
+			p.charges_as_percentage_of_net_pnl, p.open_quantity,
+			p.open_average_price_amount, p.broker_id, p.user_broker_account_id,
+			p.currency_code, p.fx_rate, p.fx_source, p.gross_pnl_amount_away,
+			p.net_pnl_amount_away, p.total_charges_amount_away,
 			uba.id, uba.broker_id, uba.name
 		FROM
 			position p
@@ -448,8 +470,10 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 			&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
 			&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
 			&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.GrossRFactor, &pos.NetReturnPercentage,
-			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity, &pos.OpenAveragePriceAmount,
-			&pos.BrokerID, &pos.UserBrokerAccountID,
+			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity,
+			&pos.OpenAveragePriceAmount, &pos.BrokerID, &pos.UserBrokerAccountID,
+			&pos.CurrencyCode, &pos.FxRate, &pos.FxSource, &pos.GrossPnLAmountAway,
+			&pos.NetPnLAmountAway, &pos.TotalChargesAmountAway,
 			&ubaID, &ubaBrokerID, &ubaName,
 		)
 		if err != nil {

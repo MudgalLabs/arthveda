@@ -28,7 +28,7 @@ export function Pricing(props: PricingProps) {
     const tz = getUserTimezone();
     const isIndia = tz === "Asia/Kolkata" || tz === "Asia/Calcutta";
     const yearlyPrice = isIndia ? 1500 : 50;
-    const currency = isIndia ? "inr" : "usd";
+    const currency = isIndia ? "INR" : "USD";
 
     const hasPro = useUserHasProSubscription();
     const onTrial = useUserIsOnTrial();

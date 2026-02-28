@@ -1,21 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { Input, InputProps, Popover, PopoverContent, PopoverTrigger } from "netra";
 import { CurrencyCode } from "@/features/position/position";
-import { cn, formatCurrency, getCurrencySymbol } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { useControlled } from "@/hooks/use_controlled";
 import { DecimalString } from "@/lib/types";
 
 export interface DecimalInputProps extends InputProps {
     kind: DecimalFieldKind;
     currency?: CurrencyCode;
-    value?: DecimalString; // To improve types.
+    defaultValue?: DecimalString | string; // To improve types.
+    value?: DecimalString | string; // To improve types.
 }
 
 export function DecimalInput(props: DecimalInputProps) {
     const {
         kind,
         className,
-        currency = "inr",
+        currency = "INR",
+        defaultValue,
         value: valueProp,
         onChange: onChangeProp,
         onFocus: onFocusProp,
@@ -28,7 +30,7 @@ export function DecimalInput(props: DecimalInputProps) {
 
     const [value, setValue] = useControlled<DecimalString>({
         controlled: valueProp,
-        default: "",
+        default: defaultValue ?? "",
         name: "value",
     });
     const [displayValue, setDisplayValue] = useState(valueProp || "");
@@ -99,8 +101,6 @@ export function DecimalInput(props: DecimalInputProps) {
         setOpen(false);
     }
 
-    const symbol = getCurrencySymbol(currency);
-
     const variant = useMemo(() => {
         // If the variantProp is passed as error, we use that.
         if (variantProp === "error") return "error";
@@ -120,10 +120,10 @@ export function DecimalInput(props: DecimalInputProps) {
     return (
         <Popover open={open}>
             <PopoverTrigger asChild>
-                <div className="relative">
+                <div className="relative w-fit">
                     {isCurrency && (
-                        <span className="text-foreground-muted absolute top-2 left-3 text-base select-none">
-                            {symbol}
+                        <span className="text-foreground-muted absolute top-3 right-3 text-xs select-none">
+                            {currency}
                         </span>
                     )}
 
@@ -131,7 +131,7 @@ export function DecimalInput(props: DecimalInputProps) {
                         className={cn(
                             "w-full min-w-32! sm:w-32!",
                             {
-                                "pl-6!": isCurrency,
+                                "pr-8!": isCurrency,
                             },
                             className
                         )}

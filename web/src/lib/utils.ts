@@ -168,7 +168,7 @@ export function removeAtIndex<T>(array: T[], index: number): T[] {
 export function formatCurrency(
     amount: string | number,
     {
-        currency = "inr",
+        currency = "INR",
         hideSymbol = false,
         locale = "en-IN",
         localizationOpts = {},

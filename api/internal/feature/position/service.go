@@ -59,6 +59,7 @@ func NewService(brokerRepository broker.ReadWriter, positionRepository ReadWrite
 type ComputePayload struct {
 	Trades     []trade.CreatePayload `json:"trades"`
 	RiskAmount decimal.Decimal       `json:"risk_amount"`
+	FxRate     *decimal.Decimal      `json:"fx_rate"`
 
 	// Data below is needed to calculate charges.
 	Instrument        types.Instrument `json:"instrument"`
@@ -110,7 +111,13 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 			}
 		}
 
-		result.computeResult.TotalChargesAmount = calculateTotalChargesAmountFromTrades(trades)
+		totalCharges := calculateTotalChargesAmountFromTrades(trades)
+
+		if payload.FxRate != nil && payload.FxRate.IsPositive() {
+			totalCharges = totalCharges.Mul(*payload.FxRate)
+		}
+
+		result.computeResult.TotalChargesAmount = totalCharges
 		result.TradeCharges = charges
 	}
 
@@ -120,10 +127,11 @@ func (s *Service) Compute(ctx context.Context, payload ComputePayload) (ComputeS
 type CreatePayload struct {
 	ComputePayload
 
-	Notes               string                `json:"notes"`
-	Symbol              string                `json:"symbol"`
-	Instrument          types.Instrument      `json:"instrument"`
+	Symbol     string           `json:"symbol"`
+	Instrument types.Instrument `json:"instrument"`
+	// DEPRECATED
 	Currency            currency.CurrencyCode `json:"currency"`
+	CurrencyCode        currency.CurrencyCode `json:"currency_code"`
 	UserBrokerAccountID *uuid.UUID            `json:"user_broker_account_id"`
 	JournalContent      json.RawMessage       `json:"journal_content"`
 	ActiveUploadIDs     []uuid.UUID           `json:"active_upload_ids"`

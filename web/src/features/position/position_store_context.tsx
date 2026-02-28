@@ -1,8 +1,5 @@
 import { createContext, useContext, useRef } from "react";
-import {
-    createPositionStore,
-    PositionStore,
-} from "@/features/position/position_store";
+import { createPositionStore, PositionStore } from "@/features/position/position_store";
 import { StoreApi, useStore } from "zustand";
 import { Position } from "@/features/position/position";
 
@@ -13,7 +10,7 @@ export const PositionStoreProvider = ({
     initState,
 }: {
     children: React.ReactNode;
-    initState?: Position;
+    initState?: Partial<Position>;
 }) => {
     const store = useRef(createPositionStore(initState)).current;
     return <Context.Provider value={store}>{children}</Context.Provider>;
@@ -22,9 +19,7 @@ export const PositionStoreProvider = ({
 export function usePositionStore<T>(selector: (state: PositionStore) => T): T {
     const store = useContext(Context);
     if (!store) {
-        throw new Error(
-            "usePositionStore must be used within PositionProvider"
-        );
+        throw new Error("usePositionStore must be used within PositionProvider");
     }
     return useStore(store, selector);
 }

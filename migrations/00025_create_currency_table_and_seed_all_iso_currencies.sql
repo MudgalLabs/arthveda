@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE TABLE currency (
+CREATE TABLE IF NOT EXISTS currency (
     code         VARCHAR(3) PRIMARY KEY,
     name         TEXT NOT NULL,
     fx_supported BOOLEAN NOT NULL DEFAULT FALSE,
@@ -175,6 +175,6 @@ INSERT INTO currency (code, name) VALUES
 -- +goose Down
 -- +goose StatementBegin
 
-DROP TABLE currency;
+DROP TABLE currency CASCADE;
 
 -- +goose StatementEnd

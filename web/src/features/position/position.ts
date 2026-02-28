@@ -82,6 +82,13 @@ interface Position {
     open_average_price_amount: DecimalString;
     user_broker_account_id: string | null;
 
+    currency_code: CurrencyCode;
+    fx_rate: DecimalString;
+    fx_source: "system" | "manual";
+    gross_pnl_amount_away: DecimalString | null;
+    total_charges_amount_away: DecimalString | null;
+    net_pnl_amount_away: DecimalString | null;
+
     trades: Trade[] | null;
     user_broker_account: UserBrokerAccountSearchValue | null;
     journal_content: Content | undefined;

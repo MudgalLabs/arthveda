@@ -68,7 +68,7 @@ const INITIAL_STATE: State = {
     userBrokerAccountID: null,
     brokerName: null,
     file: null,
-    currency: "inr",
+    currency: "INR",
     riskAmount: "",
     chargesCalculationMethod: "auto",
     manualChargeAmount: "0",

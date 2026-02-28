@@ -10,6 +10,7 @@ import { useDebounce } from "@/hooks/use_debounce";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
+import { useHomeCurrency } from "../auth/auth_context";
 
 interface State {
     initialPosition: Position | null;
@@ -39,7 +40,7 @@ const defaultState: State = {
         created_by: "",
         symbol: "",
         instrument: "equity",
-        currency: "inr",
+        currency: "INR",
         risk_amount: "",
         // notes: "",
         total_charges_amount: "0",
@@ -57,6 +58,13 @@ const defaultState: State = {
         open_average_price_amount: "0",
         user_broker_account_id: null,
 
+        currency_code: "INR",
+        fx_rate: "1",
+        fx_source: "system",
+        gross_pnl_amount_away: null,
+        total_charges_amount_away: null,
+        net_pnl_amount_away: null,
+
         trades: [],
         tags: [],
         user_broker_account: null,
@@ -67,8 +75,8 @@ const defaultState: State = {
     enableAutoCharges: false,
 };
 
-export const createPositionStore = (initProp?: Position) => {
-    const position: Position = initProp ?? defaultState.position;
+export const createPositionStore = (initProp?: Partial<Position>) => {
+    const position: Position = initProp ? { ...defaultState.position, ...initProp } : defaultState.position;
 
     if (!position?.trades || position.trades.length === 0) {
         position.trades = [getEmptyTrade("buy")];
@@ -192,6 +200,14 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
         const prevPosition = prevDebouncedPositionRef.current;
 
         let hasChanges = false;
+
+        if (debouncedPosition.currency !== prevPosition.currency) {
+            hasChanges = true;
+        }
+
+        if (debouncedPosition.fx_rate !== prevPosition.fx_rate) {
+            hasChanges = true;
+        }
 
         if (debouncedPosition.risk_amount !== prevPosition.risk_amount) {
             hasChanges = true;

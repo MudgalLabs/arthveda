@@ -31,8 +31,10 @@ type Position struct {
 	// Data provided by the user
 	//
 
-	Symbol             string                `json:"symbol" db:"symbol"`
-	Instrument         types.Instrument      `json:"instrument" db:"instrument"`
+	Symbol     string           `json:"symbol" db:"symbol"`
+	Instrument types.Instrument `json:"instrument" db:"instrument"`
+	// DEPRECATED
+	// `Currency` is deprecated. Please use `CurrencyCode` instead.
 	Currency           currency.CurrencyCode `json:"currency" db:"currency"`
 	RiskAmount         decimal.Decimal       `json:"risk_amount" db:"risk_amount"`
 	Notes              string                `json:"notes" db:"notes"`
@@ -61,6 +63,13 @@ type Position struct {
 	BrokerID *uuid.UUID `json:"broker_id" db:"broker_id"` // The ID of the Broker from which this Position is imported.
 
 	UserBrokerAccountID *uuid.UUID `json:"user_broker_account_id" db:"user_broker_account_id"` // The ID of the UserBrokerAccount to which this Position belongs.
+
+	CurrencyCode           currency.CurrencyCode `json:"currency_code" db:"currency_code"`
+	FxRate                 decimal.Decimal       `json:"fx_rate" db:"fx_rate"`
+	FxSource               fxSource              `json:"fx_source" db:"fx_source"`
+	GrossPnLAmountAway     *decimal.Decimal      `json:"gross_pnl_amount_away" db:"gross_pnl_amount_away"`
+	NetPnLAmountAway       *decimal.Decimal      `json:"net_pnl_amount_away" db:"net_pnl_amount_away"`
+	TotalChargesAmountAway *decimal.Decimal      `json:"total_charges_amount_away" db:"total_charges_amount_away"`
 
 	//
 	// Everything above is present in the position table but everything below isn't.
@@ -107,6 +116,13 @@ const (
 	StatusOpen      Status = "open"
 )
 
+type fxSource string
+
+const (
+	fxSourceSystem fxSource = "system"
+	fxSourceManual fxSource = "manual"
+)
+
 func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr bool, err error) {
 	now := time.Now().UTC()
 
@@ -133,12 +149,15 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 		Instrument:          payload.Instrument,
 		Currency:            payload.Currency,
 		RiskAmount:          payload.RiskAmount,
-		Notes:               payload.Notes,
 		UserBrokerAccountID: payload.UserBrokerAccountID,
 		Trades:              trades,
 	}
 
 	ApplyComputeResultToPosition(position, computeResult)
+
+	if payload.FxRate != nil {
+		position.FxSource = fxSourceManual
+	}
 
 	return position, false, nil
 }
@@ -193,7 +212,6 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 	updatedPosition.Instrument = payload.Instrument
 	updatedPosition.Currency = payload.Currency
 	updatedPosition.RiskAmount = payload.RiskAmount
-	updatedPosition.Notes = payload.Notes
 	updatedPosition.BrokerID = payload.BrokerID
 	updatedPosition.UserBrokerAccountID = payload.UserBrokerAccountID
 
@@ -211,8 +229,17 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 	updatedPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
 	updatedPosition.OpenQuantity = computeResult.OpenQuantity
 	updatedPosition.OpenAveragePriceAmount = computeResult.OpenAveragePriceAmount
+	updatedPosition.CurrencyCode = payload.CurrencyCode
+	updatedPosition.GrossPnLAmountAway = &computeResult.GrossPnLAmountAway
+	updatedPosition.TotalChargesAmountAway = &computeResult.TotalChargesAmountAway
+	updatedPosition.NetPnLAmountAway = &computeResult.NetPnLAmountAway
 
 	updatedPosition.Trades = trades
+
+	if payload.FxRate != nil {
+		updatedPosition.FxRate = *payload.FxRate
+		updatedPosition.FxSource = fxSourceManual
+	}
 
 	return updatedPosition, false, nil
 }
@@ -231,6 +258,9 @@ type computeResult struct {
 	ChargesAsPercentageOfNetPnL decimal.Decimal `json:"charges_as_percentage_of_net_pnl"`
 	OpenQuantity                decimal.Decimal `json:"open_quantity"`
 	OpenAveragePriceAmount      decimal.Decimal `json:"open_average_price_amount"`
+	GrossPnLAmountAway          decimal.Decimal `json:"gross_pnl_amount_away"`
+	NetPnLAmountAway            decimal.Decimal `json:"net_pnl_amount_away"`
+	TotalChargesAmountAway      decimal.Decimal `json:"total_charges_amount_away"`
 }
 
 var ErrInvalidTradeData = errors.New("Invalid trade data provided")
@@ -346,15 +376,26 @@ func Compute(payload ComputePayload) (computeResult, error) {
 		chargesAsPercentageOfNetPnL = totalCharges.Div(grossPnL).Mul(decimal.NewFromFloat(100))
 	}
 
+	if payload.FxRate != nil && payload.FxRate.IsPositive() {
+		result.GrossPnLAmount = grossPnL.Mul(*payload.FxRate)
+		result.TotalChargesAmount = totalCharges.Mul(*payload.FxRate)
+		result.NetPnLAmount = netPnL.Mul(*payload.FxRate)
+
+		result.GrossPnLAmountAway = grossPnL
+		result.TotalChargesAmountAway = totalCharges
+		result.NetPnLAmountAway = netPnL
+	} else {
+		result.GrossPnLAmount = grossPnL
+		result.NetPnLAmount = netPnL
+		result.TotalChargesAmount = totalCharges
+	}
+
 	result.Direction = direction
 	result.Status = status
 	result.OpenedAt = payload.Trades[0].Time
 	result.ClosedAt = closedAt
-	result.GrossPnLAmount = grossPnL
-	result.NetPnLAmount = netPnL
 	result.RFactor = rFactor
 	result.GrossRFactor = grossRFactor
-	result.TotalChargesAmount = totalCharges
 	result.NetReturnPercentage = netReturnPercentage
 	result.ChargesAsPercentageOfNetPnL = chargesAsPercentageOfNetPnL
 

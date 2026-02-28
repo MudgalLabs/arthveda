@@ -189,7 +189,7 @@ func getTotalChargesForTrade(tradeValue decimal.Decimal, tradeKind types.TradeKi
 		"total_charges", totalCharges,
 	)
 
-	return totalCharges
+	return totalCharges.Truncate(2)
 }
 
 type equityTradeKind = string
@@ -533,6 +533,8 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 			config.min = 20
 		case broker.BrokerNameGroww:
 			config.min = 20
+		case broker.BrokerNameINDmoney:
+			config.min = 20
 		case broker.BrokerNameKotakSecurities:
 			config.min = 10
 		case broker.BrokerNameUpstox:
@@ -546,6 +548,8 @@ func getBrokerageConfig(brokerName broker.Name, instrument types.Instrument, etk
 	case types.InstrumentOption:
 		switch brokerName {
 		case broker.BrokerNameAngelOne:
+			config.min = 20
+		case broker.BrokerNameINDmoney:
 			config.min = 20
 		case broker.BrokerNameGroww:
 			config.min = 20

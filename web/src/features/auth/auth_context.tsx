@@ -80,5 +80,6 @@ export function useUserHasProSubscription(): boolean {
 
 export function useHomeCurrency(): CurrencyCode {
     const { data } = useAuthentication();
+    // TODO: Instead of "INR" maybe default to the currency of their locale?
     return data?.home_currency_code ?? "INR";
 }

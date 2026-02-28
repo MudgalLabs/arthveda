@@ -12,7 +12,7 @@ interface StatusTagProps {
     openAvgPrice?: DecimalString;
 }
 
-const StatusTag: FC<StatusTagProps> = memo(({ currency = "inr", status, openQuantity = "", openAvgPrice = "" }) => {
+const StatusTag: FC<StatusTagProps> = memo(({ currency = "INR", status, openQuantity = "", openAvgPrice = "" }) => {
     if (status === "win") return <Tag variant="success">Win</Tag>;
     if (status === "loss") return <Tag variant="destructive">Loss</Tag>;
 

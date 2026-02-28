@@ -18,6 +18,7 @@ import { Tag } from "@/lib/api/tag";
 export interface ComputePositionRequest {
     trades: CreateTrade[];
     risk_amount: DecimalString;
+    fx_rate: DecimalString | null;
     instrument: PositionInstrument;
     enable_auto_charges: boolean;
     broker_id: string | null; // This needs to be set if `auto_calculate_charges` is true.
@@ -38,6 +39,10 @@ export interface ComputePositionResponse {
     open_quantity: DecimalString;
     open_average_price_amount: DecimalString;
 
+    gross_pnl_amount_away: DecimalString;
+    total_charges_amount_away: DecimalString;
+    net_pnl_amount_away: DecimalString;
+
     trade_charges: DecimalString[] | null;
 }
 
@@ -47,17 +52,15 @@ export function compute(body: ComputePositionRequest, signal?: AbortSignal) {
     });
 }
 
-export interface CreatePositionRequest {
+export interface CreatePositionRequest extends ComputePositionRequest {
     symbol: string;
     instrument: PositionInstrument;
     currency: CurrencyCode;
-    risk_amount: DecimalString;
+    currency_code: CurrencyCode;
     user_broker_account_id: string | null;
     journal_content: Content | null;
-    trades: CreateTrade[];
-
-    // Only used for "Compute" when creating/updating a position. This is not stored in the database.
-    broker_id: string | null;
+    active_upload_ids: string[];
+    tag_ids: string[];
 }
 
 export interface CreatePositionResponse {
