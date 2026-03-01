@@ -113,7 +113,7 @@ func (r *userProfileRepository) Update(ctx context.Context, userProfile *UserPro
 		UPDATE user_profile
 		SET email = $1, name = $2, avatar_url = $3, updated_at = $4,
 		home_currency_code = $5
-		WHERE user_id = $5
+		WHERE user_id = $6
 	`
 
 	_, err := r.db.Exec(ctx, sql, userProfile.Email, userProfile.Name, userProfile.AvatarURL, updatedAt, userProfile.HomeCurrencyCode, userProfile.UserID)
