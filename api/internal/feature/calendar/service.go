@@ -353,45 +353,55 @@ func (s *Service) GetDay(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 		var grossPnL, netPnL, charges, roi, grossRFactor, netRFactor decimal.Decimal
 
 		prevCharges := decimal.Zero
+		fx := pos.FxRate
 
 		for _, trade := range pos.Trades {
+
 			stat := realisedStatsByTradeID[trade.ID]
 
-			if len(trade.MatchedLots) > 0 {
-				if common.IsSameDay(trade.Time, date, tz) {
-					incrementalCharges := stat.ChargesAmount.Sub(prevCharges)
-					prevCharges = stat.ChargesAmount
-					charges = charges.Add(incrementalCharges)
+			if len(trade.MatchedLots) == 0 {
+				continue
+			}
 
-					grossPnL = grossPnL.Add(trade.RealisedGrossPnL)
-					roi = roi.Add(trade.GrossROI)
+			if common.IsSameDay(trade.Time, date, tz) {
+				incrementalCharges := stat.ChargesAmount.Sub(prevCharges)
+				prevCharges = stat.ChargesAmount
 
-					trade.ChargesAmount = incrementalCharges
-					trade.RealisedNetPnL = trade.RealisedGrossPnL.Sub(incrementalCharges)
+				realisedGross := trade.RealisedGrossPnL
+				realisedNet := realisedGross.Sub(incrementalCharges)
 
-					netPnL = netPnL.Add(trade.RealisedNetPnL)
+				trade.RealisedGrossPnL = realisedGross.Mul(fx)
+				trade.ChargesAmount = incrementalCharges.Mul(fx)
+				trade.RealisedNetPnL = realisedNet.Mul(fx)
 
-					if pos.RiskAmount.IsPositive() {
-						trade.NetRFactor = trade.RealisedNetPnL.Div(pos.RiskAmount)
-					}
-
-					grossRFactor = grossRFactor.Add(trade.GrossRFactor)
-					netRFactor = netRFactor.Add(trade.NetRFactor)
-
-					filteredTrades = append(filteredTrades, trade)
-				} else if trade.Time.In(tz).Before(date.In(tz)) {
-					prevCharges = stat.ChargesAmount
+				if pos.RiskAmount.IsPositive() {
+					trade.NetRFactor = realisedNet.Div(pos.RiskAmount)
 				}
+
+				roi = roi.Add(trade.GrossROI)
+				grossPnL = grossPnL.Add(trade.RealisedGrossPnL)
+				netPnL = netPnL.Add(trade.RealisedNetPnL)
+				charges = charges.Add(trade.ChargesAmount)
+
+				grossRFactor = grossRFactor.Add(trade.GrossRFactor)
+				netRFactor = netRFactor.Add(trade.NetRFactor)
+
+				filteredTrades = append(filteredTrades, trade)
+
+			} else if trade.Time.In(tz).Before(dateInTZ) {
+				prevCharges = stat.ChargesAmount
 			}
 		}
 
 		if len(filteredTrades) > 0 {
+
 			pos.Trades = filteredTrades
 			filteredPositions = append(filteredPositions, pos)
 
 			result.GrossPnL = result.GrossPnL.Add(grossPnL)
-			result.Charges = result.Charges.Add(charges)
 			result.NetPnL = result.NetPnL.Add(netPnL)
+			result.Charges = result.Charges.Add(charges)
+
 			result.GrossRFactor = result.GrossRFactor.Add(grossRFactor)
 			result.NetRFactor = result.NetRFactor.Add(netRFactor)
 		}

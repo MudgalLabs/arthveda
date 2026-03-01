@@ -34,6 +34,7 @@ func TestComputeSmartTrades_LongPosition(t *testing.T) {
 	payload := position.ComputePayload{
 		RiskAmount: pos.RiskAmount,
 		Trades:     position.ConvertTradesToCreatePayload(pos.Trades),
+		FxRate:     &pos.FxRate,
 	}
 
 	res, err := position.Compute(payload)

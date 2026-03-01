@@ -8,6 +8,7 @@ import {
     BreadcrumbPage,
     IconSettings,
     Tooltip,
+    useDocumentTitle,
 } from "netra";
 
 import { CurrencySelect } from "@/components/select/currency_select";
@@ -15,6 +16,7 @@ import { ContactEmail } from "@/components/contact_email";
 import { useHomeCurrency } from "@/features/auth/auth_context";
 
 export function Settings() {
+    useDocumentTitle("Settings • Arthveda");
     const currency = useHomeCurrency();
 
     return (

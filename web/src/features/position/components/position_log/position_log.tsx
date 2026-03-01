@@ -141,8 +141,7 @@ function PositionLog() {
     const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
 
     const homeCurrency = useHomeCurrency();
-    const notUsingHomeCurrency = position.currency !== homeCurrency;
-    console.log({ homeCurrency, currency: position.currency, notUsingHomeCurrency });
+    const isUsingHomeCurrency = position.currency === homeCurrency;
 
     const handleClickSave = () => {
         if (!canSave) return;
@@ -170,7 +169,7 @@ function PositionLog() {
                 };
             }),
             enable_auto_charges: enableAutoCharges,
-            fx_rate: notUsingHomeCurrency ? position.fx_rate : "1",
+            fx_rate: isUsingHomeCurrency ? "1" : position.fx_rate,
             currency_code: position.currency_code,
         };
 
@@ -199,7 +198,7 @@ function PositionLog() {
                     return trade;
                 }),
                 risk_amount: position.risk_amount || "0",
-                fx_rate: position.fx_rate || null,
+                fx_rate: isUsingHomeCurrency ? "1" : position.fx_rate,
                 instrument: position.instrument,
                 enable_auto_charges: enableAutoCharges,
                 broker_id: position.user_broker_account?.broker_id || null,

@@ -11,10 +11,12 @@ import {
     Loading,
     Switch,
     Label,
+    useDocumentTitle,
 } from "netra";
 import { useMemo } from "react";
 
 export default function NotificationPreferences() {
+    useDocumentTitle("Notifications • Arthveda");
     const { data, isFetching: isFetchingPreferences, isError } = usePreferences();
     const { mutate: setPreference, isPending: isSettingPreference } = useUpdatePreference();
 

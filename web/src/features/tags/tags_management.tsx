@@ -23,6 +23,7 @@ import {
     IconChevronRight,
     DataTable,
     DataTableSmart,
+    useDocumentTitle,
 } from "netra";
 
 import {
@@ -38,6 +39,7 @@ import { TagGroupWithTags, Tag } from "@/lib/api/tag";
 import { toast } from "@/components/toast";
 
 export function TagsManagement() {
+    useDocumentTitle("Tags • Arthveda");
     const { data, isLoading } = useListTagGroups();
 
     const [openEditTagGroup, setOpenEditTagGroup] = useState(false);

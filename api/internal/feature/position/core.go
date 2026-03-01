@@ -708,6 +708,7 @@ func FilterPositionsWithRealisingTradesUpTo(positions []*Position, end time.Time
 		payload := ComputePayload{
 			Trades:     ConvertTradesToCreatePayload(p.Trades),
 			RiskAmount: p.RiskAmount,
+			FxRate:     &p.FxRate,
 		}
 
 		computeResult, err := Compute(payload)
@@ -773,6 +774,9 @@ func GetPnLBuckets(positions []*Position, period common.BucketPeriod, start, end
 	chargesByPositionID := make(map[uuid.UUID]decimal.Decimal)
 
 	for _, t := range allTrades {
+		// The position to which this trade belongs to.
+		pos := positionByID[t.PositionID]
+
 		// Find the active bucket for this trade
 		var activeBucket *PnlBucket
 		for i := range results {
@@ -794,8 +798,8 @@ func GetPnLBuckets(positions []*Position, period common.BucketPeriod, start, end
 			chargesAmount = decimal.Zero
 		}
 
-		grossPnL := t.RealisedGrossPnL
-		charges := stats.ChargesAmount.Sub(chargesAmount)
+		grossPnL := t.RealisedGrossPnL.Mul(pos.FxRate)
+		charges := stats.ChargesAmount.Sub(chargesAmount).Mul(pos.FxRate)
 		netPnL := grossPnL.Sub(charges)
 		grossRFactor := t.GrossRFactor
 
