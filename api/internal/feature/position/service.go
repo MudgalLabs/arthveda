@@ -303,7 +303,8 @@ type FileImportPayload struct {
 	UserBrokerAccountID uuid.UUID `json:"user_broker_account_id"`
 
 	// Currency is the currency in which the positions are denominated.
-	Currency currency.CurrencyCode `json:"currency"`
+	Currency     currency.CurrencyCode `json:"currency"`
+	CurrencyCode currency.CurrencyCode `json:"currency_code"`
 
 	// RiskAmount is the risk amount that will be used to compute R-Factor.
 	RiskAmount decimal.Decimal `json:"risk_amount"`
@@ -399,6 +400,7 @@ func (s *Service) FileImport(ctx context.Context, userID uuid.UUID, payload File
 		Broker:                   broker,
 		RiskAmount:               payload.RiskAmount,
 		Currency:                 payload.Currency,
+		CurrencyCode:             payload.CurrencyCode,
 		ChargesCalculationMethod: payload.ChargesCalculationMethod,
 		ManualChargeAmount:       payload.ManualChargeAmount,
 		Confirm:                  payload.Confirm,
@@ -420,7 +422,8 @@ type ImportPayload struct {
 	RiskAmount decimal.Decimal
 
 	// Currency is the Currency in which the positions are denominated.
-	Currency currency.CurrencyCode
+	Currency     currency.CurrencyCode
+	CurrencyCode currency.CurrencyCode
 
 	// Whether to auto calculate charges or let user provide a manual charge amount.
 	ChargesCalculationMethod ChargesCalculationMethod
@@ -1163,6 +1166,7 @@ func (s *Service) Sync(ctx context.Context, importableTrades []*types.Importable
 				Symbol:              t.Symbol,
 				Instrument:          t.Instrument,
 				Currency:            payload.Currency,
+				CurrencyCode:        payload.CurrencyCode,
 				UserBrokerAccountID: &payload.UserBrokerAccountID,
 			}
 

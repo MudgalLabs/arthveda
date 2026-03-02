@@ -193,7 +193,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"open_average_price_amount":        position.OpenAveragePriceAmount,
 		"broker_id":                        position.BrokerID,
 		"user_broker_account_id":           position.UserBrokerAccountID,
-		"currency_code":                    position.CurrencyCode,
+		"currency_code":                    position.Currency,
 		"fx_rate":                          position.FxRate,
 		"fx_source":                        position.FxSource,
 		"gross_pnl_amount_away":            position.GrossPnLAmountAway,

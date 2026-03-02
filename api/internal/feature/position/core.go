@@ -148,6 +148,7 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 		Symbol:              symbol.Sanitize(payload.Symbol, payload.Instrument),
 		Instrument:          payload.Instrument,
 		Currency:            payload.Currency,
+		CurrencyCode:        payload.CurrencyCode,
 		RiskAmount:          payload.RiskAmount,
 		UserBrokerAccountID: payload.UserBrokerAccountID,
 		Trades:              trades,
@@ -155,8 +156,14 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 
 	ApplyComputeResultToPosition(position, computeResult)
 
-	if payload.FxRate != nil {
-		position.FxSource = fxSourceManual
+	if payload.FxRate != nil && payload.FxRate.IsPositive() {
+		position.FxRate = *payload.FxRate
+		if payload.FxRate.Equal(decimal.NewFromInt(1)) {
+			// We are assuming we got "1" by the "system".
+			position.FxSource = fxSourceSystem
+		} else {
+			position.FxSource = fxSourceManual
+		}
 	}
 
 	return position, false, nil
@@ -211,6 +218,7 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 	updatedPosition.Symbol = payload.Symbol
 	updatedPosition.Instrument = payload.Instrument
 	updatedPosition.Currency = payload.Currency
+	updatedPosition.CurrencyCode = payload.CurrencyCode
 	updatedPosition.RiskAmount = payload.RiskAmount
 	updatedPosition.BrokerID = payload.BrokerID
 	updatedPosition.UserBrokerAccountID = payload.UserBrokerAccountID
@@ -229,7 +237,6 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 	updatedPosition.ChargesAsPercentageOfNetPnL = computeResult.ChargesAsPercentageOfNetPnL
 	updatedPosition.OpenQuantity = computeResult.OpenQuantity
 	updatedPosition.OpenAveragePriceAmount = computeResult.OpenAveragePriceAmount
-	updatedPosition.CurrencyCode = payload.CurrencyCode
 	updatedPosition.GrossPnLAmountAway = &computeResult.GrossPnLAmountAway
 	updatedPosition.TotalChargesAmountAway = &computeResult.TotalChargesAmountAway
 	updatedPosition.NetPnLAmountAway = &computeResult.NetPnLAmountAway
@@ -455,6 +462,17 @@ func ApplyComputeResultToPosition(
 	position *Position,
 	computeResult computeResult,
 ) {
+	if position.FxRate.Equal(decimal.NewFromInt(0)) {
+		position.FxRate = decimal.NewFromInt(1)
+
+		if position.FxSource == "" {
+			position.FxSource = fxSourceSystem
+		}
+	} else if position.FxRate.IsPositive() && position.FxSource == "" {
+
+		position.FxSource = fxSourceManual
+	}
+
 	position.Direction = computeResult.Direction
 	position.Status = computeResult.Status
 	position.OpenedAt = computeResult.OpenedAt

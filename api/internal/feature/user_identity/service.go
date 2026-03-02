@@ -106,8 +106,6 @@ func (s *Service) OAuthGoogleCallback(ctx context.Context, code string) (*userpr
 			return nil, service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
 		}
 
-		fmt.Println("FOUND USER PROFILE:", userProfile)
-
 		// Check if the user has an existing subscription.
 		// If no subscription exists, start a new 30-day trial.
 		_, err := s.subscriptionService.SubscriptionRepository.FindUserSubscriptionByUserID(ctx, userProfile.UserID)
