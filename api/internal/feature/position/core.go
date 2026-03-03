@@ -355,15 +355,15 @@ func Compute(payload ComputePayload) (computeResult, error) {
 
 	result.NetReturnPercentage = netReturnPercentage
 
+	if !grossPnL.IsZero() && payload.RiskAmount.IsPositive() {
+		rFactor = netPnL.Div(payload.RiskAmount)
+		grossRFactor = grossPnL.Div(payload.RiskAmount)
+	}
+
 	var status Status
 
 	// Position is closed.
 	if netOpenQty.IsZero() {
-
-		if payload.RiskAmount.IsPositive() {
-			rFactor = netPnL.Div(payload.RiskAmount)
-			grossRFactor = grossPnL.Div(payload.RiskAmount)
-		}
 
 		if netPnL.IsZero() {
 			status = StatusBreakeven
