@@ -39,7 +39,6 @@ const defaultState: State = {
         created_by: "",
         symbol: "",
         instrument: "equity",
-        currency: "INR",
         risk_amount: "",
         // notes: "",
         total_charges_amount: "0",
@@ -200,7 +199,7 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
 
         let hasChanges = false;
 
-        if (debouncedPosition.currency !== prevPosition.currency) {
+        if (debouncedPosition.currency_code !== prevPosition.currency_code) {
             hasChanges = true;
         }
 

@@ -63,7 +63,6 @@ interface Position {
 
     symbol: string;
     instrument: PositionInstrument;
-    currency: CurrencyCode;
     risk_amount: DecimalString;
     // notes: string;
 

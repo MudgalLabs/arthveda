@@ -10,7 +10,7 @@ const NewPositionLazy: React.FC = () => {
 
     return (
         <Suspense fallback={<LoadingScreen />}>
-            <PositionStoreProvider initState={{ currency: homeCurrency }}>
+            <PositionStoreProvider initState={{ currency_code: homeCurrency }}>
                 <NewPosition />
             </PositionStoreProvider>
         </Suspense>

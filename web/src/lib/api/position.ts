@@ -55,7 +55,6 @@ export function compute(body: ComputePositionRequest, signal?: AbortSignal) {
 export interface CreatePositionRequest extends ComputePositionRequest {
     symbol: string;
     instrument: PositionInstrument;
-    currency: CurrencyCode;
     currency_code: CurrencyCode;
     user_broker_account_id: string | null;
     journal_content: Content | null;
@@ -122,7 +121,7 @@ export interface ImportPositionsRequest {
     file: File;
     broker_id: string;
     user_broker_account_id: string;
-    currency: CurrencyCode;
+    currency_code: CurrencyCode;
     risk_amount: DecimalString;
     charges_calculation_method: ChargesCalculationMethod;
     manual_charge_amount: DecimalString;
@@ -148,7 +147,7 @@ export function importPositions(body: ImportPositionsRequest) {
     formData.append("file", body.file);
     formData.append("broker_id", body.broker_id);
     formData.append("user_broker_account_id", body.user_broker_account_id);
-    formData.append("currency", body.currency);
+    formData.append("currency_code", body.currency_code);
     formData.append("risk_amount", body.risk_amount);
     formData.append("charges_calculation_method", body.charges_calculation_method);
     formData.append("manual_charge_amount", body.manual_charge_amount);

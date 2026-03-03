@@ -130,7 +130,7 @@ export const ImportPositions = () => {
                 file: state.file,
                 broker_id: state.brokerID,
                 user_broker_account_id: state.userBrokerAccountID,
-                currency: state.currency,
+                currency_code: state.currency,
                 risk_amount: state.riskAmount || "0",
                 charges_calculation_method: state.chargesCalculationMethod,
                 manual_charge_amount: state.manualChargeAmount,
@@ -167,7 +167,7 @@ export const ImportPositions = () => {
                 file: state.file,
                 broker_id: state.brokerID,
                 user_broker_account_id: state.userBrokerAccountID,
-                currency: state.currency,
+                currency_code: state.currency,
                 risk_amount: state.riskAmount,
                 charges_calculation_method: state.chargesCalculationMethod,
                 manual_charge_amount: state.manualChargeAmount,
@@ -916,7 +916,7 @@ const columns: ColumnDef<Position>[] = [
         ),
         cell: ({ row }) =>
             formatCurrency(row.original.gross_pnl_amount, {
-                currency: row.original.currency,
+                currency: row.original.currency_code,
             }),
         enableSorting: false,
     },
@@ -938,7 +938,7 @@ const columns: ColumnDef<Position>[] = [
                 }
             >
                 {formatCurrency(row.original.net_pnl_amount, {
-                    currency: row.original.currency,
+                    currency: row.original.currency_code,
                 })}
             </span>
         ),
@@ -955,7 +955,7 @@ const columns: ColumnDef<Position>[] = [
         ),
         cell: ({ row }) =>
             formatCurrency(row.original.total_charges_amount, {
-                currency: row.original.currency,
+                currency: row.original.currency_code,
             }),
         enableSorting: false,
     },

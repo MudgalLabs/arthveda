@@ -195,8 +195,14 @@ func importHandler(s *position.Service) http.HandlerFunc {
 			return
 		}
 
-		currencyCode := currency.CurrencyINR
+		var currencyCode currency.CurrencyCode
 		currencyStr := r.FormValue("currency")
+
+		if currencyStr == "" {
+			currencyCode = "INR"
+		} else {
+			currencyCode = currency.ParseCurrencyCode(currencyStr)
+		}
 
 		if currencyStr != "" {
 			currencyCode = currency.ParseCurrencyCode(currencyStr)
@@ -283,7 +289,7 @@ func importHandler(s *position.Service) http.HandlerFunc {
 		payload := position.FileImportPayload{
 			BrokerID:                 brokerID,
 			UserBrokerAccountID:      userBrokerAccountID,
-			Currency:                 currencyCode,
+			CurrencyCode:             currencyCode,
 			RiskAmount:               riskAmount,
 			ChargesCalculationMethod: chargesCalculationMethod,
 			ManualChargeAmount:       manualChargeAmount,

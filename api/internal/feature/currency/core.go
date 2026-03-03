@@ -14,11 +14,6 @@ type Currency struct {
 // CurrencyCode is an ISO 4217 currency code (e.g., "INR", "USD")
 type CurrencyCode string
 
-const (
-	CurrencyINR CurrencyCode = "INR"
-	// Add more as needed
-)
-
 func ParseCurrencyCode(code string) CurrencyCode {
 	return CurrencyCode(code)
 }

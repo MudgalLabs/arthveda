@@ -183,7 +183,7 @@ const columns: ColumnDef<CreateTrade>[] = [
                                 "mb-2": error, // The table row mushes the input with the error message, so we add some margin to the bottom.
                             })}
                             kind="amount"
-                            currency={state.currency}
+                            currency={state.currency_code}
                             variant={error ? "error" : "default"}
                             value={value}
                             onChange={(e) => setValue(e.target.value)}
@@ -208,7 +208,7 @@ const columns: ColumnDef<CreateTrade>[] = [
                         <Tooltip content="Auto charges is enabled" disabled={!enableAutoCharges}>
                             <DecimalInput
                                 kind="amount"
-                                currency={state.currency}
+                                currency={state.currency_code}
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
                                 disabled={enableAutoCharges}

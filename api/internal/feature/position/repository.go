@@ -151,7 +151,7 @@ var searchFieldsSQLColumn = map[common.SearchField]string{
 func (r *positionRepository) Create(ctx context.Context, position *Position) error {
 	const sql = `
         INSERT INTO position (
-            id, created_by, created_at, updated_at, symbol, instrument, currency,
+            id, created_by, created_at, updated_at, symbol, instrument, 
             risk_amount, notes, total_charges_amount, direction, status, opened_at, closed_at,
             gross_pnl_amount, net_pnl_amount, r_factor, gross_r_factor, net_return_percentage,
             charges_as_percentage_of_net_pnl, open_quantity, open_average_price_amount,
@@ -159,7 +159,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 			gross_pnl_amount_away, net_pnl_amount_away, total_charges_amount_away
         )
         VALUES (
-            @id, @created_by, @created_at, @updated_at, @symbol, @instrument, @currency,
+            @id, @created_by, @created_at, @updated_at, @symbol, @instrument,
             @risk_amount, @notes, @total_charges_amount, @direction, @status, @opened_at, @closed_at,
             @gross_pnl_amount, @net_pnl_amount, @r_factor, @gross_r_factor, @net_return_percentage,
             @charges_as_percentage_of_net_pnl, @open_quantity, @open_average_price_amount,
@@ -175,7 +175,6 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"updated_at":                       position.UpdatedAt,
 		"symbol":                           symbol.Sanitize(position.Symbol, position.Instrument),
 		"instrument":                       position.Instrument,
-		"currency":                         position.Currency,
 		"risk_amount":                      position.RiskAmount,
 		"notes":                            position.Notes,
 		"total_charges_amount":             position.TotalChargesAmount,
@@ -193,7 +192,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"open_average_price_amount":        position.OpenAveragePriceAmount,
 		"broker_id":                        position.BrokerID,
 		"user_broker_account_id":           position.UserBrokerAccountID,
-		"currency_code":                    position.Currency,
+		"currency_code":                    position.CurrencyCode,
 		"fx_rate":                          position.FxRate,
 		"fx_source":                        position.FxSource,
 		"gross_pnl_amount_away":            position.GrossPnLAmountAway,
@@ -217,7 +216,6 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
             updated_at = @updated_at,
             symbol = @symbol,
             instrument = @instrument,
-            currency = @currency,
             risk_amount = @risk_amount,
 			notes = @notes,
             total_charges_amount = @total_charges_amount,
@@ -251,7 +249,6 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
 		"updated_at":                       position.UpdatedAt,
 		"symbol":                           symbol.Sanitize(position.Symbol, position.Instrument),
 		"instrument":                       position.Instrument,
-		"currency":                         position.Currency,
 		"risk_amount":                      position.RiskAmount,
 		"notes":                            position.Notes,
 		"total_charges_amount":             position.TotalChargesAmount,
@@ -328,7 +325,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 	baseSQL := `
 		SELECT
 			p.id, p.created_by, p.created_at, p.updated_at,
-			p.symbol, p.instrument, p.currency, p.risk_amount, p.notes, p.total_charges_amount,
+			p.symbol, p.instrument, p.risk_amount, p.notes, p.total_charges_amount,
 			p.direction, p.status, p.opened_at, p.closed_at,
 			p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.gross_r_factor, p.net_return_percentage,
 			p.charges_as_percentage_of_net_pnl, p.open_quantity,
@@ -467,7 +464,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 
 		err := rows.Scan(
 			&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
-			&pos.Symbol, &pos.Instrument, &pos.Currency, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
+			&pos.Symbol, &pos.Instrument, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
 			&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
 			&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.GrossRFactor, &pos.NetReturnPercentage,
 			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity,

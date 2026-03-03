@@ -35,10 +35,10 @@ type Position struct {
 	Instrument types.Instrument `json:"instrument" db:"instrument"`
 	// DEPRECATED
 	// `Currency` is deprecated. Please use `CurrencyCode` instead.
-	Currency           currency.CurrencyCode `json:"currency" db:"currency"`
-	RiskAmount         decimal.Decimal       `json:"risk_amount" db:"risk_amount"`
-	Notes              string                `json:"notes" db:"notes"`
-	TotalChargesAmount decimal.Decimal       `json:"total_charges_amount" db:"total_charges_amount"`
+	// Currency           currency.CurrencyCode `json:"currency" db:"currency"`
+	RiskAmount         decimal.Decimal `json:"risk_amount" db:"risk_amount"`
+	Notes              string          `json:"notes" db:"notes"`
+	TotalChargesAmount decimal.Decimal `json:"total_charges_amount" db:"total_charges_amount"`
 
 	//
 	// Data computed by Arthveda based on data provided by user mentioned above & related trade(s).
@@ -147,7 +147,6 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 		CreatedAt:           now,
 		Symbol:              symbol.Sanitize(payload.Symbol, payload.Instrument),
 		Instrument:          payload.Instrument,
-		Currency:            payload.Currency,
 		CurrencyCode:        payload.CurrencyCode,
 		RiskAmount:          payload.RiskAmount,
 		UserBrokerAccountID: payload.UserBrokerAccountID,
@@ -217,7 +216,7 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 
 	updatedPosition.Symbol = payload.Symbol
 	updatedPosition.Instrument = payload.Instrument
-	updatedPosition.Currency = payload.Currency
+	// updatedPosition.Currency = payload.Currency
 	updatedPosition.CurrencyCode = payload.CurrencyCode
 	updatedPosition.RiskAmount = payload.RiskAmount
 	updatedPosition.BrokerID = payload.BrokerID

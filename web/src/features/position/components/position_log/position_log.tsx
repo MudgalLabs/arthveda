@@ -141,7 +141,7 @@ function PositionLog() {
     const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
 
     const homeCurrency = useHomeCurrency();
-    const isUsingHomeCurrency = position.currency === homeCurrency;
+    const isUsingHomeCurrency = position.currency_code === homeCurrency;
 
     const handleClickSave = () => {
         if (!canSave) return;
@@ -150,7 +150,7 @@ function PositionLog() {
             risk_amount: position.risk_amount || "0",
             symbol: position.symbol,
             instrument: position.instrument,
-            currency: position.currency,
+            currency_code: position.currency_code,
             broker_id: position.user_broker_account?.broker_id || null,
             user_broker_account_id: position.user_broker_account_id,
             journal_content: position.journal_content || null,
@@ -170,7 +170,6 @@ function PositionLog() {
             }),
             enable_auto_charges: enableAutoCharges,
             fx_rate: isUsingHomeCurrency ? "1" : position.fx_rate,
-            currency_code: position.currency_code,
         };
 
         if (isCreatingPosition) {
@@ -263,7 +262,7 @@ function PositionLog() {
                         <div className="flex h-fit justify-between gap-x-2">
                             <div className="flex-x">
                                 <StatusTag
-                                    currency={position.currency}
+                                    currency={position.currency_code}
                                     status={position.status}
                                     openAvgPrice={position.open_average_price_amount}
                                     openQuantity={position.open_quantity}
@@ -336,7 +335,7 @@ function PositionLog() {
                                 <WithLabel Label={<Label>Risk</Label>}>
                                     <DecimalInput
                                         kind="amount"
-                                        currency={position.currency}
+                                        currency={position.currency_code}
                                         value={value}
                                         onChange={(e) => {
                                             setValue(e.target.value);
@@ -350,16 +349,15 @@ function PositionLog() {
                         <WithLabel Label={<Label>Currency</Label>}>
                             <div className="flex-x">
                                 <CurrencySelect
-                                    value={position.currency}
+                                    value={position.currency_code}
                                     onValueChange={(v) =>
                                         updatePosition({
-                                            currency: v,
                                             currency_code: v,
                                         })
                                     }
                                 />
 
-                                {position.currency !== homeCurrency && (
+                                {position.currency_code !== homeCurrency && (
                                     <div className="flex-x">
                                         <WithDebounce
                                             state={position.fx_rate}
@@ -379,7 +377,7 @@ function PositionLog() {
                                             )}
                                         </WithDebounce>
                                         <Tooltip
-                                            content={`Conversion rate from ${position.currency} to ${homeCurrency}`}
+                                            content={`Conversion rate from ${position.currency_code} to ${homeCurrency}`}
                                         >
                                             <IconInfo />
                                         </Tooltip>
