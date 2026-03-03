@@ -230,7 +230,8 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
                     trade.kind !== prevTrade.kind ||
                     trade.time.getTime() !== prevTrade.time.getTime() ||
                     trade.price !== prevTrade.price ||
-                    trade.quantity !== prevTrade.quantity
+                    trade.quantity !== prevTrade.quantity ||
+                    trade.charges_amount !== prevTrade.charges_amount
                 ) {
                     hasChanges = true;
                     break;
