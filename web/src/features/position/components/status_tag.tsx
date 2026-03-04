@@ -1,5 +1,5 @@
 import { FC, memo } from "react";
-import { Tag } from "netra";
+import { Tag } from "@/s8ly";
 
 import { CurrencyCode, PositionStatus } from "@/features/position/position";
 import { formatCurrency } from "@/lib/utils";

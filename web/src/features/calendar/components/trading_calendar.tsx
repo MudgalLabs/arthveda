@@ -457,8 +457,8 @@ function Day(props: DayProps) {
                         className={cn(
                             "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md border p-2",
                             {
-                                "bg-success-border border-success-border": isWin,
-                                "bg-error-border border-error-border": isLoss,
+                                "bg-success-bg-2 border-success-border": isWin,
+                                "bg-error-bg-2 border-error-border": isLoss,
                                 "bg-surface-2 border-none": isNoTradeDay,
                             }
                         )}
@@ -581,8 +581,8 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
                 "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md",
                 "w-full min-w-0 border p-2",
                 {
-                    "bg-success-border border-success-border": isWin,
-                    "bg-error-border border-error-border": isLoss,
+                    "bg-success-bg-2 border-success-border": isWin,
+                    "bg-error-bg-2 border-error-border": isLoss,
                     "bg-surface-2 text-text-muted border-none": totalPositions === 0,
                 }
             )}

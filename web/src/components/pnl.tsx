@@ -17,9 +17,10 @@ export function PnL(props: PnLProps) {
     let colorClass = "";
 
     if (isPositive) {
-        colorClass = "text-success-foreground";
+        colorClass = "text-success-foreground-2";
     } else if (isNegative) {
-        colorClass = "text-text-destructive";
+        colorClass = "text-text-destructive-2";
+        // colorClass = "text-error-foreground";
     } else {
         colorClass = "text-foreground";
     }

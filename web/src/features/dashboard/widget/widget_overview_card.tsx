@@ -40,9 +40,9 @@ export const OverviewCard = memo(
         const grossRFactor = new Decimal(gross_r_factor || "0");
 
         if (!grossPnL.isZero() && grossPnL.isPositive()) {
-            grossPnLColor = "text-text-success";
+            grossPnLColor = "text-success-foreground-2";
         } else if (netPnL.isNegative()) {
-            grossPnLColor = "text-text-destructive";
+            grossPnLColor = "text-text-destructive-2";
         }
 
         let chargesAsPercentageOfNetPnL = new Decimal(charges_as_percentage_of_net_pnl || "0");
