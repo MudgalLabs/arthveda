@@ -1,6 +1,12 @@
-export function ContactEmail() {
+import { cn } from "netra";
+
+interface ContactEmailProps {
+    className?: string;
+}
+
+export function ContactEmail({ className }: ContactEmailProps) {
     return (
-        <a className="text-xs!" href="mailto:hey@arthveda.app">
+        <a className={cn("text-xs!", className)} href="mailto:hey@arthveda.app">
             hey@arthveda.app
         </a>
     );

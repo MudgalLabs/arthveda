@@ -1,14 +1,14 @@
+import { ContactEmail } from "@/components/contact_email";
+
 export const Error = (
     <div className="flex h-screen w-full flex-col items-center justify-center space-y-16 space-x-8 lg:flex-row lg:space-y-0 2xl:space-x-0">
         <div className="flex w-full flex-col items-center justify-center text-center lg:w-1/2 lg:px-2 xl:px-0">
-            <p className="text-secondary-600 text-7xl font-bold tracking-wider md:text-8xl lg:text-9xl">
-                500
+            <p className="text-text-muted text-7xl font-bold tracking-wider md:text-8xl lg:text-9xl">500</p>
+            <p className="text-text-muted text-2xl font-bold tracking-wider md:text-5xl lg:text-6xl">
+                Something went wrong
             </p>
-            <p className="text-primary-300 mt-2 text-4xl font-bold tracking-wider md:text-5xl lg:text-6xl">
-                Ooops!!!
-            </p>
-            <p className="text-primary-300 my-12 text-lg md:text-xl lg:text-2xl">
-                Looks like something went wrong!
+            <p className="mt-4 text-base font-medium">
+                If the problem persists, please contact us at <ContactEmail className="text-base!" />
             </p>
         </div>
         <div className="flex w-1/2 justify-center p-4 lg:h-full lg:items-end">
@@ -49,34 +49,10 @@ export const Error = (
                     transform="translate(-31.39089 -100.5)"
                     opacity="0.2"
                 ></path>
-                <ellipse
-                    cx="198.60911"
-                    cy="424.5"
-                    rx="187"
-                    ry="25.43993"
-                    fill="#3f3d56"
-                ></ellipse>
-                <ellipse
-                    cx="198.60911"
-                    cy="424.5"
-                    rx="157"
-                    ry="21.35866"
-                    opacity="0.1"
-                ></ellipse>
-                <ellipse
-                    cx="836.60911"
-                    cy="660.5"
-                    rx="283"
-                    ry="38.5"
-                    fill="#3f3d56"
-                ></ellipse>
-                <ellipse
-                    cx="310.60911"
-                    cy="645.5"
-                    rx="170"
-                    ry="23.12721"
-                    fill="#3f3d56"
-                ></ellipse>
+                <ellipse cx="198.60911" cy="424.5" rx="187" ry="25.43993" fill="#3f3d56"></ellipse>
+                <ellipse cx="198.60911" cy="424.5" rx="157" ry="21.35866" opacity="0.1"></ellipse>
+                <ellipse cx="836.60911" cy="660.5" rx="283" ry="38.5" fill="#3f3d56"></ellipse>
+                <ellipse cx="310.60911" cy="645.5" rx="170" ry="23.12721" fill="#3f3d56"></ellipse>
                 <path
                     d="M494,726.5c90,23,263-30,282-90"
                     transform="translate(-31.39089 -100.5)"
@@ -119,19 +95,8 @@ export const Error = (
                     rx="18.04568"
                     fill="#2f2e41"
                 ></rect>
-                <rect
-                    x="595.70294"
-                    y="231.77652"
-                    width="478.71308"
-                    height="267.83694"
-                    fill="#3f3d56"
-                ></rect>
-                <circle
-                    cx="835.05948"
-                    cy="223.29299"
-                    r="3.02983"
-                    fill="#f2f2f2"
-                ></circle>
+                <rect x="595.70294" y="231.77652" width="478.71308" height="267.83694" fill="#3f3d56"></rect>
+                <circle cx="835.05948" cy="223.29299" r="3.02983" fill="#f2f2f2"></circle>
                 <path
                     d="M1123.07694,621.32226V652.6628a18.04341,18.04341,0,0,1-18.04568,18.04568H627.86949A18.04341,18.04341,0,0,1,609.8238,652.6628V621.32226Z"
                     transform="translate(-31.39089 -100.5)"
@@ -151,149 +116,30 @@ export const Error = (
                     transform="translate(-31.39089 -100.5)"
                     opacity="0.1"
                 ></path>
-                <ellipse
-                    cx="1066.53846"
-                    cy="654.13477"
-                    rx="7.87756"
-                    ry="2.42386"
-                    fill="#f2f2f2"
-                ></ellipse>
-                <circle
-                    cx="835.05948"
-                    cy="545.66686"
-                    r="11.51335"
-                    fill="#f2f2f2"
-                ></circle>
+                <ellipse cx="1066.53846" cy="654.13477" rx="7.87756" ry="2.42386" fill="#f2f2f2"></ellipse>
+                <circle cx="835.05948" cy="545.66686" r="11.51335" fill="#f2f2f2"></circle>
                 <polygon
                     points="968.978 667.466 968.978 673.526 642.968 673.526 642.968 668.678 643.417 667.466 968.978 667.466"
                     opacity="0.1"
                 ></polygon>
-                <rect
-                    x="108.60911"
-                    y="159"
-                    width="208"
-                    height="242"
-                    fill="#2f2e41"
-                ></rect>
-                <rect
-                    x="87.60911"
-                    y="135"
-                    width="250"
-                    height="86"
-                    fill="#3f3d56"
-                ></rect>
-                <rect
-                    x="87.60911"
-                    y="237"
-                    width="250"
-                    height="86"
-                    fill="#3f3d56"
-                ></rect>
-                <rect
-                    x="87.60911"
-                    y="339"
-                    width="250"
-                    height="86"
-                    fill="#3f3d56"
-                ></rect>
-                <rect
-                    x="271.60911"
-                    y="150"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    opacity="0.4"
-                ></rect>
-                <rect
-                    x="294.60911"
-                    y="150"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    opacity="0.8"
-                ></rect>
-                <rect
-                    x="317.60911"
-                    y="150"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                ></rect>
-                <rect
-                    x="271.60911"
-                    y="251"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    opacity="0.4"
-                ></rect>
-                <rect
-                    x="294.60911"
-                    y="251"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    opacity="0.8"
-                ></rect>
-                <rect
-                    x="317.60911"
-                    y="251"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                ></rect>
-                <rect
-                    x="271.60911"
-                    y="352"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    opacity="0.4"
-                ></rect>
-                <rect
-                    x="294.60911"
-                    y="352"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    opacity="0.8"
-                ></rect>
-                <rect
-                    x="317.60911"
-                    y="352"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                ></rect>
+                <rect x="108.60911" y="159" width="208" height="242" fill="#2f2e41"></rect>
+                <rect x="87.60911" y="135" width="250" height="86" fill="#3f3d56"></rect>
+                <rect x="87.60911" y="237" width="250" height="86" fill="#3f3d56"></rect>
+                <rect x="87.60911" y="339" width="250" height="86" fill="#3f3d56"></rect>
+                <rect x="271.60911" y="150" width="16" height="16" fill="currentColor" opacity="0.4"></rect>
+                <rect x="294.60911" y="150" width="16" height="16" fill="currentColor" opacity="0.8"></rect>
+                <rect x="317.60911" y="150" width="16" height="16" fill="currentColor"></rect>
+                <rect x="271.60911" y="251" width="16" height="16" fill="currentColor" opacity="0.4"></rect>
+                <rect x="294.60911" y="251" width="16" height="16" fill="currentColor" opacity="0.8"></rect>
+                <rect x="317.60911" y="251" width="16" height="16" fill="currentColor"></rect>
+                <rect x="271.60911" y="352" width="16" height="16" fill="currentColor" opacity="0.4"></rect>
+                <rect x="294.60911" y="352" width="16" height="16" fill="currentColor" opacity="0.8"></rect>
+                <rect x="317.60911" y="352" width="16" height="16" fill="currentColor"></rect>
                 <circle cx="316.60911" cy="538" r="79" fill="#2f2e41"></circle>
-                <rect
-                    x="280.60911"
-                    y="600"
-                    width="24"
-                    height="43"
-                    fill="#2f2e41"
-                ></rect>
-                <rect
-                    x="328.60911"
-                    y="600"
-                    width="24"
-                    height="43"
-                    fill="#2f2e41"
-                ></rect>
-                <ellipse
-                    cx="300.60911"
-                    cy="643.5"
-                    rx="20"
-                    ry="7.5"
-                    fill="#2f2e41"
-                ></ellipse>
-                <ellipse
-                    cx="348.60911"
-                    cy="642.5"
-                    rx="20"
-                    ry="7.5"
-                    fill="#2f2e41"
-                ></ellipse>
+                <rect x="280.60911" y="600" width="24" height="43" fill="#2f2e41"></rect>
+                <rect x="328.60911" y="600" width="24" height="43" fill="#2f2e41"></rect>
+                <ellipse cx="300.60911" cy="643.5" rx="20" ry="7.5" fill="#2f2e41"></ellipse>
+                <ellipse cx="348.60911" cy="642.5" rx="20" ry="7.5" fill="#2f2e41"></ellipse>
                 <circle cx="318.60911" cy="518" r="27" fill="#fff"></circle>
                 <circle cx="318.60911" cy="518" r="9" fill="#3f3d56"></circle>
                 <path
