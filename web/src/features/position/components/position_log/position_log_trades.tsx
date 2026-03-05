@@ -28,7 +28,7 @@ import { usePositionTradesAreValid } from "@/features/position/position_store";
 export function PositionLogTrades() {
     const position = usePositionStore((s) => s.position);
     const setTrades = usePositionStore((s) => s.setTrades);
-    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
+    const enableAutoCharges = position.enable_auto_charges;
     const setEnabledAutoCharges = usePositionStore((s) => s.setEnableAutoCharges);
     const tradesAreValid = usePositionTradesAreValid();
     const insertNewTrade = usePositionStore((s) => s.insertNewTrade);
@@ -200,7 +200,7 @@ const columns: ColumnDef<CreateTrade>[] = [
         cell: (ctx) => {
             const state = usePositionStore((s) => s.position);
             const { syncWithValue } = useDataTableEditableCell<string>(ctx);
-            const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
+            const enableAutoCharges = state.enable_auto_charges;
 
             return (
                 <WithDebounce state={ctx.row.original.charges_amount} onDebounce={(v) => syncWithValue(v)}>

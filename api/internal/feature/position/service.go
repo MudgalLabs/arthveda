@@ -615,6 +615,11 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 		existingOpenPositionsInArthvedaBySymbol[pos.Symbol] = pos
 	}
 
+	enableAutoCharges := false
+	if payload.ChargesCalculationMethod == ChargesCalculationMethodAuto {
+		enableAutoCharges = true
+	}
+
 	// Array to store all finalized positions
 	finalizedPositions := []*Position{}
 
@@ -740,6 +745,7 @@ func (s *Service) Import(ctx context.Context, importableTrades []*types.Importab
 				Symbol:              symbol,
 				Instrument:          instrument,
 				CurrencyCode:        payload.CurrencyCode,
+				EnableAutoCharges:   enableAutoCharges,
 				RiskAmount:          payload.RiskAmount,
 				Trades:              trades,
 				BrokerID:            &payload.Broker.ID,
@@ -1100,6 +1106,11 @@ func (s *Service) Sync(ctx context.Context, importableTrades []*types.Importable
 		return tradesWithOrderIDs[i].Payload.Time.Before(tradesWithOrderIDs[j].Payload.Time)
 	})
 
+	enableAutoCharges := false
+	if payload.ChargesCalculationMethod == ChargesCalculationMethodAuto {
+		enableAutoCharges = true
+	}
+
 	finalizedPositions := []*Position{}
 	invalidPositions := []*Position{}
 	unsupportedPositions := []*Position{}
@@ -1156,8 +1167,9 @@ func (s *Service) Sync(ctx context.Context, importableTrades []*types.Importable
 			// Create new position
 			createPayload := CreatePayload{
 				ComputePayload: ComputePayload{
-					Trades:     []trade.CreatePayload{tradePayload},
-					RiskAmount: payload.RiskAmount,
+					Trades:            []trade.CreatePayload{tradePayload},
+					RiskAmount:        payload.RiskAmount,
+					EnableAutoCharges: enableAutoCharges,
 				},
 				Symbol:              t.Symbol,
 				Instrument:          t.Instrument,

@@ -155,7 +155,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
             risk_amount, total_charges_amount, direction, status, opened_at, closed_at,
             gross_pnl_amount, net_pnl_amount, r_factor, gross_r_factor, net_return_percentage,
             charges_as_percentage_of_net_pnl, open_quantity, open_average_price_amount,
-            broker_id, user_broker_account_id, currency_code, fx_rate, fx_source, 
+            broker_id, user_broker_account_id, currency_code, enable_auto_charges, fx_rate, fx_source, 
 			gross_pnl_amount_away, net_pnl_amount_away, total_charges_amount_away
         )
         VALUES (
@@ -163,7 +163,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
             @risk_amount, @total_charges_amount, @direction, @status, @opened_at, @closed_at,
             @gross_pnl_amount, @net_pnl_amount, @r_factor, @gross_r_factor, @net_return_percentage,
             @charges_as_percentage_of_net_pnl, @open_quantity, @open_average_price_amount,
-            @broker_id, @user_broker_account_id, @currency_code, @fx_rate, @fx_source,
+            @broker_id, @user_broker_account_id, @currency_code, @enable_auto_charges, @fx_rate, @fx_source,
 			@gross_pnl_amount_away, @net_pnl_amount_away, @total_charges_amount_away
         )
     `
@@ -192,6 +192,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"broker_id":                        position.BrokerID,
 		"user_broker_account_id":           position.UserBrokerAccountID,
 		"currency_code":                    position.CurrencyCode,
+		"enable_auto_charges":              position.EnableAutoCharges,
 		"fx_rate":                          position.FxRate,
 		"fx_source":                        position.FxSource,
 		"gross_pnl_amount_away":            position.GrossPnLAmountAway,
@@ -232,6 +233,7 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
             broker_id = @broker_id,
             user_broker_account_id = @user_broker_account_id,
 			currency_code = @currency_code, 
+			enable_auto_charges = @enable_auto_charges,
 			fx_rate = @fx_rate,
 			fx_source = @fx_source,
 			gross_pnl_amount_away = @gross_pnl_amount_away,
@@ -264,6 +266,7 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
 		"broker_id":                        position.BrokerID,
 		"user_broker_account_id":           position.UserBrokerAccountID,
 		"currency_code":                    position.CurrencyCode,
+		"enable_auto_charges":              position.EnableAutoCharges,
 		"fx_rate":                          position.FxRate,
 		"fx_source":                        position.FxSource,
 		"gross_pnl_amount_away":            position.GrossPnLAmountAway,
@@ -327,7 +330,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 			p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.gross_r_factor, p.net_return_percentage,
 			p.charges_as_percentage_of_net_pnl, p.open_quantity,
 			p.open_average_price_amount, p.broker_id, p.user_broker_account_id,
-			p.currency_code, p.fx_rate, p.fx_source, p.gross_pnl_amount_away,
+			p.currency_code, p.enable_auto_charges, p.fx_rate, p.fx_source, p.gross_pnl_amount_away,
 			p.net_pnl_amount_away, p.total_charges_amount_away,
 			uba.id, uba.broker_id, uba.name
 		FROM
@@ -466,7 +469,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 			&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.GrossRFactor, &pos.NetReturnPercentage,
 			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity,
 			&pos.OpenAveragePriceAmount, &pos.BrokerID, &pos.UserBrokerAccountID,
-			&pos.CurrencyCode, &pos.FxRate, &pos.FxSource, &pos.GrossPnLAmountAway,
+			&pos.CurrencyCode, &pos.EnableAutoCharges, &pos.FxRate, &pos.FxSource, &pos.GrossPnLAmountAway,
 			&pos.NetPnLAmountAway, &pos.TotalChargesAmountAway,
 			&ubaID, &ubaBrokerID, &ubaName,
 		)

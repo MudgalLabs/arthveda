@@ -145,6 +145,7 @@ func new(userID uuid.UUID, payload CreatePayload) (position *Position, userErr b
 		Symbol:              symbol.Sanitize(payload.Symbol, payload.Instrument),
 		Instrument:          payload.Instrument,
 		CurrencyCode:        payload.CurrencyCode,
+		EnableAutoCharges:   payload.EnableAutoCharges,
 		RiskAmount:          payload.RiskAmount,
 		UserBrokerAccountID: payload.UserBrokerAccountID,
 		Trades:              trades,
@@ -213,8 +214,8 @@ func (originalPosition *Position) update(payload UpdatePayload) (position Positi
 
 	updatedPosition.Symbol = payload.Symbol
 	updatedPosition.Instrument = payload.Instrument
-	// updatedPosition.Currency = payload.Currency
 	updatedPosition.CurrencyCode = payload.CurrencyCode
+	updatedPosition.EnableAutoCharges = payload.EnableAutoCharges
 	updatedPosition.RiskAmount = payload.RiskAmount
 	updatedPosition.BrokerID = payload.BrokerID
 	updatedPosition.UserBrokerAccountID = payload.UserBrokerAccountID

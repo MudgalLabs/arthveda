@@ -14,7 +14,7 @@ import { ROUTES } from "@/constants";
 interface State {
     initialPosition: Position | null;
     position: Position;
-    enableAutoCharges: boolean;
+    // enableAutoCharges: boolean;
 }
 
 interface Action {
@@ -70,7 +70,7 @@ const defaultState: State = {
         is_duplicate: false,
     },
 
-    enableAutoCharges: false,
+    // enableAutoCharges: false,
 };
 
 export const createPositionStore = (initProp?: Partial<Position>) => {
@@ -114,8 +114,11 @@ export const createPositionStore = (initProp?: Partial<Position>) => {
         },
 
         setEnableAutoCharges: (enable) => {
-            set(() => ({
-                enableAutoCharges: enable,
+            set((state) => ({
+                position: {
+                    ...state.position,
+                    enable_auto_charges: enable,
+                },
             }));
         },
 
@@ -189,7 +192,7 @@ export function usePositionCanBeComputed(): [boolean, Setter<boolean>] {
     const debouncedPosition = useDebounce(position, 1000);
     const prevDebouncedPositionRef = useRef(debouncedPosition);
 
-    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
+    const enableAutoCharges = position.enable_auto_charges;
     const prevEnableAutoChargesRef = useRef(enableAutoCharges);
 
     const [flag, setFlag] = useState(false);

@@ -138,7 +138,7 @@ function PositionLog() {
     const [canCompute, setCanCompute] = usePositionCanBeComputed();
     const canSave = usePositionCanBeSaved();
     const hasPositionDataChanged = useHasPositionDataChanged();
-    const enableAutoCharges = usePositionStore((s) => s.enableAutoCharges);
+    const enableAutoCharges = position.enable_auto_charges;
 
     const homeCurrency = useHomeCurrency();
     const isUsingHomeCurrency = position.currency_code === homeCurrency;
@@ -151,6 +151,7 @@ function PositionLog() {
             symbol: position.symbol,
             instrument: position.instrument,
             currency_code: position.currency_code,
+            enable_auto_charges: position.enable_auto_charges,
             broker_id: position.user_broker_account?.broker_id || null,
             user_broker_account_id: position.user_broker_account_id,
             journal_content: position.journal_content || null,
@@ -168,7 +169,6 @@ function PositionLog() {
                     broker_trade_id: t.broker_trade_id,
                 };
             }),
-            enable_auto_charges: enableAutoCharges,
             fx_rate: isUsingHomeCurrency ? "1" : position.fx_rate,
         };
 
