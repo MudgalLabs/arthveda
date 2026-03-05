@@ -64,9 +64,10 @@ interface Position {
     symbol: string;
     instrument: PositionInstrument;
     risk_amount: DecimalString;
-    // notes: string;
-
     total_charges_amount: DecimalString;
+    currency_code: CurrencyCode;
+    enable_auto_charges: boolean;
+
     direction: PositionDirection;
     status: PositionStatus;
     opened_at: Date;
@@ -81,7 +82,6 @@ interface Position {
     open_average_price_amount: DecimalString;
     user_broker_account_id: string | null;
 
-    currency_code: CurrencyCode;
     fx_rate: DecimalString;
     fx_source: "system" | "manual";
     gross_pnl_amount_away: DecimalString | null;

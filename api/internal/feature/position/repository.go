@@ -152,7 +152,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 	const sql = `
         INSERT INTO position (
             id, created_by, created_at, updated_at, symbol, instrument, 
-            risk_amount, notes, total_charges_amount, direction, status, opened_at, closed_at,
+            risk_amount, total_charges_amount, direction, status, opened_at, closed_at,
             gross_pnl_amount, net_pnl_amount, r_factor, gross_r_factor, net_return_percentage,
             charges_as_percentage_of_net_pnl, open_quantity, open_average_price_amount,
             broker_id, user_broker_account_id, currency_code, fx_rate, fx_source, 
@@ -160,7 +160,7 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
         )
         VALUES (
             @id, @created_by, @created_at, @updated_at, @symbol, @instrument,
-            @risk_amount, @notes, @total_charges_amount, @direction, @status, @opened_at, @closed_at,
+            @risk_amount, @total_charges_amount, @direction, @status, @opened_at, @closed_at,
             @gross_pnl_amount, @net_pnl_amount, @r_factor, @gross_r_factor, @net_return_percentage,
             @charges_as_percentage_of_net_pnl, @open_quantity, @open_average_price_amount,
             @broker_id, @user_broker_account_id, @currency_code, @fx_rate, @fx_source,
@@ -176,7 +176,6 @@ func (r *positionRepository) Create(ctx context.Context, position *Position) err
 		"symbol":                           symbol.Sanitize(position.Symbol, position.Instrument),
 		"instrument":                       position.Instrument,
 		"risk_amount":                      position.RiskAmount,
-		"notes":                            position.Notes,
 		"total_charges_amount":             position.TotalChargesAmount,
 		"direction":                        position.Direction,
 		"status":                           position.Status,
@@ -217,7 +216,6 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
             symbol = @symbol,
             instrument = @instrument,
             risk_amount = @risk_amount,
-			notes = @notes,
             total_charges_amount = @total_charges_amount,
             direction = @direction,
             status = @status,
@@ -250,7 +248,6 @@ func (r *positionRepository) Update(ctx context.Context, position *Position) err
 		"symbol":                           symbol.Sanitize(position.Symbol, position.Instrument),
 		"instrument":                       position.Instrument,
 		"risk_amount":                      position.RiskAmount,
-		"notes":                            position.Notes,
 		"total_charges_amount":             position.TotalChargesAmount,
 		"direction":                        position.Direction,
 		"status":                           position.Status,
@@ -325,7 +322,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 	baseSQL := `
 		SELECT
 			p.id, p.created_by, p.created_at, p.updated_at,
-			p.symbol, p.instrument, p.risk_amount, p.notes, p.total_charges_amount,
+			p.symbol, p.instrument, p.risk_amount, p.total_charges_amount,
 			p.direction, p.status, p.opened_at, p.closed_at,
 			p.gross_pnl_amount, p.net_pnl_amount, p.r_factor, p.gross_r_factor, p.net_return_percentage,
 			p.charges_as_percentage_of_net_pnl, p.open_quantity,
@@ -464,7 +461,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 
 		err := rows.Scan(
 			&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
-			&pos.Symbol, &pos.Instrument, &pos.RiskAmount, &pos.Notes, &pos.TotalChargesAmount,
+			&pos.Symbol, &pos.Instrument, &pos.RiskAmount, &pos.TotalChargesAmount,
 			&pos.Direction, &pos.Status, &pos.OpenedAt, &pos.ClosedAt,
 			&pos.GrossPnLAmount, &pos.NetPnLAmount, &pos.RFactor, &pos.GrossRFactor, &pos.NetReturnPercentage,
 			&pos.ChargesAsPercentageOfNetPnL, &pos.OpenQuantity,

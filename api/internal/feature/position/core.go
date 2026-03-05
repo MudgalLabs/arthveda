@@ -31,14 +31,12 @@ type Position struct {
 	// Data provided by the user
 	//
 
-	Symbol     string           `json:"symbol" db:"symbol"`
-	Instrument types.Instrument `json:"instrument" db:"instrument"`
-	// DEPRECATED
-	// `Currency` is deprecated. Please use `CurrencyCode` instead.
-	// Currency           currency.CurrencyCode `json:"currency" db:"currency"`
-	RiskAmount         decimal.Decimal `json:"risk_amount" db:"risk_amount"`
-	Notes              string          `json:"notes" db:"notes"`
-	TotalChargesAmount decimal.Decimal `json:"total_charges_amount" db:"total_charges_amount"`
+	Symbol             string                `json:"symbol" db:"symbol"`
+	Instrument         types.Instrument      `json:"instrument" db:"instrument"`
+	RiskAmount         decimal.Decimal       `json:"risk_amount" db:"risk_amount"`
+	TotalChargesAmount decimal.Decimal       `json:"total_charges_amount" db:"total_charges_amount"`
+	CurrencyCode       currency.CurrencyCode `json:"currency_code" db:"currency_code"`
+	EnableAutoCharges  bool                  `json:"enable_auto_charges" db:"enable_auto_charges"`
 
 	//
 	// Data computed by Arthveda based on data provided by user mentioned above & related trade(s).
@@ -64,12 +62,11 @@ type Position struct {
 
 	UserBrokerAccountID *uuid.UUID `json:"user_broker_account_id" db:"user_broker_account_id"` // The ID of the UserBrokerAccount to which this Position belongs.
 
-	CurrencyCode           currency.CurrencyCode `json:"currency_code" db:"currency_code"`
-	FxRate                 decimal.Decimal       `json:"fx_rate" db:"fx_rate"`
-	FxSource               fxSource              `json:"fx_source" db:"fx_source"`
-	GrossPnLAmountAway     *decimal.Decimal      `json:"gross_pnl_amount_away" db:"gross_pnl_amount_away"`
-	NetPnLAmountAway       *decimal.Decimal      `json:"net_pnl_amount_away" db:"net_pnl_amount_away"`
-	TotalChargesAmountAway *decimal.Decimal      `json:"total_charges_amount_away" db:"total_charges_amount_away"`
+	FxRate                 decimal.Decimal  `json:"fx_rate" db:"fx_rate"`
+	FxSource               fxSource         `json:"fx_source" db:"fx_source"`
+	GrossPnLAmountAway     *decimal.Decimal `json:"gross_pnl_amount_away" db:"gross_pnl_amount_away"`
+	NetPnLAmountAway       *decimal.Decimal `json:"net_pnl_amount_away" db:"net_pnl_amount_away"`
+	TotalChargesAmountAway *decimal.Decimal `json:"total_charges_amount_away" db:"total_charges_amount_away"`
 
 	//
 	// Everything above is present in the position table but everything below isn't.
