@@ -155,7 +155,8 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 	userProfile := userprofile.NewUserProfile(userIdentity.ID, userIdentity.Email, name)
 
 	profileSQL := `
-	INSERT INTO user_profile (user_id, email, name, avatar_url, created_at, updated_at)
+	INSERT INTO user_profile (user_id, email, name, avatar_url, home_currency_code,
+	created_at, updated_at)
 	VALUES (@user_id, @email, @name, @avatar_url, @home_currency_code, @created_at, @updated_at)
 	`
 	profileSQLArgs := pgx.NamedArgs{
