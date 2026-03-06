@@ -244,6 +244,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                             {Number(row.original.gross_r_factor)}
                         </PnL>
                     ),
+                    enableSorting: false,
                 },
                 {
                     id: "gross_pnl",

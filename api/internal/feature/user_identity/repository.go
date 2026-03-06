@@ -156,15 +156,16 @@ func (r *userIdentityRepository) SignUp(ctx context.Context, name string, userId
 
 	profileSQL := `
 	INSERT INTO user_profile (user_id, email, name, avatar_url, created_at, updated_at)
-	VALUES (@user_id, @email, @name, @avatar_url, @created_at, @updated_at)
+	VALUES (@user_id, @email, @name, @avatar_url, @home_currency_code, @created_at, @updated_at)
 	`
 	profileSQLArgs := pgx.NamedArgs{
-		"user_id":    userProfile.UserID,
-		"email":      userProfile.Email,
-		"name":       userProfile.Name,
-		"avatar_url": userProfile.AvatarURL,
-		"created_at": userProfile.CreatedAt,
-		"updated_at": userProfile.UpdatedAt,
+		"user_id":            userProfile.UserID,
+		"email":              userProfile.Email,
+		"name":               userProfile.Name,
+		"avatar_url":         userProfile.AvatarURL,
+		"home_currency_code": userProfile.HomeCurrencyCode,
+		"created_at":         userProfile.CreatedAt,
+		"updated_at":         userProfile.UpdatedAt,
 	}
 	_, err = tx.Exec(ctx, profileSQL, profileSQLArgs)
 	if err != nil {

@@ -13,16 +13,17 @@ type UserProfile struct {
 	Email            string                `json:"email" db:"email"`
 	Name             string                `json:"name" db:"name"`
 	AvatarURL        string                `json:"avatar_url" db:"avatar_url"`
+	HomeCurrencyCode currency.CurrencyCode `json:"home_currency_code" db:"home_currency_code"`
 	CreatedAt        time.Time             `json:"created_at" db:"created_at"`
 	UpdatedAt        *time.Time            `json:"updated_at" db:"updated_at"`
-	HomeCurrencyCode currency.CurrencyCode `json:"home_currency_code" db:"home_currency_code"`
 }
 
 func NewUserProfile(userID uuid.UUID, email, name string) *UserProfile {
 	return &UserProfile{
-		UserID:    userID,
-		Email:     email,
-		Name:      name,
-		CreatedAt: time.Now().UTC(),
+		UserID:           userID,
+		Email:            email,
+		Name:             name,
+		HomeCurrencyCode: "INR",
+		CreatedAt:        time.Now().UTC(),
 	}
 }
