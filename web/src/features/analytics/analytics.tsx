@@ -1,15 +1,7 @@
-import {
-    IconChartPie,
-    PageHeading,
-    useDocumentTitle,
-    Tabs,
-    TabsList,
-    TabsTrigger,
-    TabsContent,
-    useURLState,
-} from "netra";
+import { PageHeading, useDocumentTitle, Tabs, TabsList, TabsTrigger, TabsContent, useURLState } from "netra";
 
 import { AnalyticsTags } from "@/features/analytics/components/analytics_tags";
+import { IconBrain } from "@/components/icons";
 
 const enum AnlyticsTab {
     Tags = "tags",
@@ -26,7 +18,7 @@ export function Analytics() {
     return (
         <div className="flex h-full flex-col">
             <PageHeading>
-                <IconChartPie size={18} />
+                <IconBrain size={18} />
                 <h1>Analytics</h1>
             </PageHeading>
 

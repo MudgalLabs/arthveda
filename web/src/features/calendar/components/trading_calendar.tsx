@@ -1,13 +1,23 @@
 import { Fragment, useMemo, useState } from "react";
 import { DPDay, useDatePicker } from "@rehookify/datepicker";
 import Decimal from "decimal.js";
-import { Button, cn, formatCurrency, IconChevronLeft, IconChevronRight, Separator, useControlled } from "netra";
+import {
+    Button,
+    cn,
+    formatCurrency,
+    IconChevronLeft,
+    IconChevronRight,
+    Separator,
+    useControlled,
+    useLocalStorageState,
+} from "netra";
 
 import { GetCalendarAllResponse } from "@/lib/api/calendar";
 import { PnL } from "@/components/pnl";
 import { apiHooks } from "@/hooks/api_hooks";
 import { CalendarDayInfoModal } from "@/features/calendar/components/calendar_day_info_modal";
-import { CalendarPerfViewMode } from "@/features/calendar/components/calendar_perf_view_select";
+import { CalendarPerfModeSelect, CalendarPerfViewMode } from "@/features/calendar/components/calendar_perf_view_select";
+import { LocalStorageKeyCalendarPerfViewMode } from "@/lib/utils";
 
 const enum CalendarViewMode {
     ALL = "all",
@@ -32,14 +42,18 @@ const MONTHS = [
 
 interface TradingCalendarProps {
     data: GetCalendarAllResponse;
-    perfViewMode: CalendarPerfViewMode;
     shrinkedView?: boolean;
 }
 
 export function TradingCalendar(props: TradingCalendarProps) {
-    const { data, shrinkedView = false, perfViewMode } = props;
+    const { data, shrinkedView = false } = props;
 
     const now = new Date();
+
+    const [perfViewMode, setPerfViewMode] = useLocalStorageState(
+        LocalStorageKeyCalendarPerfViewMode,
+        CalendarPerfViewMode.GROSS_PNL
+    );
 
     const [viewMode, setViewMode] = useState<CalendarViewMode>(CalendarViewMode.MONTHLY);
 
@@ -191,7 +205,6 @@ export function TradingCalendar(props: TradingCalendarProps) {
                             >
                                 <IconChevronLeft size={18} />
                             </Button>
-
                             <span className="space-x-2">
                                 {isMonthlyView && (
                                     <Button variant="link" onClick={() => setViewMode(CalendarViewMode.YEARLY)}>
@@ -203,7 +216,6 @@ export function TradingCalendar(props: TradingCalendarProps) {
                                     {year}
                                 </Button>
                             </span>
-
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -214,9 +226,9 @@ export function TradingCalendar(props: TradingCalendarProps) {
                             </Button>
                         </div>
 
-                        <div className="flex-center sm:flex-x gap-x-4!">
+                        <div className="flex-center sm:flex-x w-full justify-between gap-x-4!">
                             {isMonthlyView ? (
-                                <>
+                                <div className="flex-x">
                                     {monthData?.[perfViewMode] && (
                                         <PnL
                                             value={new Decimal(monthData[perfViewMode])}
@@ -231,9 +243,9 @@ export function TradingCalendar(props: TradingCalendarProps) {
                                     {monthData?.positions_count && (
                                         <p className="text-text-muted">{monthData.positions_count} positions</p>
                                     )}
-                                </>
+                                </div>
                             ) : (
-                                <>
+                                <div className="flex-x">
                                     {yearlyData?.[perfViewMode] && (
                                         <PnL
                                             value={new Decimal(yearlyData[perfViewMode])}
@@ -248,8 +260,10 @@ export function TradingCalendar(props: TradingCalendarProps) {
                                     {yearlyData?.positions_count && (
                                         <p className="text-text-muted">{yearlyData.positions_count} positions</p>
                                     )}
-                                </>
+                                </div>
                             )}
+
+                            <CalendarPerfModeSelect value={perfViewMode} onValueChange={setPerfViewMode} />
                         </div>
                     </div>
                 ) : (
