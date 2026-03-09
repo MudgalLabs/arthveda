@@ -70,7 +70,7 @@ export function OnboardingBroker() {
 
     return (
         <div className="flex-center mt-12">
-            <div className="flex-y text-center">
+            <div className="flex-y items-center text-center">
                 <h1 className="big-heading">
                     {brokerAccountId
                         ? `Import trades from ${getBrokerNameById(brokerId)}`

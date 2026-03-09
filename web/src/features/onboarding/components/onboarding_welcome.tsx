@@ -7,7 +7,7 @@ export function OnboardingWelcome() {
 
     return (
         <div className="flex-center mt-12">
-            <div className="flex-y text-center">
+            <div className="flex-y items-center text-center">
                 <h1 className="big-heading">Welcome to Arthveda</h1>
 
                 <h2 className="sub-heading">We want you to become and stay consistently profitable.</h2>
