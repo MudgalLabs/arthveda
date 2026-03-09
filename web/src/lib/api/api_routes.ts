@@ -51,6 +51,7 @@ export const API_ROUTES = {
     },
     user: {
         me: "/v1/users/me",
+        markAsOnboarded: "/v1/users/onboarded",
     },
     userBrokerAccount: {
         list: "/v1/user-broker-accounts",

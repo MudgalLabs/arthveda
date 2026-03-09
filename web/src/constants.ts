@@ -5,6 +5,10 @@ export const ROUTES = {
     signIn: "/sign-in",
 
     // App routes that will be accessible if a user is signed in.
+    onboarding: "/onboarding",
+    onboardingBroker: "/onboarding/broker",
+    onboardingImport: "/onboarding/import",
+    onboardingMessage: "/onboarding/message",
     dashboard: "/dashboard",
     // All routes related to Position.
     listPositions: "/positions",
@@ -27,6 +31,10 @@ export const ROUTES = {
 export const ROUTES_PUBLIC = [ROUTES.index, ROUTES.notFound, ROUTES.signIn];
 
 export const ROUTES_PROTECTED = [
+    ROUTES.onboarding,
+    ROUTES.onboardingBroker,
+    ROUTES.onboardingImport,
+    ROUTES.onboardingMessage,
     ROUTES.dashboard,
     ROUTES.listPositions,
     ROUTES.newPositions,

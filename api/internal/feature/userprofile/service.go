@@ -103,3 +103,23 @@ func (s *Service) GetUserMe(ctx context.Context, id uuid.UUID) (*GetUserMeResult
 
 	return GetUserMeResult, service.ErrNone, nil
 }
+
+func (s *Service) MarkAsOnboarded(ctx context.Context, userID uuid.UUID) (service.Error, error) {
+	userProfile, err := s.userProfileRepository.FindUserProfileByUserID(ctx, userID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return service.ErrNotFound, err
+		}
+
+		return service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
+	}
+
+	userProfile.Onboarded = true
+
+	err = s.userProfileRepository.Update(ctx, userProfile)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("failed to update user profile: %w", err)
+	}
+
+	return service.ErrNone, nil
+}

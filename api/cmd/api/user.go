@@ -19,3 +19,18 @@ func getMeHandler(s *userprofile.Service) http.HandlerFunc {
 		successResponse(w, r, http.StatusOK, "", userProfile)
 	}
 }
+
+func markAsOnboardedHandler(s *userprofile.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		userID := getUserIDFromContext(ctx)
+
+		errKind, err := s.MarkAsOnboarded(ctx, userID)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		successResponse(w, r, http.StatusOK, "", "User is marked as onboarded")
+	}
+}

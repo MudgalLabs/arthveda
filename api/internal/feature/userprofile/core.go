@@ -14,6 +14,7 @@ type UserProfile struct {
 	Name             string                `json:"name" db:"name"`
 	AvatarURL        string                `json:"avatar_url" db:"avatar_url"`
 	HomeCurrencyCode currency.CurrencyCode `json:"home_currency_code" db:"home_currency_code"`
+	Onboarded        bool                  `json:"onboarded" db:"onboarded"`
 	CreatedAt        time.Time             `json:"created_at" db:"created_at"`
 	UpdatedAt        *time.Time            `json:"updated_at" db:"updated_at"`
 }
@@ -24,6 +25,7 @@ func NewUserProfile(userID uuid.UUID, email, name string) *UserProfile {
 		Email:            email,
 		Name:             name,
 		HomeCurrencyCode: "INR",
+		Onboarded:        false,
 		CreatedAt:        time.Now().UTC(),
 	}
 }

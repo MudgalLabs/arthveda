@@ -18,6 +18,11 @@ import NotificationPreferencesLazy from "@/features/settings/notification_prefer
 import SettingsLazy from "@/features/settings/settings_lazy";
 import TagsManagementLazy from "@/features/tags/tags_management_lazy";
 import AnalyticsLazy from "@/features/analytics/analytics_lazy";
+import OnboardingLazy from "@/features/onboarding/onboarding_lazy";
+import { OnboardingWelcome } from "@/features/onboarding/components/onboarding_welcome";
+import { OnboardingBroker } from "@/features/onboarding/components/onboarding_broker";
+import { OnboardingImport } from "@/features/onboarding/components/onboarding_import";
+import { OnboardingMessage } from "@/features/onboarding/components/onboarding_message";
 
 export const routes: Array<RouteObject> = [
     /**
@@ -39,6 +44,28 @@ export const routes: Array<RouteObject> = [
     /**
      * PROTECTED
      */
+    {
+        path: ROUTES.onboarding,
+        element: <OnboardingLazy />,
+        children: [
+            {
+                index: true,
+                element: <OnboardingWelcome />,
+            },
+            {
+                path: "broker",
+                element: <OnboardingBroker />,
+            },
+            {
+                path: "import",
+                element: <OnboardingImport />,
+            },
+            {
+                path: "message",
+                element: <OnboardingMessage />,
+            },
+        ],
+    },
 
     {
         path: ROUTES.dashboard,

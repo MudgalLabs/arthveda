@@ -77,7 +77,8 @@ func (r *userProfileRepository) findUserProfiles(ctx context.Context, tx pgx.Tx,
 	}
 
 	sql := `
-	SELECT user_id, email, name, avatar_url, created_at, updated_at, home_currency_code
+	SELECT user_id, email, name, avatar_url, created_at, updated_at,
+	home_currency_code, onboarded
 	FROM user_profile ` + repository.WhereSQL(where)
 
 	rows, err := tx.Query(ctx, sql, args)
@@ -91,7 +92,7 @@ func (r *userProfileRepository) findUserProfiles(ctx context.Context, tx pgx.Tx,
 	for rows.Next() {
 		var up UserProfile
 
-		err := rows.Scan(&up.UserID, &up.Email, &up.Name, &up.AvatarURL, &up.CreatedAt, &up.UpdatedAt, &up.HomeCurrencyCode)
+		err := rows.Scan(&up.UserID, &up.Email, &up.Name, &up.AvatarURL, &up.CreatedAt, &up.UpdatedAt, &up.HomeCurrencyCode, &up.Onboarded)
 		if err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
@@ -112,11 +113,11 @@ func (r *userProfileRepository) Update(ctx context.Context, userProfile *UserPro
 	sql := `
 		UPDATE user_profile
 		SET email = $1, name = $2, avatar_url = $3, updated_at = $4,
-		home_currency_code = $5
-		WHERE user_id = $6
+		home_currency_code = $5, onboarded = $6
+		WHERE user_id = $7
 	`
 
-	_, err := r.db.Exec(ctx, sql, userProfile.Email, userProfile.Name, userProfile.AvatarURL, updatedAt, userProfile.HomeCurrencyCode, userProfile.UserID)
+	_, err := r.db.Exec(ctx, sql, userProfile.Email, userProfile.Name, userProfile.AvatarURL, updatedAt, userProfile.HomeCurrencyCode, userProfile.Onboarded, userProfile.UserID)
 	if err != nil {
 		return fmt.Errorf("update: %w", err)
 	}

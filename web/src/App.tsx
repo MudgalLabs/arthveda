@@ -79,6 +79,10 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
             return <Navigate to={ROUTES.planAndBilling} />;
         }
 
+        if (!data?.onboarded && !pathname.startsWith(ROUTES.onboarding)) {
+            return <Navigate to={ROUTES.onboarding} />;
+        }
+
         // The user is trying to go to home(`/`) or to the auth flow route.
         // We should redirect the user to `/dashboard` as they are signed in.
         if (ROUTES_PUBLIC.includes(pathname)) {
@@ -88,6 +92,17 @@ const RouteHandler: FC<PropsWithChildren> = ({ children }) => {
 
         // User is about to visit an app route.
         if (ROUTES_PROTECTED.includes(pathname) || pathname.startsWith(pathname)) {
+            // For onboarding, we don't want to show the "Sidebar" and anything else
+            // that maybe a part of `AppLayout`.
+            if (pathname.startsWith(ROUTES.onboarding)) {
+                if (data?.onboarded) {
+                    // If the user has been onboarded, redirect them to dashboard.
+                    return <Navigate to={ROUTES.dashboard} />;
+                } else {
+                    return children;
+                }
+            }
+
             return <AppLayout>{children}</AppLayout>;
         }
     }

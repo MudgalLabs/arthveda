@@ -312,7 +312,7 @@ select:-webkit-autofill:focus {
 }
 
 @utility flex-y {
-    @apply flex justify-center gap-y-2;
+    @apply flex flex-col items-center gap-y-2;
 }
 
 @utility smooth-colors {

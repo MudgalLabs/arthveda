@@ -101,7 +101,7 @@ export function SignIn() {
             <div />
 
             <div className="w-full">
-                <Branding className="z-1 flex justify-center" size="default" />
+                <Branding className="z-1 flex justify-center" size="default" hideBetaTag hideText />
 
                 <div className="h-16" />
 

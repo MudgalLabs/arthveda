@@ -1,5 +1,5 @@
 import { FC, ReactNode, useCallback, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Decimal from "decimal.js";
 import {
     ColumnDef,
@@ -86,15 +86,20 @@ function createInitialState(overrides: Pick<State, "userBrokerAccountID" | "brok
     };
 }
 
-export const ImportPositions = () => {
+interface ImportPositionsProps {
+    brokerId: string;
+    userBrokerAccountId: string;
+    brokerName: BrokerName;
+    disablePageHeading?: boolean;
+    afterImport?: () => void;
+}
+
+export const ImportPositions = (props: ImportPositionsProps) => {
+    const { brokerId, brokerName, userBrokerAccountId, disablePageHeading, afterImport } = props;
     useDocumentTitle("Import positions • Arthveda");
 
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
 
-    const brokerId = searchParams.get("broker_id");
-    const userBrokerAccountId = searchParams.get("user_broker_account_id");
-    const brokerName = searchParams.get("broker_name");
     const initialState = createInitialState({
         brokerID: brokerId || "",
         userBrokerAccountID: userBrokerAccountId,
@@ -241,7 +246,11 @@ export const ImportPositions = () => {
             onClick = () => {
                 handleStartImport({
                     onSuccess: () => {
-                        navigate(ROUTES.dashboard);
+                        if (afterImport) {
+                            afterImport();
+                        } else {
+                            navigate(ROUTES.dashboard);
+                        }
                     },
                 });
             };
@@ -314,10 +323,12 @@ export const ImportPositions = () => {
 
     return (
         <>
-            <PageHeading>
-                <IconImport size={18} />
-                <h1>Import positions</h1>
-            </PageHeading>
+            {!disablePageHeading && (
+                <PageHeading>
+                    <IconImport size={18} />
+                    <h1>Import positions</h1>
+                </PageHeading>
+            )}
 
             <div className="h-4" />
 

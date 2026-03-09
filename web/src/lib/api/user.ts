@@ -11,16 +11,21 @@ export interface User {
     home_currency_code: CurrencyCode;
     created_at: string;
     update_at: string;
+}
 
+export interface UserMeResponse extends User {
     subscription: Subscription | null;
     positions_hidden: number;
     total_positions: number;
     upload_bytes_used: number;
     upload_bytes_limit: number;
+    onboarded: boolean;
 }
-
-export interface UserMeResponse extends User {}
 
 export function me() {
     return client.get(API_ROUTES.user.me);
+}
+
+export function markAsOnboarded() {
+    return client.post(API_ROUTES.user.markAsOnboarded);
 }

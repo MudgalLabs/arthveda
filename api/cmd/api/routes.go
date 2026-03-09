@@ -143,6 +143,7 @@ func initRouter(a *app) http.Handler {
 			r.Use(authMiddleware)
 
 			r.Get("/me", getMeHandler(a.service.UserProfileService))
+			r.Post("/onboarded", markAsOnboardedHandler(a.service.UserProfileService))
 		})
 
 		r.Route("/subscriptions", func(r chi.Router) {

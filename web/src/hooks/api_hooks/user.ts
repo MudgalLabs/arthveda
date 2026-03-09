@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { AnyUseMutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
@@ -10,5 +10,21 @@ export function useMe() {
         queryFn: () => api.user.me(),
         select: (res) => res.data as ApiRes<UserMeResponse>,
         staleTime: Infinity,
+    });
+}
+
+export function useMarkAsOnboarded(options: AnyUseMutationOptions = {}) {
+    const { onSuccess, ...restOptions } = options;
+    const client = useQueryClient();
+
+    return useMutation<void>({
+        mutationFn: () => api.user.markAsOnboarded(),
+        onSuccess: async (...args) => {
+            await client.invalidateQueries({
+                queryKey: ["useMe"],
+            });
+            onSuccess?.(...args);
+        },
+        ...restOptions,
     });
 }
