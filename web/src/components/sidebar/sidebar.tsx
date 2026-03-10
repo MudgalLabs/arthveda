@@ -14,7 +14,7 @@ import { useAuthentication, useUserIsOnTrial } from "@/features/auth/auth_contex
 import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
 import { NotificationsInbox } from "@/components/notification/notification_inbox";
-import { TrialCountdown } from "../trial_countdown";
+import { TrialCountdown } from "@/components/trial_countdown";
 
 const SIDEBAR_ROUTES = [
     ROUTES.dashboard,
@@ -164,7 +164,7 @@ export const Sidebar = () => {
                     />
                 )}
 
-                {onTrial && data?.subscription?.valid_until && isOpen && (
+                {onTrial && data?.subscription?.valid_until && isOpen && !isMobile && (
                     <TrialCountdown validUntil={data.subscription.valid_until} />
                 )}
             </div>

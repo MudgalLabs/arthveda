@@ -84,29 +84,34 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent side="right" align="end" className="ml-2 min-w-[240px]">
-                <DropdownMenuLabel>
-                    <div className="flex-x">
-                        <div>
-                            {!error && profileImageURL ? (
-                                <img
-                                    className="rounded-sm"
-                                    height={40}
-                                    width={40}
-                                    src={profileImageURL}
-                                    onError={() => setError(true)}
-                                />
-                            ) : (
-                                <DefaultProfileAvatar height={36} />
-                            )}
-                        </div>
-                        <div>
-                            <p className="text-sm font-normal">{displayName}</p>
-                            <p className="label-muted text-xs">{email}</p>
-                        </div>
-                    </div>
-                </DropdownMenuLabel>
+                {!sidebarOpen ||
+                    (isMobile && (
+                        <>
+                            <DropdownMenuLabel>
+                                <div className="flex-x">
+                                    <div>
+                                        {!error && profileImageURL ? (
+                                            <img
+                                                className="rounded-sm"
+                                                height={40}
+                                                width={40}
+                                                src={profileImageURL}
+                                                onError={() => setError(true)}
+                                            />
+                                        ) : (
+                                            <DefaultProfileAvatar height={36} />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-normal">{displayName}</p>
+                                        <p className="label-muted text-xs">{email}</p>
+                                    </div>
+                                </div>
+                            </DropdownMenuLabel>
 
-                <DropdownMenuSeparator />
+                            <DropdownMenuSeparator />
+                        </>
+                    ))}
 
                 <Link to={ROUTES.tags} variant="unstyled">
                     <DropdownMenuItem>
