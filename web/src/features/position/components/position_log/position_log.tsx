@@ -75,7 +75,7 @@ const enum PositionLogTab {
 function PositionLog() {
     const isCreatingPosition = useIsCreatingPosition();
     const isEditingPosition = useIsEditingPosition();
-    const [tab, setTab] = useState<string>(PositionLogTab.Notes);
+    const [tab, setTab] = useState<string>(isCreatingPosition ? PositionLogTab.Trades : PositionLogTab.Notes);
 
     const navigate = useNavigate();
 
@@ -416,7 +416,7 @@ function PositionLog() {
                 </div>
 
                 <div className="w-full min-w-0 lg:pl-4">
-                    <Tabs defaultValue="notes" value={tab} onValueChange={setTab}>
+                    <Tabs value={tab} onValueChange={setTab}>
                         <TabsList>
                             <TabsTrigger value="notes">Notes</TabsTrigger>
                             <TabsTrigger value="trades">Trades</TabsTrigger>
