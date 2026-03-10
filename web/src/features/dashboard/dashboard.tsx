@@ -341,7 +341,7 @@ function GetStarted() {
                     <CardTitle>Get Started</CardTitle>
                     <CardContent className="mt-4 space-y-4 text-pretty">
                         <p>
-                            To get started, use the <strong>"Add positions"</strong> button in the sidebar. You can:
+                            To get started, use the <strong>"+ Positions"</strong> button in the sidebar. You can:
                         </p>
 
                         <ul className="text-muted-foreground list-inside list-disc">
