@@ -18,6 +18,7 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { toast } from "@/components/toast";
 import { apiErrorHandler } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { PlanPill } from "./plan_pill";
 
 interface ProfileMenuProps {
     sidebarOpen: boolean;
@@ -30,7 +31,7 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
     const posthog = usePostHog();
     const isMobile = useIsMobile();
 
-    const { sidebarOpen, email, displayName = "", profileImageURL = "" } = props;
+    const { sidebarOpen, displayName = "", profileImageURL = "" } = props;
 
     const [open, setOpen] = useState(false);
     const [error, setError] = useState(false);
@@ -76,7 +77,7 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                         <div className="flex-x">
                             <div className="flex flex-col items-start">
                                 <p className="max-w-[140px] truncate text-sm font-normal">{displayName}</p>
-                                <p className="label-muted max-w-[140px] truncate text-xs">{email}</p>
+                                <PlanPill />
                             </div>
                         </div>
                     )}
@@ -103,7 +104,7 @@ export const ProfileMenu: FC<ProfileMenuProps> = (props) => {
                                 </div>
                                 <div>
                                     <p className="text-sm font-normal">{displayName}</p>
-                                    <p className="label-muted text-xs">{email}</p>
+                                    <PlanPill />
                                 </div>
                             </div>
                         </DropdownMenuLabel>
