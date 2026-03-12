@@ -67,14 +67,14 @@ export default function TagPicker({ value: valueProp, onChange, container }: Tag
         <div className="space-y-3">
             <Popover open={open} onOpenChange={setOpen} modal>
                 <div className="flex-x w-full">
-                    <div className="flex flex-wrap gap-2">
-                        {Object.entries(selectedByGroup).map(([group, tags]) => (
+                    {Object.entries(selectedByGroup).map(([group, tags]) => (
+                        <div className="flex flex-wrap gap-2">
                             <div key={group} className="flex items-center gap-1">
                                 <span className="font-medium">{group}:</span>
                                 <span className="text-muted-foreground">{tags.map((t) => t.name).join(", ")}</span>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))}
 
                     <PopoverTrigger asChild>
                         <Button variant="secondary" size={hasSelectedTags ? "icon" : "default"}>

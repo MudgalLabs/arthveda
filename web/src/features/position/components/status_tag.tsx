@@ -22,7 +22,7 @@ const StatusTag: FC<StatusTagProps> = memo(({ currency = "INR", status, openQuan
         content += " : " + openQuantity + " @ " + formatCurrency(openAvgPrice, { currency });
     }
 
-    return <Tag>{content}</Tag>;
+    return <Tag variant="primary">{content}</Tag>;
 });
 
 export { StatusTag };

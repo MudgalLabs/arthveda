@@ -1,6 +1,6 @@
 import { FC, memo } from "react";
 
-import { Tag } from "netra";
+import { Tag } from "@/s8ly";
 import { PositionDirection, positionDirectionToString } from "@/features/position/position";
 
 interface DirectionTagProps {
@@ -13,7 +13,11 @@ const DirectionTag: FC<DirectionTagProps> = memo(({ direction, className }) => {
         return null;
     }
 
-    return <Tag className={className}>{positionDirectionToString(direction)}</Tag>;
+    return (
+        <Tag variant="primary" className={className}>
+            {positionDirectionToString(direction)}
+        </Tag>
+    );
 });
 
 export { DirectionTag };
