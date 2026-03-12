@@ -2,7 +2,8 @@ import { AnyUseMutationOptions, useMutation, useQuery, useQueryClient } from "@t
 
 import { api } from "@/lib/api";
 import { ApiRes } from "@/lib/api/client";
-import { UserMeResponse } from "@/lib/api/user";
+import { CanUpdateHomeCurrnecyResponse, UserMeResponse } from "@/lib/api/user";
+import { CurrencyCode } from "@/lib/api/currency";
 
 export function useMe() {
     return useQuery({
@@ -23,6 +24,29 @@ export function useMarkAsOnboarded(options: AnyUseMutationOptions = {}) {
             await client.invalidateQueries({
                 queryKey: ["useMe"],
             });
+            onSuccess?.(...args);
+        },
+        ...restOptions,
+    });
+}
+
+export function useCanUpdateHomeCurrency() {
+    return useQuery({
+        queryKey: ["useCanUpdateHomeCurrency"],
+        queryFn: () => api.user.canUpdateHomeCurrency(),
+        select: (res) => res.data as ApiRes<CanUpdateHomeCurrnecyResponse>,
+    });
+}
+
+export function useUpdateHomeCurrency(options: AnyUseMutationOptions = {}) {
+    const { onSuccess, ...restOptions } = options;
+    const client = useQueryClient();
+
+    return useMutation({
+        mutationFn: (newHomeCurrency: CurrencyCode) => api.user.updateHomeCurrency(newHomeCurrency),
+        onSuccess: async (...args) => {
+            client.invalidateQueries({ queryKey: ["useMe"] });
+            client.invalidateQueries({ queryKey: ["useCanUpdateHomeCurrency"] });
             onSuccess?.(...args);
         },
         ...restOptions,

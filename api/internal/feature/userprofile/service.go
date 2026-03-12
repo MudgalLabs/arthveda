@@ -2,6 +2,7 @@ package userprofile
 
 import (
 	"arthveda/internal/domain/subscription"
+	"arthveda/internal/feature/currency"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/upload"
 	"arthveda/internal/repository"
@@ -115,6 +116,44 @@ func (s *Service) MarkAsOnboarded(ctx context.Context, userID uuid.UUID) (servic
 	}
 
 	userProfile.Onboarded = true
+
+	err = s.userProfileRepository.Update(ctx, userProfile)
+	if err != nil {
+		return service.ErrInternalServerError, fmt.Errorf("failed to update user profile: %w", err)
+	}
+
+	return service.ErrNone, nil
+}
+
+func (s *Service) CanUpdateHomeCurrency(ctx context.Context, userID uuid.UUID) (bool, service.Error, error) {
+	count, err := s.positionRepository.DistinctCurrenciesUsed(ctx, userID)
+	if err != nil {
+		return false, service.ErrInternalServerError, fmt.Errorf("position distinct currencies used: %w", err)
+	}
+
+	canUpdate := true
+	if count > 1 {
+		canUpdate = false
+	}
+
+	return canUpdate, service.ErrNone, nil
+}
+
+type UpdateHomeCurrencyPayload struct {
+	NewCurrencyCode currency.CurrencyCode `json:"new_currency_code"`
+}
+
+func (s *Service) UpdateHomeCurrency(ctx context.Context, userID uuid.UUID, payload UpdateHomeCurrencyPayload) (service.Error, error) {
+	userProfile, err := s.userProfileRepository.FindUserProfileByUserID(ctx, userID)
+	if err != nil {
+		if err == repository.ErrNotFound {
+			return service.ErrNotFound, err
+		}
+
+		return service.ErrInternalServerError, fmt.Errorf("find user profile by user id: %w", err)
+	}
+
+	userProfile.HomeCurrencyCode = payload.NewCurrencyCode
 
 	err = s.userProfileRepository.Update(ctx, userProfile)
 	if err != nil {

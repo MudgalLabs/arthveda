@@ -52,6 +52,8 @@ export const API_ROUTES = {
     user: {
         me: "/v1/users/me",
         markAsOnboarded: "/v1/users/onboarded",
+        canUpdateHomeCurrency: "/v1/users/can_update_home_currency",
+        updateHomeCurrency: "/v1/users/home_currency",
     },
     userBrokerAccount: {
         list: "/v1/user-broker-accounts",

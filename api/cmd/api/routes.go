@@ -144,6 +144,8 @@ func initRouter(a *app) http.Handler {
 
 			r.Get("/me", getMeHandler(a.service.UserProfileService))
 			r.Post("/onboarded", markAsOnboardedHandler(a.service.UserProfileService))
+			r.Get("/can_update_home_currency", canUpdateHomeCurrency(a.service.UserProfileService))
+			r.Patch("/home_currency", updateHomeCurrency(a.service.UserProfileService))
 		})
 
 		r.Route("/subscriptions", func(r chi.Router) {

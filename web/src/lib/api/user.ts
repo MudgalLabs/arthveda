@@ -29,3 +29,17 @@ export function me() {
 export function markAsOnboarded() {
     return client.post(API_ROUTES.user.markAsOnboarded);
 }
+
+export interface CanUpdateHomeCurrnecyResponse {
+    can_update: boolean;
+}
+
+export function canUpdateHomeCurrency() {
+    return client.get(API_ROUTES.user.canUpdateHomeCurrency);
+}
+
+export function updateHomeCurrency(newCurrencyCode: CurrencyCode) {
+    return client.patch(API_ROUTES.user.updateHomeCurrency, {
+        new_currency_code: newCurrencyCode,
+    });
+}

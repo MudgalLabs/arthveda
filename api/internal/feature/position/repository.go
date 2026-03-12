@@ -25,6 +25,8 @@ type Reader interface {
 	SearchSymbols(ctx context.Context, userID uuid.UUID, query string) ([]string, error)
 	NoOfPositionsOlderThanTwelveMonths(ctx context.Context, userID uuid.UUID) (int, error)
 	TotalPositions(ctx context.Context, userID uuid.UUID) (int, error)
+	// Return the number of currencies used by a user in the logged positions.
+	DistinctCurrenciesUsed(ctx context.Context, userID uuid.UUID) (int, error)
 }
 
 type Writer interface {
@@ -605,6 +607,23 @@ func (r *positionRepository) TotalPositions(ctx context.Context, userID uuid.UUI
 		SELECT COUNT(id)
 		FROM position
 		WHERE created_by = $1
+	`
+
+	var count int
+	err := r.db.QueryRow(ctx, sql, userID).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("query: %w", err)
+	}
+
+	return count, nil
+}
+
+func (r *positionRepository) DistinctCurrenciesUsed(ctx context.Context, userID uuid.UUID) (int, error) {
+	const sql = `
+		SELECT
+		COUNT(DISTINCT(currency_code))
+		FROM position
+		WHERE created_by = $1;
 	`
 
 	var count int

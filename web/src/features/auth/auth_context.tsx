@@ -79,7 +79,7 @@ export function useUserHasProSubscription(): boolean {
 }
 
 export function useHomeCurrency(): CurrencyCode {
-    const { data } = useAuthentication();
+    const { data } = apiHooks.user.useMe();
     // TODO: Instead of "INR" maybe default to the currency of their locale?
-    return data?.home_currency_code ?? "INR";
+    return data?.data?.home_currency_code ?? "INR";
 }
