@@ -13,8 +13,18 @@ interface StatusTagProps {
 }
 
 const StatusTag: FC<StatusTagProps> = memo(({ currency = "INR", status, openQuantity = "", openAvgPrice = "" }) => {
-    if (status === "win") return <Tag variant="success">Win</Tag>;
-    if (status === "loss") return <Tag variant="destructive">Loss</Tag>;
+    if (status === "win")
+        return (
+            <Tag className="w-12" variant="success">
+                Win
+            </Tag>
+        );
+    if (status === "loss")
+        return (
+            <Tag className="w-12" variant="destructive">
+                Loss
+            </Tag>
+        );
 
     let content = status === "breakeven" ? "Breakeven" : "Open";
 

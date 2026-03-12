@@ -30,6 +30,8 @@ import { BrokerLogo } from "@/components/broker_logo";
 import { ROUTES } from "@/constants";
 import { PnL } from "@/components/pnl";
 import { useHomeCurrency } from "@/features/auth/auth_context";
+import { DirectionTag } from "./direction_tag";
+import { StatusTag } from "./status_tag";
 
 export interface PositionListTable {
     positions: Position[];
@@ -175,8 +177,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                             disabled={table.options.meta?.isFetching}
                         />
                     ),
-                    // cell: ({ row }) => <DirectionTag className="w-16" direction={row.original.direction} />,
-                    cell: ({ row }) => positionDirectionToString(row.original.direction),
+                    cell: ({ row }) => <DirectionTag className="w-16" direction={row.original.direction} />,
                 },
                 {
                     id: "status",
@@ -191,8 +192,16 @@ export const PositionListTable: FC<PositionListTable> = memo(
                             disabled={table.options.meta?.isFetching}
                         />
                     ),
-                    // cell: ({ row }) => <StatusTag status={row.original.status} currency={row.original.currency} />,
-                    cell: ({ row }) => positionStatusToString(row.original.status),
+                    cell: ({ row }) => (
+                        <StatusTag
+                            // className="w-12!"
+                            status={row.original.status}
+                            currency={row.original.currency_code}
+                            openQuantity={row.original.open_quantity}
+                            openAvgPrice={row.original.open_average_price_amount}
+                        />
+                    ),
+                    // cell: ({ row }) => positionStatusToString(row.original.status),
                 },
                 {
                     id: "instrument",
