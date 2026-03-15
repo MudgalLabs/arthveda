@@ -53,9 +53,19 @@ export interface AnalyticsTimeHourOfTheDayItem {
     gross_r_factor: string;
 }
 
+export interface AnalyticsTimeHoldingPeriodItem {
+    period: string; // `under_1m`, `1_5m`, ... `over_365d`
+    positions_count: number;
+    gross_pnl: string;
+    charges: string;
+    net_pnl: string;
+    gross_r_factor: string;
+}
+
 export interface GetAnalyticsTimeResponse {
     day_of_the_week: AnalyticsTimeDayOfTheWeekItem[];
     hour_of_the_day: AnalyticsTimeHourOfTheDayItem[];
+    holding_period: AnalyticsTimeHoldingPeriodItem[];
 }
 
 export function getAnalyticsTime() {

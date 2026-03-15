@@ -6,29 +6,33 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { PnL } from "@/components/pnl";
 import { CurrencyCode } from "@/lib/api/currency";
 import { useHomeCurrency } from "@/features/auth/auth_context";
-import { decimalSortingFn, formatCurrency } from "@/lib/utils";
+import { decimalSortingFn, formatCurrency, formatHoldingPeriod } from "@/lib/utils";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTable } from "@/s8ly/data_table/data_table";
-import { AnalyticsTimeDayOfTheWeekItem, AnalyticsTimeHourOfTheDayItem } from "@/lib/api/analytics";
+import {
+    AnalyticsTimeDayOfTheWeekItem,
+    AnalyticsTimeHoldingPeriodItem,
+    AnalyticsTimeHourOfTheDayItem,
+} from "@/lib/api/analytics";
 
 function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<AnalyticsTimeDayOfTheWeekItem>[] {
     return [
         {
             accessorKey: "day",
             meta: { columnVisibilityHeader: "Day" },
-            header: ({ column }) => <DataTableColumnHeader title="Day" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader className="w-30" title="Day" column={column} />,
             cell: ({ row }) => <span className="capitalize">{row.original.day}</span>,
 
             enableSorting: false,
         },
         {
             accessorKey: "positions_count",
-            meta: { columnVisibilityHeader: "Positions count" },
+            meta: { columnVisibilityHeader: "Positions" },
             header: ({ column }) => (
                 <DataTableColumnHeader
                     title={
                         <span className="flex-x">
-                            Positions count{" "}
+                            Positions{" "}
                             <Tooltip content="If a position's profit or loss is realized on multiple days, it will be counted for each of those days.">
                                 <IconInfo />
                             </Tooltip>
@@ -91,19 +95,22 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
         {
             accessorKey: "hour",
             meta: { columnVisibilityHeader: "Hour" },
-            header: ({ column }) => <DataTableColumnHeader title="Hour" column={column} />,
-            cell: ({ row }) => <span>{row.original.hour.replace("_", " - ")}</span>,
+            header: ({ column }) => <DataTableColumnHeader className="w-30" title="Hour" column={column} />,
+            cell: ({ row }) => {
+                const [start, end] = row.original.hour.split("_");
+                return <span className="tabular-nums">{`${start}:00 – ${end}:00`}</span>;
+            },
             enableHiding: false,
             enableSorting: false,
         },
         {
             accessorKey: "positions_count",
-            meta: { columnVisibilityHeader: "Positions count" },
+            meta: { columnVisibilityHeader: "Positions" },
             header: ({ column }) => (
                 <DataTableColumnHeader
                     title={
                         <span className="flex-x">
-                            Positions count{" "}
+                            Positions{" "}
                             <Tooltip content="If a position's profit or loss is realized across multiple hours (for example through partial exits), it will be counted in each of those hours.">
                                 <IconInfo />
                             </Tooltip>
@@ -162,11 +169,97 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
     ];
 }
 
+function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<AnalyticsTimeHoldingPeriodItem>[] {
+    return [
+        {
+            accessorKey: "period",
+            meta: { columnVisibilityHeader: "Period" },
+            header: ({ column }) => <DataTableColumnHeader title="Period" column={column} />,
+            cell: ({ row }) => <span>{formatHoldingPeriod(row.original.period)}</span>,
+            enableSorting: false,
+        },
+
+        {
+            accessorKey: "positions_count",
+            meta: { columnVisibilityHeader: "Positions" },
+            header: ({ column }) => (
+                <DataTableColumnHeader
+                    title={
+                        <span className="flex-x">
+                            Positions{" "}
+                            <Tooltip content="Each closed position contributes once to the holding period bucket based on how long it was held.">
+                                <IconInfo />
+                            </Tooltip>
+                        </span>
+                    }
+                    column={column}
+                />
+            ),
+            cell: ({ row }) => <span>{row.original.positions_count}</span>,
+        },
+
+        {
+            accessorKey: "gross_pnl",
+            meta: { columnVisibilityHeader: "Gross PnL" },
+            header: ({ column }) => <DataTableColumnHeader title="Gross PnL" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.gross_pnl)}>
+                    {formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), {
+                        currency: currencyCode,
+                    })}
+                </PnL>
+            ),
+            sortingFn: decimalSortingFn,
+        },
+
+        {
+            accessorKey: "net_pnl",
+            meta: { columnVisibilityHeader: "Net PnL" },
+            header: ({ column }) => <DataTableColumnHeader title="Net PnL" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.net_pnl)}>
+                    {formatCurrency(new Decimal(row.original.net_pnl).toFixed(2), {
+                        currency: currencyCode,
+                    })}
+                </PnL>
+            ),
+            sortingFn: decimalSortingFn,
+        },
+
+        {
+            accessorKey: "charges",
+            meta: { columnVisibilityHeader: "Charges" },
+            header: ({ column }) => <DataTableColumnHeader title="Charges" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.charges)} variant="negative">
+                    {formatCurrency(new Decimal(row.original.charges).toFixed(2), {
+                        currency: currencyCode,
+                    })}
+                </PnL>
+            ),
+            sortingFn: decimalSortingFn,
+        },
+
+        {
+            accessorKey: "gross_r_factor",
+            meta: { columnVisibilityHeader: "R Factor" },
+            header: ({ column }) => <DataTableColumnHeader title="R Factor" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.gross_r_factor)}>
+                    {new Decimal(row.original.gross_r_factor).toFixed(2)}
+                </PnL>
+            ),
+            sortingFn: decimalSortingFn,
+        },
+    ];
+}
+
 export function AnalyticsTime() {
     const { data, isLoading, error } = apiHooks.analytics.useGetAnalyticsTime();
 
     const dayOfTheWeekData = data?.data.day_of_the_week ?? [];
     const hourOfTheDayData = data?.data.hour_of_the_day ?? [];
+    const holdingPeriodData = data?.data.holding_period ?? [];
 
     const homeCurrency = useHomeCurrency();
 
@@ -183,45 +276,68 @@ export function AnalyticsTime() {
     }
 
     return (
-        <div>
-            <h2 className="sub-heading">Day of the Week</h2>
-            <div className="h-4" />
+        <div className="space-y-8 pb-8">
+            <section>
+                <h2 className="mb-2 text-lg font-semibold">Holding Duration</h2>
 
-            <DataTableSmart
-                data={dayOfTheWeekData}
-                columns={getAnalyticsTimeDayColumns(homeCurrency)}
-                total={dayOfTheWeekData.length}
-                // state={tableState}
-                // onStateChange={setTableState}
-                isFetching={isLoading}
-            >
-                {(table) => <DataTable table={table} />}
-            </DataTableSmart>
+                <DataTableSmart
+                    data={holdingPeriodData}
+                    columns={getAnalyticsTimeHoldingColumns(homeCurrency)}
+                    total={holdingPeriodData.length}
+                    isFetching={isLoading}
+                >
+                    {(table) => (
+                        <div className="space-y-4">
+                            <DataTable
+                                table={table}
+                                rowClassName={(row) =>
+                                    row.original.positions_count === 0 ? "opacity-40 text-text-muted" : ""
+                                }
+                            />
+                        </div>
+                    )}
+                </DataTableSmart>
+            </section>
+            <section>
+                <h2 className="mb-2 text-lg font-semibold">Day of the Week</h2>
 
-            <h2 className="sub-heading mt-8">Hour of the Day</h2>
-            <div className="h-4" />
+                <DataTableSmart
+                    data={dayOfTheWeekData}
+                    columns={getAnalyticsTimeDayColumns(homeCurrency)}
+                    total={dayOfTheWeekData.length}
+                    // state={tableState}
+                    // onStateChange={setTableState}
+                    isFetching={isLoading}
+                >
+                    {(table) => <DataTable table={table} />}
+                </DataTableSmart>
+            </section>
 
-            <DataTableSmart
-                data={hourOfTheDayData}
-                columns={getAnalyticsTimeHourColumns(homeCurrency)}
-                total={hourOfTheDayData.length}
-                state={{
-                    pagination: {
-                        pageIndex: 0,
-                        pageSize: -1,
-                    },
-                }}
-                // state={tableState}
-                // onStateChange={setTableState}
-                isFetching={isLoading}
-            >
-                {(table) => (
-                    <DataTable
-                        table={table}
-                        rowClassName={(row) => (row.original.positions_count === 0 ? "opacity-40" : "")}
-                    />
-                )}
-            </DataTableSmart>
+            <section>
+                <h2 className="mb-2 text-lg font-semibold">Hour of the Day</h2>
+
+                <DataTableSmart
+                    data={hourOfTheDayData}
+                    columns={getAnalyticsTimeHourColumns(homeCurrency)}
+                    total={hourOfTheDayData.length}
+                    state={{
+                        pagination: {
+                            pageIndex: 0,
+                            pageSize: -1,
+                        },
+                    }}
+                    // state={tableState}
+                    // onStateChange={setTableState}
+                    isFetching={isLoading}
+                >
+                    {(table) => (
+                        <DataTable
+                            table={table}
+                            rowClassName={(row) => (row.original.positions_count === 0 ? "opacity-40" : "")}
+                        />
+                    )}
+                </DataTableSmart>
+            </section>
         </div>
     );
 }

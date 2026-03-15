@@ -269,9 +269,19 @@ type hourOfTheDayItem struct {
 	GrossRFactor   decimal.Decimal `json:"gross_r_factor"`
 }
 
+type holdingPeriodItem struct {
+	Period         common.HoldingPeriod `json:"period"`
+	PositionsCount int                  `json:"positions_count"`
+	GrossPnL       decimal.Decimal      `json:"gross_pnl"`
+	Charges        decimal.Decimal      `json:"charges"`
+	NetPnL         decimal.Decimal      `json:"net_pnl"`
+	GrossRFactor   decimal.Decimal      `json:"gross_r_factor"`
+}
+
 type GetTimeResult struct {
-	DayOfTheWeek []dayOfTheWeekItem `json:"day_of_the_week"`
-	HourOfTheDay []hourOfTheDayItem `json:"hour_of_the_day"`
+	DayOfTheWeek  []dayOfTheWeekItem  `json:"day_of_the_week"`
+	HourOfTheDay  []hourOfTheDayItem  `json:"hour_of_the_day"`
+	HoldingPeriod []holdingPeriodItem `json:"holding_period"`
 }
 
 func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetTimeResult, service.Error, error) {
@@ -356,12 +366,40 @@ func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Locati
 
 	hourStats := make(map[common.Hour]*hourOfTheDayItem)
 	hourPositions := make(map[common.Hour]map[uuid.UUID]struct{})
+	holdingStats := make(map[common.HoldingPeriod]*holdingPeriodItem)
 
 	for _, pos := range positionsFiltered {
 		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction, pos.RiskAmount)
 		if err != nil {
 			continue
 		}
+
+		duration := pos.ClosedAt.Sub(pos.OpenedAt)
+
+		if duration < 0 {
+			continue
+		}
+
+		bucket := common.GetHoldingPeriodBucket(duration)
+
+		if _, ok := holdingStats[bucket]; !ok {
+			holdingStats[bucket] = &holdingPeriodItem{
+				Period:         bucket,
+				PositionsCount: 0,
+				GrossPnL:       decimal.Zero,
+				Charges:        decimal.Zero,
+				NetPnL:         decimal.Zero,
+				GrossRFactor:   decimal.Zero,
+			}
+		}
+
+		entry := holdingStats[bucket]
+
+		entry.PositionsCount++
+		entry.GrossPnL = entry.GrossPnL.Add(pos.GrossPnLAmount)
+		entry.Charges = entry.Charges.Add(pos.TotalChargesAmount)
+		entry.NetPnL = entry.NetPnL.Add(pos.NetPnLAmount)
+		entry.GrossRFactor = entry.GrossRFactor.Add(pos.GrossRFactor)
 
 		for _, t := range pos.Trades {
 			if len(t.MatchedLots) == 0 {
@@ -445,6 +483,35 @@ func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Locati
 			// Ensure empty hours still appear.
 			result.HourOfTheDay = append(result.HourOfTheDay, hourOfTheDayItem{
 				Hour:           hour,
+				PositionsCount: 0,
+				GrossPnL:       decimal.Zero,
+				Charges:        decimal.Zero,
+				NetPnL:         decimal.Zero,
+				GrossRFactor:   decimal.Zero,
+			})
+		}
+	}
+
+	orderedBuckets := []common.HoldingPeriod{
+		common.HoldingUnder1m,
+		common.Holding1To5m,
+		common.Holding5To15m,
+		common.Holding15To60m,
+		common.Holding1To24h,
+		common.Holding1To7d,
+		common.Holding7To30d,
+		common.Holding30To365d,
+		common.HoldingOver365d,
+	}
+
+	result.HoldingPeriod = make([]holdingPeriodItem, 0, len(orderedBuckets))
+
+	for _, bucket := range orderedBuckets {
+		if stats, ok := holdingStats[bucket]; ok {
+			result.HoldingPeriod = append(result.HoldingPeriod, *stats)
+		} else {
+			result.HoldingPeriod = append(result.HoldingPeriod, holdingPeriodItem{
+				Period:         bucket,
 				PositionsCount: 0,
 				GrossPnL:       decimal.Zero,
 				Charges:        decimal.Zero,

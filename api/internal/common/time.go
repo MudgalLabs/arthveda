@@ -45,6 +45,43 @@ const (
 	Hour23_24 Hour = "23_24"
 )
 
+type HoldingPeriod string
+
+const (
+	HoldingUnder1m  HoldingPeriod = "under_1m"
+	Holding1To5m    HoldingPeriod = "1_5m"
+	Holding5To15m   HoldingPeriod = "5_15m"
+	Holding15To60m  HoldingPeriod = "15_60m"
+	Holding1To24h   HoldingPeriod = "1_24h"
+	Holding1To7d    HoldingPeriod = "1_7d"
+	Holding7To30d   HoldingPeriod = "7_30d"
+	Holding30To365d HoldingPeriod = "30_365d"
+	HoldingOver365d HoldingPeriod = "over_365d"
+)
+
+func GetHoldingPeriodBucket(d time.Duration) HoldingPeriod {
+	switch {
+	case d < time.Minute:
+		return HoldingUnder1m
+	case d < 5*time.Minute:
+		return Holding1To5m
+	case d < 15*time.Minute:
+		return Holding5To15m
+	case d < time.Hour:
+		return Holding15To60m
+	case d < 24*time.Hour:
+		return Holding1To24h
+	case d < 7*24*time.Hour:
+		return Holding1To7d
+	case d < 30*24*time.Hour:
+		return Holding7To30d
+	case d < 365*24*time.Hour:
+		return Holding30To365d
+	default:
+		return HoldingOver365d
+	}
+}
+
 type Exchange string
 
 const (

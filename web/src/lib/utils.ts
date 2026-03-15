@@ -422,3 +422,19 @@ export const decimalSortingFn: SortingFn<any> = (rowA, rowB, columnId) => {
     if (a.greaterThan(b)) return 1;
     return 0;
 };
+
+export function formatHoldingPeriod(period: string) {
+    const map: Record<string, string> = {
+        under_1m: "less than 1 min",
+        "1_5m": "1 to 5 min",
+        "5_15m": "5 to 15 min",
+        "15_60m": "15 to 60 min",
+        "1_24h": "1 to 24 hrs",
+        "1_7d": "1 to 7 days",
+        "7_30d": "7 to 30 days",
+        "30_365d": "1 to 12 months",
+        over_365d: "more than 1 year",
+    };
+
+    return map[period] ?? period;
+}
