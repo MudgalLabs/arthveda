@@ -4,6 +4,7 @@ import { client } from "@/lib/api/client";
 import { DecimalString } from "@/lib/types";
 
 interface CalendarDaily {
+    date: string;
     gross_pnl: string;
     charges: string;
     net_pnl: string;

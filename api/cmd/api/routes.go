@@ -178,6 +178,7 @@ func initRouter(a *app) http.Handler {
 			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
 
 			r.Get("/tags", getAnalyticsTagsHandler(a.service.AnalyticsService))
+			r.Get("/time", getAnalyticsTimeHandler(a.service.AnalyticsService))
 		})
 	})
 

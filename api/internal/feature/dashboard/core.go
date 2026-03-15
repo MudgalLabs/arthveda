@@ -22,6 +22,8 @@ type GeneralStats struct {
 	AvgLoss         string          `json:"avg_loss"`
 	MaxWin          string          `json:"max_win"`
 	MaxLoss         string          `json:"max_loss"`
+	GrossRFactor    string          `json:"gross_r_factor"`
+	NetRFactor      string          `json:"net_r_factor"`
 	AvgRFactor      string          `json:"avg_r_factor"`
 	AvgGrossRFactor string          `json:"avg_gross_r_factor"`
 	AvgWinRFactor   string          `json:"avg_win_r_factor"`
@@ -42,7 +44,7 @@ func GetGeneralStats(positions []*position.Position) GeneralStats {
 	}
 
 	var winRate float64
-	var grossPnL, netPnL, charges, avgRFactor, avgGrossRFactor, avgWinRFactor, avgLossRFactor, avgWinROI, avgLossROI, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
+	var grossPnL, netPnL, charges, grossRFactor, netRFactor, avgRFactor, avgGrossRFactor, avgWinRFactor, avgLossRFactor, avgWinROI, avgLossROI, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
 	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount, tradesWithRiskAmountCount int
 	var maxWinStreak, maxLossStreak, currentWin, currentLoss int
 
@@ -65,8 +67,10 @@ func GetGeneralStats(positions []*position.Position) GeneralStats {
 
 		if p.RiskAmount.GreaterThan(decimal.Zero) {
 			tradesWithRiskAmountCount++
-			avgRFactor = avgRFactor.Add(p.RFactor)
+			grossRFactor = grossRFactor.Add(p.GrossRFactor)
+			netRFactor = grossRFactor.Add(p.RFactor)
 			avgGrossRFactor = avgGrossRFactor.Add(p.GrossRFactor)
+			avgRFactor = avgRFactor.Add(p.RFactor)
 
 			switch p.Status {
 			case position.StatusWin, position.StatusBreakeven:
@@ -145,6 +149,8 @@ func GetGeneralStats(positions []*position.Position) GeneralStats {
 		GrossPnL:        grossPnL.String(),
 		NetPnL:          netPnL,
 		Charges:         charges.String(),
+		GrossRFactor:    grossRFactor.StringFixed(2),
+		NetRFactor:      netRFactor.StringFixed(2),
 		AvgRFactor:      avgRFactor.StringFixed(2),
 		AvgGrossRFactor: avgGrossRFactor.StringFixed(2),
 		AvgWin:          avgWin.StringFixed(2),

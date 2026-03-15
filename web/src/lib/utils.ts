@@ -1,6 +1,8 @@
 import qs from "qs";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { SortingFn } from "@tanstack/react-table";
+import Decimal from "decimal.js";
 
 import { DateRangeFilter } from "@/lib/types";
 import { CurrencyCode } from "@/features/position/position";
@@ -411,3 +413,12 @@ export function isDateToday(dateStr: string): boolean {
         today.getDate() === target.getDate()
     );
 }
+
+export const decimalSortingFn: SortingFn<any> = (rowA, rowB, columnId) => {
+    const a = new Decimal(rowA.getValue(columnId) ?? "0");
+    const b = new Decimal(rowB.getValue(columnId) ?? "0");
+
+    if (a.lessThan(b)) return -1;
+    if (a.greaterThan(b)) return 1;
+    return 0;
+};

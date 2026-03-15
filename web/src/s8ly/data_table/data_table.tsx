@@ -6,34 +6,46 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "n
 interface DataTableProps<TData> {
     table: TableProp<TData>;
     renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
+    rowClassName?: (row: Row<TData>) => string;
+    cellClassName?: (row: Row<TData>) => string;
+    tableClassName?: string;
 }
 
-function DataTable<TData>({ table, renderSubComponent }: DataTableProps<TData>) {
+function DataTable<TData>({
+    table,
+    renderSubComponent,
+    rowClassName,
+    cellClassName,
+    tableClassName,
+}: DataTableProps<TData>) {
     return (
         <div>
-            <Table>
+            <Table className={tableClassName}>
                 <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map((header) => {
-                                return (
-                                    <TableHead key={header.id} colSpan={header.colSpan}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(header.column.columnDef.header, header.getContext())}
-                                    </TableHead>
-                                );
-                            })}
+                            {headerGroup.headers.map((header) => (
+                                <TableHead key={header.id} colSpan={header.colSpan}>
+                                    {header.isPlaceholder
+                                        ? null
+                                        : flexRender(header.column.columnDef.header, header.getContext())}
+                                </TableHead>
+                            ))}
                         </TableRow>
                     ))}
                 </TableHeader>
+
                 <TableBody>
                     {table.getRowModel().rows?.length ? (
                         table.getRowModel().rows.map((row) => (
                             <Fragment key={row.id}>
-                                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                                <TableRow
+                                    key={row.id}
+                                    data-state={row.getIsSelected() && "selected"}
+                                    className={rowClassName?.(row)}
+                                >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
+                                        <TableCell key={cell.id} className={cellClassName?.(row)}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
                                     ))}

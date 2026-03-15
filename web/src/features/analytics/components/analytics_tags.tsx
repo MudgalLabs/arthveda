@@ -15,7 +15,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import Decimal from "decimal.js";
 
 import { PnL } from "@/components/pnl";
-import { useGetAnalyticsTags } from "@/hooks/api_hooks/analytics";
+import { apiHooks } from "@/hooks/api_hooks";
 import { AnalyticsTagsSummaryItem } from "@/lib/api/analytics";
 import WidgetBarPnLGraph from "@/features/dashboard/widget/widget_bar_pnl_graph";
 import WidgetCumulativePnLLineChart from "@/features/dashboard/widget/widget_cumulative_pnl_line_chart";
@@ -192,7 +192,7 @@ export function AnalyticsTags() {
         DEFAULT_DATA_TABLE_STATE
     );
 
-    const { data, isLoading, error } = useGetAnalyticsTags();
+    const { data, isLoading, error } = apiHooks.analytics.useGetAnalyticsTags();
 
     const summary = data?.data.summary ?? [];
     const summaryGroup = data?.data.summary_group ?? [];

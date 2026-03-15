@@ -28,6 +28,8 @@ interface DataTableSmartProps<TData, TValue> {
     isFetching?: boolean;
     extra?: Record<string, any>;
     getRowCanExpand?: (row: Row<TData>) => boolean;
+    manualSorting?: boolean;
+    manualPagination?: boolean;
 }
 
 function DataTableSmart<TData, TValue>({
@@ -40,6 +42,8 @@ function DataTableSmart<TData, TValue>({
     isFetching,
     extra = {},
     getRowCanExpand,
+    manualSorting = false,
+    manualPagination = false,
 }: DataTableSmartProps<TData, TValue>) {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => stateProp?.columnVisibility ?? {});
     const [pagination, setPagination] = useState<PaginationState>(
@@ -48,8 +52,8 @@ function DataTableSmart<TData, TValue>({
     const [sorting, setSorting] = useState<SortingState>(stateProp?.sorting ?? []);
     const [rowSelection, setRowSelection] = useState({});
 
-    if (stateProp?.pagination && total === undefined) {
-        throw new Error("DataTableSmart: you provided `state.pagination` but no `total`");
+    if (manualPagination && total === undefined) {
+        throw new Error("DataTableSmart: manualPagination requires total");
     }
 
     const table = useReactTable({
@@ -61,22 +65,29 @@ function DataTableSmart<TData, TValue>({
             sorting,
             pagination,
         },
+
         rowCount: total,
-        manualPagination: !!stateProp?.pagination, // Controlled if pagination state is provided
-        manualSorting: !!stateProp?.sorting, // Controlled if sorting state is provided
+
+        manualPagination,
+        manualSorting,
+
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
-        enableSortingRemoval: false,
+        enableSortingRemoval: true,
         onColumnVisibilityChange: setColumnVisibility,
         onPaginationChange: setPagination,
+
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: !stateProp?.pagination ? getPaginationRowModel() : undefined, // Use client-side pagination if uncontrolled
-        getSortedRowModel: !stateProp?.sorting ? getSortedRowModel() : undefined, // Use client-side sorting if uncontrolled
+
+        getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
+        getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
+
         getFacetedRowModel: getFacetedRowModel(),
         getFacetedUniqueValues: getFacetedUniqueValues(),
         getExpandedRowModel: getExpandedRowModel(),
         getRowCanExpand,
+
         meta: {
             isFetching,
             extra,

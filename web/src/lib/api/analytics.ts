@@ -34,3 +34,30 @@ export interface GetAnalyticsTagsResponse {
 export function getAnalyticsTags() {
     return client.get<ApiRes<GetAnalyticsTagsResponse>>(API_ROUTES.analytics.tags);
 }
+
+export interface AnalyticsTimeDayOfTheWeekItem {
+    day: string; // `mon, `tue`, ... `sun`.
+    positions_count: number;
+    gross_pnl: string;
+    charges: string;
+    net_pnl: string;
+    gross_r_factor: string;
+}
+
+export interface AnalyticsTimeHourOfTheDayItem {
+    hour: string; // `00_01` , `01_02`, `23_24`.
+    positions_count: number;
+    gross_pnl: string;
+    charges: string;
+    net_pnl: string;
+    gross_r_factor: string;
+}
+
+export interface GetAnalyticsTimeResponse {
+    day_of_the_week: AnalyticsTimeDayOfTheWeekItem[];
+    hour_of_the_day: AnalyticsTimeHourOfTheDayItem[];
+}
+
+export function getAnalyticsTime() {
+    return client.get<ApiRes<GetAnalyticsTimeResponse>>(API_ROUTES.analytics.time);
+}

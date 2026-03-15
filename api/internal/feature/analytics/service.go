@@ -3,6 +3,7 @@ package analytics
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/subscription"
+	"arthveda/internal/feature/calendar"
 	"arthveda/internal/feature/dashboard"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/tag"
@@ -22,12 +23,17 @@ import (
 type Service struct {
 	positionRepository position.ReadWriter
 	tagRepository      tag.ReadWriter
+	calendarService    *calendar.Service
 }
 
-func NewService(positionRepository position.ReadWriter, tagRepository tag.ReadWriter) *Service {
+func NewService(
+	positionRepository position.ReadWriter, tagRepository tag.ReadWriter,
+	calendarService *calendar.Service,
+) *Service {
 	return &Service{
 		positionRepository: positionRepository,
 		tagRepository:      tagRepository,
+		calendarService:    calendarService,
 	}
 }
 
@@ -243,4 +249,210 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 		SummaryGroup:            summaryGroup,
 		CumulativePnLByTagGroup: cumulativePnLByTagGroupData,
 	}, service.ErrNone, nil
+}
+
+type dayOfTheWeekItem struct {
+	Day            common.Day      `json:"day"`
+	PositionsCount int             `json:"positions_count"`
+	GrossPnL       decimal.Decimal `json:"gross_pnl"`
+	Charges        decimal.Decimal `json:"charges"`
+	NetPnL         decimal.Decimal `json:"net_pnl"`
+	GrossRFactor   decimal.Decimal `json:"gross_r_factor"`
+}
+
+type hourOfTheDayItem struct {
+	Hour           common.Hour     `json:"hour"`
+	PositionsCount int             `json:"positions_count"`
+	GrossPnL       decimal.Decimal `json:"gross_pnl"`
+	Charges        decimal.Decimal `json:"charges"`
+	NetPnL         decimal.Decimal `json:"net_pnl"`
+	GrossRFactor   decimal.Decimal `json:"gross_r_factor"`
+}
+
+type GetTimeResult struct {
+	DayOfTheWeek []dayOfTheWeekItem `json:"day_of_the_week"`
+	HourOfTheDay []hourOfTheDayItem `json:"hour_of_the_day"`
+}
+
+func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetTimeResult, service.Error, error) {
+	calendarResult, svcErr, err := s.calendarService.GetAll(ctx, userID, tz, enforcer)
+	if err != nil {
+		return nil, svcErr, err
+	}
+
+	dayStats := make(map[common.Day]*dayOfTheWeekItem)
+
+	for _, yearly := range *calendarResult {
+		for _, monthly := range yearly.Monthly {
+			for _, daily := range monthly.Daily {
+				date := daily.Date.In(tz)
+
+				var day common.Day
+
+				switch date.Weekday() {
+				case time.Monday:
+					day = common.DayMon
+				case time.Tuesday:
+					day = common.DayTue
+				case time.Wednesday:
+					day = common.DayWed
+				case time.Thursday:
+					day = common.DayThu
+				case time.Friday:
+					day = common.DayFri
+				case time.Saturday:
+					day = common.DaySat
+				case time.Sunday:
+					day = common.DaySun
+				}
+
+				if _, ok := dayStats[day]; !ok {
+					dayStats[day] = &dayOfTheWeekItem{
+						Day:            day,
+						PositionsCount: 0,
+						GrossPnL:       decimal.Zero,
+						Charges:        decimal.Zero,
+						NetPnL:         decimal.Zero,
+						GrossRFactor:   decimal.Zero,
+					}
+				}
+
+				entry := dayStats[day]
+
+				entry.PositionsCount += daily.PositionsCount
+				entry.GrossPnL = entry.GrossPnL.Add(daily.GrossPnL)
+				entry.Charges = entry.Charges.Add(daily.Charges)
+				entry.NetPnL = entry.NetPnL.Add(daily.NetPnL)
+				entry.GrossRFactor = entry.GrossRFactor.Add(daily.GrossRFactor)
+			}
+		}
+	}
+
+	yearAgo := time.Now().In(tz).AddDate(-1, 0, 0)
+	tradeTimeRange := &common.DateRangeFilter{}
+
+	if !enforcer.CanAccessAllPositions() {
+		tradeTimeRange.From = &yearAgo
+	}
+
+	searchPositionPayload := position.SearchPayload{
+		Filters: position.SearchFilter{
+			CreatedBy: &userID,
+			TradeTime: tradeTimeRange,
+		},
+		Sort: common.Sorting{
+			Field: "opened_at",
+			Order: common.SortOrderASC,
+		},
+	}
+
+	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload, true, false)
+	if err != nil {
+		return nil, service.ErrInternalServerError, err
+	}
+
+	_, rangeEnd := position.GetRangeBasedOnTrades(positions)
+	positionsFiltered := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
+
+	hourStats := make(map[common.Hour]*hourOfTheDayItem)
+	hourPositions := make(map[common.Hour]map[uuid.UUID]struct{})
+
+	for _, pos := range positionsFiltered {
+		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction, pos.RiskAmount)
+		if err != nil {
+			continue
+		}
+
+		for _, t := range pos.Trades {
+			if len(t.MatchedLots) == 0 {
+				continue
+			}
+
+			h := t.Time.In(tz).Hour()
+			hour := common.Hour(fmt.Sprintf("%02d_%02d", h, h+1))
+
+			if _, ok := hourStats[hour]; !ok {
+				hourStats[hour] = &hourOfTheDayItem{
+					Hour:         hour,
+					GrossPnL:     decimal.Zero,
+					Charges:      decimal.Zero,
+					NetPnL:       decimal.Zero,
+					GrossRFactor: decimal.Zero,
+				}
+				hourPositions[hour] = make(map[uuid.UUID]struct{})
+			}
+
+			entry := hourStats[hour]
+
+			entry.GrossPnL = entry.GrossPnL.Add(t.RealisedGrossPnL)
+			entry.Charges = entry.Charges.Add(t.ChargesAmount)
+			entry.NetPnL = entry.NetPnL.Add(t.RealisedNetPnL)
+			entry.GrossRFactor = entry.GrossRFactor.Add(t.GrossRFactor)
+
+			// Track unique position for this hour
+			hourPositions[hour][pos.ID] = struct{}{}
+		}
+	}
+
+	result := GetTimeResult{
+		DayOfTheWeek: make([]dayOfTheWeekItem, 0, 7),
+		HourOfTheDay: make([]hourOfTheDayItem, 0, 24),
+	}
+
+	orderedDays := []common.Day{
+		common.DayMon,
+		common.DayTue,
+		common.DayWed,
+		common.DayThu,
+		common.DayFri,
+		common.DaySat,
+		common.DaySun,
+	}
+
+	for _, day := range orderedDays {
+		if stats, ok := dayStats[day]; ok {
+			result.DayOfTheWeek = append(result.DayOfTheWeek, *stats)
+		} else {
+			// Ensure empty days still appear.
+			result.DayOfTheWeek = append(result.DayOfTheWeek, dayOfTheWeekItem{
+				Day:            day,
+				PositionsCount: 0,
+				GrossPnL:       decimal.Zero,
+				Charges:        decimal.Zero,
+				NetPnL:         decimal.Zero,
+				GrossRFactor:   decimal.Zero,
+			})
+		}
+	}
+
+	orderedHours := []common.Hour{
+		common.Hour00_01, common.Hour01_02, common.Hour02_03, common.Hour03_04,
+		common.Hour04_05, common.Hour05_06, common.Hour06_07, common.Hour07_08,
+		common.Hour08_09, common.Hour09_10, common.Hour10_11, common.Hour11_12,
+		common.Hour12_13, common.Hour13_14, common.Hour14_15, common.Hour15_16,
+		common.Hour16_17, common.Hour17_18, common.Hour18_19, common.Hour19_20,
+		common.Hour20_21, common.Hour21_22, common.Hour22_23, common.Hour23_24,
+	}
+
+	for hour, positions := range hourPositions {
+		hourStats[hour].PositionsCount = len(positions)
+	}
+
+	for _, hour := range orderedHours {
+		if stats, ok := hourStats[hour]; ok {
+			result.HourOfTheDay = append(result.HourOfTheDay, *stats)
+		} else {
+			// Ensure empty hours still appear.
+			result.HourOfTheDay = append(result.HourOfTheDay, hourOfTheDayItem{
+				Hour:           hour,
+				PositionsCount: 0,
+				GrossPnL:       decimal.Zero,
+				Charges:        decimal.Zero,
+				NetPnL:         decimal.Zero,
+				GrossRFactor:   decimal.Zero,
+			})
+		}
+	}
+
+	return &result, service.ErrNone, nil
 }

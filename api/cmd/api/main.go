@@ -129,7 +129,7 @@ func main() {
 	tagService := tag.NewService(tagRepository)
 	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository,
 		userBrokerAccountRepository, journalEntryService, uploadRepository, tagService, tagRepository)
-	analyticsService := analytics.NewService(positionRepository, tagRepository)
+	analyticsService := analytics.NewService(positionRepository, tagRepository, calendarService)
 
 	services := services{
 		BrokerService:            brokerService,

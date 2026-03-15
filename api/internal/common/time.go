@@ -4,6 +4,47 @@ import (
 	"time"
 )
 
+type Day string
+
+const (
+	DayMon Day = "mon"
+	DayTue Day = "tue"
+	DayWed Day = "wed"
+	DayThu Day = "thu"
+	DayFri Day = "fri"
+	DaySat Day = "sat"
+	DaySun Day = "sun"
+)
+
+type Hour string
+
+const (
+	Hour00_01 Hour = "00_01"
+	Hour01_02 Hour = "01_02"
+	Hour02_03 Hour = "02_03"
+	Hour03_04 Hour = "03_04"
+	Hour04_05 Hour = "04_05"
+	Hour05_06 Hour = "05_06"
+	Hour06_07 Hour = "06_07"
+	Hour07_08 Hour = "07_08"
+	Hour08_09 Hour = "08_09"
+	Hour09_10 Hour = "09_10"
+	Hour10_11 Hour = "10_11"
+	Hour11_12 Hour = "11_12"
+	Hour12_13 Hour = "12_13"
+	Hour13_14 Hour = "13_14"
+	Hour14_15 Hour = "14_15"
+	Hour15_16 Hour = "15_16"
+	Hour16_17 Hour = "16_17"
+	Hour17_18 Hour = "17_18"
+	Hour18_19 Hour = "18_19"
+	Hour19_20 Hour = "19_20"
+	Hour20_21 Hour = "20_21"
+	Hour21_22 Hour = "21_22"
+	Hour22_23 Hour = "22_23"
+	Hour23_24 Hour = "23_24"
+)
+
 type Exchange string
 
 const (

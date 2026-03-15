@@ -420,6 +420,8 @@ export const PositionListTable: FC<PositionListTable> = memo(
                         state={state}
                         onStateChange={onStateChange}
                         isFetching={isFetching}
+                        manualPagination
+                        manualSorting
                     >
                         {(table) => (
                             <div className="space-y-4">

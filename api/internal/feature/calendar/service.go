@@ -26,6 +26,7 @@ func NewService(positionRepository position.ReadWriter) *Service {
 }
 
 type calendarDaily struct {
+	Date           time.Time       `json:"date"`
 	GrossPnL       decimal.Decimal `json:"gross_pnl"`
 	Charges        decimal.Decimal `json:"charges"`
 	NetPnL         decimal.Decimal `json:"net_pnl"`
@@ -171,6 +172,7 @@ func (s *Service) GetAll(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 		dailyEntry, exists := monthlyEntry.Daily[day]
 		if !exists {
 			dailyEntry = calendarDaily{
+				Date:           time.Date(year, month, day, 0, 0, 0, 0, tz),
 				GrossPnL:       decimal.Zero,
 				Charges:        decimal.Zero,
 				NetPnL:         decimal.Zero,

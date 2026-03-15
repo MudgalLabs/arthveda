@@ -2,6 +2,7 @@ import { PageHeading, useDocumentTitle, Tabs, TabsList, TabsTrigger, TabsContent
 
 import { AnalyticsTags } from "@/features/analytics/components/analytics_tags";
 import { IconBrain } from "@/components/icons";
+import { AnalyticsTime } from "@/features/analytics/components/analytics_time";
 
 const enum AnlyticsTab {
     Tags = "tags",
@@ -37,7 +38,7 @@ export function Analytics() {
                 </TabsContent>
 
                 <TabsContent value="time">
-                    <AnalyticsComingSoon dimension="Time" />
+                    <AnalyticsTime />
                 </TabsContent>
 
                 <TabsContent value="symbols">
