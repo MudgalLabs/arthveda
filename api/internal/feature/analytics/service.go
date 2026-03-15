@@ -374,33 +374,6 @@ func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Locati
 			continue
 		}
 
-		duration := pos.ClosedAt.Sub(pos.OpenedAt)
-
-		if duration < 0 {
-			continue
-		}
-
-		bucket := common.GetHoldingPeriodBucket(duration)
-
-		if _, ok := holdingStats[bucket]; !ok {
-			holdingStats[bucket] = &holdingPeriodItem{
-				Period:         bucket,
-				PositionsCount: 0,
-				GrossPnL:       decimal.Zero,
-				Charges:        decimal.Zero,
-				NetPnL:         decimal.Zero,
-				GrossRFactor:   decimal.Zero,
-			}
-		}
-
-		entry := holdingStats[bucket]
-
-		entry.PositionsCount++
-		entry.GrossPnL = entry.GrossPnL.Add(pos.GrossPnLAmount)
-		entry.Charges = entry.Charges.Add(pos.TotalChargesAmount)
-		entry.NetPnL = entry.NetPnL.Add(pos.NetPnLAmount)
-		entry.GrossRFactor = entry.GrossRFactor.Add(pos.GrossRFactor)
-
 		for _, t := range pos.Trades {
 			if len(t.MatchedLots) == 0 {
 				continue
@@ -430,6 +403,39 @@ func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Locati
 			// Track unique position for this hour
 			hourPositions[hour][pos.ID] = struct{}{}
 		}
+
+		// Skip if the curren position is still open.
+		if pos.ClosedAt == nil || pos.Status == position.StatusOpen {
+			continue
+		}
+
+		duration := pos.ClosedAt.Sub(pos.OpenedAt)
+
+		if duration < 0 {
+			continue
+		}
+
+		bucket := common.GetHoldingPeriodBucket(duration)
+
+		if _, ok := holdingStats[bucket]; !ok {
+			holdingStats[bucket] = &holdingPeriodItem{
+				Period:         bucket,
+				PositionsCount: 0,
+				GrossPnL:       decimal.Zero,
+				Charges:        decimal.Zero,
+				NetPnL:         decimal.Zero,
+				GrossRFactor:   decimal.Zero,
+			}
+		}
+
+		entry := holdingStats[bucket]
+
+		entry.PositionsCount++
+		entry.GrossPnL = entry.GrossPnL.Add(pos.GrossPnLAmount)
+		entry.Charges = entry.Charges.Add(pos.TotalChargesAmount)
+		entry.NetPnL = entry.NetPnL.Add(pos.NetPnLAmount)
+		entry.GrossRFactor = entry.GrossRFactor.Add(pos.GrossRFactor)
+
 	}
 
 	result := GetTimeResult{
