@@ -4,12 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Loading } from "@/components/loading";
-import {
-    Position,
-    positionDirectionToString,
-    positionInstrumentToString,
-    positionStatusToString,
-} from "@/features/position/position";
+import { Position, positionInstrumentToString } from "@/features/position/position";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";

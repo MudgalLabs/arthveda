@@ -11,7 +11,7 @@ interface PnLProps {
 export function PnL(props: PnLProps) {
     const { value, children, className, variant } = props;
 
-    const isPositive = value.greaterThan(0);
+    const isPositive = value.greaterThan(0) || value.equals(0);
     const isNegative = value.lessThan(0);
 
     let colorClass = "";
