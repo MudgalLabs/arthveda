@@ -4,7 +4,6 @@ import {
     IconTags,
     Loading,
     PageHeading,
-    DataTableColumnHeader,
     Button,
     Tooltip,
     IconPlus,
@@ -21,11 +20,12 @@ import {
     IconTrash,
     IconChevronDown,
     IconChevronRight,
-    DataTable,
-    DataTableSmart,
     useDocumentTitle,
 } from "netra";
 
+import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
+import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
+import { DataTable } from "@/s8ly/data_table/data_table";
 import {
     useListTagGroups,
     useCreateTagGroup,

@@ -38,7 +38,7 @@ export const Positions = () => {
     }, [queryResult]);
 
     return (
-        <>
+        <div className="pb-8">
             <PageHeading>
                 <IconCandlestick size={18} />
                 <h1>Positions</h1>
@@ -60,7 +60,7 @@ export const Positions = () => {
                     />
                 </>
             )}
-        </>
+        </div>
     );
 };
 

@@ -1,8 +1,5 @@
 import { useMemo } from "react";
 import {
-    DataTable,
-    DataTableSmart,
-    DataTableColumnHeader,
     LoadingScreen,
     ErrorMessage,
     useLocalStorageState,
@@ -21,224 +18,257 @@ import WidgetBarPnLGraph from "@/features/dashboard/widget/widget_bar_pnl_graph"
 import WidgetCumulativePnLLineChart from "@/features/dashboard/widget/widget_cumulative_pnl_line_chart";
 import { ROUTES } from "@/constants";
 import { formatCurrency } from "@/lib/utils";
+import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
+import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
+import { DataTable } from "@/s8ly/data_table/data_table";
+import { CurrencyCode } from "@/lib/api/currency";
+import { useHomeCurrency } from "@/features/auth/auth_context";
 
-const analyticsTagColumns: ColumnDef<AnalyticsTagsSummaryItem>[] = [
-    {
-        accessorKey: "tag_group",
-        meta: { columnVisibilityHeader: "Tag Group" },
-        header: ({ column }) => <DataTableColumnHeader title="Tag Group" column={column} />,
-        cell: ({ row }) => <span>{row.original.tag_group}</span>,
-        enableHiding: false,
-    },
-    {
-        accessorKey: "tag_name",
-        meta: { columnVisibilityHeader: "Tag Name" },
-        header: ({ column }) => <DataTableColumnHeader title="Tag Name" column={column} />,
-        cell: ({ row }) => <span>{row.original.tag_name}</span>,
-        enableHiding: false,
-    },
-    {
-        accessorKey: "gross_pnl",
-        meta: { columnVisibilityHeader: "Gross PnL" },
-        header: ({ column }) => <DataTableColumnHeader title="Gross PnL" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.gross_pnl)}>
-                {formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "net_pnl",
-        meta: { columnVisibilityHeader: "Net PnL" },
-        header: ({ column }) => <DataTableColumnHeader title="Net PnL" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.net_pnl)}>
-                {formatCurrency(new Decimal(row.original.net_pnl).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "charges",
-        meta: { columnVisibilityHeader: "Charges" },
-        header: ({ column }) => <DataTableColumnHeader title="Charges" column={column} />,
-        cell: ({ row }) => <span>{row.original.charges}</span>,
-    },
-    {
-        accessorKey: "positions_count",
-        meta: { columnVisibilityHeader: "Positions" },
-        header: ({ column }) => <DataTableColumnHeader title="Positions" column={column} />,
-        cell: ({ row }) => <span>{row.original.positions_count}</span>,
-    },
-    {
-        accessorKey: "r_factor",
-        meta: { columnVisibilityHeader: "R Factor" },
-        header: ({ column }) => <DataTableColumnHeader title="R Factor" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.r_factor)}>
-                {formatCurrency(new Decimal(row.original.r_factor).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "avg_win",
-        meta: { columnVisibilityHeader: "Avg Win" },
-        header: ({ column }) => <DataTableColumnHeader title="Avg Win" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.avg_win)}>
-                {" "}
-                {formatCurrency(new Decimal(row.original.avg_win).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "avg_loss",
-        meta: { columnVisibilityHeader: "Avg Loss" },
-        header: ({ column }) => <DataTableColumnHeader title="Avg Loss" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.avg_loss)}>
-                {" "}
-                {formatCurrency(new Decimal(row.original.avg_loss).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "max_win",
-        meta: { columnVisibilityHeader: "Max Win" },
-        header: ({ column }) => <DataTableColumnHeader title="Max Win" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.max_win)}>
-                {formatCurrency(new Decimal(row.original.max_win).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "max_loss",
-        meta: { columnVisibilityHeader: "Max Loss" },
-        header: ({ column }) => <DataTableColumnHeader title="Max Loss" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.max_loss)}>
-                {" "}
-                {formatCurrency(new Decimal(row.original.max_loss).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "avg_r_factor",
-        meta: { columnVisibilityHeader: "Avg R Factor" },
-        header: ({ column }) => <DataTableColumnHeader title="Avg R Factor" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.avg_r_factor)}>
-                {formatCurrency(new Decimal(row.original.avg_r_factor).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "avg_win_r_factor",
-        meta: { columnVisibilityHeader: "Avg Win R Factor" },
-        header: ({ column }) => <DataTableColumnHeader title="Avg Win R Factor" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.avg_win_r_factor)}>
-                {formatCurrency(new Decimal(row.original.avg_win_r_factor).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "avg_loss_r_factor",
-        meta: { columnVisibilityHeader: "Avg Loss R Factor" },
-        header: ({ column }) => <DataTableColumnHeader title="Avg Loss R Factor" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.avg_loss_r_factor)}>
-                {formatCurrency(new Decimal(row.original.avg_loss_r_factor).toFixed(2), { hideSymbol: true })}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "avg_win_roi",
-        meta: { columnVisibilityHeader: "Avg Win ROI" },
-        header: ({ column }) => <DataTableColumnHeader title="Avg Win ROI" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.avg_win_roi)}>
-                {formatCurrency(new Decimal(row.original.avg_win_roi).toFixed(2), { hideSymbol: true })}%
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "avg_loss_roi",
-        meta: { columnVisibilityHeader: "Avg Loss ROI" },
-        header: ({ column }) => <DataTableColumnHeader title="Avg Loss ROI" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.avg_loss_roi)}>
-                {formatCurrency(new Decimal(row.original.avg_loss_roi).toFixed(2), { hideSymbol: true })}%
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "win_streak",
-        meta: { columnVisibilityHeader: "Win Streak" },
-        header: ({ column }) => <DataTableColumnHeader title="Win Streak" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.win_streak)} variant="positive">
-                {row.original.win_streak}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "loss_streak",
-        meta: { columnVisibilityHeader: "Loss Streak" },
-        header: ({ column }) => <DataTableColumnHeader title="Loss Streak" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.loss_streak)} variant="negative">
-                {row.original.loss_streak}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "wins_count",
-        meta: { columnVisibilityHeader: "Wins Count" },
-        header: ({ column }) => <DataTableColumnHeader title="Wins Count" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.wins_count)} variant="positive">
-                {row.original.wins_count}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "losses_count",
-        meta: { columnVisibilityHeader: "Losses Count" },
-        header: ({ column }) => <DataTableColumnHeader title="Losses Count" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.losses_count)} variant="negative">
-                {row.original.losses_count}
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "win_rate",
-        meta: { columnVisibilityHeader: "Win Rate (%)" },
-        header: ({ column }) => <DataTableColumnHeader title="Win Rate (%)" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.win_rate ?? 0)} variant="positive">
-                {row.original.win_rate?.toFixed(2)}%
-            </PnL>
-        ),
-    },
-    {
-        accessorKey: "loss_rate",
-        meta: { columnVisibilityHeader: "Loss Rate (%)" },
-        header: ({ column }) => <DataTableColumnHeader title="Loss Rate (%)" column={column} />,
-        cell: ({ row }) => (
-            <PnL value={new Decimal(row.original.loss_rate ?? 0)} variant="negative">
-                {row.original.loss_rate?.toFixed(2)}%
-            </PnL>
-        ),
-    },
+const rightAlignedColumns = [
+    "gross_pnl",
+    "net_pnl",
+    "charges",
+    "positions_count",
+    "r_factor",
+    "avg_win",
+    "avg_loss",
+    "max_win",
+    "max_loss",
+    "avg_r_factor",
+    "avg_win_r_factor",
+    "avg_loss_r_factor",
+    "avg_win_roi",
+    "avg_loss_roi",
+    "win_streak",
+    "loss_streak",
+    "wins_count",
+    "losses_count",
+    "win_rate",
+    "loss_rate",
 ];
+
+function getAnalyticsTagColumns(homeCurrency: CurrencyCode): ColumnDef<AnalyticsTagsSummaryItem>[] {
+    return [
+        {
+            accessorKey: "tag_group",
+            meta: { columnVisibilityHeader: "Tag Group" },
+            header: ({ column }) => <DataTableColumnHeader title="Tag Group" column={column} />,
+            cell: ({ row }) => <span>{row.original.tag_group}</span>,
+            enableHiding: false,
+        },
+        {
+            accessorKey: "tag_name",
+            meta: { columnVisibilityHeader: "Tag Name" },
+            header: ({ column }) => <DataTableColumnHeader title="Tag Name" column={column} />,
+            cell: ({ row }) => <span>{row.original.tag_name}</span>,
+            enableHiding: false,
+        },
+        {
+            accessorKey: "gross_pnl",
+            meta: { columnVisibilityHeader: "Gross PnL" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Gross PnL" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.gross_pnl)}>
+                    {formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), { currency: homeCurrency })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "net_pnl",
+            meta: { columnVisibilityHeader: "Net PnL" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Net PnL" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.net_pnl)}>
+                    {formatCurrency(new Decimal(row.original.net_pnl).toFixed(2), { currency: homeCurrency })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "charges",
+            meta: { columnVisibilityHeader: "Charges" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.charges)} variant="negative">
+                    {formatCurrency(new Decimal(row.original.charges).toFixed(2), { currency: homeCurrency })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "positions_count",
+            meta: { columnVisibilityHeader: "Positions" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Positions" column={column} />,
+            cell: ({ row }) => <span className="text-right">{row.original.positions_count}</span>,
+        },
+        {
+            accessorKey: "r_factor",
+            meta: { columnVisibilityHeader: "R Factor" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="R Factor" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.r_factor)}>
+                    {formatCurrency(new Decimal(row.original.r_factor).toFixed(2), { hideSymbol: true })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "avg_win",
+            meta: { columnVisibilityHeader: "Avg Win" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Avg Win" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.avg_win)}>
+                    {formatCurrency(new Decimal(row.original.avg_win).toFixed(2), { currency: homeCurrency })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "avg_loss",
+            meta: { columnVisibilityHeader: "Avg Loss" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Avg Loss" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.avg_loss)}>
+                    {formatCurrency(new Decimal(row.original.avg_loss).toFixed(2), { currency: homeCurrency })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "max_win",
+            meta: { columnVisibilityHeader: "Max Win" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Max Win" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.max_win)}>
+                    {formatCurrency(new Decimal(row.original.max_win).toFixed(2), { currency: homeCurrency })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "max_loss",
+            meta: { columnVisibilityHeader: "Max Loss" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Max Loss" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.max_loss)}>
+                    {formatCurrency(new Decimal(row.original.max_loss).toFixed(2), { currency: homeCurrency })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "avg_r_factor",
+            meta: { columnVisibilityHeader: "Avg R Factor" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Avg R Factor" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.avg_r_factor)}>
+                    {formatCurrency(new Decimal(row.original.avg_r_factor).toFixed(2), { hideSymbol: true })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "avg_win_r_factor",
+            meta: { columnVisibilityHeader: "Avg Win R Factor" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Avg Win R Factor" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.avg_win_r_factor)}>
+                    {formatCurrency(new Decimal(row.original.avg_win_r_factor).toFixed(2), { hideSymbol: true })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "avg_loss_r_factor",
+            meta: { columnVisibilityHeader: "Avg Loss R Factor" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Avg Loss R Factor" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.avg_loss_r_factor)}>
+                    {formatCurrency(new Decimal(row.original.avg_loss_r_factor).toFixed(2), { hideSymbol: true })}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "avg_win_roi",
+            meta: { columnVisibilityHeader: "Avg Win ROI" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Avg Win ROI" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.avg_win_roi)}>
+                    {formatCurrency(new Decimal(row.original.avg_win_roi).toFixed(2), { hideSymbol: true })}%
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "avg_loss_roi",
+            meta: { columnVisibilityHeader: "Avg Loss ROI" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Avg Loss ROI" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.avg_loss_roi)}>
+                    {formatCurrency(new Decimal(row.original.avg_loss_roi).toFixed(2), { hideSymbol: true })}%
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "win_streak",
+            meta: { columnVisibilityHeader: "Win Streak" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Win Streak" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.win_streak)} variant="positive">
+                    {row.original.win_streak}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "loss_streak",
+            meta: { columnVisibilityHeader: "Loss Streak" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Loss Streak" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.loss_streak)} variant="negative">
+                    {row.original.loss_streak}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "wins_count",
+            meta: { columnVisibilityHeader: "Wins Count" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Wins Count" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.wins_count)} variant="positive">
+                    {row.original.wins_count}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "losses_count",
+            meta: { columnVisibilityHeader: "Losses Count" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Losses Count" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.losses_count)} variant="negative">
+                    {row.original.losses_count}
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "win_rate",
+            meta: { columnVisibilityHeader: "Win Rate (%)" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Win Rate (%)" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.win_rate ?? 0)} variant="positive">
+                    {row.original.win_rate?.toFixed(2)}%
+                </PnL>
+            ),
+        },
+        {
+            accessorKey: "loss_rate",
+            meta: { columnVisibilityHeader: "Loss Rate (%)" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Loss Rate (%)" column={column} />,
+            cell: ({ row }) => (
+                <PnL value={new Decimal(row.original.loss_rate ?? 0)} variant="negative">
+                    {row.original.loss_rate?.toFixed(2)}%
+                </PnL>
+            ),
+        },
+    ];
+}
 
 export function AnalyticsTags() {
     const [tableState, setTableState] = useLocalStorageState<DataTableState>(
         ROUTES.analytics + "?tab=tags",
         DEFAULT_DATA_TABLE_STATE
     );
+
+    const homeCurrency = useHomeCurrency();
 
     const { data, isLoading, error } = apiHooks.analytics.useGetAnalyticsTags();
 
@@ -304,7 +334,7 @@ export function AnalyticsTags() {
 
             <DataTableSmart
                 data={summary}
-                columns={analyticsTagColumns}
+                columns={getAnalyticsTagColumns(homeCurrency)}
                 total={summary.length}
                 state={tableState}
                 onStateChange={setTableState}
@@ -316,7 +346,12 @@ export function AnalyticsTags() {
                             <DataTableVisibility table={table} />
                         </div>
 
-                        <DataTable table={table} />
+                        <DataTable
+                            table={table}
+                            cellClassName={(cell) =>
+                                rightAlignedColumns.includes(cell.column.id) ? "text-right tabular-nums" : ""
+                            }
+                        />
                     </div>
                 )}
             </DataTableSmart>

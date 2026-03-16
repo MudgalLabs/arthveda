@@ -2,9 +2,6 @@ import { ReactNode, useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import Decimal from "decimal.js";
 import {
-    DataTable,
-    DataTableColumnHeader,
-    DataTableSmart,
     Dialog,
     DialogContent,
     DialogDescription,
@@ -16,6 +13,9 @@ import {
     LoadingScreen,
 } from "netra";
 
+import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
+import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
+import { DataTable } from "@/s8ly/data_table/data_table";
 import { PnL } from "@/components/pnl";
 import { ROUTES } from "@/constants";
 import { Link } from "@/components/link";

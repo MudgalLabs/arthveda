@@ -21,8 +21,9 @@ import {
     SyncUserBrokerAccountResult,
     UserBrokerAccount,
 } from "@/lib/api/user_broker_account";
-import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
+import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
+import { DataTable } from "@/s8ly/data_table/data_table";
 import {
     Button,
     Dialog,
@@ -33,7 +34,6 @@ import {
     DialogTrigger,
     Input,
     Label,
-    DataTable,
     Tooltip,
     DialogFooter,
     DialogOverlay,

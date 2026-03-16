@@ -284,7 +284,7 @@ export function AnalyticsTime() {
     }
 
     return (
-        <div className="space-y-8 pb-8">
+        <div className="space-y-8">
             <section>
                 <h2 className="mb-2 text-lg font-semibold">Holding Duration</h2>
 

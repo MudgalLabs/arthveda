@@ -23,7 +23,7 @@ export function Analytics() {
                 <h1>Analytics</h1>
             </PageHeading>
 
-            <Tabs defaultValue="trades" value={tab} onValueChange={setTab}>
+            <Tabs defaultValue="trades" value={tab} onValueChange={setTab} className="pb-8">
                 <TabsList>
                     <TabsTrigger value="tags">Tags</TabsTrigger>
                     <TabsTrigger value="time">Time</TabsTrigger>
