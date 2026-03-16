@@ -175,32 +175,36 @@ export function formatCurrency(
         locale = "en-IN",
         localizationOpts = {},
         compact = false,
+        showSign = true,
     }: {
         currency?: CurrencyCode;
         hideSymbol?: boolean;
         locale?: string;
         localizationOpts?: Intl.NumberFormatOptions;
         compact?: boolean;
+        showSign?: boolean;
     } = {}
 ): string {
     const _amount = Number(amount);
+    const sign = showSign ? (_amount > 0 ? "+" : _amount < 0 ? "-" : "") : "";
+    const absAmount = Math.abs(_amount);
 
     if (compact) {
-        const absAmount = Math.abs(_amount);
-
         let formatted = "";
 
         if (absAmount >= 1_00_00_000) {
-            formatted = `${(_amount / 1_00_00_000).toFixed(2)}Cr`; // Crores
+            formatted = `${(absAmount / 1_00_00_000).toFixed(2)}Cr`;
         } else if (absAmount >= 1_00_000) {
-            formatted = `${(_amount / 1_00_000).toFixed(2)}L`; // Lakhs
+            formatted = `${(absAmount / 1_00_000).toFixed(2)}L`;
         } else if (absAmount >= 1_000) {
-            formatted = `${(_amount / 1_000).toFixed(2)}k`; // Thousands
+            formatted = `${(absAmount / 1_000).toFixed(2)}k`;
         } else {
-            formatted = _amount.toFixed(2); // Default formatting for smaller values
+            formatted = absAmount.toFixed(2);
         }
 
-        return hideSymbol ? formatted : `${getCurrencySymbol(currency)}${formatted}`;
+        const value = hideSymbol ? formatted : `${getCurrencySymbol(currency)}${formatted}`;
+
+        return `${sign}${value}`;
     }
 
     const options = deepMerge(
@@ -212,7 +216,9 @@ export function formatCurrency(
         localizationOpts
     );
 
-    return new Intl.NumberFormat(locale, options).format(_amount);
+    const formatted = new Intl.NumberFormat(locale, options).format(absAmount);
+
+    return `${sign}${formatted}`;
 }
 
 export function removeFormatCurrency(formatted: string): string {

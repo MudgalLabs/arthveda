@@ -40,21 +40,23 @@ export const WidgetGeneralStats: FC<Props> = (props) => {
                     <div className="flex h-full flex-col justify-between">
                         <div>
                             <p className="label-muted">R Factor</p>
-                            <p className="sub-heading">{props.rFactor}</p>
+                            <p className="sub-heading tabular-nums">
+                                {formatCurrency(props.rFactor, { hideSymbol: true })}
+                            </p>
                         </div>
                         <div>
                             <p className="label-muted">Streak</p>
-                            <p className="sub-heading">{props.streak}</p>
+                            <p className="sub-heading tabular-nums">{props.streak}</p>
                         </div>
                     </div>
                     <div className="flex h-full flex-col justify-between">
                         <div>
                             <p className="label-muted">Max</p>
-                            <p className="sub-heading">{formatCurrency(props.max)}</p>
+                            <p className="sub-heading tabular-nums">{formatCurrency(props.max)}</p>
                         </div>
                         <div>
                             <p className="label-muted">Avg</p>
-                            <p className="sub-heading">{formatCurrency(props.avg)}</p>
+                            <p className="sub-heading tabular-nums">{formatCurrency(props.avg)}</p>
                         </div>
                     </div>
                 </div>

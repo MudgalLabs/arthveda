@@ -6,6 +6,7 @@ import { CurrencyCode } from "@/features/position/position";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { cn, formatCurrency } from "@/lib/utils";
 import { DecimalString } from "@/lib/types";
+import { PnL } from "@/components/pnl";
 
 interface Props {
     net_pnl_amount: DecimalString;
@@ -66,16 +67,18 @@ export const OverviewCard = memo(
                         <div>
                             <span className="label-muted">Gross PnL</span>
                             <div className={`flex items-end gap-x-2 ${grossPnLColor}`}>
-                                <p className={`heading leading-none ${grossPnLColor}`}>
+                                <PnL className={`heading leading-none ${grossPnLColor}`} value={grossPnL}>
                                     {formatCurrency(grossPnL.toFixed(2).toString(), { currency })}
-                                </p>
+                                </PnL>
                             </div>
                         </div>
 
                         <div>
                             <span className="label-muted">Gross R</span>
                             <div className={`flex items-end gap-x-2`}>
-                                <p className="sub-heading leading-none">{grossRFactor.toFixed(2).toString()}</p>
+                                <PnL className="sub-heading leading-none" value={grossRFactor}>
+                                    {grossRFactor.toFixed(2).toString()}
+                                </PnL>
                             </div>
                         </div>
                     </div>
@@ -105,11 +108,11 @@ export const OverviewCard = memo(
                                 <span className="label-muted">Net PnL</span>
                                 <div className="flex-x">
                                     <p className="text-text-primary text-base">
-                                        <span className="font-semibold">
+                                        <PnL className="font-semibold" value={netPnL}>
                                             {formatCurrency(netPnL.toFixed(2).toString(), {
                                                 currency,
                                             })}
-                                        </span>
+                                        </PnL>
                                     </p>
 
                                     {net_return_percentage && (
@@ -123,18 +126,20 @@ export const OverviewCard = memo(
                             <div>
                                 <span className="label-muted">Charges</span>
                                 <p className="text-foreground text-base">
-                                    <span className="font-semibold">
-                                        {formatCurrency(charges.toFixed(2).toString(), {
+                                    <PnL className="font-semibold" value={charges} variant="negative">
+                                        {formatCurrency(charges.mul(-1).toFixed(2).toString(), {
                                             currency,
                                         })}
-                                    </span>
+                                    </PnL>
                                 </p>
                             </div>
 
                             <div>
                                 <span className="label-muted">Net R</span>
                                 <p className="text-foreground text-base">
-                                    <span className={cn("font-semibold", {})}>{netRFactor.toFixed(2).toString()}</span>
+                                    <PnL className={cn("font-semibold", {})} value={netRFactor}>
+                                        {netRFactor.toFixed(2).toString()}
+                                    </PnL>
                                 </p>
                             </div>
                         </div>

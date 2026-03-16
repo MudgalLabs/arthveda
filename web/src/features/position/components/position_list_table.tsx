@@ -115,7 +115,11 @@ export const PositionListTable: FC<PositionListTable> = memo(
                             disabled={table.options.meta?.isFetching}
                         />
                     ),
-                    cell: ({ row }) => formatDate(new Date(row.original.opened_at), { time: true }),
+                    cell: ({ row }) => (
+                        <span className="tabular-nums">
+                            {formatDate(new Date(row.original.opened_at), { time: true })}
+                        </span>
+                    ),
                 },
                 {
                     id: "duration",
@@ -139,7 +143,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                         return (
                             <p className="">
                                 {days > 0 && <span>{days} days</span>} {hours > 0 && <span>{hours} hours</span>}{" "}
-                                {minutes > 0 && <span>{minutes} mins</span>}
+                                {<span>{minutes} mins</span>}
                             </p>
                         );
                     },
@@ -227,7 +231,10 @@ export const PositionListTable: FC<PositionListTable> = memo(
                         />
                     ),
                     cell: ({ row }) => (
-                        <PnL value={new Decimal(row.original.r_factor)}>{Number(row.original.r_factor)}</PnL>
+                        <PnL value={new Decimal(row.original.r_factor)}>
+                            {" "}
+                            {formatCurrency(new Decimal(row.original.r_factor).toFixed(2), { hideSymbol: true })}
+                        </PnL>
                     ),
                 },
                 {
@@ -245,7 +252,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     ),
                     cell: ({ row }) => (
                         <PnL value={new Decimal(row.original.gross_r_factor)}>
-                            {Number(row.original.gross_r_factor)}
+                            {formatCurrency(new Decimal(row.original.gross_r_factor).toFixed(2), { hideSymbol: true })}
                         </PnL>
                     ),
                     enableSorting: false,
@@ -326,7 +333,11 @@ export const PositionListTable: FC<PositionListTable> = memo(
                             column={column}
                         />
                     ),
-                    cell: ({ row }) => `${Number(row.original.charges_as_percentage_of_net_pnl).toFixed(2)}%`,
+                    cell: ({ row }) => (
+                        <PnL value={new Decimal(row.original.total_charges_amount)} variant="negative">
+                            {Number(row.original.charges_as_percentage_of_net_pnl).toFixed(2)}%
+                        </PnL>
+                    ),
                 },
                 {
                     id: "net_return_percentage",
@@ -343,7 +354,9 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     ),
                     cell: ({ row }) => (
                         <PnL value={new Decimal(row.original.net_return_percentage)}>
-                            {Number(row.original.net_return_percentage).toFixed(2)}%
+                            {formatCurrency(new Decimal(row.original.net_return_percentage).toFixed(2), {
+                                currency: homeCurrency,
+                            })}
                         </PnL>
                     ),
                 },

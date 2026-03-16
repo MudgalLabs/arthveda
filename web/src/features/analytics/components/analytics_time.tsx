@@ -82,7 +82,7 @@ function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<Analy
             header: ({ column }) => <DataTableColumnHeader title="Gross R Factor" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.gross_r_factor)}>
-                    {new Decimal(row.original.gross_r_factor).toFixed(2)}
+                    {formatCurrency(new Decimal(row.original.gross_r_factor).toFixed(2), { hideSymbol: true })}
                 </PnL>
             ),
             sortingFn: decimalSortingFn,
@@ -161,7 +161,7 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
             header: ({ column }) => <DataTableColumnHeader title="Gross R Factor" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.gross_r_factor)}>
-                    {new Decimal(row.original.gross_r_factor).toFixed(2)}
+                    {formatCurrency(new Decimal(row.original.gross_r_factor).toFixed(2), { hideSymbol: true })}
                 </PnL>
             ),
             sortingFn: decimalSortingFn,
@@ -242,11 +242,11 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
 
         {
             accessorKey: "gross_r_factor",
-            meta: { columnVisibilityHeader: "R Factor" },
-            header: ({ column }) => <DataTableColumnHeader title="R Factor" column={column} />,
+            meta: { columnVisibilityHeader: "Gross R Factor" },
+            header: ({ column }) => <DataTableColumnHeader title="Gross R Factor" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.gross_r_factor)}>
-                    {new Decimal(row.original.gross_r_factor).toFixed(2)}
+                    {formatCurrency(new Decimal(row.original.gross_r_factor).toFixed(2), { hideSymbol: true })}
                 </PnL>
             ),
             sortingFn: decimalSortingFn,
