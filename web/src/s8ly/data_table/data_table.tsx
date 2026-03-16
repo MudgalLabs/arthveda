@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { Row, Table as TableProp, flexRender } from "@tanstack/react-table";
+import { Cell, Row, Table as TableProp, flexRender } from "@tanstack/react-table";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "netra";
 
@@ -7,7 +7,7 @@ interface DataTableProps<TData> {
     table: TableProp<TData>;
     renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
     rowClassName?: (row: Row<TData>) => string;
-    cellClassName?: (row: Row<TData>) => string;
+    cellClassName?: (cell: Cell<TData, unknown>) => string;
     tableClassName?: string;
 }
 
@@ -45,7 +45,7 @@ function DataTable<TData>({
                                     className={rowClassName?.(row)}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className={cellClassName?.(row)}>
+                                        <TableCell key={cell.id} className={cellClassName?.(cell)}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
                                     ))}

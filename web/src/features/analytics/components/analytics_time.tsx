@@ -1,5 +1,5 @@
-import { DataTableColumnHeader, LoadingScreen, ErrorMessage, Card, IconInfo, Tooltip } from "netra";
-import { ColumnDef } from "@tanstack/react-table";
+import { LoadingScreen, ErrorMessage, Card, IconInfo, Tooltip } from "netra";
+import { Cell, ColumnDef, Row } from "@tanstack/react-table";
 import Decimal from "decimal.js";
 
 import { apiHooks } from "@/hooks/api_hooks";
@@ -8,6 +8,7 @@ import { CurrencyCode } from "@/lib/api/currency";
 import { useHomeCurrency } from "@/features/auth/auth_context";
 import { decimalSortingFn, formatCurrency, formatHoldingPeriod } from "@/lib/utils";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
+import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import {
     AnalyticsTimeDayOfTheWeekItem,
@@ -22,7 +23,6 @@ function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<Analy
             meta: { columnVisibilityHeader: "Day" },
             header: ({ column }) => <DataTableColumnHeader className="w-30" title="Day" column={column} />,
             cell: ({ row }) => <span className="capitalize">{row.original.day}</span>,
-
             enableSorting: false,
         },
         {
@@ -46,7 +46,7 @@ function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<Analy
         {
             accessorKey: "gross_pnl",
             meta: { columnVisibilityHeader: "Gross PnL" },
-            header: ({ column }) => <DataTableColumnHeader title="Gross PnL" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Gross PnL" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.gross_pnl)}>
                     {formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), { currency: currencyCode })}
@@ -57,7 +57,7 @@ function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<Analy
         {
             accessorKey: "net_pnl",
             meta: { columnVisibilityHeader: "Net PnL" },
-            header: ({ column }) => <DataTableColumnHeader title="Net PnL" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Net PnL" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.net_pnl)}>
                     {formatCurrency(new Decimal(row.original.net_pnl).toFixed(2), { currency: currencyCode })}
@@ -68,7 +68,7 @@ function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<Analy
         {
             accessorKey: "charges",
             meta: { columnVisibilityHeader: "Charges" },
-            header: ({ column }) => <DataTableColumnHeader title="Charges" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.charges)} variant="negative">
                     {formatCurrency(new Decimal(row.original.charges).toFixed(2), { currency: currencyCode })}
@@ -79,7 +79,7 @@ function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<Analy
         {
             accessorKey: "gross_r_factor",
             meta: { columnVisibilityHeader: "Gross R Factor" },
-            header: ({ column }) => <DataTableColumnHeader title="Gross R Factor" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Gross R Factor" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.gross_r_factor)}>
                     {formatCurrency(new Decimal(row.original.gross_r_factor).toFixed(2), { hideSymbol: true })}
@@ -125,7 +125,7 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
         {
             accessorKey: "gross_pnl",
             meta: { columnVisibilityHeader: "Gross PnL" },
-            header: ({ column }) => <DataTableColumnHeader title="Gross PnL" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Gross PnL" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.gross_pnl)}>
                     {formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), { currency: currencyCode })}
@@ -136,7 +136,7 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
         {
             accessorKey: "net_pnl",
             meta: { columnVisibilityHeader: "Net PnL" },
-            header: ({ column }) => <DataTableColumnHeader title="Net PnL" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Net PnL" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.net_pnl)}>
                     {formatCurrency(new Decimal(row.original.net_pnl).toFixed(2), { currency: currencyCode })}
@@ -147,7 +147,7 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
         {
             accessorKey: "charges",
             meta: { columnVisibilityHeader: "Charges" },
-            header: ({ column }) => <DataTableColumnHeader title="Charges" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.charges)} variant="negative">
                     {formatCurrency(new Decimal(row.original.charges).toFixed(2), { currency: currencyCode })}
@@ -158,7 +158,7 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
         {
             accessorKey: "gross_r_factor",
             meta: { columnVisibilityHeader: "Gross R Factor" },
-            header: ({ column }) => <DataTableColumnHeader title="Gross R Factor" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Gross R Factor" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.gross_r_factor)}>
                     {formatCurrency(new Decimal(row.original.gross_r_factor).toFixed(2), { hideSymbol: true })}
@@ -201,7 +201,7 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
         {
             accessorKey: "gross_pnl",
             meta: { columnVisibilityHeader: "Gross PnL" },
-            header: ({ column }) => <DataTableColumnHeader title="Gross PnL" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Gross PnL" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.gross_pnl)}>
                     {formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), {
@@ -215,7 +215,7 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
         {
             accessorKey: "net_pnl",
             meta: { columnVisibilityHeader: "Net PnL" },
-            header: ({ column }) => <DataTableColumnHeader title="Net PnL" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Net PnL" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.net_pnl)}>
                     {formatCurrency(new Decimal(row.original.net_pnl).toFixed(2), {
@@ -229,7 +229,7 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
         {
             accessorKey: "charges",
             meta: { columnVisibilityHeader: "Charges" },
-            header: ({ column }) => <DataTableColumnHeader title="Charges" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.charges)} variant="negative">
                     {formatCurrency(new Decimal(row.original.charges).toFixed(2), {
@@ -243,7 +243,7 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
         {
             accessorKey: "gross_r_factor",
             meta: { columnVisibilityHeader: "Gross R Factor" },
-            header: ({ column }) => <DataTableColumnHeader title="Gross R Factor" column={column} />,
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Gross R Factor" column={column} />,
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.gross_r_factor)}>
                     {formatCurrency(new Decimal(row.original.gross_r_factor).toFixed(2), { hideSymbol: true })}
@@ -252,6 +252,14 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
             sortingFn: decimalSortingFn,
         },
     ];
+}
+
+function rowClassName(row: Row<any>) {
+    return row.original.positions_count === 0 ? "opacity-40 text-text-muted" : "";
+}
+
+function cellClassName(cell: Cell<any, any>) {
+    return cell.column.id === "period" || cell.column.id === "positions_count" ? "" : "text-right tabular-nums";
 }
 
 export function AnalyticsTime() {
@@ -288,16 +296,12 @@ export function AnalyticsTime() {
                 >
                     {(table) => (
                         <div className="space-y-4">
-                            <DataTable
-                                table={table}
-                                rowClassName={(row) =>
-                                    row.original.positions_count === 0 ? "opacity-40 text-text-muted" : ""
-                                }
-                            />
+                            <DataTable table={table} rowClassName={rowClassName} cellClassName={cellClassName} />
                         </div>
                     )}
                 </DataTableSmart>
             </section>
+
             <section>
                 <h2 className="mb-2 text-lg font-semibold">Day of the Week</h2>
 
@@ -305,11 +309,9 @@ export function AnalyticsTime() {
                     data={dayOfTheWeekData}
                     columns={getAnalyticsTimeDayColumns(homeCurrency)}
                     total={dayOfTheWeekData.length}
-                    // state={tableState}
-                    // onStateChange={setTableState}
                     isFetching={isLoading}
                 >
-                    {(table) => <DataTable table={table} />}
+                    {(table) => <DataTable table={table} rowClassName={rowClassName} cellClassName={cellClassName} />}
                 </DataTableSmart>
             </section>
 
@@ -326,16 +328,9 @@ export function AnalyticsTime() {
                             pageSize: -1,
                         },
                     }}
-                    // state={tableState}
-                    // onStateChange={setTableState}
                     isFetching={isLoading}
                 >
-                    {(table) => (
-                        <DataTable
-                            table={table}
-                            rowClassName={(row) => (row.original.positions_count === 0 ? "opacity-40" : "")}
-                        />
-                    )}
+                    {(table) => <DataTable table={table} rowClassName={rowClassName} cellClassName={cellClassName} />}
                 </DataTableSmart>
             </section>
         </div>

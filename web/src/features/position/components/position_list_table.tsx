@@ -62,6 +62,17 @@ export const PositionListTable: FC<PositionListTable> = memo(
                 !key.includes("operator") // Don't show operator as a filter
         );
 
+        const rightAlignedColumns = [
+            "r_factor",
+            "gross_r_factor",
+            "gross_pnl",
+            "net_pnl",
+            "total_charges_amount",
+            "charges_percentage",
+            "net_return_percentage",
+            "duration",
+        ];
+
         const columns: ColumnDef<Position>[] = useMemo(
             () => [
                 {
@@ -226,6 +237,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     header: ({ column, table }) => (
                         <DataTableColumnHeader
                             title="Net R"
+                            align="right"
                             column={column}
                             disabled={table.options.meta?.isFetching}
                         />
@@ -246,6 +258,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     header: ({ column, table }) => (
                         <DataTableColumnHeader
                             title="Gross R"
+                            align="right"
                             column={column}
                             disabled={table.options.meta?.isFetching}
                         />
@@ -266,6 +279,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     header: ({ column, table }) => (
                         <DataTableColumnHeader
                             title="Gross PnL"
+                            align="right"
                             column={column}
                             disabled={table.options.meta?.isFetching}
                         />
@@ -287,6 +301,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     header: ({ column, table }) => (
                         <DataTableColumnHeader
                             title="Net PnL"
+                            align="right"
                             column={column}
                             disabled={table.options.meta?.isFetching}
                         />
@@ -308,6 +323,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     header: ({ column, table }) => (
                         <DataTableColumnHeader
                             title="Charges"
+                            align="right"
                             disabled={table.options.meta?.isFetching}
                             column={column}
                         />
@@ -329,6 +345,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     header: ({ column, table }) => (
                         <DataTableColumnHeader
                             title="Charges %"
+                            align="right"
                             disabled={table.options.meta?.isFetching}
                             column={column}
                         />
@@ -348,6 +365,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     header: ({ column, table }) => (
                         <DataTableColumnHeader
                             title="Net Return %"
+                            align="right"
                             disabled={table.options.meta?.isFetching}
                             column={column}
                         />
@@ -445,7 +463,12 @@ export const PositionListTable: FC<PositionListTable> = memo(
 
                                 {!hideFilters && activeFiltersRow}
 
-                                <DataTable table={table} />
+                                <DataTable
+                                    table={table}
+                                    cellClassName={(cell) =>
+                                        rightAlignedColumns.includes(cell.column.id) ? "text-right tabular-nums" : ""
+                                    }
+                                />
 
                                 <DataTablePagination table={table} total={totalItems} />
                             </div>
