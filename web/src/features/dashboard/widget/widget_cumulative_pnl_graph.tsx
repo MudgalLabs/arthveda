@@ -1,4 +1,5 @@
 import { FC } from "react";
+import Decimal from "decimal.js";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import {
@@ -126,7 +127,7 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                             content={
                                 <ChartTooltipContent
                                     indicator="line"
-                                    formatter={(value) => formatCurrency(value as string)}
+                                    formatter={(value) => formatCurrency(new Decimal(value as string).toFixed(2))}
                                 />
                             }
                         />

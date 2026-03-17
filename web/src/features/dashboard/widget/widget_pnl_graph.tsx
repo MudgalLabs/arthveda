@@ -1,10 +1,10 @@
 import { FC } from "react";
-
+import Decimal from "decimal.js";
 import { axisDefaults, ChartConfig, ChartContainer, ChartTooltipContent, Checkbox, Label } from "netra";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { Card, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import {
     formatCurrency,
@@ -121,7 +121,7 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
                             content={
                                 <ChartTooltipContent
                                     indicator="line"
-                                    formatter={(value) => formatCurrency(value as string)}
+                                    formatter={(value) => formatCurrency(new Decimal(value as string).toFixed(2))}
                                 />
                             }
                         />
