@@ -259,7 +259,8 @@ function rowClassName(row: Row<any>) {
 }
 
 function cellClassName(cell: Cell<any, any>) {
-    return cell.column.id === "period" || cell.column.id === "positions_count" ? "" : "text-right tabular-nums";
+    const rightAlignedColumns = ["gross_pnl", "net_pnl", "charges", "gross_r_factor"];
+    return rightAlignedColumns.includes(cell.column.id) ? "text-right tabular-nums" : "";
 }
 
 export function AnalyticsTime() {

@@ -485,16 +485,6 @@ func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Locati
 	for _, hour := range orderedHours {
 		if stats, ok := hourStats[hour]; ok {
 			result.HourOfTheDay = append(result.HourOfTheDay, *stats)
-		} else {
-			// Ensure empty hours still appear.
-			result.HourOfTheDay = append(result.HourOfTheDay, hourOfTheDayItem{
-				Hour:           hour,
-				PositionsCount: 0,
-				GrossPnL:       decimal.Zero,
-				Charges:        decimal.Zero,
-				NetPnL:         decimal.Zero,
-				GrossRFactor:   decimal.Zero,
-			})
 		}
 	}
 

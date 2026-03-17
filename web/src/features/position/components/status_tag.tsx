@@ -29,7 +29,7 @@ const StatusTag: FC<StatusTagProps> = memo(({ currency = "INR", status, openQuan
     let content = status === "breakeven" ? "Breakeven" : "Open";
 
     if (Number(openQuantity) > 0) {
-        content += " : " + openQuantity + " @ " + formatCurrency(openAvgPrice, { currency });
+        content += " : " + openQuantity + " @ " + formatCurrency(openAvgPrice, { currency, showSign: false });
     }
 
     return <Tag variant="primary">{content}</Tag>;
