@@ -22,7 +22,7 @@ export function AnalyticsSymbols() {
 
     return (
         <div>
-            <div className="flex-x gap-4">
+            <div className="flex-y gap-6! md:flex-row!">
                 <div className="min-h-[300px] min-w-[300px] flex-1">
                     <h2 className="text-muted-foreground mb-2 text-base font-medium">Best performing symbols</h2>
                     <SymbolsPerformancePie kind="best" data={data?.data.best_performance} />
@@ -34,7 +34,7 @@ export function AnalyticsSymbols() {
                 </div>
             </div>
 
-            <div className="h-6" />
+            <div className="h-6 md:h-12" />
 
             <TopTradedSymbolsTable data={data?.data.top_traded} />
         </div>
@@ -243,7 +243,7 @@ function TopTradedSymbolsTable(props: TopTradedSymbolsTableProps) {
 
     return (
         <div>
-            <h2 className="text-muted-foreground text-base font-medium">Top traded symbols</h2>
+            <h2 className="text-muted-foreground text-base font-medium">Most traded symbols</h2>
             <div className="h-2" />
 
             <DataTableSmart data={data} columns={getTopSymbolsColumns(homeCurrency)} total={data.length}>
