@@ -1,20 +1,22 @@
-import { PageHeading, useDocumentTitle, Tabs, TabsList, TabsTrigger, TabsContent, useURLState } from "netra";
+import { PageHeading, useDocumentTitle, Tabs, TabsList, TabsTrigger, TabsContent } from "netra";
 
-import { AnalyticsTags } from "@/features/analytics/components/analytics_tags";
 import { IconBrain } from "@/components/icons";
+import { AnalyticsTags } from "@/features/analytics/components/analytics_tags";
 import { AnalyticsTime } from "@/features/analytics/components/analytics_time";
+import { AnalyticsSymbols } from "@/features/analytics/components/analytics_symbols";
+import { useURLState } from "@/hooks/use_url_state";
 
-const enum AnlyticsTab {
-    Tags = "tags",
-    Time = "time",
+const enum AnalyticsTab {
     Symbols = "symbols",
     Instruments = "instruments",
+    Tags = "tags",
+    Timeframes = "timeframes",
 }
 
 export function Analytics() {
     useDocumentTitle("Analytics • Arthveda");
 
-    const [tab, setTab] = useURLState<string>("tab", AnlyticsTab.Tags);
+    const [tab, setTab] = useURLState<string>("tab", AnalyticsTab.Symbols);
 
     return (
         <div className="flex h-full flex-col">
@@ -25,28 +27,28 @@ export function Analytics() {
 
             <Tabs defaultValue="trades" value={tab} onValueChange={setTab} className="pb-8">
                 <TabsList>
-                    <TabsTrigger value="tags">Tags</TabsTrigger>
-                    <TabsTrigger value="time">Time</TabsTrigger>
                     <TabsTrigger value="symbols">Symbols</TabsTrigger>
                     <TabsTrigger value="instruments">Instruments</TabsTrigger>
+                    <TabsTrigger value="timeframes">Timeframes</TabsTrigger>
+                    <TabsTrigger value="tags">Tags</TabsTrigger>
                 </TabsList>
 
                 <div className="h-8" />
 
-                <TabsContent value="tags">
-                    <AnalyticsTags />
-                </TabsContent>
-
-                <TabsContent value="time">
-                    <AnalyticsTime />
-                </TabsContent>
-
                 <TabsContent value="symbols">
-                    <AnalyticsComingSoon dimension="Symbols" />
+                    <AnalyticsSymbols />
                 </TabsContent>
 
                 <TabsContent value="instruments">
                     <AnalyticsComingSoon dimension="Instruments" />
+                </TabsContent>
+
+                <TabsContent value="timeframes">
+                    <AnalyticsTime />
+                </TabsContent>
+
+                <TabsContent value="tags">
+                    <AnalyticsTags />
                 </TabsContent>
             </Tabs>
         </div>

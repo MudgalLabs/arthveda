@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { GetAnalyticsTagsResponse, GetAnalyticsTimeResponse } from "@/lib/api/analytics";
+import { GetAnalyticsSymbolsResponse, GetAnalyticsTagsResponse, GetAnalyticsTimeResponse } from "@/lib/api/analytics";
 import { ApiRes } from "@/lib/api/client";
 
 export function useGetAnalyticsTags() {
@@ -16,5 +16,13 @@ export function useGetAnalyticsTime() {
         queryKey: ["useGetAnalyticsTime"],
         queryFn: () => api.analytics.getAnalyticsTime(),
         select: (res) => res.data as ApiRes<GetAnalyticsTimeResponse>,
+    });
+}
+
+export function useGetAnalyticsSymbols() {
+    return useQuery({
+        queryKey: ["useGetAnalyticSymbols"],
+        queryFn: () => api.analytics.getAnalyticsSymbols(),
+        select: (res) => res.data as ApiRes<GetAnalyticsSymbolsResponse>,
     });
 }

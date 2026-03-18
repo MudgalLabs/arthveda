@@ -179,6 +179,7 @@ func initRouter(a *app) http.Handler {
 
 			r.Get("/tags", getAnalyticsTagsHandler(a.service.AnalyticsService))
 			r.Get("/time", getAnalyticsTimeHandler(a.service.AnalyticsService))
+			r.Get("/symbols", getAnalyticsSymbolsHandler(a.service.AnalyticsService))
 		})
 	})
 

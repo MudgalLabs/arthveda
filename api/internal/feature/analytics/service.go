@@ -519,3 +519,258 @@ func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Locati
 
 	return &result, service.ErrNone, nil
 }
+
+type symbolsPerformanceItem struct {
+	Symbol                 string          `json:"symbol"`
+	PositionsCount         int             `json:"positions_count"`
+	ContributionPercentage float64         `json:"contribution_percentage"`
+	GrossPnL               decimal.Decimal `json:"gross_pnl"`
+	NetPnL                 decimal.Decimal `json:"net_pnl"`
+	Charges                decimal.Decimal `json:"charges"`
+	AvgGrossR              decimal.Decimal `json:"avg_gross_r"`
+	AvgWinR                decimal.Decimal `json:"avg_win_r"`
+	AvgLossR               decimal.Decimal `json:"avg_loss_r"`
+	WinRate                decimal.Decimal `json:"win_rate"`
+	Efficiency             decimal.Decimal `json:"efficiency"`
+}
+
+type GetSymbolsResult struct {
+	BestPerformance  []symbolsPerformanceItem `json:"best_performance"`
+	WorstPerformance []symbolsPerformanceItem `json:"worst_performance"`
+	TopTraded        []symbolsPerformanceItem `json:"top_traded"`
+}
+
+func (s *Service) GetSymbols(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetSymbolsResult, service.Error, error) {
+	yearAgo := time.Now().In(tz).AddDate(-1, 0, 0)
+	tradeTimeRange := &common.DateRangeFilter{}
+
+	if !enforcer.CanAccessAllPositions() {
+		tradeTimeRange.From = &yearAgo
+	}
+
+	searchPositionPayload := position.SearchPayload{
+		Filters: position.SearchFilter{
+			CreatedBy: &userID,
+			TradeTime: tradeTimeRange,
+		},
+		Sort: common.Sorting{
+			Field: "opened_at",
+			Order: common.SortOrderASC,
+		},
+	}
+
+	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload, true, false)
+	if err != nil {
+		return nil, service.ErrInternalServerError, err
+	}
+
+	_, rangeEnd := position.GetRangeBasedOnTrades(positions)
+	positionsFiltered := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
+
+	result := GetSymbolsResult{
+		BestPerformance:  []symbolsPerformanceItem{},
+		WorstPerformance: []symbolsPerformanceItem{},
+		TopTraded:        []symbolsPerformanceItem{},
+	}
+
+	type agg struct {
+		positionsCount int
+
+		grossPnL decimal.Decimal
+		netPnL   decimal.Decimal
+		charges  decimal.Decimal
+
+		totalR decimal.Decimal
+
+		wins       int
+		losses     int
+		winRTotal  decimal.Decimal
+		lossRTotal decimal.Decimal
+	}
+
+	symbolMap := map[string]*agg{}
+
+	for _, pos := range positionsFiltered {
+		// Ignore the position if it's NOTE closed.
+		if pos.ClosedAt == nil || !pos.OpenQuantity.IsZero() {
+			continue
+		}
+
+		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction, pos.RiskAmount)
+		if err != nil {
+			continue
+		}
+
+		a, ok := symbolMap[pos.Symbol]
+		if !ok {
+			a = &agg{}
+			symbolMap[pos.Symbol] = a
+		}
+
+		a.positionsCount++
+
+		a.grossPnL = a.grossPnL.Add(pos.GrossPnLAmount)
+		a.netPnL = a.netPnL.Add(pos.NetPnLAmount)
+		a.charges = a.charges.Add(pos.TotalChargesAmount)
+
+		a.totalR = a.totalR.Add(pos.GrossRFactor)
+
+		if pos.GrossRFactor.GreaterThan(decimal.Zero) {
+			a.wins++
+			a.winRTotal = a.winRTotal.Add(pos.GrossRFactor)
+		} else if pos.GrossRFactor.LessThan(decimal.Zero) {
+			a.losses++
+			a.lossRTotal = a.lossRTotal.Add(pos.GrossRFactor)
+		}
+	}
+
+	buildItems := func(m map[string]*agg) []symbolsPerformanceItem {
+		items := make([]symbolsPerformanceItem, 0, len(m))
+
+		for symbol, a := range m {
+			trades := decimal.NewFromInt(int64(a.positionsCount))
+
+			avgGrossR := decimal.Zero
+			if a.positionsCount > 0 {
+				avgGrossR = a.totalR.Div(trades)
+			}
+
+			winRate := decimal.Zero
+			if a.positionsCount > 0 {
+				winRate = decimal.NewFromInt(int64(a.wins)).
+					Div(trades).
+					Mul(decimal.NewFromInt(100))
+			}
+
+			avgWinR := decimal.Zero
+			if a.wins > 0 {
+				avgWinR = a.winRTotal.Div(decimal.NewFromInt(int64(a.wins)))
+			}
+
+			avgLossR := decimal.Zero
+			if a.losses > 0 {
+				avgLossR = a.lossRTotal.Div(decimal.NewFromInt(int64(a.losses)))
+			}
+
+			efficiency := decimal.Zero
+			if !a.grossPnL.IsZero() && a.grossPnL.GreaterThan(decimal.Zero) {
+				efficiency = a.netPnL.Div(a.grossPnL)
+			}
+
+			items = append(items, symbolsPerformanceItem{
+				Symbol:         symbol,
+				PositionsCount: a.positionsCount,
+				GrossPnL:       a.grossPnL,
+				NetPnL:         a.netPnL,
+				Charges:        a.charges,
+				AvgGrossR:      avgGrossR,
+				AvgWinR:        avgWinR,
+				AvgLossR:       avgLossR,
+				WinRate:        winRate,
+				Efficiency:     efficiency,
+			})
+		}
+
+		return items
+	}
+
+	allItems := buildItems(symbolMap)
+
+	sort.Slice(allItems, func(i, j int) bool {
+		return allItems[i].NetPnL.GreaterThan(allItems[j].NetPnL)
+	})
+
+	bestTop := []symbolsPerformanceItem{}
+	bestOthers := &symbolsPerformanceItem{}
+
+	for _, item := range allItems {
+		if item.NetPnL.LessThanOrEqual(decimal.Zero) {
+			continue
+		}
+
+		if len(bestTop) < 10 {
+			bestTop = append(bestTop, item)
+		} else {
+			bestOthers = aggregateOthers(bestOthers, item)
+		}
+	}
+
+	sort.Slice(allItems, func(i, j int) bool {
+		return allItems[i].NetPnL.LessThan(allItems[j].NetPnL)
+	})
+
+	worstTop := []symbolsPerformanceItem{}
+	worstOthers := &symbolsPerformanceItem{}
+
+	for _, item := range allItems {
+		if item.NetPnL.GreaterThanOrEqual(decimal.Zero) {
+			continue
+		}
+
+		if len(worstTop) < 10 {
+			worstTop = append(worstTop, item)
+		} else {
+			worstOthers = aggregateOthers(worstOthers, item)
+		}
+	}
+
+	sort.Slice(allItems, func(i, j int) bool {
+		return allItems[i].PositionsCount > allItems[j].PositionsCount
+	})
+
+	topTraded := allItems
+	if len(topTraded) > 10 {
+		topTraded = topTraded[:10]
+	}
+
+	totalPositive := decimal.Zero
+	totalNegativeAbs := decimal.Zero
+
+	for _, item := range allItems {
+		if item.NetPnL.GreaterThan(decimal.Zero) {
+			totalPositive = totalPositive.Add(item.NetPnL)
+		}
+
+		if item.NetPnL.LessThan(decimal.Zero) {
+			totalNegativeAbs = totalNegativeAbs.Add(item.NetPnL.Abs())
+		}
+	}
+
+	for i := range bestTop {
+		if !totalPositive.IsZero() {
+			bestTop[i].ContributionPercentage = bestTop[i].NetPnL.
+				Div(totalPositive).
+				Mul(decimal.NewFromInt(100)).
+				InexactFloat64()
+		}
+	}
+
+	for i := range worstTop {
+		if !totalNegativeAbs.IsZero() {
+			worstTop[i].ContributionPercentage = worstTop[i].NetPnL.Abs().
+				Div(totalNegativeAbs).
+				Mul(decimal.NewFromInt(100)).
+				InexactFloat64()
+		}
+	}
+
+	if bestOthers != nil && !bestOthers.NetPnL.IsZero() && !totalPositive.IsZero() {
+		bestOthers.ContributionPercentage = bestOthers.NetPnL.
+			Div(totalPositive).
+			Mul(decimal.NewFromInt(100)).
+			InexactFloat64()
+	}
+
+	if worstOthers != nil && !worstOthers.NetPnL.IsZero() && !totalNegativeAbs.IsZero() {
+		worstOthers.ContributionPercentage = worstOthers.NetPnL.Abs().
+			Div(totalNegativeAbs).
+			Mul(decimal.NewFromInt(100)).
+			InexactFloat64()
+	}
+
+	result.BestPerformance = append(bestTop, *bestOthers)
+	result.WorstPerformance = append(worstTop, *worstOthers)
+	result.TopTraded = topTraded
+
+	return &result, service.ErrNone, nil
+}

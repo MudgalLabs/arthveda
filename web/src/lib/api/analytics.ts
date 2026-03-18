@@ -1,6 +1,7 @@
 import { client, ApiRes } from "@/lib/api/client";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { GeneralStats, PnLBucket } from "@/lib/api/dashboard";
+import { DecimalString } from "../types";
 
 export interface AnalyticsTagsSummaryItem extends GeneralStats {
     tag_group: string;
@@ -70,4 +71,28 @@ export interface GetAnalyticsTimeResponse {
 
 export function getAnalyticsTime() {
     return client.get<ApiRes<GetAnalyticsTimeResponse>>(API_ROUTES.analytics.time);
+}
+
+export interface SymbolsPerformanceItem {
+    symbol: string;
+    positions_count: number;
+    contribution_percentage: number;
+    gross_pnl: DecimalString;
+    net_pnl: DecimalString;
+    charges: DecimalString;
+    avg_gross_r: DecimalString;
+    avg_win_r: DecimalString;
+    avg_loss_r: DecimalString;
+    win_rate: DecimalString;
+    efficiency: DecimalString;
+}
+
+export interface GetAnalyticsSymbolsResponse {
+    best_performance: SymbolsPerformanceItem[];
+    worst_performance: SymbolsPerformanceItem[];
+    top_traded: SymbolsPerformanceItem[];
+}
+
+export function getAnalyticsSymbols() {
+    return client.get<ApiRes<GetAnalyticsSymbolsResponse>>(API_ROUTES.analytics.symbols);
 }

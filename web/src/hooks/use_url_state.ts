@@ -14,11 +14,9 @@ export function useURLState<T>(
     defaultValue: T,
     customParsers?: LoadFromURLParser
 ): [T, React.Dispatch<React.SetStateAction<T>>] {
-    const [state, setState] = useState<T>(() =>
-        loadFromURL(key, defaultValue, customParsers)
-    );
+    const [state, setState] = useState<T>(() => loadFromURL(key, defaultValue, customParsers));
     const previousStateRef = useRef<T>(state);
-    const debouncedState = useDebounce(state, 300);
+    const debouncedState = useDebounce(state, 100);
 
     // Sync URL when state changes.
     useEffect(() => {
