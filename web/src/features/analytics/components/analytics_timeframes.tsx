@@ -47,11 +47,15 @@ function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<Analy
             accessorKey: "gross_pnl",
             meta: { columnVisibilityHeader: "Gross PnL" },
             header: ({ column }) => <DataTableColumnHeader align="right" title="Gross PnL" column={column} />,
-            cell: ({ row }) => (
-                <PnL value={new Decimal(row.original.gross_pnl)}>
-                    {formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), { currency: currencyCode })}
-                </PnL>
-            ),
+            cell: ({ row }) =>
+                formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), { currency: currencyCode }),
+            sortingFn: decimalSortingFn,
+        },
+        {
+            accessorKey: "charges",
+            meta: { columnVisibilityHeader: "Charges" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
+            cell: ({ row }) => formatCurrency(new Decimal(row.original.charges).toFixed(2), { currency: currencyCode }),
             sortingFn: decimalSortingFn,
         },
         {
@@ -61,17 +65,6 @@ function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<Analy
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.net_pnl)}>
                     {formatCurrency(new Decimal(row.original.net_pnl).toFixed(2), { currency: currencyCode })}
-                </PnL>
-            ),
-            sortingFn: decimalSortingFn,
-        },
-        {
-            accessorKey: "charges",
-            meta: { columnVisibilityHeader: "Charges" },
-            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
-            cell: ({ row }) => (
-                <PnL value={new Decimal(row.original.charges)} variant="negative">
-                    {formatCurrency(new Decimal(row.original.charges).toFixed(2), { currency: currencyCode })}
                 </PnL>
             ),
             sortingFn: decimalSortingFn,
@@ -126,11 +119,15 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
             accessorKey: "gross_pnl",
             meta: { columnVisibilityHeader: "Gross PnL" },
             header: ({ column }) => <DataTableColumnHeader align="right" title="Gross PnL" column={column} />,
-            cell: ({ row }) => (
-                <PnL value={new Decimal(row.original.gross_pnl)}>
-                    {formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), { currency: currencyCode })}
-                </PnL>
-            ),
+            cell: ({ row }) =>
+                formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), { currency: currencyCode }),
+            sortingFn: decimalSortingFn,
+        },
+        {
+            accessorKey: "charges",
+            meta: { columnVisibilityHeader: "Charges" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
+            cell: ({ row }) => formatCurrency(new Decimal(row.original.charges).toFixed(2), { currency: currencyCode }),
             sortingFn: decimalSortingFn,
         },
         {
@@ -140,17 +137,6 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
             cell: ({ row }) => (
                 <PnL value={new Decimal(row.original.net_pnl)}>
                     {formatCurrency(new Decimal(row.original.net_pnl).toFixed(2), { currency: currencyCode })}
-                </PnL>
-            ),
-            sortingFn: decimalSortingFn,
-        },
-        {
-            accessorKey: "charges",
-            meta: { columnVisibilityHeader: "Charges" },
-            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
-            cell: ({ row }) => (
-                <PnL value={new Decimal(row.original.charges)} variant="negative">
-                    {formatCurrency(new Decimal(row.original.charges).toFixed(2), { currency: currencyCode })}
                 </PnL>
             ),
             sortingFn: decimalSortingFn,
@@ -178,7 +164,6 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
             cell: ({ row }) => <span>{formatHoldingPeriod(row.original.period)}</span>,
             enableSorting: false,
         },
-
         {
             accessorKey: "positions_count",
             meta: { columnVisibilityHeader: "Positions" },
@@ -197,21 +182,26 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
             ),
             cell: ({ row }) => <span>{row.original.positions_count}</span>,
         },
-
         {
             accessorKey: "gross_pnl",
             meta: { columnVisibilityHeader: "Gross PnL" },
             header: ({ column }) => <DataTableColumnHeader align="right" title="Gross PnL" column={column} />,
-            cell: ({ row }) => (
-                <PnL value={new Decimal(row.original.gross_pnl)}>
-                    {formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), {
-                        currency: currencyCode,
-                    })}
-                </PnL>
-            ),
+            cell: ({ row }) =>
+                formatCurrency(new Decimal(row.original.gross_pnl).toFixed(2), {
+                    currency: currencyCode,
+                }),
             sortingFn: decimalSortingFn,
         },
-
+        {
+            accessorKey: "charges",
+            meta: { columnVisibilityHeader: "Charges" },
+            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
+            cell: ({ row }) =>
+                formatCurrency(new Decimal(row.original.charges).toFixed(2), {
+                    currency: currencyCode,
+                }),
+            sortingFn: decimalSortingFn,
+        },
         {
             accessorKey: "net_pnl",
             meta: { columnVisibilityHeader: "Net PnL" },
@@ -225,21 +215,6 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
             ),
             sortingFn: decimalSortingFn,
         },
-
-        {
-            accessorKey: "charges",
-            meta: { columnVisibilityHeader: "Charges" },
-            header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
-            cell: ({ row }) => (
-                <PnL value={new Decimal(row.original.charges)} variant="negative">
-                    {formatCurrency(new Decimal(row.original.charges).toFixed(2), {
-                        currency: currencyCode,
-                    })}
-                </PnL>
-            ),
-            sortingFn: decimalSortingFn,
-        },
-
         {
             accessorKey: "gross_r_factor",
             meta: { columnVisibilityHeader: "Gross R Factor" },
@@ -263,8 +238,8 @@ function cellClassName(cell: Cell<any, any>) {
     return rightAlignedColumns.includes(cell.column.id) ? "text-right tabular-nums" : "";
 }
 
-export function AnalyticsTime() {
-    const { data, isLoading, error } = apiHooks.analytics.useGetAnalyticsTime();
+export function AnalyticsTimeframes() {
+    const { data, isLoading, error } = apiHooks.analytics.useGetAnalyticsTimeframes();
 
     const dayOfTheWeekData = data?.data.day_of_the_week ?? [];
     const hourOfTheDayData = data?.data.hour_of_the_day ?? [];
@@ -285,9 +260,9 @@ export function AnalyticsTime() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <section>
-                <h2 className="mb-2 text-lg font-semibold">Holding Duration</h2>
+                <h2 className="section-heading-muted mb-2">Holding Duration</h2>
 
                 <DataTableSmart
                     data={holdingPeriodData}
@@ -304,7 +279,7 @@ export function AnalyticsTime() {
             </section>
 
             <section>
-                <h2 className="mb-2 text-lg font-semibold">Day of the Week</h2>
+                <h2 className="section-heading-muted mb-2">Day of the Week</h2>
 
                 <DataTableSmart
                     data={dayOfTheWeekData}
@@ -317,7 +292,7 @@ export function AnalyticsTime() {
             </section>
 
             <section>
-                <h2 className="mb-2 text-lg font-semibold">Hour of the Day</h2>
+                <h2 className="section-heading-muted mb-2">Hour of the Day</h2>
 
                 <DataTableSmart
                     data={hourOfTheDayData}

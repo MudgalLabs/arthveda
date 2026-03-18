@@ -2,6 +2,7 @@ import { client, ApiRes } from "@/lib/api/client";
 import { API_ROUTES } from "@/lib/api/api_routes";
 import { GeneralStats, PnLBucket } from "@/lib/api/dashboard";
 import { DecimalString } from "../types";
+import { PositionInstrument } from "@/features/position/position";
 
 export interface AnalyticsTagsSummaryItem extends GeneralStats {
     tag_group: string;
@@ -63,14 +64,14 @@ export interface AnalyticsTimeHoldingPeriodItem {
     gross_r_factor: string;
 }
 
-export interface GetAnalyticsTimeResponse {
+export interface GetAnalyticsTimeframesResponse {
     day_of_the_week: AnalyticsTimeDayOfTheWeekItem[];
     hour_of_the_day: AnalyticsTimeHourOfTheDayItem[];
     holding_period: AnalyticsTimeHoldingPeriodItem[];
 }
 
-export function getAnalyticsTime() {
-    return client.get<ApiRes<GetAnalyticsTimeResponse>>(API_ROUTES.analytics.time);
+export function getAnalyticsTimeframes() {
+    return client.get<ApiRes<GetAnalyticsTimeframesResponse>>(API_ROUTES.analytics.timeframes);
 }
 
 export interface SymbolsPerformanceItem {
@@ -95,4 +96,22 @@ export interface GetAnalyticsSymbolsResponse {
 
 export function getAnalyticsSymbols() {
     return client.get<ApiRes<GetAnalyticsSymbolsResponse>>(API_ROUTES.analytics.symbols);
+}
+
+export interface InstrumentsPerformanceItem {
+    instrument: PositionInstrument;
+    positions_count: number;
+    positions_count_percentage: DecimalString;
+    win_rate: DecimalString;
+    gross_pnl: DecimalString;
+    net_pnl: DecimalString;
+    net_pnl_percentage: DecimalString;
+}
+
+export interface GetAnalyticsInstrumentsResponse {
+    performance: InstrumentsPerformanceItem[];
+}
+
+export function getAnalyticsInstruments() {
+    return client.get<ApiRes<GetAnalyticsInstrumentsResponse>>(API_ROUTES.analytics.instruments);
 }

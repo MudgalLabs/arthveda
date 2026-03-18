@@ -296,6 +296,9 @@ select:-webkit-autofill:focus {
 @utility active-focus {
     @apply ring-primary border-transparent ring-[2px] transition-all outline-none;
 }
+@utility section-heading-muted {
+    @apply text-muted-foreground text-base font-medium;
+}
 
 /* Layout */
 

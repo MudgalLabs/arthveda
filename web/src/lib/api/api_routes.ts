@@ -1,8 +1,9 @@
 export const API_ROUTES = {
     analytics: {
         tags: "/v1/analytics/tags",
-        time: "/v1/analytics/time",
+        timeframes: "/v1/analytics/timeframes",
         symbols: "/v1/analytics/symbols",
+        instruments: "/v1/analytics/instruments",
     },
     auth: {
         signin: "/v1/auth/sign-in",

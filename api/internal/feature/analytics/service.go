@@ -3,12 +3,14 @@ package analytics
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/subscription"
+	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/calendar"
 	"arthveda/internal/feature/dashboard"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/tag"
 	"arthveda/internal/logger"
 	"fmt"
+	"slices"
 
 	"context"
 	"time"
@@ -278,13 +280,13 @@ type holdingPeriodItem struct {
 	GrossRFactor   decimal.Decimal      `json:"gross_r_factor"`
 }
 
-type GetTimeResult struct {
+type GetTimeframesResult struct {
 	DayOfTheWeek  []dayOfTheWeekItem  `json:"day_of_the_week"`
 	HourOfTheDay  []hourOfTheDayItem  `json:"hour_of_the_day"`
 	HoldingPeriod []holdingPeriodItem `json:"holding_period"`
 }
 
-func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetTimeResult, service.Error, error) {
+func (s *Service) GetTimeframes(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetTimeframesResult, service.Error, error) {
 	calendarResult, svcErr, err := s.calendarService.GetAll(ctx, userID, tz, enforcer)
 	if err != nil {
 		return nil, svcErr, err
@@ -369,6 +371,11 @@ func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Locati
 	holdingStats := make(map[common.HoldingPeriod]*holdingPeriodItem)
 
 	for _, pos := range positionsFiltered {
+		// Ignore the position if it's NOTE closed.
+		if pos.ClosedAt == nil || !pos.OpenQuantity.IsZero() {
+			continue
+		}
+
 		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction, pos.RiskAmount)
 		if err != nil {
 			continue
@@ -438,7 +445,7 @@ func (s *Service) GetTime(ctx context.Context, userID uuid.UUID, tz *time.Locati
 
 	}
 
-	result := GetTimeResult{
+	result := GetTimeframesResult{
 		DayOfTheWeek: make([]dayOfTheWeekItem, 0, 7),
 		HourOfTheDay: make([]hourOfTheDayItem, 0, 24),
 	}
@@ -773,4 +780,153 @@ func (s *Service) GetSymbols(ctx context.Context, userID uuid.UUID, tz *time.Loc
 	result.TopTraded = topTraded
 
 	return &result, service.ErrNone, nil
+}
+
+type instrumentPerformanceItem struct {
+	Instrument               types.Instrument `json:"instrument"`
+	PositionsCount           int              `json:"positions_count"`
+	PositionsCountPercentage decimal.Decimal  `json:"positions_count_percentage"`
+	WinRate                  decimal.Decimal  `json:"win_rate"`
+	GrossPnL                 decimal.Decimal  `json:"gross_pnl"`
+	NetPnL                   decimal.Decimal  `json:"net_pnl"`
+	NetPnLPercentage         decimal.Decimal  `json:"net_pnl_percentage"`
+}
+
+type GetInstrumentsResult struct {
+	Performance []instrumentPerformanceItem `json:"performance"`
+}
+
+func (s *Service) GetInstruments(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetInstrumentsResult, service.Error, error) {
+	yearAgo := time.Now().In(tz).AddDate(-1, 0, 0)
+	tradeTimeRange := &common.DateRangeFilter{}
+
+	if !enforcer.CanAccessAllPositions() {
+		tradeTimeRange.From = &yearAgo
+	}
+
+	searchPositionPayload := position.SearchPayload{
+		Filters: position.SearchFilter{
+			CreatedBy: &userID,
+			TradeTime: tradeTimeRange,
+		},
+		Sort: common.Sorting{
+			Field: "opened_at",
+			Order: common.SortOrderASC,
+		},
+	}
+
+	positions, _, err := s.positionRepository.Search(ctx, searchPositionPayload, true, false)
+	if err != nil {
+		return nil, service.ErrInternalServerError, err
+	}
+
+	_, rangeEnd := position.GetRangeBasedOnTrades(positions)
+	positionsFiltered := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
+
+	type instrumentAgg struct {
+		instrument types.Instrument
+
+		positionsCount int
+		wins           int
+
+		grossPnL decimal.Decimal
+		netPnL   decimal.Decimal
+	}
+
+	aggMap := make(map[types.Instrument]*instrumentAgg)
+
+	totalPositions := 0
+	totalNetPnL := decimal.Zero
+
+	for _, pos := range positionsFiltered {
+		// Ignore the position if it's NOTE closed.
+		if pos.ClosedAt == nil || !pos.OpenQuantity.IsZero() {
+			continue
+		}
+
+		_, err := position.ComputeSmartTrades(pos.Trades, pos.Direction, pos.RiskAmount)
+		if err != nil {
+			continue
+		}
+
+		instr := pos.Instrument
+		if instr == "" {
+			continue
+		}
+
+		if _, ok := aggMap[instr]; !ok {
+			aggMap[instr] = &instrumentAgg{
+				instrument: instr,
+				grossPnL:   decimal.Zero,
+				netPnL:     decimal.Zero,
+			}
+		}
+
+		agg := aggMap[instr]
+
+		agg.positionsCount++
+		totalPositions++
+
+		// Net PnL (assuming pos.NetPnL exists)
+		agg.grossPnL = agg.grossPnL.Add(pos.GrossPnLAmount)
+		agg.netPnL = agg.netPnL.Add(pos.NetPnLAmount)
+		totalNetPnL = totalNetPnL.Add(pos.NetPnLAmount)
+
+		// Win
+		if pos.GrossPnLAmount.GreaterThan(decimal.Zero) {
+			agg.wins++
+		}
+	}
+
+	result := make([]instrumentPerformanceItem, 0, len(aggMap))
+
+	for _, agg := range aggMap {
+		if agg.positionsCount == 0 {
+			continue
+		}
+
+		positionsCountDec := decimal.NewFromInt(int64(agg.positionsCount))
+		totalPositionsDec := decimal.NewFromInt(int64(totalPositions))
+
+		// Trades %
+		positionsPct := decimal.Zero
+		if totalPositions > 0 {
+			positionsPct = positionsCountDec.Div(totalPositionsDec).Mul(decimal.NewFromInt(100))
+		}
+
+		// Win rate
+		winRate := decimal.Zero
+		if agg.positionsCount > 0 {
+			winRate = decimal.NewFromInt(int64(agg.wins)).
+				Div(positionsCountDec).
+				Mul(decimal.NewFromInt(100))
+		}
+
+		// Net PnL %
+		netPnLPct := decimal.Zero
+		if !totalNetPnL.IsZero() {
+			netPnLPct = agg.netPnL.
+				Div(totalNetPnL).
+				Mul(decimal.NewFromInt(100))
+		}
+
+		result = append(result, instrumentPerformanceItem{
+			Instrument:               agg.instrument,
+			PositionsCount:           agg.positionsCount,
+			PositionsCountPercentage: positionsPct,
+			WinRate:                  winRate,
+			GrossPnL:                 agg.grossPnL,
+			NetPnL:                   agg.netPnL,
+			NetPnLPercentage:         netPnLPct,
+		})
+	}
+
+	slices.SortFunc(result, func(a, b instrumentPerformanceItem) int {
+		return b.PositionsCountPercentage.Cmp(a.PositionsCountPercentage)
+	})
+
+	return &GetInstrumentsResult{
+		Performance: result,
+	}, service.ErrNone, nil
+
 }

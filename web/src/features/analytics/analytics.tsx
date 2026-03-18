@@ -2,9 +2,10 @@ import { PageHeading, useDocumentTitle, Tabs, TabsList, TabsTrigger, TabsContent
 
 import { IconBrain } from "@/components/icons";
 import { AnalyticsTags } from "@/features/analytics/components/analytics_tags";
-import { AnalyticsTime } from "@/features/analytics/components/analytics_time";
+import { AnalyticsTimeframes } from "@/features/analytics/components/analytics_timeframes";
 import { AnalyticsSymbols } from "@/features/analytics/components/analytics_symbols";
 import { useURLState } from "@/hooks/use_url_state";
+import { AnalyticsInstruments } from "@/features/analytics/components/analytics_instruments";
 
 const enum AnalyticsTab {
     Symbols = "symbols",
@@ -40,11 +41,11 @@ export function Analytics() {
                 </TabsContent>
 
                 <TabsContent value="instruments">
-                    <AnalyticsComingSoon dimension="Instruments" />
+                    <AnalyticsInstruments />
                 </TabsContent>
 
                 <TabsContent value="timeframes">
-                    <AnalyticsTime />
+                    <AnalyticsTimeframes />
                 </TabsContent>
 
                 <TabsContent value="tags">
@@ -53,10 +54,6 @@ export function Analytics() {
             </Tabs>
         </div>
     );
-}
-
-function AnalyticsComingSoon({ dimension }: { dimension: string }) {
-    return <div className="text-muted-foreground py-8 text-center">Analytics based on {dimension} coming soon</div>;
 }
 
 export default Analytics;
