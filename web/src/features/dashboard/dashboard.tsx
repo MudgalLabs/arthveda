@@ -26,23 +26,6 @@ import { WidgetStreak } from "./widget/widget_streak";
 
 type DashboardLayoutSize = "lg" | "md" | "sm";
 
-// const lgLayout: Layout[] = [
-//     // Top row (core metrics)
-//     { i: "net_pnl", x: 0, y: 0, w: 4, h: 4 },
-//     { i: "profit_factor", x: 4, y: 0, w: 2, h: 4 },
-//     { i: "win_rate", x: 6, y: 0, w: 3, h: 4 },
-//     { i: "expectancy", x: 9, y: 0, w: 3, h: 4 },
-
-//     // Second row
-//     { i: "avg_win_loss", x: 0, y: 4, w: 6, h: 4 },
-//     { i: "streak", x: 6, y: 4, w: 6, h: 4 },
-
-//     // Charts
-//     { i: "cumulative_pnl_graph", x: 0, y: 8, w: 12, h: 10 },
-//     { i: "pnl_graph", x: 0, y: 18, w: 12, h: 10 },
-//     { i: "calendar", x: 0, y: 28, w: 9, h: 18 },
-// ];
-
 const lgLayout: Layout[] = [
     // Row 1
     { i: "net_pnl", x: 0, y: 0, w: 4, h: 4 },
@@ -60,16 +43,13 @@ const lgLayout: Layout[] = [
 ];
 
 const mdLayout: Layout[] = [
-    { i: "net_pnl", x: 0, y: 0, w: 6, h: 4 },
+    { i: "net_pnl", x: 0, y: 0, w: 3, h: 4 },
+    { i: "win_rate", x: 4, y: 0, w: 3, h: 4 },
+    { i: "avg_win_loss", x: 0, y: 4, w: 3, h: 4 },
+    { i: "expectancy", x: 4, y: 4, w: 3, h: 4 },
 
-    { i: "profit_factor", x: 0, y: 4, w: 3, h: 4 },
-    { i: "expectancy", x: 3, y: 4, w: 3, h: 4 },
-
-    { i: "win_rate", x: 0, y: 8, w: 3, h: 4 },
-    { i: "avg_win_loss", x: 3, y: 8, w: 3, h: 4 },
-
-    { i: "streak", x: 0, y: 12, w: 3, h: 4 },
-    { i: "trades", x: 3, y: 12, w: 3, h: 4 },
+    { i: "profit_factor", x: 0, y: 8, w: 3, h: 4 },
+    { i: "streak", x: 4, y: 8, w: 3, h: 4 },
 
     { i: "cumulative_pnl_graph", x: 0, y: 16, w: 6, h: 10 },
     { i: "pnl_graph", x: 0, y: 26, w: 6, h: 10 },
@@ -77,18 +57,13 @@ const mdLayout: Layout[] = [
 
 const smLayout: Layout[] = [
     { i: "net_pnl", x: 0, y: 0, w: 4, h: 4 },
-
-    { i: "profit_factor", x: 0, y: 4, w: 4, h: 3 },
-    { i: "expectancy", x: 0, y: 7, w: 4, h: 3 },
-
-    { i: "win_rate", x: 0, y: 10, w: 4, h: 3 },
-    { i: "avg_win_loss", x: 0, y: 13, w: 4, h: 3 },
-
-    { i: "streak", x: 0, y: 16, w: 4, h: 3 },
-    { i: "trades", x: 0, y: 19, w: 4, h: 3 },
-
-    { i: "cumulative_pnl_graph", x: 0, y: 22, w: 4, h: 8 },
-    { i: "pnl_graph", x: 0, y: 30, w: 4, h: 6 },
+    { i: "win_rate", x: 0, y: 5, w: 4, h: 4 },
+    { i: "avg_win_loss", x: 0, y: 9, w: 4, h: 4 },
+    { i: "expectancy", x: 0, y: 13, w: 4, h: 4 },
+    { i: "profit_factor", x: 0, y: 17, w: 4, h: 4 },
+    { i: "streak", x: 0, y: 21, w: 4, h: 4 },
+    { i: "cumulative_pnl_graph", x: 0, y: 25, w: 4, h: 8 },
+    { i: "pnl_graph", x: 0, y: 33, w: 4, h: 8 },
 ];
 
 export const Dashboard = () => {
