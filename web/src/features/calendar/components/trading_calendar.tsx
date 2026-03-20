@@ -348,9 +348,11 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                         {month.slice(0, 3)}, {year}
                     </span>
 
-                    <Button variant="ghost" size="small" onClick={onClickOpen}>
-                        Open
-                    </Button>
+                    {onClickOpen && (
+                        <Button variant="ghost" size="small" onClick={onClickOpen}>
+                            Open
+                        </Button>
+                    )}
                 </div>
             )}
 

@@ -1,6 +1,7 @@
 import { FC, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { axisDefaults, ChartContainer, ChartTooltipContent, tooltipCursor } from "netra";
+import Decimal from "decimal.js";
 
 import { formatCurrency } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use_is_mobile";
@@ -76,7 +77,7 @@ export const WidgetCumulativePnLLineChart: FC<Props> = ({ data, tags, isLoading,
         <Card className="relative h-full w-full overflow-hidden">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
-            <CardTitle>Cumulative PnL</CardTitle>
+            <CardTitle className="section-heading-muted!">Cumulative PnL</CardTitle>
             <div className="h-4" />
 
             <ChartContainer config={chartConfig(tags)}>
@@ -107,7 +108,7 @@ export const WidgetCumulativePnLLineChart: FC<Props> = ({ data, tags, isLoading,
                             content={
                                 <ChartTooltipContent
                                     indicator="line"
-                                    formatter={(value) => formatCurrency(value as string)}
+                                    formatter={(value) => formatCurrency(new Decimal(value as string).toFixed(2))}
                                 />
                             }
                         />

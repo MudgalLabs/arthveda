@@ -1,5 +1,7 @@
 import { FC, useMemo, useState } from "react";
 import { Responsive, WidthProvider, Layout } from "react-grid-layout";
+import { PageHeading, Button, DatePicker, IconDashboard, useDocumentTitle } from "netra";
+import Decimal from "decimal.js";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -8,116 +10,85 @@ import { apiHooks } from "@/hooks/api_hooks";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
 import { WidgetCumulativePnLGraph } from "@/features/dashboard/widget/widget_cumulative_pnl_graph";
-import { OverviewCard } from "@/features/dashboard/widget/widget_overview_card";
-import { WidgetGeneralStats } from "@/features/dashboard/widget/widget_general_stats";
 import { IconSearch } from "@/components/icons";
-import { PageHeading, Button, DatePicker, IconDashboard, useDocumentTitle } from "netra";
 import { datesArrayToDateRangeFilter } from "@/lib/utils";
 import { Card, CardContent, CardTitle } from "@/components/card";
-import { WidgetPnLGraph } from "./widget/widget_pnl_graph";
+import { WidgetPnLGraph } from "@/features/dashboard/widget/widget_pnl_graph";
 import { FreePlanLimitTag } from "@/components/free_plan_limit_tag";
+import { WidgetPnLCard } from "@/features/dashboard/widget/widget_pnl_card";
+import { WidgetAvgWinLoss } from "@/features/dashboard/widget/widget_avg_win_loss";
+import { AvgWinRate } from "@/features/dashboard/widget/widget_win_rate";
+import { WidgetProfitFactor } from "./widget/widget_profit_factor";
+import { WidgetExpectancy } from "./widget/widget_expectancy";
+import { WidgetStreak } from "./widget/widget_streak";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
-type DashboardLayoutSize = "lg" | "sm";
+type DashboardLayoutSize = "lg" | "md" | "sm";
+
+// const lgLayout: Layout[] = [
+//     // Top row (core metrics)
+//     { i: "net_pnl", x: 0, y: 0, w: 4, h: 4 },
+//     { i: "profit_factor", x: 4, y: 0, w: 2, h: 4 },
+//     { i: "win_rate", x: 6, y: 0, w: 3, h: 4 },
+//     { i: "expectancy", x: 9, y: 0, w: 3, h: 4 },
+
+//     // Second row
+//     { i: "avg_win_loss", x: 0, y: 4, w: 6, h: 4 },
+//     { i: "streak", x: 6, y: 4, w: 6, h: 4 },
+
+//     // Charts
+//     { i: "cumulative_pnl_graph", x: 0, y: 8, w: 12, h: 10 },
+//     { i: "pnl_graph", x: 0, y: 18, w: 12, h: 10 },
+//     { i: "calendar", x: 0, y: 28, w: 9, h: 18 },
+// ];
 
 const lgLayout: Layout[] = [
-    {
-        i: "overview",
-        x: 0,
-        y: 0,
-        w: 4,
-        h: 4,
-        minW: 3,
-        minH: 4,
-        static: true,
-    },
-    {
-        i: "winning",
-        x: 4,
-        y: 0,
-        w: 4,
-        h: 4,
-        minW: 3,
-        minH: 4,
-    },
-    {
-        i: "losing",
-        x: 8,
-        y: 0,
-        w: 4,
-        h: 4,
-        minW: 3,
-        minH: 4,
-    },
-    {
-        i: "cumulative_pnl_graph",
-        x: 0,
-        y: 5,
-        w: 6,
-        h: 10,
-        minW: 4,
-        minH: 7,
-    },
-    {
-        i: "pnl_graph",
-        x: 6,
-        y: 5,
-        w: 6,
-        h: 10,
-        minW: 4,
-        minH: 7,
-    },
+    // Row 1
+    { i: "net_pnl", x: 0, y: 0, w: 4, h: 4 },
+    { i: "win_rate", x: 4, y: 0, w: 4, h: 4 },
+    { i: "avg_win_loss", x: 8, y: 0, w: 4, h: 4 },
+    { i: "expectancy", x: 9, y: 0, w: 3, h: 3 },
+
+    // Row 2
+    { i: "cumulative_pnl_graph", x: 0, y: 4, w: 9, h: 10 },
+    { i: "profit_factor", x: 9, y: 4, w: 3, h: 3 },
+    { i: "streak", x: 9, y: 8, w: 3, h: 4 },
+
+    // Row 3
+    { i: "pnl_graph", x: 0, y: 12, w: 12, h: 10 },
+];
+
+const mdLayout: Layout[] = [
+    { i: "net_pnl", x: 0, y: 0, w: 6, h: 4 },
+
+    { i: "profit_factor", x: 0, y: 4, w: 3, h: 4 },
+    { i: "expectancy", x: 3, y: 4, w: 3, h: 4 },
+
+    { i: "win_rate", x: 0, y: 8, w: 3, h: 4 },
+    { i: "avg_win_loss", x: 3, y: 8, w: 3, h: 4 },
+
+    { i: "streak", x: 0, y: 12, w: 3, h: 4 },
+    { i: "trades", x: 3, y: 12, w: 3, h: 4 },
+
+    { i: "cumulative_pnl_graph", x: 0, y: 16, w: 6, h: 10 },
+    { i: "pnl_graph", x: 0, y: 26, w: 6, h: 10 },
 ];
 
 const smLayout: Layout[] = [
-    {
-        i: "overview",
-        x: 0,
-        y: 0,
-        w: 4,
-        h: 4,
-        minW: 3,
-        minH: 4,
-    },
-    {
-        i: "winning",
-        x: 0,
-        y: 5,
-        w: 4,
-        h: 4,
-        minW: 3,
-        minH: 4,
-    },
-    {
-        i: "losing",
-        x: 0,
-        y: 10,
-        w: 4,
-        h: 4,
-        minW: 3,
-        minH: 4,
-    },
-    {
-        i: "cumulative_pnl_graph",
-        x: 0,
-        y: 15,
-        w: 3,
-        h: 7,
-        minW: 4,
-        maxW: 4,
-        minH: 7,
-    },
-    {
-        i: "pnl_graph",
-        x: 0,
-        y: 23,
-        w: 3,
-        h: 7,
-        minW: 4,
-        maxW: 4,
-        minH: 7,
-    },
+    { i: "net_pnl", x: 0, y: 0, w: 4, h: 4 },
+
+    { i: "profit_factor", x: 0, y: 4, w: 4, h: 3 },
+    { i: "expectancy", x: 0, y: 7, w: 4, h: 3 },
+
+    { i: "win_rate", x: 0, y: 10, w: 4, h: 3 },
+    { i: "avg_win_loss", x: 0, y: 13, w: 4, h: 3 },
+
+    { i: "streak", x: 0, y: 16, w: 4, h: 3 },
+    { i: "trades", x: 0, y: 19, w: 4, h: 3 },
+
+    { i: "cumulative_pnl_graph", x: 0, y: 22, w: 4, h: 8 },
+    { i: "pnl_graph", x: 0, y: 30, w: 4, h: 6 },
 ];
 
 export const Dashboard = () => {
@@ -125,6 +96,7 @@ export const Dashboard = () => {
 
     const [layouts, setLayouts] = useState<Record<DashboardLayoutSize, Layout[]>>({
         lg: lgLayout,
+        md: mdLayout,
         sm: smLayout,
     });
     const [dates, setDates] = useState<Date[]>([]);
@@ -183,94 +155,117 @@ export const Dashboard = () => {
         }
 
         return (
-            <ResponsiveGridLayout
-                className="complex-interface-layout"
-                layouts={layouts}
-                breakpoints={{
-                    lg: 1200,
-                    sm: 0,
-                }}
-                cols={{
-                    lg: 12,
-                    sm: 3,
-                }}
-                rowHeight={30}
-                width={1440}
-                onLayoutChange={(_, layouts) => setLayouts(layouts as Record<DashboardLayoutSize, Layout[]>)}
-                containerPadding={[0, 0]}
-                margin={[16, 16]}
-                resizeHandles={["se"]}
-                // @ts-ignore - The types from react-grid-layout are not fully accurate with the current version.
-                resizeHandle={(handleAxis, ref) => {
-                    // Disabling the resize handle for now until we have better way to store the layout.
-                    return <div></div>;
+            <>
+                <ResponsiveGridLayout
+                    className="complex-interface-layout"
+                    layouts={layouts}
+                    breakpoints={{
+                        lg: 1200,
+                        md: 768,
+                        sm: 0,
+                    }}
+                    cols={{
+                        lg: 12,
+                        md: 6,
+                        sm: 4,
+                    }}
+                    rowHeight={30}
+                    width={1440}
+                    onLayoutChange={(_, layouts) => setLayouts(layouts as Record<DashboardLayoutSize, Layout[]>)}
+                    containerPadding={[0, 0]}
+                    margin={[16, 16]}
+                    resizeHandles={["se"]}
+                    // @ts-ignore - The types from react-grid-layout are not fully accurate with the current version.
+                    resizeHandle={(handleAxis, ref) => {
+                        // Disabling the resize handle for now until we have better way to store the layout.
+                        return <div></div>;
 
-                    // if (handleAxis === "se") {
-                    //     return (
-                    //         <div
-                    //             ref={ref}
-                    //             key="se"
-                    //             className="text-accent absolute right-0 bottom-0 cursor-se-resize rounded-sm"
-                    //         >
-                    //             <IconChevronDownRight size={18} />
-                    //         </div>
-                    //     );
-                    // }
-                }}
-                draggableHandle=".custom-drag-handle"
-            >
-                <div key="overview">
-                    <WidgetContainer>
-                        <OverviewCard
-                            gross_pnl_amount={data.gross_pnl}
-                            net_pnl_amount={data.net_pnl}
-                            total_charges_amount={data.charges}
-                            r_factor={data.avg_r_factor}
-                            gross_r_factor={data.avg_gross_r_factor}
-                        />
-                    </WidgetContainer>
-                </div>
+                        // if (handleAxis === "se") {
+                        //     return (
+                        //         <div
+                        //             ref={ref}
+                        //             key="se"
+                        //             className="text-accent absolute right-0 bottom-0 cursor-se-resize rounded-sm"
+                        //         >
+                        //             <IconChevronDownRight size={18} />
+                        //         </div>
+                        //     );
+                        // }
+                    }}
+                    draggableHandle=".custom-drag-handle"
+                >
+                    <div key="net_pnl">
+                        <WidgetContainer>
+                            {/* <OverviewCard
+                                gross_pnl_amount={data.gross_pnl}
+                                net_pnl_amount={data.net_pnl}
+                                total_charges_amount={data.charges}
+                                r_factor={data.avg_r_factor}
+                                gross_r_factor={data.avg_gross_r_factor}
+                            /> */}
+                            <WidgetPnLCard
+                                gross={new Decimal(data.gross_pnl)}
+                                net={new Decimal(data.net_pnl)}
+                                charges={new Decimal(data.charges)}
+                            />
+                        </WidgetContainer>
+                    </div>
 
-                <div key="winning">
-                    <WidgetContainer>
-                        <WidgetGeneralStats
-                            isWinning
-                            rate={data.win_rate}
-                            rFactor={data.avg_win_r_factor}
-                            max={data.max_win}
-                            avg={data.avg_win}
-                            streak={data.win_streak}
-                            count={data.wins_count}
-                        />
-                    </WidgetContainer>
-                </div>
+                    <div key="profit_factor">
+                        <WidgetContainer>
+                            <WidgetProfitFactor profitFactor={new Decimal(data.profit_factor)} />
+                        </WidgetContainer>
+                    </div>
 
-                <div key="losing">
-                    <WidgetContainer>
-                        <WidgetGeneralStats
-                            isWinning={false}
-                            rate={data.loss_rate}
-                            rFactor={data.avg_loss_r_factor}
-                            max={data.max_loss}
-                            avg={data.avg_loss}
-                            streak={data.loss_streak}
-                            count={data.losses_count}
-                        />
-                    </WidgetContainer>
-                </div>
+                    <div key="expectancy">
+                        <WidgetContainer>
+                            <WidgetExpectancy expectancy={new Decimal(data.expectancy)} />
+                        </WidgetContainer>
+                    </div>
 
-                <div key="cumulative_pnl_graph">
-                    <WidgetContainer>
-                        <WidgetCumulativePnLGraph data={cumulativePnLData} isResizable />
-                    </WidgetContainer>
-                </div>
+                    <div key="win_rate">
+                        <WidgetContainer>
+                            <AvgWinRate
+                                winRate={data.win_rate}
+                                totalTradesCount={data.total_trades_count}
+                                winsCount={data.wins_count}
+                                lossesCount={data.losses_count}
+                                breakevensCount={data.breakevens_count}
+                            />
+                        </WidgetContainer>
+                    </div>
 
-                <div key="pnl_graph">
-                    <WidgetContainer>
-                        <WidgetPnLGraph data={pnlData} isResizable />
-                    </WidgetContainer>
-                </div>
-            </ResponsiveGridLayout>
+                    <div key="avg_win_loss">
+                        <WidgetContainer>
+                            <WidgetAvgWinLoss
+                                avgWin={new Decimal(data.avg_win)}
+                                avgLoss={new Decimal(data.avg_loss)}
+                                ratio={new Decimal(data.avg_win_loss_ratio)}
+                            />
+                        </WidgetContainer>
+                    </div>
+
+                    <div key="streak">
+                        <WidgetContainer>
+                            <WidgetStreak winStreak={data.win_streak} lossStreak={data.loss_streak} />
+                        </WidgetContainer>
+                    </div>
+
+                    <div key="cumulative_pnl_graph">
+                        <WidgetContainer>
+                            <WidgetCumulativePnLGraph data={cumulativePnLData} isResizable />
+                        </WidgetContainer>
+                    </div>
+
+                    <div key="pnl_graph">
+                        <WidgetContainer>
+                            <WidgetPnLGraph data={pnlData} isResizable />
+                        </WidgetContainer>
+                    </div>
+                </ResponsiveGridLayout>
+
+                <div className="h-12" />
+            </>
         );
     }, [data, isFetching, isError, layouts, cumulativePnLData, appliedDates.length]);
 

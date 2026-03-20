@@ -12,30 +12,50 @@ import (
 )
 
 type GeneralStats struct {
+	// --- Core ---
+	NetPnL   decimal.Decimal `json:"net_pnl"`
+	GrossPnL string          `json:"gross_pnl"`
+	Charges  string          `json:"charges"`
+
+	// --- Performance ---
 	WinRate  float64 `json:"win_rate"`
 	LossRate float64 `json:"loss_rate"`
 
-	GrossPnL        string          `json:"gross_pnl"`
-	NetPnL          decimal.Decimal `json:"net_pnl"`
-	Charges         string          `json:"charges"`
-	AvgWin          string          `json:"avg_win"`
-	AvgLoss         string          `json:"avg_loss"`
-	MaxWin          string          `json:"max_win"`
-	MaxLoss         string          `json:"max_loss"`
-	GrossRFactor    string          `json:"gross_r_factor"`
-	NetRFactor      string          `json:"net_r_factor"`
-	AvgRFactor      string          `json:"avg_r_factor"`
-	AvgGrossRFactor string          `json:"avg_gross_r_factor"`
-	AvgWinRFactor   string          `json:"avg_win_r_factor"`
-	AvgLossRFactor  string          `json:"avg_loss_r_factor"`
-	AvgWinROI       string          `json:"avg_win_roi"`
-	AvgLossROI      string          `json:"avg_loss_roi"`
+	ProfitFactor    decimal.Decimal `json:"profit_factor"`
+	Expectancy      decimal.Decimal `json:"expectancy"`
+	AvgWinLossRatio decimal.Decimal `json:"avg_win_loss_ratio"`
 
+	// --- Win / Loss Stats ---
+	AvgWin  string `json:"avg_win"`
+	AvgLoss string `json:"avg_loss"`
+	MaxWin  string `json:"max_win"`
+	MaxLoss string `json:"max_loss"`
+
+	TotalNetWinAmount  decimal.Decimal `json:"total_net_win_amount"`
+	TotalNetLossAmount decimal.Decimal `json:"total_net_loss_amount"`
+
+	// --- R Metrics ---
+	GrossRFactor    string `json:"gross_r_factor"`
+	NetRFactor      string `json:"net_r_factor"`
+	AvgRFactor      string `json:"avg_r_factor"`
+	AvgGrossRFactor string `json:"avg_gross_r_factor"`
+
+	AvgWinRFactor  string `json:"avg_win_r_factor"`
+	AvgLossRFactor string `json:"avg_loss_r_factor"`
+
+	// --- ROI ---
+	AvgWinROI  string `json:"avg_win_roi"`
+	AvgLossROI string `json:"avg_loss_roi"`
+
+	// --- Streaks ---
 	WinStreak  int `json:"win_streak"`
 	LossStreak int `json:"loss_streak"`
 
-	WinsCount   int `json:"wins_count"`
-	LossesCount int `json:"losses_count"`
+	// --- Counts ---
+	TotalTradesCount int `json:"total_trades_count"`
+	WinsCount        int `json:"wins_count"`
+	LossesCount      int `json:"losses_count"`
+	BreakevensCount  int `json:"breakevens_count"`
 }
 
 func GetGeneralStats(positions []*position.Position) GeneralStats {
@@ -43,70 +63,94 @@ func GetGeneralStats(positions []*position.Position) GeneralStats {
 		return GeneralStats{}
 	}
 
-	var winRate float64
-	var grossPnL, netPnL, charges, grossRFactor, netRFactor, avgRFactor, avgGrossRFactor, avgWinRFactor, avgLossRFactor, avgWinROI, avgLossROI, avgWin, avgLoss, maxWin, maxLoss decimal.Decimal
-	var openTradesCount, settledTradesCount, winTradesCount, lossTradesCount, tradesWithRiskAmountCount int
-	var maxWinStreak, maxLossStreak, currentWin, currentLoss int
+	var (
+		winRate float64
+
+		grossPnL, netPnL, charges decimal.Decimal
+
+		grossRFactor, netRFactor      decimal.Decimal
+		avgRFactor, avgGrossRFactor   decimal.Decimal
+		avgWinRFactor, avgLossRFactor decimal.Decimal
+		avgWinROI, avgLossROI         decimal.Decimal
+
+		avgWin, avgLoss decimal.Decimal
+		maxWin, maxLoss decimal.Decimal
+
+		totalNetWinAmount, totalNetLossAmount decimal.Decimal
+
+		expectancy      decimal.Decimal
+		avgWinLossRatio decimal.Decimal
+
+		openTradesCount, settledTradesCount                   int
+		winTradesCount, lossTradesCount, breakevenTradesCount int
+		tradesWithRiskAmountCount                             int
+
+		maxWinStreak, maxLossStreak int
+		currentWin, currentLoss     int
+	)
 
 	for _, p := range positions {
-		// Calculate open trades count.
-		// Will be used to calculate win rate.
 		if p.Status == position.StatusOpen {
 			openTradesCount++
+			continue
 		}
 
-		// "Win" and "Breakeven" trades are considered winning trades
-		// for the purpose of calculating win rate.
-		if p.Status == position.StatusWin || p.Status == position.StatusBreakeven {
-			winTradesCount++
-		}
+		settledTradesCount++
 
 		grossPnL = grossPnL.Add(p.GrossPnLAmount)
 		netPnL = netPnL.Add(p.NetPnLAmount)
 		charges = charges.Add(p.TotalChargesAmount)
 
+		// --- R-based metrics ---
 		if p.RiskAmount.GreaterThan(decimal.Zero) {
 			tradesWithRiskAmountCount++
+
 			grossRFactor = grossRFactor.Add(p.GrossRFactor)
-			netRFactor = grossRFactor.Add(p.RFactor)
+			netRFactor = netRFactor.Add(p.RFactor)
+
 			avgGrossRFactor = avgGrossRFactor.Add(p.GrossRFactor)
 			avgRFactor = avgRFactor.Add(p.RFactor)
 
-			switch p.Status {
-			case position.StatusWin, position.StatusBreakeven:
+			if p.NetPnLAmount.GreaterThan(decimal.Zero) {
 				avgWinRFactor = avgWinRFactor.Add(p.RFactor)
 				avgWinROI = avgWinROI.Add(p.NetReturnPercentage)
-			case position.StatusLoss:
+			}
+
+			if p.NetPnLAmount.LessThan(decimal.Zero) {
 				avgLossRFactor = avgLossRFactor.Add(p.RFactor)
 				avgLossROI = avgLossROI.Add(p.NetReturnPercentage)
 			}
 		}
 
-		if p.Status == position.StatusWin {
+		// --- PnL-based classification ---
+		if p.NetPnLAmount.GreaterThan(decimal.Zero) {
+			winTradesCount++
+
+			totalNetWinAmount = totalNetWinAmount.Add(p.NetPnLAmount)
 			avgWin = avgWin.Add(p.NetPnLAmount)
 
 			if p.NetPnLAmount.GreaterThan(maxWin) {
 				maxWin = p.NetPnLAmount
 			}
-		}
 
-		if p.Status == position.StatusLoss {
+			currentWin++
+			currentLoss = 0
+		} else if p.NetPnLAmount.LessThan(decimal.Zero) {
+			lossTradesCount++
+
+			lossAbs := p.NetPnLAmount.Abs()
+			totalNetLossAmount = totalNetLossAmount.Add(lossAbs)
 			avgLoss = avgLoss.Add(p.NetPnLAmount)
 
 			if p.NetPnLAmount.LessThan(maxLoss) {
 				maxLoss = p.NetPnLAmount
 			}
-		}
 
-		// Calculate win/loss streaks
-		switch p.Status {
-		case position.StatusWin:
-			currentWin++
-			currentLoss = 0
-		case position.StatusLoss:
 			currentLoss++
 			currentWin = 0
-		default:
+		} else {
+			// breakeven
+			breakevenTradesCount++
 			currentWin = 0
 			currentLoss = 0
 		}
@@ -115,59 +159,86 @@ func GetGeneralStats(positions []*position.Position) GeneralStats {
 		maxLossStreak = max(maxLossStreak, currentLoss)
 	}
 
-	// Trades that are not open are considered settled.
-	settledTradesCount = len(positions) - openTradesCount
-	// Trades that are settled and not winning are considered losing.
-	lossTradesCount = settledTradesCount - winTradesCount
-
+	// --- Averages ---
 	if tradesWithRiskAmountCount > 0 {
-		avgRFactor = avgRFactor.Div(decimal.NewFromInt(int64(tradesWithRiskAmountCount)))
-		avgGrossRFactor = avgGrossRFactor.Div(decimal.NewFromInt(int64(tradesWithRiskAmountCount)))
-	}
-
-	if settledTradesCount > 0 {
-		winRate = (float64(winTradesCount) / float64(settledTradesCount)) * 100.0
+		div := decimal.NewFromInt(int64(tradesWithRiskAmountCount))
+		avgRFactor = avgRFactor.Div(div)
+		avgGrossRFactor = avgGrossRFactor.Div(div)
 	}
 
 	if winTradesCount > 0 {
-		avgWinRFactor = avgWinRFactor.Div(decimal.NewFromInt(int64(winTradesCount)))
-		avgWinROI = avgWinROI.Div(decimal.NewFromInt(int64(winTradesCount)))
-		avgWin = avgWin.Div(decimal.NewFromInt(int64(winTradesCount)))
+		div := decimal.NewFromInt(int64(winTradesCount))
+		avgWin = avgWin.Div(div)
+		avgWinRFactor = avgWinRFactor.Div(div)
+		avgWinROI = avgWinROI.Div(div)
 	}
 
 	if lossTradesCount > 0 {
-		avgLossRFactor = avgLossRFactor.Div(decimal.NewFromInt(int64(lossTradesCount)))
-		avgLossROI = avgLossROI.Div(decimal.NewFromInt(int64(lossTradesCount)))
-		avgLoss = avgLoss.Div(decimal.NewFromInt(int64(lossTradesCount)))
+		div := decimal.NewFromInt(int64(lossTradesCount))
+		avgLoss = avgLoss.Div(div)
+		avgLossRFactor = avgLossRFactor.Div(div)
+		avgLossROI = avgLossROI.Div(div)
 	}
 
+	// --- Win rate ---
+	if (winTradesCount + lossTradesCount) > 0 {
+		winRate = (float64(winTradesCount) / float64(winTradesCount+lossTradesCount)) * 100
+	}
 	lossRate := 100.0 - winRate
 
-	result := GeneralStats{
-		WinRate:         winRate,
-		LossRate:        lossRate,
-		GrossPnL:        grossPnL.String(),
-		NetPnL:          netPnL,
-		Charges:         charges.String(),
+	// --- Profit Factor ---
+	var profitFactor decimal.Decimal
+	if !totalNetLossAmount.IsZero() {
+		profitFactor = totalNetWinAmount.Div(totalNetLossAmount)
+	}
+
+	// --- Expectancy ---
+	if settledTradesCount > 0 {
+		expectancy = netPnL.Div(decimal.NewFromInt(int64(settledTradesCount)))
+	}
+
+	// --- Avg Win / Loss ratio ---
+	if !avgLoss.IsZero() {
+		avgWinLossRatio = avgWin.Div(avgLoss.Abs())
+	}
+
+	return GeneralStats{
+		WinRate:  winRate,
+		LossRate: lossRate,
+		GrossPnL: grossPnL.StringFixed(2),
+		NetPnL:   netPnL,
+		Charges:  charges.Mul(decimal.NewFromInt(-1)).StringFixed(2),
+
 		GrossRFactor:    grossRFactor.StringFixed(2),
 		NetRFactor:      netRFactor.StringFixed(2),
 		AvgRFactor:      avgRFactor.StringFixed(2),
 		AvgGrossRFactor: avgGrossRFactor.StringFixed(2),
-		AvgWin:          avgWin.StringFixed(2),
-		AvgLoss:         avgLoss.StringFixed(2),
-		MaxWin:          maxWin.String(),
-		MaxLoss:         maxLoss.String(),
-		AvgWinRFactor:   avgWinRFactor.StringFixed(2),
-		AvgLossRFactor:  avgLossRFactor.StringFixed(2),
-		AvgWinROI:       avgWinROI.StringFixed(2),
-		AvgLossROI:      avgLossROI.StringFixed(2),
-		WinStreak:       maxWinStreak,
-		LossStreak:      maxLossStreak,
-		WinsCount:       winTradesCount,
-		LossesCount:     lossTradesCount,
-	}
 
-	return result
+		AvgWin:  avgWin.StringFixed(2),
+		AvgLoss: avgLoss.StringFixed(2),
+		MaxWin:  maxWin.String(),
+		MaxLoss: maxLoss.String(),
+
+		AvgWinRFactor:  avgWinRFactor.StringFixed(2),
+		AvgLossRFactor: avgLossRFactor.StringFixed(2),
+		AvgWinROI:      avgWinROI.StringFixed(2),
+		AvgLossROI:     avgLossROI.StringFixed(2),
+
+		WinStreak:  maxWinStreak,
+		LossStreak: maxLossStreak,
+
+		TotalTradesCount: winTradesCount + lossTradesCount + breakevenTradesCount,
+		WinsCount:        winTradesCount,
+		LossesCount:      lossTradesCount,
+		BreakevensCount:  breakevenTradesCount,
+
+		ProfitFactor:       profitFactor,
+		TotalNetWinAmount:  totalNetWinAmount,
+		TotalNetLossAmount: totalNetLossAmount,
+
+		Expectancy:      expectancy,
+		AvgWinLossRatio: avgWinLossRatio,
+	}
 }
 
 type pnlBucket struct {

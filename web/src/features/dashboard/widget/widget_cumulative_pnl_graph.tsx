@@ -54,7 +54,7 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
         <Card className="relative h-full w-full overflow-hidden">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
-            <CardTitle>Cumulative PnL</CardTitle>
+            <CardTitle className="section-heading-muted!">Cumulative PnL</CardTitle>
 
             <div className="h-2" />
 
