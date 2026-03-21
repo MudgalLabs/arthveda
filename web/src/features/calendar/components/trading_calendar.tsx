@@ -358,13 +358,15 @@ function MonthlyCalendar(props: MonthlyCalendarProps) {
                 })}
             >
                 {weekDays.map((weekDay) => (
-                    <li key={weekDay} className="w-full min-w-0">
+                    <li key={weekDay} className="text-text-muted w-full min-w-0">
                         <WeekDay weekDay={weekDay} />
                     </li>
                 ))}
                 {!shrink && (
                     <li className="w-full min-w-0">
-                        <div className="border-border-subtle flex-center rounded-md border p-2 font-medium">Weekly</div>
+                        <div className="border-border-subtle flex-center text-text-muted rounded-md border p-2 font-medium">
+                            Weekly
+                        </div>
                     </li>
                 )}
             </ul>
@@ -461,7 +463,7 @@ function Day(props: DayProps) {
         <CalendarDayInfoModal
             renderTrigger={() => (
                 <button
-                    className={cn("h-full w-full enabled:hover:brightness-110")}
+                    className={cn("h-full w-full enabled:hover:brightness-120")}
                     disabled={isNoTradeDay || !dpDay.inCurrentMonth}
                 >
                     <div
@@ -553,7 +555,7 @@ function PnLTile(props: PnLTileProps) {
         <button
             className={cn(
                 "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md",
-                "min-h-[120px] w-full min-w-[180px] border p-2 enabled:hover:brightness-110",
+                "min-h-[120px] w-full min-w-[180px] border p-2 enabled:hover:brightness-120",
                 {
                     "bg-success-bg-2 border-success-border-2": isWin,
                     "bg-error-bg-2 border-error-border-2": isLoss,

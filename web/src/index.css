@@ -214,7 +214,7 @@
 
 body {
     background: var(--color-background);
-    color: var(--color-foreground);
+    color: var(--color-text-muted);
 
     @apply font-content text-sm font-normal;
 }
@@ -290,7 +290,7 @@ select:-webkit-autofill:focus {
     @apply text-foreground text-sm font-medium;
 }
 @utility label-muted {
-    @apply text-text-muted text-sm font-normal;
+    @apply text-muted-foreground text-sm font-medium;
 }
 @utility small {
     @apply text-foreground font-content text-[14px] font-normal;

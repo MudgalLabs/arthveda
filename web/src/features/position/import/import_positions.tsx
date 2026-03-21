@@ -16,7 +16,6 @@ import { apiErrorHandler } from "@/lib/api";
 import {
     Button,
     Input,
-    Label,
     Tooltip,
     RadioGroup,
     RadioGroupItem,
@@ -48,6 +47,7 @@ import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
 import { DataTablePagination } from "@/s8ly/data_table/data_table_pagination";
 import { useBroker } from "@/features/broker/broker_context";
 import { ApiRes } from "@/lib/api/client";
+import { Label } from "@/s8ly";
 
 interface State {
     brokerID: string;

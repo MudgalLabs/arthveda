@@ -11,8 +11,9 @@ import {
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { Card, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";
-import { ChartConfig, ChartContainer, ChartTooltipContent, tooltipCursor, axisDefaults, Checkbox, Label } from "netra";
+import { ChartConfig, ChartContainer, ChartTooltipContent, tooltipCursor, axisDefaults, Checkbox } from "netra";
 import { useLocalStorageState } from "@/hooks/use_local_storage_state";
+import { Label } from "@/s8ly";
 
 interface DataItem {
     label: string;
@@ -55,8 +56,6 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
             {isLoading && <LoadingScreen className="absolute-center" />}
 
             <CardTitle className="section-heading-muted!">Cumulative PnL</CardTitle>
-
-            <div className="h-2" />
 
             <div className="flex w-full justify-center gap-x-4 [&>div]:flex [&>div]:items-center [&>div]:gap-x-1">
                 <div>
@@ -119,6 +118,7 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                                 formatCurrency(value, {
                                     compact: true,
                                     hideSymbol: true,
+                                    precision: 0,
                                 })
                             }
                         />
@@ -139,6 +139,7 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                                 <stop offset="100%" stopColor="var(--color-net-pnl)" stopOpacity="0" />
                             </linearGradient>
                         </defs>
+
                         {showNet && (
                             <Area
                                 type="monotone"
@@ -158,6 +159,7 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                                 <stop offset="100%" stopColor="var(--color-gross-pnl)" stopOpacity="0" />
                             </linearGradient>
                         </defs>
+
                         {showGross && (
                             <Area
                                 type="monotone"
@@ -177,6 +179,7 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
                                 <stop offset="100%" stopColor="var(--color-charges)" stopOpacity="0" />
                             </linearGradient>
                         </defs>
+
                         {showCharges && (
                             <Area
                                 type="monotone"

@@ -19,7 +19,7 @@ export function WidgetStreak(props: WidgetStreakProps) {
                     {winStreak}W
                 </PnL>
 
-                <span className="text-muted-foreground text-xs">vs</span>
+                <span className="text-text-muted text-sm">vs</span>
 
                 <PnL value={new Decimal(lossStreak)} variant="negative" className="big-heading leading-0">
                     {lossStreak}L

@@ -12,7 +12,6 @@ import {
     IconPlus,
     IconTrash,
     isSameDay,
-    Label,
     Setter,
     Tooltip,
     useDataTableEditableCell,
@@ -24,6 +23,7 @@ import { usePositionStore } from "@/features/position/position_store_context";
 import { WithDebounce } from "@/components/with_debounce";
 import { DecimalInput } from "@/components/input/decimal_input";
 import { usePositionTradesAreValid } from "@/features/position/position_store";
+import { Label } from "@/s8ly";
 
 export function PositionLogTrades() {
     const position = usePositionStore((s) => s.position);

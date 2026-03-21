@@ -15,7 +15,6 @@ import {
     DialogDescription,
     DialogFooter,
     Input,
-    Label,
     IconEdit,
     IconTrash,
     IconChevronDown,
@@ -37,6 +36,7 @@ import {
 } from "@/hooks/api_hooks/tag";
 import { TagGroupWithTags, Tag } from "@/lib/api/tag";
 import { toast } from "@/components/toast";
+import { Label } from "@/s8ly";
 
 export function TagsManagement() {
     useDocumentTitle("Tags • Arthveda");
@@ -384,26 +384,32 @@ const TagGroupModal: FC<TagGroupModalProps> = ({ renderTrigger, mode, tagGroup, 
                             : "Update the tag group name and description."}
                     </DialogDescription>
                 </DialogHeader>
-                <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-                    <Label>Name</Label>
-                    <Input
-                        className="w-full!"
-                        placeholder="Mistakes"
-                        type="text"
-                        required
-                        maxLength={64}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
-                    <Label>Description</Label>
-                    <Input
-                        className="w-full!"
-                        placeholder="Common mistakes made"
-                        type="text"
-                        maxLength={128}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
+                <form className="flex-y gap-y-4!" onSubmit={handleSubmit}>
+                    <div className="flex-y">
+                        <Label>Name</Label>
+                        <Input
+                            className="w-full!"
+                            placeholder="Mistakes"
+                            type="text"
+                            required
+                            maxLength={64}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex-y">
+                        <Label>Description</Label>
+                        <Input
+                            className="w-full!"
+                            placeholder="Common mistakes made"
+                            type="text"
+                            maxLength={128}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                        />
+                    </div>
+
                     <DialogFooter>
                         <Button
                             type="submit"

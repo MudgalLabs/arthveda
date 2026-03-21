@@ -5,7 +5,6 @@ import {
     Dialog,
     DialogFooter,
     DialogHeader,
-    Label,
     Tooltip,
     DialogContent,
     DialogDescription,
@@ -66,6 +65,7 @@ import { collectUploadIds } from "@/features/position/utils";
 import TagPicker from "@/components/tag_picker";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { useHomeCurrency } from "@/features/auth/auth_context";
+import { Label } from "@/s8ly";
 
 const enum PositionLogTab {
     Trades = "trades",
@@ -486,7 +486,7 @@ const DurationCard = memo(({ opened_at, closed_at }: { opened_at: Date; closed_a
 
     return (
         <Card className="realtive flex min-w-fit flex-col gap-y-2">
-            <CardTitle>Duration</CardTitle>
+            <CardTitle className="section-heading-muted!">Duration</CardTitle>
 
             <CardContent className="flex-center flex h-full flex-col gap-y-2">
                 <p className="heading">
@@ -498,7 +498,8 @@ const DurationCard = memo(({ opened_at, closed_at }: { opened_at: Date; closed_a
                     <IconCalendarRange />
                     <div className="space-x-2">
                         <span>{formatDate(opened_at, { time: true })}</span>
-                        {closed_at && <span>- {formatDate(closed_at, { time: true })}</span>}
+                        <span>-</span>
+                        {closed_at && <span>{formatDate(closed_at, { time: true })}</span>}
                     </div>
                 </div>
             </CardContent>

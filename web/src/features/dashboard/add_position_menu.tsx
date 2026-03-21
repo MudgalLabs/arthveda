@@ -34,19 +34,22 @@ export const AddPositionMenu: FC<AddPositionMenuProps> = ({ sidebarOpen, classNa
         <DropdownMenu open={open} onOpenChange={setOpen}>
             <Tooltip content={label} contentProps={{ side: "right" }} disabled={sidebarOpen}>
                 <DropdownMenuTrigger asChild>
-                    <Button
-                        className={cn(
-                            "scale-100! font-normal!", // Disable the scale effect.
-                            {
-                                "w-full rounded-sm p-2": sidebarOpen && !isMobile,
-                                "mx-auto flex h-9 w-9 items-center justify-center": !sidebarOpen || isMobile,
-                            },
-                            className
-                        )}
-                    >
-                        <IconPlus size={18} />
-                        {sidebarOpen && !isMobile ? label : ""}
-                    </Button>
+                    {/* This `div` fixes the tooltip bug. */}
+                    <div>
+                        <Button
+                            className={cn(
+                                "scale-100! font-normal!", // Disable the scale effect.
+                                {
+                                    "w-full rounded-sm p-2": sidebarOpen && !isMobile,
+                                    "mx-auto flex h-9 w-9 items-center justify-center": !sidebarOpen || isMobile,
+                                },
+                                className
+                            )}
+                        >
+                            <IconPlus size={18} />
+                            {sidebarOpen && !isMobile ? label : ""}
+                        </Button>
+                    </div>
                 </DropdownMenuTrigger>
             </Tooltip>
 

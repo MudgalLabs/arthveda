@@ -42,7 +42,7 @@ export function Settings() {
         if (isLoadingCanUpdaeHomeCurrency) return <LoadingScreen />;
 
         return (
-            <ul className="border-border-subtle mx-auto max-w-3xl rounded-md border-1 px-4 py-3">
+            <ul className="bg-surface-2 border-border-subtle mx-auto max-w-3xl rounded-md border-1 p-3">
                 <SettingItem
                     title="Home Currency"
                     description={
@@ -131,7 +131,7 @@ function SettingItem(props: SettingItemProps) {
     return (
         <div className="flex-x justify-between">
             <div className="space-y-2">
-                <h2 className="text-[16px] font-medium">{title}</h2>
+                <h2 className="text-base font-medium">{title}</h2>
                 <div className="text-text-muted">{description}</div>
             </div>
 

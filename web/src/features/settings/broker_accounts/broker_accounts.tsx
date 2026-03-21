@@ -33,7 +33,6 @@ import {
     DialogTitle,
     DialogTrigger,
     Input,
-    Label,
     Tooltip,
     DialogFooter,
     DialogOverlay,
@@ -70,6 +69,7 @@ import { Position } from "@/features/position/position";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
 import { useNavigate } from "react-router-dom";
+import { Label } from "@/s8ly";
 
 export const BrokerAccounts = () => {
     useDocumentTitle("Broker accounts • Arthveda");

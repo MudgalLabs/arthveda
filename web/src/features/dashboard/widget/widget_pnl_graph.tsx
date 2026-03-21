@@ -1,6 +1,6 @@
 import { FC } from "react";
 import Decimal from "decimal.js";
-import { axisDefaults, ChartConfig, ChartContainer, ChartTooltipContent, Checkbox, Label } from "netra";
+import { axisDefaults, ChartConfig, ChartContainer, ChartTooltipContent, Checkbox } from "netra";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { Card, CardTitle } from "@/components/card";
@@ -13,6 +13,7 @@ import {
     LocalStorageKeyPnLShowNet,
 } from "@/lib/utils";
 import { useLocalStorageState } from "@/hooks/use_local_storage_state";
+import { Label } from "@/s8ly";
 
 interface DataItem {
     label: string;
@@ -54,8 +55,6 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
             {isLoading && <LoadingScreen className="absolute-center" />}
 
             <CardTitle className="section-heading-muted!">PnL</CardTitle>
-
-            <div className="h-2" />
 
             <div className="flex w-full justify-center gap-x-4 [&>div]:flex [&>div]:items-center [&>div]:gap-x-1">
                 <div>
@@ -113,6 +112,7 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
                                 formatCurrency(value, {
                                     compact: true,
                                     hideSymbol: true,
+                                    precision: 0,
                                 })
                             }
                         />

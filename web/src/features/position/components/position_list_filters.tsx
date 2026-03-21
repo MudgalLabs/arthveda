@@ -1,7 +1,7 @@
 import { memo, useState, useCallback } from "react";
 import { Drawer } from "vaul";
 
-import { Button, DatePicker, Input, Label } from "netra";
+import { Button, DatePicker, Input } from "netra";
 import { IconCross, IconListFilter } from "@/components/icons";
 import { cn, dateRangeFilterToDatesArray } from "@/lib/utils";
 import { WithLabel } from "@/components/with_label";
@@ -16,6 +16,7 @@ import { positionSearchFiltersLabel } from "@/features/position/utils";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import { PositionDirection, PositionInstrument } from "../position";
 import TagPicker from "@/components/tag_picker";
+import { Label } from "@/s8ly";
 
 export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: boolean }) => {
     const applyFilters = useListPositionsStore((s) => s.applyFilters);
