@@ -491,7 +491,7 @@ function Day(props: DayProps) {
                                     <PnL
                                         value={netPnL}
                                         className={cn("absolute-center text-base font-semibold", {
-                                            "text-[10px] font-medium": shrinkedView,
+                                            "bottom-10! text-[10px] font-medium": shrinkedView,
                                         })}
                                     >
                                         {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
@@ -611,7 +611,7 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
                     <PnL
                         value={pnl}
                         className={cn("absolute-center text-base font-semibold", {
-                            "text-xs font-medium": shrinkedView,
+                            "bottom-10! text-xs font-medium": shrinkedView,
                         })}
                     >
                         {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR

@@ -25,11 +25,17 @@ import { BrokerLogo } from "@/components/broker_logo";
 import { ROUTES } from "@/constants";
 import { PnL } from "@/components/pnl";
 import { useHomeCurrency } from "@/features/auth/auth_context";
-import { DirectionTag } from "./direction_tag";
-import { StatusTag } from "./status_tag";
+import { DirectionTag } from "@/features/position/components/direction_tag";
+import { StatusTag } from "@/features/position/components/status_tag";
+import { WidgetPnLCard } from "@/features/dashboard/widget/widget_pnl_card";
+import { GeneralStats } from "@/features/position/position";
+import { WidgetWinRate } from "@/features/dashboard/widget/widget_win_rate";
+import { WidgetProfitFactor } from "@/features/dashboard/widget/widget_profit_factor";
+import { WidgetAvgWinLoss } from "@/features/dashboard/widget/widget_avg_win_loss";
 
 export interface PositionListTable {
     positions: Position[];
+    generalStats: GeneralStats;
     hideFilters?: boolean;
     hideColumnVisibility?: boolean;
     totalItems?: number;
@@ -43,6 +49,7 @@ export interface PositionListTable {
 export const PositionListTable: FC<PositionListTable> = memo(
     ({
         positions,
+        generalStats,
         hideFilters = false,
         hideColumnVisibility = false,
         totalItems,
@@ -243,10 +250,9 @@ export const PositionListTable: FC<PositionListTable> = memo(
                         />
                     ),
                     cell: ({ row }) => (
-                        <PnL value={new Decimal(row.original.r_factor)}>
-                            {" "}
+                        <span>
                             {formatCurrency(new Decimal(row.original.r_factor).toFixed(2), { hideSymbol: true })}
-                        </PnL>
+                        </span>
                     ),
                 },
                 {
@@ -285,11 +291,11 @@ export const PositionListTable: FC<PositionListTable> = memo(
                         />
                     ),
                     cell: ({ row }) => (
-                        <PnL value={new Decimal(row.original.gross_pnl_amount)}>
+                        <span>
                             {formatCurrency(row.original.gross_pnl_amount, {
                                 currency: homeCurrency,
                             })}
-                        </PnL>
+                        </span>
                     ),
                 },
                 {
@@ -329,11 +335,11 @@ export const PositionListTable: FC<PositionListTable> = memo(
                         />
                     ),
                     cell: ({ row }) => (
-                        <PnL value={new Decimal(row.original.total_charges_amount).mul(-1)}>
+                        <span>
                             {formatCurrency(new Decimal(row.original.total_charges_amount).mul(-1).toFixed(2), {
                                 currency: homeCurrency,
                             })}
-                        </PnL>
+                        </span>
                     ),
                 },
                 {
@@ -350,11 +356,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                             column={column}
                         />
                     ),
-                    cell: ({ row }) => (
-                        <PnL value={new Decimal(row.original.total_charges_amount)} variant="negative">
-                            {Number(row.original.charges_as_percentage_of_net_pnl).toFixed(2)}%
-                        </PnL>
-                    ),
+                    cell: ({ row }) => <span>{Number(row.original.charges_as_percentage_of_net_pnl).toFixed(2)}%</span>,
                 },
                 {
                     id: "net_return_percentage",
@@ -373,8 +375,9 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     cell: ({ row }) => (
                         <PnL value={new Decimal(row.original.net_return_percentage)}>
                             {formatCurrency(new Decimal(row.original.net_return_percentage).toFixed(2), {
-                                currency: homeCurrency,
+                                hideSymbol: true,
                             })}
+                            %
                         </PnL>
                     ),
                 },
@@ -462,6 +465,38 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                 </div>
 
                                 {!hideFilters && activeFiltersRow}
+
+                                <div className="grid auto-rows-[140px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[1.6fr_1.0fr_0.6fr_1.2fr]">
+                                    <div className="relative h-full w-full">
+                                        <WidgetPnLCard
+                                            gross={new Decimal(generalStats.gross_pnl)}
+                                            net={new Decimal(generalStats.net_pnl)}
+                                            charges={new Decimal(generalStats.charges)}
+                                        />
+                                    </div>
+
+                                    <div className="relative h-full w-full">
+                                        <WidgetWinRate
+                                            winRate={generalStats.win_rate}
+                                            totalTradesCount={generalStats.total_trades_count}
+                                            winsCount={generalStats.wins_count}
+                                            lossesCount={generalStats.losses_count}
+                                            breakevensCount={generalStats.breakevens_count}
+                                        />
+                                    </div>
+
+                                    <div className="relative h-full w-full">
+                                        <WidgetProfitFactor profitFactor={new Decimal(generalStats.profit_factor)} />
+                                    </div>
+
+                                    <div className="relative h-full w-full">
+                                        <WidgetAvgWinLoss
+                                            avgWin={new Decimal(generalStats.avg_win)}
+                                            avgLoss={new Decimal(generalStats.avg_loss)}
+                                            ratio={new Decimal(generalStats.avg_win_loss_ratio)}
+                                        />
+                                    </div>
+                                </div>
 
                                 <DataTable
                                     table={table}

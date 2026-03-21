@@ -199,9 +199,13 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, payload CreatePa
 type SearchPayload = common.SearchPayload[SearchFilter]
 type SearchResult struct {
 	common.SearchResult[[]*Position]
+
+	GeneralStats GeneralStats `json:"general_stats"`
 }
 
 func (s *Service) Search(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer, payload SearchPayload) (*SearchResult, service.Error, error) {
+	l := logger.Get()
+
 	err := payload.Init(allowedSortFields)
 	if err != nil {
 		return nil, service.ErrInvalidInput, err
@@ -281,8 +285,30 @@ func (s *Service) Search(ctx context.Context, userID uuid.UUID, tz *time.Locatio
 
 	result := common.NewSearchResult(positions, payload.Pagination.GetMeta(totalItems))
 
+	// Remove pagination while keeping the filters.
+	// This allows us to get all the positions to generate "General Stats".
+	payload.Pagination = common.Pagination{}
+	positionsAll, _, err := s.positionRepository.Search(ctx, payload, payload.Filters.AttachTrades, true)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("position repository list for without pagination: %w", err)
+	}
+
+	_, rangeEnd := GetRangeBasedOnTrades(positions)
+	positionsFiltered := FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
+
+	for _, pos := range positionsFiltered {
+		_, err := ComputeSmartTrades(pos.Trades, pos.Direction, pos.RiskAmount)
+		if err != nil {
+			l.Errorw("failed to compute smart trades for position", "position_id", pos.ID, "error", err)
+			continue
+		}
+	}
+
+	generalStats := GetGeneralStats(positionsAll)
+
 	return &SearchResult{
 		SearchResult: *result,
+		GeneralStats: generalStats,
 	}, service.ErrNone, nil
 }
 

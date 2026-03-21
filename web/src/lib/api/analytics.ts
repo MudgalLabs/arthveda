@@ -1,8 +1,8 @@
 import { client, ApiRes } from "@/lib/api/client";
 import { API_ROUTES } from "@/lib/api/api_routes";
-import { GeneralStats, PnLBucket } from "@/lib/api/dashboard";
+import { PnLBucket } from "@/lib/api/dashboard";
 import { DecimalString } from "../types";
-import { PositionInstrument } from "@/features/position/position";
+import { GeneralStats, PositionInstrument } from "@/features/position/position";
 
 export interface AnalyticsTagsSummaryItem extends GeneralStats {
     tag_group: string;

@@ -17,7 +17,7 @@ import { WidgetPnLGraph } from "@/features/dashboard/widget/widget_pnl_graph";
 import { FreePlanLimitTag } from "@/components/free_plan_limit_tag";
 import { WidgetPnLCard } from "@/features/dashboard/widget/widget_pnl_card";
 import { WidgetAvgWinLoss } from "@/features/dashboard/widget/widget_avg_win_loss";
-import { AvgWinRate } from "@/features/dashboard/widget/widget_win_rate";
+import { WidgetWinRate } from "@/features/dashboard/widget/widget_win_rate";
 import { WidgetProfitFactor } from "./widget/widget_profit_factor";
 import { WidgetExpectancy } from "./widget/widget_expectancy";
 import { WidgetStreak } from "./widget/widget_streak";
@@ -200,7 +200,7 @@ export const Dashboard = () => {
 
                     <div key="win_rate">
                         <WidgetContainer>
-                            <AvgWinRate
+                            <WidgetWinRate
                                 winRate={data.win_rate}
                                 totalTradesCount={data.total_trades_count}
                                 winsCount={data.wins_count}

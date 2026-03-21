@@ -34,7 +34,7 @@ export const WidgetBarPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) =
         <Card className="relative h-full w-full overflow-hidden">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
-            <CardTitle>PnL</CardTitle>
+            <CardTitle className="section-heading-muted!">PnL</CardTitle>
 
             <div className="h-4" />
 

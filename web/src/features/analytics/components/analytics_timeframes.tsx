@@ -55,7 +55,8 @@ function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<Analy
             accessorKey: "charges",
             meta: { columnVisibilityHeader: "Charges" },
             header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
-            cell: ({ row }) => formatCurrency(new Decimal(row.original.charges).toFixed(2), { currency: currencyCode }),
+            cell: ({ row }) =>
+                formatCurrency(new Decimal(row.original.charges).mul(-1).toFixed(2), { currency: currencyCode }),
             sortingFn: decimalSortingFn,
         },
         {
@@ -127,7 +128,8 @@ function getAnalyticsTimeHourColumns(currencyCode: CurrencyCode): ColumnDef<Anal
             accessorKey: "charges",
             meta: { columnVisibilityHeader: "Charges" },
             header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
-            cell: ({ row }) => formatCurrency(new Decimal(row.original.charges).toFixed(2), { currency: currencyCode }),
+            cell: ({ row }) =>
+                formatCurrency(new Decimal(row.original.charges).mul(-1).toFixed(2), { currency: currencyCode }),
             sortingFn: decimalSortingFn,
         },
         {
@@ -197,7 +199,7 @@ function getAnalyticsTimeHoldingColumns(currencyCode: CurrencyCode): ColumnDef<A
             meta: { columnVisibilityHeader: "Charges" },
             header: ({ column }) => <DataTableColumnHeader align="right" title="Charges" column={column} />,
             cell: ({ row }) =>
-                formatCurrency(new Decimal(row.original.charges).toFixed(2), {
+                formatCurrency(new Decimal(row.original.charges).mul(-1).toFixed(2), {
                     currency: currencyCode,
                 }),
             sortingFn: decimalSortingFn,

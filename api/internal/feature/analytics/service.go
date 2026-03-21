@@ -5,7 +5,6 @@ import (
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/calendar"
-	"arthveda/internal/feature/dashboard"
 	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/tag"
 	"arthveda/internal/logger"
@@ -40,7 +39,7 @@ func NewService(
 }
 
 type tagsSummaryItem struct {
-	dashboard.GeneralStats
+	position.GeneralStats
 
 	TagGroup       string          `json:"tag_group"`
 	TagName        string          `json:"tag_name"`
@@ -198,7 +197,7 @@ func (s *Service) GetTags(ctx context.Context, userID uuid.UUID, tz *time.Locati
 				continue
 			}
 
-			gen := dashboard.GetGeneralStats(tagPositions)
+			gen := position.GetGeneralStats(tagPositions)
 
 			rfactor := decimal.Zero
 			for _, pos := range tagPositions {

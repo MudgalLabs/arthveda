@@ -4,6 +4,7 @@ import { CompareOperator } from "@/components/select/compare_select";
 import { PositionStatusFilterValue } from "@/components/select/position_status_select";
 import {
     CurrencyCode,
+    GeneralStats,
     Position,
     PositionDirection,
     PositionInstrument,
@@ -109,7 +110,9 @@ export interface PositionSearchFilters {
 }
 
 export interface PositionSearchRequest extends SearchRequest<PositionSearchFilters> {}
-export interface PositionSearchResponse extends SearchResponse<Position[]> {}
+export interface PositionSearchResponse extends SearchResponse<Position[]> {
+    general_stats: GeneralStats;
+}
 
 export function search(body: PositionSearchRequest) {
     return client.post(API_ROUTES.position.search, body);

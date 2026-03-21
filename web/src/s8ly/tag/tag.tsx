@@ -13,7 +13,7 @@ const tagVariants = cva("w-fit flex items-center justify-center rounded-sm borde
             // destructive: "bg-error-bg-2 border-error-border text-text-destructive-2",
             destructive: "bg-error-bg-2 border-error-border-2 text-text-destructive-2",
             filter: "font-normal text-sm! bg-surface-bg border-border text-muted-foreground flex items-center gap-x-2 pl-2! pr-1! py-1!",
-            primary: "bg-surface-2 border-primary/50 text-accent",
+            primary: "bg-accent/10 border-primary/50 text-accent",
         },
         size: {
             default: "text-sm px-2 py-1",

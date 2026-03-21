@@ -9,7 +9,7 @@ interface AvgWinRateProps {
     breakevensCount: number;
 }
 
-export function AvgWinRate(props: AvgWinRateProps) {
+export function WidgetWinRate(props: AvgWinRateProps) {
     const { winRate, totalTradesCount, winsCount, lossesCount, breakevensCount } = props;
 
     return (

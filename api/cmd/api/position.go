@@ -206,12 +206,6 @@ func importHandler(s *position.Service) http.HandlerFunc {
 
 		if currencyStr != "" {
 			currencyCode = currency.ParseCurrencyCode(currencyStr)
-			if err != nil {
-				invalidInputResponse(w, r, service.NewInputValidationErrorsWithError(
-					apires.NewApiError("Invalid currency", "", "currency", currencyStr),
-				))
-				return
-			}
 		}
 
 		riskAmount := decimal.Zero

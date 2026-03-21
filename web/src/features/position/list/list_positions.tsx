@@ -51,6 +51,7 @@ export const Positions = () => {
                 <>
                     <PositionListTable
                         positions={positions}
+                        generalStats={queryResult.data?.data?.general_stats}
                         totalItems={queryResult.data.data.pagination.total_items}
                         state={tableState}
                         onStateChange={setTableState}
