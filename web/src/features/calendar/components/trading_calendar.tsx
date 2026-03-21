@@ -1,23 +1,14 @@
 import { Fragment, useMemo, useState } from "react";
 import { DPDay, useDatePicker } from "@rehookify/datepicker";
 import Decimal from "decimal.js";
-import {
-    Button,
-    cn,
-    formatCurrency,
-    IconChevronLeft,
-    IconChevronRight,
-    Separator,
-    useControlled,
-    useLocalStorageState,
-} from "netra";
+import { Button, cn, IconChevronLeft, IconChevronRight, Separator, useControlled, useLocalStorageState } from "netra";
 
 import { GetCalendarAllResponse } from "@/lib/api/calendar";
 import { PnL } from "@/components/pnl";
 import { apiHooks } from "@/hooks/api_hooks";
 import { CalendarDayInfoModal } from "@/features/calendar/components/calendar_day_info_modal";
 import { CalendarPerfModeSelect, CalendarPerfViewMode } from "@/features/calendar/components/calendar_perf_view_select";
-import { LocalStorageKeyCalendarPerfViewMode } from "@/lib/utils";
+import { formatCurrency, LocalStorageKeyCalendarPerfViewMode } from "@/lib/utils";
 
 const enum CalendarViewMode {
     ALL = "all",
@@ -235,7 +226,9 @@ export function TradingCalendar(props: TradingCalendarProps) {
                                             className="text-xl font-semibold"
                                         >
                                             {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
-                                                ? formatCurrency(monthData[perfViewMode])
+                                                ? formatCurrency(new Decimal(monthData[perfViewMode]).toFixed(2), {
+                                                      compact: shrinkedView,
+                                                  })
                                                 : new Decimal(monthData[perfViewMode]).toFixed(2)}
                                         </PnL>
                                     )}
@@ -252,7 +245,9 @@ export function TradingCalendar(props: TradingCalendarProps) {
                                             className="text-xl font-semibold"
                                         >
                                             {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
-                                                ? formatCurrency(yearlyData[perfViewMode])
+                                                ? formatCurrency(new Decimal(yearlyData[perfViewMode]).toFixed(2), {
+                                                      compact: shrinkedView,
+                                                  })
                                                 : new Decimal(yearlyData[perfViewMode]).toFixed(2)}
                                         </PnL>
                                     )}
@@ -473,16 +468,18 @@ function Day(props: DayProps) {
                         className={cn(
                             "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md border p-2",
                             {
-                                "bg-success-bg-2 border-success-border": isWin,
-                                "bg-error-bg-2 border-error-border": isLoss,
+                                // "bg-success-bg-2 border-success-border": isWin,
+                                // "bg-error-bg-2 border-error-border": isLoss,
+                                "bg-success-bg-2 border-success-border-2": isWin,
+                                "bg-error-bg-2 border-error-border-2": isLoss,
                                 "bg-surface-2 border-none": isNoTradeDay,
                             }
                         )}
                     >
                         <span
-                            className={cn("font-semibold", {
+                            className={cn("text-xs font-semibold", {
                                 "text-text-muted": !dpDay.inCurrentMonth,
-                                "h-full w-full text-xs": shrinkedView,
+                                "h-full w-full": shrinkedView,
                             })}
                         >
                             {dpDay.day}
@@ -501,8 +498,12 @@ function Day(props: DayProps) {
                                             ? formatCurrency(netPnL.toString(), {
                                                   compact: true,
                                                   hideSymbol,
+                                                  showSign: !shrinkedView,
+                                                  precision: shrinkedView ? 0 : 2,
                                               })
-                                            : netPnL.toFixed(2)}
+                                            : shrinkedView
+                                              ? netPnL.toDecimalPlaces(0).toString() // 👈 no decimals
+                                              : netPnL.toFixed(2)}
                                     </PnL>
                                 )}
 
@@ -554,8 +555,8 @@ function PnLTile(props: PnLTileProps) {
                 "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md",
                 "min-h-[120px] w-full min-w-[180px] border p-2 enabled:hover:brightness-110",
                 {
-                    "bg-success-border border-success-border": isWin,
-                    "bg-error-border border-error-border": isLoss,
+                    "bg-success-bg-2 border-success-border-2": isWin,
+                    "bg-error-bg-2 border-error-border-2": isLoss,
                     "bg-surface-2 text-text-muted border-none": positionsCount === 0 || disabled,
                     "cursor-not-allowed opacity-60": disabled,
                 }
@@ -563,10 +564,10 @@ function PnLTile(props: PnLTileProps) {
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
         >
-            <span className="font-semibold">{title}</span>
+            <span className="text-xs font-semibold">{title}</span>
 
             <div className="flex w-full justify-between">
-                <PnL value={pnl} className="absolute-center text-lg font-bold">
+                <PnL value={pnl} className="absolute-center text-base font-semibold">
                     {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
                         ? formatCurrency(pnl.toString(), { compact: true })
                         : pnl.toFixed(2)}
@@ -597,19 +598,13 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
                 "border-border-subtle relative flex h-full flex-col items-start justify-between rounded-md",
                 "w-full min-w-0 border p-2",
                 {
-                    "bg-success-bg-2 border-success-border": isWin,
-                    "bg-error-bg-2 border-error-border": isLoss,
+                    "bg-success-bg-2 border-success-border-2": isWin,
+                    "bg-error-bg-2 border-error-border-2": isLoss,
                     "bg-surface-2 text-text-muted border-none": totalPositions === 0,
                 }
             )}
         >
-            <span
-                className={cn("font-semibold", {
-                    "text-xs": shrinkedView,
-                })}
-            >
-                Week {weekNumber}
-            </span>
+            <span className={cn("text-xs! font-semibold")}>Week {weekNumber}</span>
 
             {totalPositions > 0 && (
                 <div className="flex w-full justify-between">
@@ -620,7 +615,10 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
                         })}
                     >
                         {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
-                            ? formatCurrency(pnl.toString(), { compact: true })
+                            ? formatCurrency(pnl.toString(), {
+                                  compact: true,
+                                  showSign: !shrinkedView,
+                              })
                             : pnl.toFixed(2)}
                     </PnL>
 

@@ -81,14 +81,16 @@
 
     /* === State Variants === */
     --color-success-bg: hsl(150, 90%, 6%);
-    --color-success-bg-2: hsl(150, 90%, 7%);
+    --color-success-bg-2: rgba(73, 224, 136, 0.08);
     --color-success-border: hsl(150, 85%, 16%);
+    --color-success-border-2: rgba(73, 224, 136, 0.16);
     --color-success-foreground: hsl(145, 100%, 80%);
     --color-success-foreground-2: #49e088;
 
     --color-error-bg: hsl(357, 64%, 10%);
-    --color-error-bg-2: hsl(0, 41%, 12%);
+    --color-error-bg-2: rgba(255, 107, 107, 0.09);
     --color-error-border: hsl(357, 62%, 21%);
+    --color-error-border-2: rgba(255, 107, 107, 0.16);
     --color-error-foreground: hsl(356, 100%, 80%);
 
     --color-warning-bg: hsl(50, 100%, 8%);

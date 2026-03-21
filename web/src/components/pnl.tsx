@@ -20,7 +20,6 @@ export function PnL(props: PnLProps) {
         colorClass = "text-success-foreground-2";
     } else if (isNegative) {
         colorClass = "text-text-destructive-2";
-        // colorClass = "text-error-foreground";
     } else {
         colorClass = "text-foreground";
     }

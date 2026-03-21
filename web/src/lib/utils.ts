@@ -176,6 +176,7 @@ export function formatCurrency(
         localizationOpts = {},
         compact = false,
         showSign = true,
+        precision = 2,
     }: {
         currency?: CurrencyCode;
         hideSymbol?: boolean;
@@ -183,6 +184,7 @@ export function formatCurrency(
         localizationOpts?: Intl.NumberFormatOptions;
         compact?: boolean;
         showSign?: boolean;
+        precision?: number;
     } = {}
 ): string {
     const _amount = Number(amount);
@@ -193,13 +195,13 @@ export function formatCurrency(
         let formatted = "";
 
         if (absAmount >= 1_00_00_000) {
-            formatted = `${(absAmount / 1_00_00_000).toFixed(2)}Cr`;
+            formatted = `${(absAmount / 1_00_00_000).toFixed(precision)}Cr`;
         } else if (absAmount >= 1_00_000) {
-            formatted = `${(absAmount / 1_00_000).toFixed(2)}L`;
+            formatted = `${(absAmount / 1_00_000).toFixed(precision)}L`;
         } else if (absAmount >= 1_000) {
-            formatted = `${(absAmount / 1_000).toFixed(2)}k`;
+            formatted = `${(absAmount / 1_000).toFixed(precision)}k`;
         } else {
-            formatted = absAmount.toFixed(2);
+            formatted = absAmount.toFixed(precision);
         }
 
         const value = hideSymbol ? formatted : `${getCurrencySymbol(currency)}${formatted}`;
