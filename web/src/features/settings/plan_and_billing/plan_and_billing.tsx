@@ -32,7 +32,7 @@ import { BillingIntervalToString, PaymentProviderToString, SubscriptionInvoice }
 import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 import { Pricing } from "./components/pricing";
-import { IconDownload } from "@/components/icons";
+import { IconCloudDownload } from "@/components/icons";
 import { CancelSubscription } from "@/features/settings/plan_and_billing/components/cancel_subscription";
 import { TrialCountdown } from "@/components/trial_countdown";
 
@@ -247,7 +247,7 @@ function Invoices() {
                 return (
                     <Tooltip content="Download Invoice" contentProps={{ side: "left" }}>
                         <Button variant="ghost" size="icon" onClick={() => setFetch(true)}>
-                            <IconDownload size={18} />
+                            <IconCloudDownload size={18} />
                         </Button>
                     </Tooltip>
                 );

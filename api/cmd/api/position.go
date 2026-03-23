@@ -168,7 +168,7 @@ func searchPositionsHandler(s *position.Service) http.HandlerFunc {
 	}
 }
 
-func importHandler(s *position.Service) http.HandlerFunc {
+func importPositionsHandler(s *position.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		l := logger.FromCtx(ctx)
@@ -369,5 +369,47 @@ func importHandler(s *position.Service) http.HandlerFunc {
 		}
 
 		successResponse(w, r, http.StatusOK, "Positions imported successfully", finalResult)
+	}
+}
+
+func exportPositionsHandler(s *position.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		userID := getUserIDFromContext(ctx)
+		tz := getUserTimezoneFromCtx(ctx)
+		enforcer := getPlanEnforcerFromCtx(ctx)
+
+		var payload position.SearchPayload
+		if err := decodeJSONRequest(&payload, r); err != nil {
+			malformedJSONResponse(w, r, err)
+			return
+		}
+
+		// We only want to return the positions for the authenticated user.
+		payload.Filters.CreatedBy = &userID
+
+		result, errKind, err := s.Export(ctx, userID, tz, enforcer, payload)
+		if err != nil {
+			serviceErrResponse(w, r, errKind, err)
+			return
+		}
+
+		f := excelize.NewFile()
+		sheet := "Positions"
+		f.SetSheetName("Sheet1", sheet)
+
+		position.WritePositionsToSheet(f, sheet, result)
+
+		buf, err := f.WriteToBuffer()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		w.Header().Set("Content-Disposition", "attachment; filename=positions.xlsx")
+		w.Header().Set("Content-Length", strconv.Itoa(len(buf.Bytes())))
+
+		w.Write(buf.Bytes())
 	}
 }

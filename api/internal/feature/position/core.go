@@ -92,9 +92,10 @@ type Position struct {
 
 // UserBrokerAccountSearchValue contains only the essential fields needed for Position display
 type UserBrokerAccountSearchValue struct {
-	ID       uuid.UUID `json:"id"`
-	BrokerID uuid.UUID `json:"broker_id"`
-	Name     string    `json:"name"`
+	ID         uuid.UUID `json:"id"`
+	Name       string    `json:"name"`
+	BrokerID   uuid.UUID `json:"broker_id"`
+	BrokerName string    `json:"broker_name"`
 }
 
 type Direction string

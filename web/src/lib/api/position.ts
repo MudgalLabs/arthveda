@@ -131,6 +131,7 @@ export interface ImportPositionsRequest {
     confirm: boolean;
     force: boolean;
 }
+
 export interface ImportPositionsResponse {
     positions: Position[];
     invalid_positions: Position[];
@@ -170,4 +171,12 @@ export interface GetPositionResponse {
 
 export function getPosition(id: string) {
     return client.get<ApiRes<GetPositionResponse>>(API_ROUTES.position.get(id));
+}
+
+export interface ExportPositionsRequest extends SearchRequest<PositionSearchFilters> {}
+
+export function exportToExcel(body: ExportPositionsRequest) {
+    return client.post<Blob>(API_ROUTES.position.export, body, {
+        responseType: "blob",
+    });
 }

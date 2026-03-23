@@ -74,6 +74,10 @@ func (e *PlanEnforcer) CanUpload(currBytesUsed int64) bool {
 	return currBytesUsed < MaxUserUploadBytes
 }
 
+func (e *PlanEnforcer) IsPro() bool {
+	return isPro(e.subscription)
+}
+
 func isPro(subscription *UserSubscription) bool {
 	return subscription != nil && (subscription.PlanID == PlanPro || subscription.PlanID == PlanTrial) && subscription.Status == StatusActive
 }

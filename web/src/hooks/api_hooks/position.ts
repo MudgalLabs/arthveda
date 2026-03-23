@@ -22,7 +22,9 @@ import {
     GetPositionResponse,
     UpdatePositionRequest,
     UpdatePositionResponse,
+    ExportPositionsRequest,
 } from "@/lib/api/position";
+import { AxiosResponse } from "axios";
 
 const QueriesToInvalidateOnPositionChange = [
     "useGetDashboard",
@@ -142,5 +144,33 @@ export function useGetPosition(id: string) {
         queryKey: ["useGetPosition", id],
         queryFn: () => api.position.getPosition(id),
         select: (res) => res.data as ApiRes<GetPositionResponse>,
+    });
+}
+
+export function useExport(options: AnyUseMutationOptions = {}) {
+    const { onSuccess, ...restOptions } = options;
+
+    return useMutation<AxiosResponse<Blob>, unknown, ExportPositionsRequest>({
+        mutationFn: (body: ExportPositionsRequest) => {
+            return api.position.exportToExcel(body);
+        },
+        onSuccess: (...args) => {
+            const res = args[0];
+            const blob = res.data;
+
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "positions.xlsx";
+
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+            onSuccess?.(...args);
+        },
+        ...restOptions,
     });
 }

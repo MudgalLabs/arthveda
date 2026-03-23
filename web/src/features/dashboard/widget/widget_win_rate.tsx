@@ -17,7 +17,7 @@ export function WidgetWinRate(props: AvgWinRateProps) {
             <CardTitle className="section-heading-muted! flex-x justify-between">
                 <span>Win Rate</span>
                 <span>
-                    <Tag variant="muted" size="small" className="text-muted-foreground/70">
+                    <Tag variant="muted" size="small">
                         {totalTradesCount} T
                     </Tag>
                 </span>

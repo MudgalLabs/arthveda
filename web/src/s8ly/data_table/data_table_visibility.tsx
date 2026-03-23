@@ -28,7 +28,7 @@ export function DataTableVisibility<TData>({
                     variant="secondary"
                     className="data-[state=open]:bg-secondary-hover w-full text-sm enabled:active:scale-[1]! sm:w-fit"
                 >
-                    <IconColumns size={20} />
+                    <IconColumns size={18} />
                     Columns
                 </Button>
             </DropdownMenuTrigger>

@@ -1,6 +1,8 @@
 package common
 
 import (
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -136,4 +138,30 @@ func IsSameDay(t1, t2 time.Time, loc *time.Location) bool {
 	return t1InLoc.Year() == t2InLoc.Year() &&
 		t1InLoc.Month() == t2InLoc.Month() &&
 		t1InLoc.Day() == t2InLoc.Day()
+}
+
+func FormatDuration(start time.Time, end *time.Time) string {
+	if end == nil {
+		return "-"
+	}
+
+	d := end.Sub(start)
+
+	days := int(d.Hours()) / 24
+	hours := int(d.Hours()) % 24
+	mins := int(d.Minutes()) % 60
+
+	var parts []string
+
+	if days > 0 {
+		parts = append(parts, fmt.Sprintf("%d days", days))
+	}
+
+	if hours > 0 {
+		parts = append(parts, fmt.Sprintf("%d hours", hours))
+	}
+
+	parts = append(parts, fmt.Sprintf("%d mins", mins))
+
+	return strings.Join(parts, " ")
 }

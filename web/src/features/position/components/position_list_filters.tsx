@@ -39,7 +39,7 @@ export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: 
                         "bg-secondary-hover": open,
                     })}
                 >
-                    <IconListFilter className="text-foreground" /> Filters
+                    <IconListFilter className="text-foreground" size={18} /> Filters
                 </Button>
             </Drawer.Trigger>
 

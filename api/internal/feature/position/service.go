@@ -3,6 +3,7 @@ package position
 import (
 	"arthveda/internal/common"
 	"arthveda/internal/domain/broker_integration"
+	"strings"
 
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/domain/symbol"
@@ -26,6 +27,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"github.com/xuri/excelize/v2"
 )
 
 type Service struct {
@@ -1515,4 +1517,191 @@ func (s *Service) syncUploads(ctx context.Context, userID, journalEntryID uuid.U
 	}
 
 	return nil
+}
+
+type ExportResult struct{}
+
+func (s *Service) Export(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer, payload SearchPayload) ([]*Position, service.Error, error) {
+	if !enforcer.IsPro() {
+		return nil, service.ErrUnauthorized, errors.New("You need to have Arthveda Pro to export positions.")
+	}
+
+	err := payload.Init(allowedSortFields)
+	if err != nil {
+		return nil, service.ErrInvalidInput, err
+	}
+
+	twelveMonthsAgo := time.Now().AddDate(-1, 0, 0)
+
+	// If the user is not a Pro user, we limit the time range to the last 12 months.
+	if !enforcer.CanAccessAllPositions() {
+		// If no time range is specified or if the time range is specified,
+		// we check if it is more than 12 months ago.
+		if payload.Filters.Opened != nil {
+			if payload.Filters.Opened.From == nil || (payload.Filters.Opened.From != nil && payload.Filters.Opened.From.Before(twelveMonthsAgo)) {
+				payload.Filters.Opened.From = &twelveMonthsAgo
+			}
+		}
+	}
+
+	// Normalize timestamps.
+	if payload.Filters.Opened != nil {
+		openedFrom := time.Time{}
+		openedTo := time.Time{}
+
+		if payload.Filters.Opened.From != nil {
+			openedFrom = *payload.Filters.Opened.From
+		}
+
+		if payload.Filters.Opened.To != nil {
+			openedTo = *payload.Filters.Opened.To
+		}
+
+		openedFrom, openedTo, err = common.NormalizeDateRangeFromTimezone(openedFrom, openedTo, tz)
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("normalize opened date range: %w", err)
+		}
+
+		if payload.Filters.Opened.From != nil {
+			payload.Filters.Opened.From = &openedFrom
+		}
+
+		if payload.Filters.Opened.To != nil {
+			payload.Filters.Opened.To = &openedTo
+		}
+	}
+
+	// Normalize timestamps.
+	if payload.Filters.TradeTime != nil {
+		tradeTimeFrom := time.Time{}
+		tradeTimeTo := time.Time{}
+
+		if payload.Filters.TradeTime.From != nil {
+			tradeTimeFrom = *payload.Filters.TradeTime.From
+		}
+
+		if payload.Filters.TradeTime.To != nil {
+			tradeTimeTo = *payload.Filters.TradeTime.To
+		}
+
+		tradeTimeFrom, tradeTimeTo, err = common.NormalizeDateRangeFromTimezone(tradeTimeFrom, tradeTimeTo, tz)
+		if err != nil {
+			return nil, service.ErrInternalServerError, fmt.Errorf("normalize trade time date range: %w", err)
+		}
+
+		if payload.Filters.TradeTime.From != nil {
+			payload.Filters.TradeTime.From = &tradeTimeFrom
+		}
+
+		if payload.Filters.TradeTime.To != nil {
+			payload.Filters.TradeTime.To = &tradeTimeTo
+		}
+	}
+
+	// Get all positions.
+	payload.Pagination = common.Pagination{}
+
+	positions, _, err := s.positionRepository.Search(ctx, payload, payload.Filters.AttachTrades, true)
+	if err != nil {
+		return nil, service.ErrInternalServerError, fmt.Errorf("position repository list: %w", err)
+	}
+
+	return positions, service.ErrNone, nil
+}
+
+func WritePositionsToSheet(f *excelize.File, sheet string, positions []*Position) {
+	headers := []string{
+		"#", "Account", "Broker",
+		"Opened At", "Closed At", "Duration", "Symbol", "Direction", "Status", "Instrument",
+		"Net R", "Gross R", "Gross PnL", "Net PnL", "Charges", "Charges %", "Net Return %",
+		"Tags",
+	}
+
+	for i, h := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		f.SetCellValue(sheet, cell, h)
+	}
+
+	// Rows
+	for i, p := range positions {
+		row := i + 2
+
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), i+1)
+
+		// Account / Broker
+		var ubaName, ubaBrokerName string
+		if p.UserBrokerAccount != nil {
+			ubaName = p.UserBrokerAccount.Name
+			ubaBrokerName = p.UserBrokerAccount.BrokerName
+		}
+
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), ubaName)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), ubaBrokerName)
+
+		// Dates
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), p.OpenedAt)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), p.ClosedAt)
+
+		// Duration (NEW)
+		duration := common.FormatDuration(p.OpenedAt, p.ClosedAt)
+		f.SetCellValue(sheet, fmt.Sprintf("F%d", row), duration)
+
+		// Rest shifted
+		f.SetCellValue(sheet, fmt.Sprintf("G%d", row), p.Symbol)
+		f.SetCellValue(sheet, fmt.Sprintf("H%d", row), strings.ToUpper(string(p.Direction)))
+
+		winStyle, _ := f.NewStyle(&excelize.Style{
+			Font: &excelize.Font{
+				Color: "#16a34a",
+				Bold:  true,
+			},
+		})
+
+		lossStyle, _ := f.NewStyle(&excelize.Style{
+			Font: &excelize.Font{
+				Color: "#dc2626",
+				Bold:  true,
+			},
+		})
+
+		openStyle, _ := f.NewStyle(&excelize.Style{
+			Font: &excelize.Font{
+				Color: "#6b7280",
+				Bold:  true,
+			},
+		})
+
+		cell := fmt.Sprintf("I%d", row)
+
+		status := strings.ToUpper(string(p.Status))
+		f.SetCellValue(sheet, cell, status)
+
+		switch status {
+		case "WIN":
+			f.SetCellStyle(sheet, cell, cell, winStyle)
+		case "LOSS":
+			f.SetCellStyle(sheet, cell, cell, lossStyle)
+		case "OPEN":
+			f.SetCellStyle(sheet, cell, cell, openStyle)
+		}
+
+		f.SetCellValue(sheet, fmt.Sprintf("J%d", row), strings.ToUpper(string(p.Instrument)))
+
+		f.SetCellValue(sheet, fmt.Sprintf("K%d", row), p.RFactor)
+		f.SetCellValue(sheet, fmt.Sprintf("L%d", row), p.GrossRFactor)
+		f.SetCellValue(sheet, fmt.Sprintf("M%d", row), p.GrossPnLAmount)
+		f.SetCellValue(sheet, fmt.Sprintf("N%d", row), p.NetPnLAmount)
+		f.SetCellValue(sheet, fmt.Sprintf("O%d", row), p.TotalChargesAmount)
+		f.SetCellValue(sheet, fmt.Sprintf("P%d", row), p.ChargesAsPercentageOfNetPnL)
+		f.SetCellValue(sheet, fmt.Sprintf("Q%d", row), p.NetReturnPercentage)
+
+		// Tags (shifted to R)
+		var tagNames []string
+		for _, tag := range p.Tags {
+			tagNames = append(tagNames, tag.Name)
+		}
+		tagsStr := strings.Join(tagNames, ", ")
+
+		f.SetCellValue(sheet, fmt.Sprintf("R%d", row), tagsStr)
+	}
 }

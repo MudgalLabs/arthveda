@@ -32,6 +32,7 @@ import { GeneralStats } from "@/features/position/position";
 import { WidgetWinRate } from "@/features/dashboard/widget/widget_win_rate";
 import { WidgetProfitFactor } from "@/features/dashboard/widget/widget_profit_factor";
 import { WidgetAvgWinLoss } from "@/features/dashboard/widget/widget_avg_win_loss";
+import { PositionExportButton } from "./position_export_button";
 
 export interface PositionListTable {
     positions: Position[];
@@ -393,12 +394,9 @@ export const PositionListTable: FC<PositionListTable> = memo(
                     cell: ({ row }) => (
                         <div className="flex flex-wrap gap-1">
                             {row.original.tags?.map((tag) => (
-                                <span
-                                    key={tag.id}
-                                    className="bg-secondary text-secondary-foreground rounded px-2 py-1 text-xs"
-                                >
+                                <Tag variant="muted" size="small">
                                     {tag.name}
-                                </span>
+                                </Tag>
                             ))}
                         </div>
                     ),
@@ -462,6 +460,7 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                 <div className="flex gap-x-2">
                                     {!hideFilters && <PositionListFilters isFetching={isFetching} />}
                                     {!hideColumnVisibility && <DataTableVisibility table={table} />}
+                                    <PositionExportButton />
                                 </div>
 
                                 {!hideFilters && activeFiltersRow}
@@ -469,9 +468,9 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                 <div className="grid auto-rows-[140px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[1.6fr_1.0fr_0.6fr_1.2fr]">
                                     <div className="relative h-full w-full">
                                         <WidgetPnLCard
-                                            gross={new Decimal(generalStats.gross_pnl)}
-                                            net={new Decimal(generalStats.net_pnl)}
-                                            charges={new Decimal(generalStats.charges)}
+                                            gross={new Decimal(generalStats.gross_pnl || 0)}
+                                            net={new Decimal(generalStats.net_pnl || 0)}
+                                            charges={new Decimal(generalStats.charges || 0)}
                                         />
                                     </div>
 
@@ -491,8 +490,8 @@ export const PositionListTable: FC<PositionListTable> = memo(
 
                                     <div className="relative h-full w-full">
                                         <WidgetAvgWinLoss
-                                            avgWin={new Decimal(generalStats.avg_win)}
-                                            avgLoss={new Decimal(generalStats.avg_loss)}
+                                            avgWin={new Decimal(generalStats.avg_win || 0)}
+                                            avgLoss={new Decimal(generalStats.avg_loss || 0)}
                                             ratio={new Decimal(generalStats.avg_win_loss_ratio)}
                                         />
                                     </div>

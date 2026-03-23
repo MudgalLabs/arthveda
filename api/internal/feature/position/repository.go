@@ -334,10 +334,12 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 			p.open_average_price_amount, p.broker_id, p.user_broker_account_id,
 			p.currency_code, p.enable_auto_charges, p.fx_rate, p.fx_source, p.gross_pnl_amount_away,
 			p.net_pnl_amount_away, p.total_charges_amount_away,
-			uba.id, uba.broker_id, uba.name
+			uba.id, uba.broker_id, uba.name,
+			b.name
 		FROM
 			position p
 		LEFT JOIN user_broker_account uba ON uba.id = p.user_broker_account_id
+		LEFT JOIN broker b on b.id = uba.broker_id
 	`
 
 	b := dbx.NewSQLBuilder(baseSQL)
@@ -463,6 +465,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 		var ubaID *uuid.UUID
 		var ubaBrokerID *uuid.UUID
 		var ubaName *string
+		var ubaBrokerName *string
 
 		err := rows.Scan(
 			&pos.ID, &pos.CreatedBy, &pos.CreatedAt, &pos.UpdatedAt,
@@ -474,6 +477,7 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 			&pos.CurrencyCode, &pos.EnableAutoCharges, &pos.FxRate, &pos.FxSource, &pos.GrossPnLAmountAway,
 			&pos.NetPnLAmountAway, &pos.TotalChargesAmountAway,
 			&ubaID, &ubaBrokerID, &ubaName,
+			&ubaBrokerName,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("scan: %w", err)
@@ -481,9 +485,10 @@ func (r *positionRepository) findPositions(ctx context.Context, p SearchPayload,
 
 		if ubaID != nil {
 			ubaSummary := UserBrokerAccountSearchValue{
-				ID:       *ubaID,
-				BrokerID: *ubaBrokerID,
-				Name:     *ubaName,
+				ID:         *ubaID,
+				Name:       *ubaName,
+				BrokerID:   *ubaBrokerID,
+				BrokerName: *ubaBrokerName,
 			}
 			pos.UserBrokerAccount = &ubaSummary
 		}

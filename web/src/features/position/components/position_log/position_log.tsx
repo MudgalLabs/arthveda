@@ -498,8 +498,13 @@ const DurationCard = memo(({ opened_at, closed_at }: { opened_at: Date; closed_a
                     <IconCalendarRange />
                     <div className="space-x-2">
                         <span>{formatDate(opened_at, { time: true })}</span>
-                        <span>-</span>
-                        {closed_at && <span>{formatDate(closed_at, { time: true })}</span>}
+
+                        {closed_at && (
+                            <>
+                                <span>-</span>
+                                <span>{formatDate(closed_at, { time: true })}</span>
+                            </>
+                        )}
                     </div>
                 </div>
             </CardContent>

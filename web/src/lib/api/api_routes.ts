@@ -31,6 +31,7 @@ export const API_ROUTES = {
         compute: "/v1/positions/compute",
         import: "/v1/positions/import",
         search: "/v1/positions/search",
+        export: "/v1/positions/export",
     },
     subscription: {
         cancelSubscriptionAtPeriodEnd: "/v1/subscriptions/me/cancel-at-period-end",
