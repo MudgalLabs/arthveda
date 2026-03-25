@@ -28,6 +28,13 @@ export function OnboardingBroker() {
     const handleClickContinue = async () => {
         if (!brokerId) return;
 
+        const brokerName = getBrokerNameById(brokerId);
+
+        if (brokerName === "Other") {
+            // For "Other", we don't have "import" support.
+            navigate("/onboarding/message");
+        }
+
         if (!brokerAccountId) {
             await create({
                 name: "Primary",

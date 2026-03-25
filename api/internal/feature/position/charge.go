@@ -18,6 +18,10 @@ import (
 func CalculateAndApplyChargesToTrades(trades []*trade.Trade, instrument types.Instrument, brokerName broker.Name) (charges []decimal.Decimal, userError bool, err error) {
 	charges = make([]decimal.Decimal, len(trades))
 
+	if brokerName == broker.BrokerNameOther {
+		return charges, false, nil
+	}
+
 	for i, trade := range trades {
 		tradeValue := trade.Quantity.Mul(trade.Price)
 

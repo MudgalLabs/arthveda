@@ -629,6 +629,7 @@ const OptionsStep: FC<ImportStepProps> = ({ state, setState }) => {
         "Kotak Securities": ["equity", "future", "option"],
         Upstox: ["equity", "option"],
         Zerodha: ["equity", "future", "option"],
+        Other: [],
     };
 
     return (

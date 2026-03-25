@@ -68,7 +68,9 @@ func (r *brokerRepository) GetByName(ctx context.Context, name Name) (*Broker, e
 }
 
 func (r *brokerRepository) List(ctx context.Context) ([]*Broker, error) {
-	filter := filters{} // Empty filter to fetch all brokers
+	// Empty filter to fetch all brokers.
+	filter := filters{}
+
 	brokers, err := r.findBrokers(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("repository list: %w", err)
@@ -89,9 +91,9 @@ func (r *brokerRepository) findBrokers(ctx context.Context, f filters) ([]*Broke
 		builder.AddCompareFilter("name", "=", v)
 	}
 
-	builder.AddSorting("name", "ASC")
-
 	sql, args := builder.Build()
+
+	sql += " ORDER BY CASE WHEN name = 'Other' THEN 1 ELSE 0 END, name ASC"
 
 	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {

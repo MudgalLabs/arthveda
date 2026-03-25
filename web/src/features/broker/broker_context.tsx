@@ -10,6 +10,7 @@ import INDmoney from "@/assets/brokers/indmoney.svg";
 import KotakSecuritiesLogo from "@/assets/brokers/kotak_securities.svg";
 import UpstoxLogo from "@/assets/brokers/upstox.svg";
 import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
+import OtherLogo from "@/assets/brokers/other.svg";
 
 const getBrokerLogoByName = (name: BrokerName) => {
     switch (name) {
@@ -27,6 +28,8 @@ const getBrokerLogoByName = (name: BrokerName) => {
             return UpstoxLogo;
         case "Zerodha":
             return ZerodhaLogo;
+        case "Other":
+            return OtherLogo;
         default:
             return "";
     }

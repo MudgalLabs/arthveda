@@ -33,6 +33,7 @@ import { WidgetWinRate } from "@/features/dashboard/widget/widget_win_rate";
 import { WidgetProfitFactor } from "@/features/dashboard/widget/widget_profit_factor";
 import { WidgetAvgWinLoss } from "@/features/dashboard/widget/widget_avg_win_loss";
 import { PositionExportButton } from "./position_export_button";
+import { useBroker } from "@/features/broker/broker_context";
 
 export interface PositionListTable {
     positions: Position[];
@@ -86,6 +87,10 @@ export const PositionListTable: FC<PositionListTable> = memo(
                 {
                     id: "actions",
                     cell: ({ row }) => {
+                        const { getBrokerById } = useBroker();
+                        const brokerId = row.original.user_broker_account?.broker_id;
+                        const broker = brokerId ? getBrokerById(brokerId) : null;
+
                         return (
                             <div className="flex-x">
                                 <Link to={ROUTES.viewPosition(row.original.id)}>
@@ -100,8 +105,8 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                     <Tooltip
                                         delayDuration={300}
                                         content={
-                                            row.original.user_broker_account?.broker_id
-                                                ? `Broker Account: ${row.original.user_broker_account.name}`
+                                            brokerId
+                                                ? `${row.original.user_broker_account.name} (${broker?.name})`
                                                 : null
                                         }
                                         disabled={!row.original.user_broker_account?.broker_id}

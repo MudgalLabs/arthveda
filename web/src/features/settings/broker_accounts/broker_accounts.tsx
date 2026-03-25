@@ -176,6 +176,10 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                 navigate(`${ROUTES.importPositions}?${url.toString()}`);
             };
 
+            if (!broker.supports_file_import) {
+                return <NotSupported />;
+            }
+
             return (
                 <Tooltip content="Import is not supported yet" disabled={supportsImport}>
                     <Button variant="secondary" disabled={!supportsImport} onClick={handleClick}>
@@ -276,12 +280,8 @@ const columns: ColumnDef<UserBrokerAccount>[] = [
                 return "";
             }
 
-            if (broker.name !== "Zerodha") {
-                return (
-                    <span className="flex-x">
-                        <IconBadgeAlert size={16} className="text-text-warning" /> Broker not supported
-                    </span>
-                );
+            if (!broker.supports_trade_sync) {
+                return <NotSupported />;
             }
 
             if (!row.original.is_authenticated) {
@@ -1049,3 +1049,11 @@ const SyncSummaryModal: FC<SyncSummaryModalProps> = ({ syncSummary, open, setOpe
         </Dialog>
     );
 };
+
+function NotSupported() {
+    return (
+        <span className="flex-x text-text-muted">
+            <IconBadgeAlert size={16} className="text-text-warning" /> Not supported
+        </span>
+    );
+}

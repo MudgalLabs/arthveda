@@ -24,6 +24,7 @@ const (
 	BrokerNameKotakSecurities Name = "Kotak Securities"
 	BrokerNameUpstox          Name = "Upstox"
 	BrokerNameZerodha         Name = "Zerodha"
+	BrokerNameOther           Name = "Other"
 )
 
 var supportedInstrumentsByBroker = map[Name][]types.Instrument{
