@@ -58,6 +58,7 @@ const getColor = (kind: "best" | "worst", index: number) => {
 
 function SymbolsPerformancePie(props: SymbolsPerformancePieProps) {
     const { data, kind } = props;
+    const isWorst = kind == "worst";
 
     const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
 
@@ -69,7 +70,7 @@ function SymbolsPerformancePie(props: SymbolsPerformancePieProps) {
         avg_gross_r: new Decimal(d.avg_gross_r).toFixed(2),
     }));
 
-    const total = new Decimal(parsed.reduce((acc, d) => acc + d.net_pnl_abs, 0)).toFixed(2);
+    const total = new Decimal(parsed.reduce((acc, d) => acc + d.net_pnl_abs, 0)).mul(isWorst ? -1 : 1).toFixed(2);
     const othersColor = "color-mix(in srgb, var(--color-chart-muted) 40%, transparent)";
 
     return (
@@ -116,7 +117,11 @@ function SymbolsPerformancePie(props: SymbolsPerformancePieProps) {
             <div className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center">
                 <div className="text-muted-foreground text-xs">{kind === "best" ? "Total Profit" : "Total Loss"}</div>
 
-                <div className="text-lg font-semibold tabular-nums">{formatCurrency(total, { compact: true })}</div>
+                <PnL value={new Decimal(total)}>
+                    <span className="text-lg font-semibold tabular-nums">
+                        {formatCurrency(total, { compact: true })}
+                    </span>
+                </PnL>
             </div>
         </Card>
     );

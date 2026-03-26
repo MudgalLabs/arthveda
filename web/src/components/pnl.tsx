@@ -34,5 +34,5 @@ export function PnL(props: PnLProps) {
         }
     }
 
-    return <span className={cn("tabular-nums", className, colorClass)}>{children}</span>;
+    return <span className={cn("whitespace-nowrap tabular-nums", className, colorClass)}>{children}</span>;
 }

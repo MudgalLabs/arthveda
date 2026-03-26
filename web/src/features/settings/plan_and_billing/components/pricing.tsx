@@ -71,7 +71,7 @@ export function Pricing(props: PricingProps) {
                     <p className="text-text-primary mt-8 text-center text-4xl font-bold">
                         {formatCurrency(activePrice, {
                             currency,
-                            showSign: false,
+                            signDisplay: "auto",
                         })}
                         <span className="text-muted-foreground text-base font-medium">/{activeInterval}</span>
                     </p>

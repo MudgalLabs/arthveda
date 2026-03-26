@@ -500,7 +500,6 @@ function Day(props: DayProps) {
                                             ? formatCurrency(netPnL.toString(), {
                                                   compact: true,
                                                   hideSymbol,
-                                                  showSign: !shrinkedView,
                                                   precision: shrinkedView ? 0 : 2,
                                               })
                                             : shrinkedView
@@ -619,7 +618,7 @@ function WeeklyPerformanceTile(props: WeeklyPerformanceTileProps) {
                         {perfViewMode !== CalendarPerfViewMode.GROSS_R_FACTOR
                             ? formatCurrency(pnl.toString(), {
                                   compact: true,
-                                  showSign: !shrinkedView,
+                                  //   signDisplay: shrinkedView ? "never" : "exceptZero",
                               })
                             : pnl.toFixed(2)}
                     </PnL>

@@ -168,59 +168,67 @@ export function removeAtIndex<T>(array: T[], index: number): T[] {
 }
 
 export function formatCurrency(
-    amount: string | number,
-    {
-        currency = "INR",
-        hideSymbol = false,
-        locale = "en-IN",
-        localizationOpts = {},
-        compact = false,
-        showSign = true,
-        precision = 2,
-    }: {
+    _amount: number | string,
+    opts: {
         currency?: CurrencyCode;
-        hideSymbol?: boolean;
         locale?: string;
-        localizationOpts?: Intl.NumberFormatOptions;
-        compact?: boolean;
-        showSign?: boolean;
+        hideSymbol?: boolean;
         precision?: number;
+        signDisplay?: Intl.NumberFormatOptions["signDisplay"];
+        compact?: boolean;
     } = {}
-): string {
-    const _amount = Number(amount);
-    const sign = showSign ? (_amount > 0 ? "+" : _amount < 0 ? "-" : "") : "";
-    const absAmount = Math.abs(_amount);
+) {
+    const amount = Number(_amount);
 
-    if (compact) {
-        let formatted = "";
+    const {
+        currency = "INR",
+        locale = "en-IN",
+        hideSymbol = false,
+        precision = 2,
+        signDisplay = "exceptZero",
+        compact = false,
+    } = opts;
 
-        if (absAmount >= 1_00_00_000) {
-            formatted = `${(absAmount / 1_00_00_000).toFixed(precision)}Cr`;
-        } else if (absAmount >= 1_00_000) {
-            formatted = `${(absAmount / 1_00_000).toFixed(precision)}L`;
-        } else if (absAmount >= 1_000) {
-            formatted = `${(absAmount / 1_000).toFixed(precision)}k`;
+    // Special handling for INR compact (Intl is bad here).
+    if (compact && currency === "INR") {
+        const abs = Math.abs(amount);
+
+        let value = "";
+        let suffix = "";
+
+        if (abs >= 1e7) {
+            value = (abs / 1e7).toFixed(precision);
+            suffix = "Cr";
+        } else if (abs >= 1e5) {
+            value = (abs / 1e5).toFixed(precision);
+            suffix = "L";
+        } else if (abs >= 1e3) {
+            value = (abs / 1e3).toFixed(precision);
+            suffix = "k";
         } else {
-            formatted = absAmount.toFixed(precision);
+            value = abs.toFixed(precision);
         }
 
-        const value = hideSymbol ? formatted : `${getCurrencySymbol(currency)}${formatted}`;
+        const symbol = hideSymbol ? "" : getCurrencySymbol(currency);
 
-        return `${sign}${value}`;
+        return new Intl.NumberFormat(locale, {
+            signDisplay,
+        })
+            .format(amount < 0 ? -1 : amount > 0 ? 1 : 0) // just for sign
+            .replace(/[0-9.,]+/, `${symbol}${value}${suffix}`);
     }
 
-    const options = deepMerge(
-        {
-            style: hideSymbol ? "decimal" : "currency",
-            currency: currency,
-            maximumFractionDigits: 8,
-        },
-        localizationOpts
-    );
-
-    const formatted = new Intl.NumberFormat(locale, options).format(absAmount);
-
-    return `${sign}${formatted}`;
+    return new Intl.NumberFormat(locale, {
+        style: hideSymbol ? "decimal" : "currency",
+        currency,
+        minimumFractionDigits: precision,
+        maximumFractionDigits: precision,
+        signDisplay,
+        ...(compact && {
+            notation: "compact",
+            compactDisplay: "short",
+        }),
+    }).format(amount);
 }
 
 export function removeFormatCurrency(formatted: string): string {
