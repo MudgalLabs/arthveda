@@ -34,6 +34,7 @@ import { WidgetProfitFactor } from "@/features/dashboard/widget/widget_profit_fa
 import { WidgetAvgWinLoss } from "@/features/dashboard/widget/widget_avg_win_loss";
 import { PositionExportButton } from "./position_export_button";
 import { useBroker } from "@/features/broker/broker_context";
+import { Label } from "@/s8ly";
 
 export interface PositionListTable {
     positions: Position[];
@@ -105,9 +106,19 @@ export const PositionListTable: FC<PositionListTable> = memo(
                                     <Tooltip
                                         delayDuration={300}
                                         content={
-                                            brokerId
-                                                ? `${row.original.user_broker_account.name} (${broker?.name})`
-                                                : null
+                                            brokerId ? (
+                                                <div className="flex-y min-w-32">
+                                                    <div className="flex-x justify-between">
+                                                        <Label>Name</Label>
+                                                        <span>{row.original.user_broker_account.name}</span>
+                                                    </div>
+
+                                                    <div className="flex-x justify-between">
+                                                        <Label>Broker</Label>
+                                                        <span>{broker?.name}</span>
+                                                    </div>
+                                                </div>
+                                            ) : null
                                         }
                                         disabled={!row.original.user_broker_account?.broker_id}
                                     >

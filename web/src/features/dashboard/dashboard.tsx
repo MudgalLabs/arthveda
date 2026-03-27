@@ -168,6 +168,7 @@ export const Dashboard = () => {
                         // }
                     }}
                     draggableHandle=".custom-drag-handle"
+                    useCSSTransforms={false}
                 >
                     <div key="net_pnl">
                         <WidgetContainer>
