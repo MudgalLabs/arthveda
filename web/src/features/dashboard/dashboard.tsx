@@ -55,15 +55,26 @@ const mdLayout: Layout[] = [
     { i: "pnl_graph", x: 0, y: 26, w: 6, h: 10 },
 ];
 
+// const smLayout: Layout[] = [
+//     { i: "net_pnl", x: 0, y: 0, w: 4, h: 4 },
+//     { i: "win_rate", x: 0, y: 5, w: 4, h: 4 },
+//     { i: "avg_win_loss", x: 0, y: 9, w: 4, h: 4 },
+//     { i: "expectancy", x: 0, y: 13, w: 4, h: 4 },
+//     { i: "profit_factor", x: 0, y: 17, w: 4, h: 4 },
+//     { i: "streak", x: 0, y: 21, w: 4, h: 4 },
+//     { i: "cumulative_pnl_graph", x: 0, y: 25, w: 4, h: 8 },
+//     { i: "pnl_graph", x: 0, y: 33, w: 4, h: 8 },
+// ];
+
 const smLayout: Layout[] = [
     { i: "net_pnl", x: 0, y: 0, w: 4, h: 4 },
-    { i: "win_rate", x: 0, y: 5, w: 4, h: 4 },
-    { i: "avg_win_loss", x: 0, y: 9, w: 4, h: 4 },
-    { i: "expectancy", x: 0, y: 13, w: 4, h: 4 },
-    { i: "profit_factor", x: 0, y: 17, w: 4, h: 4 },
-    { i: "streak", x: 0, y: 21, w: 4, h: 4 },
-    { i: "cumulative_pnl_graph", x: 0, y: 25, w: 4, h: 8 },
-    { i: "pnl_graph", x: 0, y: 33, w: 4, h: 8 },
+    { i: "cumulative_pnl_graph", x: 0, y: 4, w: 4, h: 8 },
+    { i: "win_rate", x: 0, y: 12, w: 4, h: 4 },
+    { i: "avg_win_loss", x: 0, y: 16, w: 4, h: 4 },
+    { i: "expectancy", x: 0, y: 20, w: 4, h: 4 },
+    { i: "profit_factor", x: 0, y: 24, w: 4, h: 4 },
+    { i: "streak", x: 0, y: 28, w: 4, h: 4 },
+    { i: "pnl_graph", x: 0, y: 32, w: 4, h: 8 },
 ];
 
 export const Dashboard = () => {

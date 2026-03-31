@@ -9,7 +9,7 @@ import {
     LocalStorageKeyCumulativePnLShowNet,
 } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use_is_mobile";
-import { Card, CardTitle } from "@/components/card";
+import { Card, CardContent, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";
 import { ChartConfig, ChartContainer, ChartTooltipContent, tooltipCursor, axisDefaults, Checkbox } from "netra";
 import { useLocalStorageState } from "@/hooks/use_local_storage_state";
@@ -55,145 +55,147 @@ export const WidgetCumulativePnLGraph: FC<Props> = ({ data, isLoading, isResizab
         <Card className="relative h-full w-full overflow-hidden">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
-            <CardTitle className="section-heading-muted!">Cumulative PnL</CardTitle>
+            <CardTitle className="section-heading-muted! mb-2">Cumulative PnL</CardTitle>
 
-            <div className="flex w-full justify-center gap-x-4 [&>div]:flex [&>div]:items-center [&>div]:gap-x-1">
-                <div>
-                    <Checkbox
-                        id="cumulative-pnl-graph-net"
-                        checked={showNet}
-                        onCheckedChange={() => setShowNet((prev) => !prev)}
-                    />
-                    <Label className="label-muted" htmlFor="cumulative-pnl-graph-net">
-                        Net
-                    </Label>
-                </div>
-
-                <div>
-                    <Checkbox
-                        id="cumulative-pnl-graph-gross"
-                        checked={showGross}
-                        onCheckedChange={() => setShowGross((prev) => !prev)}
-                    />
-                    <Label className="label-muted" htmlFor="cumulative-pnl-graph-gross">
-                        Gross
-                    </Label>
-                </div>
-
-                <div>
-                    <Checkbox
-                        id="cumulative-pnl-graph-charges"
-                        checked={showCharges}
-                        onCheckedChange={() => setShowCharges((prev) => !prev)}
-                    />
-                    <Label className="label-muted" htmlFor="cumulative-pnl-graph-charges">
-                        Charges
-                    </Label>
-                </div>
-            </div>
-
-            <div className="h-4" />
-
-            <ChartContainer config={chartConfig}>
-                <ResponsiveContainer width="100%" minHeight={300} height="100%">
-                    <AreaChart
-                        data={data}
-                        margin={{
-                            top: 0,
-                            right: 0,
-                            bottom: isResizable ? 80 : 0, // Adding this so that the chat doesn't overflow.
-                            left: isMobile ? -10 : 0,
-                        }}
-                    >
-                        <CartesianGrid stroke="var(--color-secondary-hover)" strokeOpacity={1} vertical={false} />
-                        <XAxis {...axisDefaults(isMobile)} dataKey="label" />
-                        <YAxis
-                            {...axisDefaults(isMobile)}
-                            // Adding some buffer to the Y-axis
-                            domain={[
-                                (dataMin: number) => Math.floor(Math.min(0, dataMin * 1.15) / 1000) * 1000,
-                                (dataMax: number) => Math.ceil((dataMax * 1.05) / 1000) * 1000,
-                            ]}
-                            tickFormatter={(value: number) =>
-                                formatCurrency(value, {
-                                    compact: true,
-                                    hideSymbol: true,
-                                    precision: 0,
-                                })
-                            }
+            <CardContent>
+                <div className="flex w-full justify-center gap-x-4 [&>div]:flex [&>div]:items-center [&>div]:gap-x-1">
+                    <div>
+                        <Checkbox
+                            id="cumulative-pnl-graph-net"
+                            checked={showNet}
+                            onCheckedChange={() => setShowNet((prev) => !prev)}
                         />
-                        <Tooltip
-                            cursor={tooltipCursor}
-                            content={
-                                <ChartTooltipContent
-                                    indicator="line"
-                                    formatter={(value) => formatCurrency(new Decimal(value as string).toFixed(2))}
+                        <Label className="label-muted" htmlFor="cumulative-pnl-graph-net">
+                            Net
+                        </Label>
+                    </div>
+
+                    <div>
+                        <Checkbox
+                            id="cumulative-pnl-graph-gross"
+                            checked={showGross}
+                            onCheckedChange={() => setShowGross((prev) => !prev)}
+                        />
+                        <Label className="label-muted" htmlFor="cumulative-pnl-graph-gross">
+                            Gross
+                        </Label>
+                    </div>
+
+                    <div>
+                        <Checkbox
+                            id="cumulative-pnl-graph-charges"
+                            checked={showCharges}
+                            onCheckedChange={() => setShowCharges((prev) => !prev)}
+                        />
+                        <Label className="label-muted" htmlFor="cumulative-pnl-graph-charges">
+                            Charges
+                        </Label>
+                    </div>
+                </div>
+
+                <div className="h-4" />
+
+                <ChartContainer config={chartConfig}>
+                    <ResponsiveContainer width="100%" minHeight={300} height="100%">
+                        <AreaChart
+                            data={data}
+                            margin={{
+                                top: 0,
+                                right: 0,
+                                bottom: isResizable ? 80 : 0, // Adding this so that the chat doesn't overflow.
+                                left: isMobile ? -10 : 0,
+                            }}
+                        >
+                            <CartesianGrid stroke="var(--color-secondary-hover)" strokeOpacity={1} vertical={false} />
+                            <XAxis {...axisDefaults(isMobile)} dataKey="label" />
+                            <YAxis
+                                {...axisDefaults(isMobile)}
+                                // Adding some buffer to the Y-axis
+                                domain={[
+                                    (dataMin: number) => Math.floor(Math.min(0, dataMin * 1.15) / 1000) * 1000,
+                                    (dataMax: number) => Math.ceil((dataMax * 1.05) / 1000) * 1000,
+                                ]}
+                                tickFormatter={(value: number) =>
+                                    formatCurrency(value, {
+                                        compact: true,
+                                        hideSymbol: true,
+                                        precision: 0,
+                                    })
+                                }
+                            />
+                            <Tooltip
+                                cursor={tooltipCursor}
+                                content={
+                                    <ChartTooltipContent
+                                        indicator="line"
+                                        formatter={(value) => formatCurrency(new Decimal(value as string).toFixed(2))}
+                                    />
+                                }
+                            />
+
+                            <defs>
+                                <linearGradient id="splitColorNet" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="var(--color-net-pnl)" stopOpacity="0.25" />
+                                    <stop offset="40%" stopColor="var(--color-net-pnl)" stopOpacity="0.05" />
+                                    <stop offset="100%" stopColor="var(--color-net-pnl)" stopOpacity="0" />
+                                </linearGradient>
+                            </defs>
+
+                            {showNet && (
+                                <Area
+                                    type="monotone"
+                                    dataKey="net_pnl"
+                                    stroke="var(--color-net-pnl)"
+                                    strokeWidth={2}
+                                    strokeOpacity={1}
+                                    fillOpacity={1}
+                                    fill="url(#splitColorNet)"
                                 />
-                            }
-                        />
+                            )}
 
-                        <defs>
-                            <linearGradient id="splitColorNet" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="var(--color-net-pnl)" stopOpacity="0.25" />
-                                <stop offset="40%" stopColor="var(--color-net-pnl)" stopOpacity="0.05" />
-                                <stop offset="100%" stopColor="var(--color-net-pnl)" stopOpacity="0" />
-                            </linearGradient>
-                        </defs>
+                            <defs>
+                                <linearGradient id="splitColorGross" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="var(--color-gross-pnl)" stopOpacity="0.25" />
+                                    <stop offset="40%" stopColor="var(--color-gross-pnl)" stopOpacity="0.05" />
+                                    <stop offset="100%" stopColor="var(--color-gross-pnl)" stopOpacity="0" />
+                                </linearGradient>
+                            </defs>
 
-                        {showNet && (
-                            <Area
-                                type="monotone"
-                                dataKey="net_pnl"
-                                stroke="var(--color-net-pnl)"
-                                strokeWidth={2}
-                                strokeOpacity={1}
-                                fillOpacity={1}
-                                fill="url(#splitColorNet)"
-                            />
-                        )}
+                            {showGross && (
+                                <Area
+                                    type="monotone"
+                                    dataKey="gross_pnl"
+                                    stroke="var(--color-gross-pnl)"
+                                    strokeWidth={1.5}
+                                    strokeOpacity={0.7}
+                                    fillOpacity={1}
+                                    fill="url(#splitColorGross)"
+                                />
+                            )}
 
-                        <defs>
-                            <linearGradient id="splitColorGross" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="var(--color-gross-pnl)" stopOpacity="0.25" />
-                                <stop offset="40%" stopColor="var(--color-gross-pnl)" stopOpacity="0.05" />
-                                <stop offset="100%" stopColor="var(--color-gross-pnl)" stopOpacity="0" />
-                            </linearGradient>
-                        </defs>
+                            <defs>
+                                <linearGradient id="splitColorCharges" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="var(--color-charges)" stopOpacity="0.25" />
+                                    <stop offset="40%" stopColor="var(--color-charges)" stopOpacity="0.05" />
+                                    <stop offset="100%" stopColor="var(--color-charges)" stopOpacity="0" />
+                                </linearGradient>
+                            </defs>
 
-                        {showGross && (
-                            <Area
-                                type="monotone"
-                                dataKey="gross_pnl"
-                                stroke="var(--color-gross-pnl)"
-                                strokeWidth={1.5}
-                                strokeOpacity={0.7}
-                                fillOpacity={1}
-                                fill="url(#splitColorGross)"
-                            />
-                        )}
-
-                        <defs>
-                            <linearGradient id="splitColorCharges" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="var(--color-charges)" stopOpacity="0.25" />
-                                <stop offset="40%" stopColor="var(--color-charges)" stopOpacity="0.05" />
-                                <stop offset="100%" stopColor="var(--color-charges)" stopOpacity="0" />
-                            </linearGradient>
-                        </defs>
-
-                        {showCharges && (
-                            <Area
-                                type="monotone"
-                                dataKey="charges"
-                                stroke="var(--color-charges)"
-                                strokeWidth={1.5}
-                                strokeOpacity={0.7}
-                                fillOpacity={1}
-                                fill="url(#splitColorCharges)"
-                            />
-                        )}
-                    </AreaChart>
-                </ResponsiveContainer>
-            </ChartContainer>
+                            {showCharges && (
+                                <Area
+                                    type="monotone"
+                                    dataKey="charges"
+                                    stroke="var(--color-charges)"
+                                    strokeWidth={1.5}
+                                    strokeOpacity={0.7}
+                                    fillOpacity={1}
+                                    fill="url(#splitColorCharges)"
+                                />
+                            )}
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </ChartContainer>
+            </CardContent>
         </Card>
     );
 };

@@ -3,7 +3,7 @@ import Decimal from "decimal.js";
 import { axisDefaults, ChartConfig, ChartContainer, ChartTooltipContent, Checkbox } from "netra";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import { Card, CardTitle } from "@/components/card";
+import { Card, CardContent, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import {
@@ -54,84 +54,86 @@ export const WidgetPnLGraph: FC<Props> = ({ data, isLoading, isResizable }) => {
         <Card className="relative h-full w-full overflow-hidden">
             {isLoading && <LoadingScreen className="absolute-center" />}
 
-            <CardTitle className="section-heading-muted!">PnL</CardTitle>
+            <CardTitle className="section-heading-muted! mb-2">PnL</CardTitle>
 
-            <div className="flex w-full justify-center gap-x-4 [&>div]:flex [&>div]:items-center [&>div]:gap-x-1">
-                <div>
-                    <Checkbox
-                        id="pnl-graph-net"
-                        checked={showNet}
-                        onCheckedChange={() => setShowNet((prev) => !prev)}
-                    />
-                    <Label className="label-muted" htmlFor="pnl-graph-net">
-                        Net
-                    </Label>
-                </div>
-
-                <div>
-                    <Checkbox
-                        id="pnl-graph-gross"
-                        checked={showGross}
-                        onCheckedChange={() => setShowGross((prev) => !prev)}
-                    />
-                    <Label className="label-muted" htmlFor="pnl-graph-gross">
-                        Gross
-                    </Label>
-                </div>
-
-                <div>
-                    <Checkbox
-                        id="pnl-graph-charges"
-                        checked={showCharges}
-                        onCheckedChange={() => setShowCharges((prev) => !prev)}
-                    />
-                    <Label className="label-muted" htmlFor="pnl-graph-charges">
-                        Charges
-                    </Label>
-                </div>
-            </div>
-
-            <div className="h-4" />
-
-            <ChartContainer config={chartConfig}>
-                <ResponsiveContainer width="100%" minHeight={300} height="100%">
-                    <BarChart
-                        data={data}
-                        margin={{
-                            top: 0,
-                            right: 0,
-                            bottom: isResizable ? 80 : 0, // Adding this so that the chat doesn't overflow.
-                            left: isMobile ? -10 : 0,
-                        }}
-                    >
-                        <CartesianGrid stroke="var(--color-secondary-hover)" strokeOpacity={1} vertical={false} />
-                        <XAxis {...axisDefaults(isMobile)} dataKey="label" />
-                        <YAxis
-                            {...axisDefaults(isMobile)}
-                            tickFormatter={(value: number) =>
-                                formatCurrency(value, {
-                                    compact: true,
-                                    hideSymbol: true,
-                                    precision: 0,
-                                })
-                            }
+            <CardContent>
+                <div className="flex w-full justify-center gap-x-4 [&>div]:flex [&>div]:items-center [&>div]:gap-x-1">
+                    <div>
+                        <Checkbox
+                            id="pnl-graph-net"
+                            checked={showNet}
+                            onCheckedChange={() => setShowNet((prev) => !prev)}
                         />
-                        <Tooltip
-                            cursor={{ fill: "var(--color-secondary-hover)", fillOpacity: 0.5 }}
-                            content={
-                                <ChartTooltipContent
-                                    indicator="line"
-                                    formatter={(value) => formatCurrency(new Decimal(value as string).toFixed(2))}
-                                />
-                            }
-                        />
+                        <Label className="label-muted" htmlFor="pnl-graph-net">
+                            Net
+                        </Label>
+                    </div>
 
-                        {showNet && <Bar dataKey="net_pnl" fill="var(--color-net-pnl)" />}
-                        {showGross && <Bar dataKey="gross_pnl" fill="var(--color-gross-pnl)" />}
-                        {showCharges && <Bar dataKey="charges" fill="var(--color-charges)" />}
-                    </BarChart>
-                </ResponsiveContainer>
-            </ChartContainer>
+                    <div>
+                        <Checkbox
+                            id="pnl-graph-gross"
+                            checked={showGross}
+                            onCheckedChange={() => setShowGross((prev) => !prev)}
+                        />
+                        <Label className="label-muted" htmlFor="pnl-graph-gross">
+                            Gross
+                        </Label>
+                    </div>
+
+                    <div>
+                        <Checkbox
+                            id="pnl-graph-charges"
+                            checked={showCharges}
+                            onCheckedChange={() => setShowCharges((prev) => !prev)}
+                        />
+                        <Label className="label-muted" htmlFor="pnl-graph-charges">
+                            Charges
+                        </Label>
+                    </div>
+                </div>
+
+                <div className="h-4" />
+
+                <ChartContainer config={chartConfig}>
+                    <ResponsiveContainer width="100%" minHeight={300} height="100%">
+                        <BarChart
+                            data={data}
+                            margin={{
+                                top: 0,
+                                right: 0,
+                                bottom: isResizable ? 80 : 0, // Adding this so that the chat doesn't overflow.
+                                left: isMobile ? -10 : 0,
+                            }}
+                        >
+                            <CartesianGrid stroke="var(--color-secondary-hover)" strokeOpacity={1} vertical={false} />
+                            <XAxis {...axisDefaults(isMobile)} dataKey="label" />
+                            <YAxis
+                                {...axisDefaults(isMobile)}
+                                tickFormatter={(value: number) =>
+                                    formatCurrency(value, {
+                                        compact: true,
+                                        hideSymbol: true,
+                                        precision: 0,
+                                    })
+                                }
+                            />
+                            <Tooltip
+                                cursor={{ fill: "var(--color-secondary-hover)", fillOpacity: 0.5 }}
+                                content={
+                                    <ChartTooltipContent
+                                        indicator="line"
+                                        formatter={(value) => formatCurrency(new Decimal(value as string).toFixed(2))}
+                                    />
+                                }
+                            />
+
+                            {showNet && <Bar dataKey="net_pnl" fill="var(--color-net-pnl)" />}
+                            {showGross && <Bar dataKey="gross_pnl" fill="var(--color-gross-pnl)" />}
+                            {showCharges && <Bar dataKey="charges" fill="var(--color-charges)" />}
+                        </BarChart>
+                    </ResponsiveContainer>
+                </ChartContainer>
+            </CardContent>
         </Card>
     );
 };
