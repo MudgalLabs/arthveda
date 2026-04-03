@@ -43,14 +43,14 @@ export function Settings() {
         if (isLoadingCanUpdaeHomeCurrency) return <LoadingScreen />;
 
         return (
-            <ul className="bg-surface-2 border-border-subtle divide-border-subtle mx-auto max-w-3xl divide-y rounded-md border px-3">
-                <li className="">
+            <div className="space-y-8">
+                <SettingGroup>
                     <SettingItem title="Theme" description="Select your interface color scheme">
                         <ThemeSelect />
                     </SettingItem>
-                </li>
+                </SettingGroup>
 
-                <li className="">
+                <SettingGroup>
                     <SettingItem
                         title="Home Currency"
                         description={
@@ -91,8 +91,8 @@ export function Settings() {
                             </span>
                         </Tooltip>
                     </SettingItem>
-                </li>
-            </ul>
+                </SettingGroup>
+            </div>
         );
     }, [isLoadingCanUpdaeHomeCurrency, currency, canUpdateHomeCurrency]);
 
@@ -128,6 +128,19 @@ export function Settings() {
 
 export default Settings;
 
+interface SettingGroupProps {
+    children: ReactNode;
+}
+
+function SettingGroup(props: SettingGroupProps) {
+    const { children } = props;
+    return (
+        <ul className="bg-surface-2 border-border-subtle divide-border-subtle mx-auto max-w-3xl divide-y rounded-md border px-3">
+            {children}
+        </ul>
+    );
+}
+
 interface SettingItemProps {
     children: ReactNode;
     title: string;
@@ -138,13 +151,13 @@ function SettingItem(props: SettingItemProps) {
     const { children, title, description = "" } = props;
 
     return (
-        <div className="flex-x justify-between py-4">
+        <li className="flex-x justify-between py-4">
             <div className="space-y-1">
                 <h2 className="text-base font-medium">{title}</h2>
                 <div className="text-text-muted">{description}</div>
             </div>
 
             <div>{children}</div>
-        </div>
+        </li>
     );
 }

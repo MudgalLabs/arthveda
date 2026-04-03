@@ -2,38 +2,17 @@ import { createContext, FC, PropsWithChildren, useCallback, useContext, useMemo 
 
 import { BrokerName, Broker } from "@/lib/api/broker";
 import { apiHooks } from "@/hooks/api_hooks";
+import { useTheme } from "@/features/settings/theme/theme_context";
 
 import AngelOneLogo from "@/assets/brokers/angel_one.svg";
 import Fyers from "@/assets/brokers/fyers.svg";
 import GrowwLogo from "@/assets/brokers/groww.svg";
 import INDmoney from "@/assets/brokers/indmoney.svg";
 import KotakSecuritiesLogo from "@/assets/brokers/kotak_securities.svg";
-import UpstoxLogo from "@/assets/brokers/upstox.svg";
+import UpstoxLogoLight from "@/assets/brokers/upstox_light_theme.svg";
+import UpstoxLogoDark from "@/assets/brokers/upstox_dark_theme.svg";
 import ZerodhaLogo from "@/assets/brokers/zerodha.svg";
 import OtherLogo from "@/assets/brokers/other.svg";
-
-const getBrokerLogoByName = (name: BrokerName) => {
-    switch (name) {
-        case "Angel One":
-            return AngelOneLogo;
-        case "Fyers":
-            return Fyers;
-        case "Groww":
-            return GrowwLogo;
-        case "INDmoney":
-            return INDmoney;
-        case "Kotak Securities":
-            return KotakSecuritiesLogo;
-        case "Upstox":
-            return UpstoxLogo;
-        case "Zerodha":
-            return ZerodhaLogo;
-        case "Other":
-            return OtherLogo;
-        default:
-            return "";
-    }
-};
 
 interface BrokerContextType {
     isLoading: boolean;
@@ -46,6 +25,7 @@ interface BrokerContextType {
 const BrokerContext = createContext<BrokerContextType>({} as BrokerContextType);
 
 export const BrokerProvider: FC<PropsWithChildren> = ({ children }) => {
+    const { isDarkTheme } = useTheme();
     const { data, isLoading } = apiHooks.broker.useList();
 
     const brokers = useMemo(() => data?.data || [], [data]);
@@ -66,6 +46,32 @@ export const BrokerProvider: FC<PropsWithChildren> = ({ children }) => {
         [brokers]
     );
 
+    const getBrokerLogoByName = useCallback(
+        (name: BrokerName) => {
+            switch (name) {
+                case "Angel One":
+                    return AngelOneLogo;
+                case "Fyers":
+                    return Fyers;
+                case "Groww":
+                    return GrowwLogo;
+                case "INDmoney":
+                    return INDmoney;
+                case "Kotak Securities":
+                    return KotakSecuritiesLogo;
+                case "Upstox":
+                    return isDarkTheme ? UpstoxLogoDark : UpstoxLogoLight;
+                case "Zerodha":
+                    return ZerodhaLogo;
+                case "Other":
+                    return OtherLogo;
+                default:
+                    return "";
+            }
+        },
+        [isDarkTheme]
+    );
+
     const getBrokerLogoById = useCallback(
         (brokerId: string): string => {
             const brokerName = getBrokerNameById(brokerId);
@@ -82,7 +88,7 @@ export const BrokerProvider: FC<PropsWithChildren> = ({ children }) => {
             getBrokerLogoById,
             getBrokerLogoByName,
         };
-    }, [isLoading, getBrokerNameById, getBrokerLogoById]);
+    }, [isLoading, getBrokerById, getBrokerNameById, getBrokerLogoById, getBrokerLogoByName]);
 
     return <BrokerContext.Provider value={value}>{children}</BrokerContext.Provider>;
 };

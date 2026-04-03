@@ -198,7 +198,7 @@
 }
 
 .light {
-    --color-background: hsl(213, 52%, 97%);
+    --color-background: hsl(213, 52%, 92%);
     --color-foreground: hsl(220, 30%, 20%);
 
     --color-primary: hsl(226, 51%, 45%);
@@ -206,7 +206,7 @@
     --color-primary-foreground: hsl(210, 40%, 98%);
 
     --color-secondary: hsl(213, 40%, 88%);
-    --color-secondary-hover: hsl(213, 35%, 82%);
+    --color-secondary-hover: hsl(213, 35%, 84%);
     --color-secondary-foreground: hsl(220, 30%, 20%);
 
     --color-muted: hsl(213, 40%, 92%);
