@@ -1,7 +1,7 @@
 import { memo, useState, useCallback } from "react";
 import { Drawer } from "vaul";
 
-import { Button, DatePicker, Input } from "netra";
+import { DatePicker, Input } from "netra";
 import { IconCross, IconListFilter } from "@/components/icons";
 import { cn, dateRangeFilterToDatesArray } from "@/lib/utils";
 import { WithLabel } from "@/components/with_label";
@@ -16,7 +16,7 @@ import { positionSearchFiltersLabel } from "@/features/position/utils";
 import { useListPositionsStore } from "@/features/position/list_positions_store";
 import { PositionDirection, PositionInstrument } from "../position";
 import TagPicker from "@/components/tag_picker";
-import { Label } from "@/s8ly";
+import { Button, Label } from "@/s8ly";
 
 export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: boolean }) => {
     const applyFilters = useListPositionsStore((s) => s.applyFilters);
@@ -47,7 +47,7 @@ export const PositionListFilters = memo(({ isFetching = false }: { isFetching?: 
                 <Drawer.Overlay className="fixed inset-0 bg-black/50" />
                 <Drawer.Content
                     ref={handleRef}
-                    className="bg-surface-1 border-border-soft fixed right-0 bottom-0 left-0 z-50 mt-24 flex h-[80%] flex-col rounded-t-[10px] border-1 outline-none lg:h-fit"
+                    className="border-border-soft fixed right-0 bottom-0 left-0 z-50 mt-24 flex h-[80%] flex-col rounded-t-[10px] border-1 bg-[var(--color-surface-1)] outline-none lg:h-fit"
                 >
                     <div className="mx-auto max-w-[1440px] flex-1 overflow-y-auto rounded-t-[10px] p-4">
                         <Drawer.Handle />

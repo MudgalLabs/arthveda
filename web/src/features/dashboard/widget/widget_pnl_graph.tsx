@@ -1,8 +1,9 @@
 import { FC } from "react";
 import Decimal from "decimal.js";
-import { axisDefaults, ChartConfig, ChartContainer, ChartTooltipContent, Checkbox } from "netra";
+import { axisDefaults, ChartConfig, ChartContainer, ChartTooltipContent } from "netra";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+import { Checkbox, Label } from "@/s8ly";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";
 import { useIsMobile } from "@/hooks/use_is_mobile";
@@ -13,7 +14,6 @@ import {
     LocalStorageKeyPnLShowNet,
 } from "@/lib/utils";
 import { useLocalStorageState } from "@/hooks/use_local_storage_state";
-import { Label } from "@/s8ly";
 
 interface DataItem {
     label: string;

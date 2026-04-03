@@ -406,6 +406,8 @@ export const ImportPositions = (props: ImportPositionsProps) => {
                         }}
                     </MultiStep.NextStepButton>
                 </div>
+
+                <div className="h-4" />
             </MultiStep.Root>
         </>
     );

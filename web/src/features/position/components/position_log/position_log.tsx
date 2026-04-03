@@ -1,7 +1,6 @@
 import { memo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    Button,
     Dialog,
     DialogFooter,
     DialogHeader,
@@ -22,10 +21,6 @@ import {
     IconCandlestick,
     IconSquarePen,
     PageHeading,
-    Tabs,
-    TabsList,
-    TabsTrigger,
-    TabsContent,
     IconTrash,
     IconInfo,
 } from "netra";
@@ -65,7 +60,7 @@ import { collectUploadIds } from "@/features/position/utils";
 import TagPicker from "@/components/tag_picker";
 import { CurrencySelect } from "@/components/select/currency_select";
 import { useHomeCurrency } from "@/features/auth/auth_context";
-import { Label } from "@/s8ly";
+import { Button, Label, Tabs, TabsList, TabsTrigger, TabsContent } from "@/s8ly";
 
 const enum PositionLogTab {
     Trades = "trades",

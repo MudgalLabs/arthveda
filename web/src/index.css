@@ -16,24 +16,18 @@
     src: url("./assets/fonts/Inter.ttf");
 }
 
-@layer base {
-    :root {
-        --color-chart-1: #00e0ff;
-        --color-chart-2: #10b981;
-        --color-chart-3: #ffb026;
-        --color-chart-4: #ff6464;
-        --color-chart-5: #4a8df8;
-        --color-chart-6: #a855f7;
-        --color-chart-7: #14b8a6;
-        --color-chart-8: #f97316;
-        --color-chart-9: #84cc16;
-        --color-chart-10: #ec4899;
-    }
-}
+:root {
+    --color-chart-1: #00e0ff;
+    --color-chart-2: #10b981;
+    --color-chart-3: #ffb026;
+    --color-chart-4: #ff6464;
+    --color-chart-5: #4a8df8;
+    --color-chart-6: #a855f7;
+    --color-chart-7: #14b8a6;
+    --color-chart-8: #f97316;
+    --color-chart-9: #84cc16;
+    --color-chart-10: #ec4899;
 
-/* Theme*/
-
-@theme {
     /* --color-azure-50: #f2f7fc;
     --color-azure-100: #e1ecf8;
     --color-azure-200: #c9def4;
@@ -201,6 +195,125 @@
     --font-logo: Museo Sans;
     --font-heading: Inter;
     --font-content: Inter;
+}
+
+.light {
+    --color-background: hsl(213, 52%, 97%);
+    --color-foreground: hsl(220, 30%, 20%);
+
+    --color-primary: hsl(226, 51%, 45%);
+    --color-primary-hover: hsl(226, 51%, 50%);
+    --color-primary-foreground: hsl(210, 40%, 98%);
+
+    --color-secondary: hsl(213, 40%, 88%);
+    --color-secondary-hover: hsl(213, 35%, 82%);
+    --color-secondary-foreground: hsl(220, 30%, 20%);
+
+    --color-muted: hsl(213, 40%, 92%);
+    --color-muted-foreground: hsl(220, 20%, 40%);
+
+    --color-border: hsl(213, 30%, 85%);
+    --color-border-subtle: hsl(213, 30%, 80%);
+    --color-border-soft: hsl(213, 30%, 70%);
+    --color-border-hover: hsl(213, 30%, 75%);
+
+    --color-surface-0: hsl(213, 52%, 97%);
+    --color-surface-1: hsl(213, 45%, 95%);
+    --color-surface-2: hsl(213, 40%, 92%);
+    --color-surface-3: hsl(213, 35%, 88%);
+    --color-surface-4: hsl(213, 30%, 84%);
+
+    --color-input-bg: hsl(213, 40%, 96%);
+    --color-input-border: hsl(213, 30%, 85%);
+
+    --color-hover-soft: hsl(213, 35%, 88%);
+    --color-hover-subtle: hsl(213, 40%, 92%);
+
+    --color-focus-ring: hsl(226, 51%, 45%);
+
+    --color-text-primary: hsl(220, 30%, 20%);
+    --color-text-muted: hsl(220, 20%, 40%);
+    --color-text-subtle: hsl(220, 15%, 55%);
+    --color-text-success: hsl(150, 70%, 35%);
+    --color-text-warning: hsl(40, 90%, 40%);
+    --color-text-destructive: hsl(0, 75%, 40%);
+    --color-text-destructive-2: hsl(0, 75%, 40%);
+
+    --color-accent: var(--color-azure-500);
+
+    --color-success-bg: hsl(150, 60%, 94%);
+    --color-success-bg-2: rgba(34, 197, 94, 0.12);
+    --color-success-border: hsl(150, 50%, 75%);
+    --color-success-border-2: rgba(34, 197, 94, 0.25);
+    --color-success-foreground: hsl(150, 70%, 30%);
+    --color-success-foreground-2: hsl(150, 80%, 35%);
+
+    --color-error-bg: hsl(0, 70%, 95%);
+    --color-error-bg-2: rgba(239, 68, 68, 0.12);
+    --color-error-border: hsl(0, 60%, 75%);
+    --color-error-border-2: rgba(239, 68, 68, 0.25);
+    --color-error-foreground: hsl(0, 70%, 35%);
+
+    --color-warning-bg: hsl(45, 100%, 92%);
+    --color-warning-border: hsl(45, 90%, 70%);
+    --color-warning-foreground: hsl(40, 90%, 35%);
+}
+
+/* Theme*/
+
+@theme {
+    /* Base */
+    --color-background: var(--color-background);
+    --color-foreground: var(--color-foreground);
+
+    --color-primary: var(--color-primary);
+    --color-primary-hover: var(--color-primary-hover);
+    --color-primary-foreground: var(--color-primary-foreground);
+
+    --color-secondary: var(--color-secondary);
+    --color-secondary-hover: var(--color-secondary-hover);
+
+    --color-muted: var(--color-muted);
+    --color-muted-foreground: var(--color-muted-foreground);
+
+    --color-border: var(--color-border);
+    --color-border-subtle: var(--color-border-subtle);
+    --color-border-hover: var(--color-border-hover);
+
+    --color-accent: var(--color-accent);
+
+    --color-link: var(--color-link);
+
+    /* SUCCESS */
+    --color-success-bg: var(--color-success-bg);
+    --color-success-bg-2: var(--color-success-bg-2);
+    --color-success-border: var(--color-success-border);
+    --color-success-border-2: var(--color-success-border-2);
+    --color-success-foreground: var(--color-success-foreground);
+    --color-success-foreground-2: var(--color-success-foreground-2);
+
+    /* ERROR */
+    --color-error-bg: var(--color-error-bg);
+    --color-error-bg-2: var(--color-error-bg-2);
+    --color-error-border: var(--color-error-border);
+    --color-error-border-2: var(--color-error-border-2);
+    --color-error-foreground: var(--color-error-foreground);
+
+    --color-text-destructive-2: var(--color-text-destructive-2);
+
+    /* TEXT */
+    --color-text-primary: var(--color-text-primary);
+    --color-text-muted: var(--color-text-muted);
+    --color-text-subtle: var(--color-text-subtle);
+    --color-text-success: var(--color-text-success);
+    --color-text-warning: var(--color-text-warning);
+    --color-text-destructive: var(--color-text-destructive);
+    --color-text-destructive-2: var(--color-text-destructive-2);
+
+    /* FONTS */
+    --font-content: var(--font-content);
+    --font-heading: var(--font-heading);
+    --font-logo: var(--font-logo);
 }
 
 /* Global */

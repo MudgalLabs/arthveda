@@ -66,6 +66,8 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/tiptap/lib/tiptap-utils";
 // --- Styles ---
 import "@/tiptap/components/tiptap-templates/simple/simple-editor.scss";
 import "tiptap-extension-resizable-image/styles.css";
+import { cn } from "netra";
+import { useTheme } from "@/features/settings/theme/theme_context";
 
 const MainToolbarContent = ({
     onHighlighterClick,
@@ -166,6 +168,7 @@ export interface SimpleEditorProps {
 export function SimpleEditor(props: SimpleEditorProps) {
     const { initialContent, onChange } = props;
     const isMobile = useIsMobile();
+    const { theme: kind } = useTheme();
     // const { height } = useWindowSize();
     const [mobileView, setMobileView] = React.useState<"main" | "highlighter" | "link">("main");
     const toolbarRef = React.useRef<HTMLDivElement>(null);
@@ -229,7 +232,7 @@ export function SimpleEditor(props: SimpleEditorProps) {
     }, [isMobile, mobileView]);
 
     return (
-        <div className="simple-editor-wrapper dark">
+        <div className={cn("simple-editor-wrapper", { dark: kind === "dark_theme" })}>
             <EditorContext.Provider value={{ editor }}>
                 <Toolbar
                     ref={toolbarRef}

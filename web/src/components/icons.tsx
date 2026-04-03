@@ -1,5 +1,4 @@
 export type { IconType } from "react-icons";
-
 export { LuPlus as IconPlus } from "react-icons/lu";
 export { FaGithub as IconGithub } from "react-icons/fa";
 export { MdGridView as IconDashboard } from "react-icons/md";
@@ -61,3 +60,5 @@ export { LuBadgeCheck as IconBadgeCheck } from "react-icons/lu";
 export { LuCloudDownload as IconCloudDownload } from "react-icons/lu";
 export { LuDownload as IconDownload } from "react-icons/lu";
 export { LuBrain as IconBrain } from "react-icons/lu";
+export { LuMoon as IconMoon } from "react-icons/lu";
+export { LuSun as IconSun } from "react-icons/lu";

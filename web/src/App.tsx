@@ -15,6 +15,7 @@ import { useURLState } from "@/hooks/use_url_state";
 import { useEffectOnce } from "@/hooks/use_effect_once";
 import { BrokerProvider, useBroker } from "@/features/broker/broker_context";
 import PlanLimitExceededModal from "@/components/plan_limit_exceeded_modal";
+import { ThemeProvider } from "@/features/settings/theme/theme_context";
 
 const AppLayout = lazy(() => import("@/app_layout"));
 
@@ -120,29 +121,31 @@ export default function App() {
                 hooks and state. */}
             <ToastProvider />
 
-            <BrokerProvider>
-                <SidebarProvider>
-                    <TooltipProvider>
-                        <BodhvedaProvider
-                            apiKey={import.meta.env.ARTHVEDA_BODHVEDA_CLIENT_API_KEY}
-                            recipientID={data?.user_id || ""}
-                        >
-                            <Suspense
-                                fallback={
-                                    <div className="h-screen w-screen">
-                                        <LoadingScreen />
-                                    </div>
-                                }
+            <ThemeProvider>
+                <BrokerProvider>
+                    <SidebarProvider>
+                        <TooltipProvider>
+                            <BodhvedaProvider
+                                apiKey={import.meta.env.ARTHVEDA_BODHVEDA_CLIENT_API_KEY}
+                                recipientID={data?.user_id || ""}
                             >
-                                <RouteHandler>
-                                    <Outlet />
-                                    <PlanLimitExceededModal />
-                                </RouteHandler>
-                            </Suspense>
-                        </BodhvedaProvider>
-                    </TooltipProvider>
-                </SidebarProvider>
-            </BrokerProvider>
+                                <Suspense
+                                    fallback={
+                                        <div className="h-screen w-screen">
+                                            <LoadingScreen />
+                                        </div>
+                                    }
+                                >
+                                    <RouteHandler>
+                                        <Outlet />
+                                        <PlanLimitExceededModal />
+                                    </RouteHandler>
+                                </Suspense>
+                            </BodhvedaProvider>
+                        </TooltipProvider>
+                    </SidebarProvider>
+                </BrokerProvider>
+            </ThemeProvider>
 
             <ScrollRestoration />
         </Fragment>

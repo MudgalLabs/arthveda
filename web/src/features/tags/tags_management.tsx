@@ -4,7 +4,6 @@ import {
     IconTags,
     Loading,
     PageHeading,
-    Button,
     Tooltip,
     IconPlus,
     Dialog,
@@ -36,7 +35,7 @@ import {
 } from "@/hooks/api_hooks/tag";
 import { TagGroupWithTags, Tag } from "@/lib/api/tag";
 import { toast } from "@/components/toast";
-import { Label } from "@/s8ly";
+import { Button, Label } from "@/s8ly";
 
 export function TagsManagement() {
     useDocumentTitle("Tags • Arthveda");
@@ -58,7 +57,7 @@ export function TagsManagement() {
             <div className="mb-4">
                 <TagGroupModal
                     renderTrigger={() => (
-                        <Button className="">
+                        <Button>
                             <IconPlus size={16} /> Tag group
                         </Button>
                     )}

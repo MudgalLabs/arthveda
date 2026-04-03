@@ -10,7 +10,6 @@ import {
 import { apiHooks } from "@/hooks/api_hooks";
 import {
     Alert,
-    Button,
     Dialog,
     DialogContent,
     DialogTrigger,
@@ -23,6 +22,7 @@ import {
     AlertTitle,
     AlertDescription,
 } from "netra";
+import { Button } from "@/s8ly";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableColumnHeader } from "@/s8ly/data_table/data_table_header";
@@ -74,7 +74,7 @@ export const PlanAndBilling = () => {
     );
 
     return (
-        <div>
+        <div className="pb-8">
             <PageHeading>
                 <IconCreditCard size={18} />
 

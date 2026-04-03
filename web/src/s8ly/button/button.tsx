@@ -11,7 +11,7 @@ const buttonVariants = cva(
         variants: {
             variant: {
                 primary:
-                    "bg-primary text-foreground enabled:hover:bg-primary-hover enabled:active:bg-primary focus-visible:ring-foreground!",
+                    "bg-primary text-primary-foreground enabled:hover:bg-primary-hover enabled:active:bg-primary focus-visible:ring-foreground!",
                 secondary:
                     "bg-secondary text-text-primary border-border-soft enabled:hover:bg-secondary-hover enabled:active:bg-secondary",
                 outline: "bg-transparent text-foreground border-accent-muted enabled:hover:bg-accent-muted",

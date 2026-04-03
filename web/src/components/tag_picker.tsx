@@ -83,7 +83,7 @@ export default function TagPicker({ value: valueProp, onChange, container }: Tag
                     </PopoverTrigger>
                 </div>
 
-                <PopoverContent className="min-w-[320px] p-0" container={container}>
+                <PopoverContent className="min-w-[320px] p-0" container={container} align="start">
                     {isLoading ? (
                         <LoadingScreen />
                     ) : (

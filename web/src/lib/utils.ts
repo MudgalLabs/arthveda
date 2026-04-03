@@ -30,6 +30,8 @@ export const LocalStorageKeyPnLShowCharges: LocalStorageKey = "pnl_show_charges"
 
 export const LocalStorageKeyCalendarPerfViewMode: LocalStorageKey = "calendar_perf_view_mode";
 
+export const LocalStorageKeyTheme: LocalStorageKey = "theme";
+
 export function saveToLocalStorage(key: LocalStorageKey, value: string) {
     localStorage.setItem(key, value);
 }

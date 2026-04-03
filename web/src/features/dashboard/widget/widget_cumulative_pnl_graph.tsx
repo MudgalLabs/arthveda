@@ -1,6 +1,7 @@
 import { FC } from "react";
 import Decimal from "decimal.js";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ChartConfig, ChartContainer, ChartTooltipContent, tooltipCursor, axisDefaults } from "netra";
 
 import {
     formatCurrency,
@@ -11,9 +12,8 @@ import {
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { Card, CardContent, CardTitle } from "@/components/card";
 import { LoadingScreen } from "@/components/loading_screen";
-import { ChartConfig, ChartContainer, ChartTooltipContent, tooltipCursor, axisDefaults, Checkbox } from "netra";
 import { useLocalStorageState } from "@/hooks/use_local_storage_state";
-import { Label } from "@/s8ly";
+import { Checkbox, Label } from "@/s8ly";
 
 interface DataItem {
     label: string;

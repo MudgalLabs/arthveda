@@ -19,6 +19,7 @@ import { useHomeCurrency } from "@/features/auth/auth_context";
 import { apiHooks } from "@/hooks/api_hooks";
 import { apiErrorHandler } from "@/lib/api";
 import { toast } from "@/components/toast";
+import { ThemeSelect } from "@/features/settings/theme/theme_select";
 
 export function Settings() {
     useDocumentTitle("Settings • Arthveda");
@@ -42,47 +43,55 @@ export function Settings() {
         if (isLoadingCanUpdaeHomeCurrency) return <LoadingScreen />;
 
         return (
-            <ul className="bg-surface-2 border-border-subtle mx-auto max-w-3xl rounded-md border-1 p-3">
-                <SettingItem
-                    title="Home Currency"
-                    description={
-                        <div className="space-y-1">
-                            <p>All positions, P&L, and analytics are displayed in this currency.</p>
-                            <p>
-                                If positions exist in multiple currencies, values will be converted to your home
-                                currency.
-                            </p>
-                        </div>
-                    }
-                >
-                    <Tooltip
-                        disabled={canUpdateHomeCurrency}
-                        content={
-                            <div className="text-text-muted text-xs">
+            <ul className="bg-surface-2 border-border-subtle divide-border-subtle mx-auto max-w-3xl divide-y rounded-md border px-3">
+                <li className="">
+                    <SettingItem title="Theme" description="Select your interface color scheme">
+                        <ThemeSelect />
+                    </SettingItem>
+                </li>
+
+                <li className="">
+                    <SettingItem
+                        title="Home Currency"
+                        description={
+                            <div className="space-y-1">
+                                <p>All positions, P&L, and analytics are displayed in this currency.</p>
                                 <p>
-                                    Your home currency can't be changed because you have positions in multiple
-                                    currencies.
-                                </p>
-                                <br />
-                                <p>
-                                    For help contact <ContactEmail />
+                                    If positions exist in multiple currencies, values will be converted to your home
+                                    currency.
                                 </p>
                             </div>
                         }
-                        contentProps={{ side: "bottom" }}
                     >
-                        <span>
-                            <CurrencySelect
-                                disabled={!canUpdateHomeCurrency}
-                                value={currency}
-                                onValueChange={(v) => {
-                                    setCurrency(v);
-                                    updateHomeCurrency(v);
-                                }}
-                            />
-                        </span>
-                    </Tooltip>
-                </SettingItem>
+                        <Tooltip
+                            disabled={canUpdateHomeCurrency}
+                            content={
+                                <div className="text-text-muted text-xs">
+                                    <p>
+                                        Your home currency can't be changed because you have positions in multiple
+                                        currencies.
+                                    </p>
+                                    <br />
+                                    <p>
+                                        For help contact <ContactEmail />
+                                    </p>
+                                </div>
+                            }
+                            contentProps={{ side: "bottom" }}
+                        >
+                            <span>
+                                <CurrencySelect
+                                    disabled={!canUpdateHomeCurrency}
+                                    value={currency}
+                                    onValueChange={(v) => {
+                                        setCurrency(v);
+                                        updateHomeCurrency(v);
+                                    }}
+                                />
+                            </span>
+                        </Tooltip>
+                    </SettingItem>
+                </li>
             </ul>
         );
     }, [isLoadingCanUpdaeHomeCurrency, currency, canUpdateHomeCurrency]);
@@ -129,8 +138,8 @@ function SettingItem(props: SettingItemProps) {
     const { children, title, description = "" } = props;
 
     return (
-        <div className="flex-x justify-between">
-            <div className="space-y-2">
+        <div className="flex-x justify-between py-4">
+            <div className="space-y-1">
                 <h2 className="text-base font-medium">{title}</h2>
                 <div className="text-text-muted">{description}</div>
             </div>

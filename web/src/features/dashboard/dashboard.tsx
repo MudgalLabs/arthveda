@@ -1,11 +1,12 @@
 import { FC, useMemo, useState } from "react";
 import { Responsive, WidthProvider, Layout } from "react-grid-layout";
-import { PageHeading, Button, DatePicker, IconDashboard, useDocumentTitle } from "netra";
+import { PageHeading, Button, IconDashboard, useDocumentTitle } from "netra";
 import Decimal from "decimal.js";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
+import { DatePicker } from "@/s8ly";
 import { apiHooks } from "@/hooks/api_hooks";
 import { useAuthentication } from "@/features/auth/auth_context";
 import { LoadingScreen } from "@/components/loading_screen";
@@ -18,9 +19,9 @@ import { FreePlanLimitTag } from "@/components/free_plan_limit_tag";
 import { WidgetPnLCard } from "@/features/dashboard/widget/widget_pnl_card";
 import { WidgetAvgWinLoss } from "@/features/dashboard/widget/widget_avg_win_loss";
 import { WidgetWinRate } from "@/features/dashboard/widget/widget_win_rate";
-import { WidgetProfitFactor } from "./widget/widget_profit_factor";
-import { WidgetExpectancy } from "./widget/widget_expectancy";
-import { WidgetStreak } from "./widget/widget_streak";
+import { WidgetProfitFactor } from "@/features/dashboard/widget/widget_profit_factor";
+import { WidgetExpectancy } from "@/features/dashboard/widget/widget_expectancy";
+import { WidgetStreak } from "@/features/dashboard/widget/widget_streak";
 // import { useLocalStorageState } from "@/hooks/use_local_storage_state";
 // import { LocalStorageKeyDashboardLayout } from "@/lib/utils";
 
@@ -191,9 +192,9 @@ export const Dashboard = () => {
                                 gross_r_factor={data.avg_gross_r_factor}
                             /> */}
                             <WidgetPnLCard
-                                gross={new Decimal(data.gross_pnl)}
-                                net={new Decimal(data.net_pnl)}
-                                charges={new Decimal(data.charges)}
+                                gross={new Decimal(data.gross_pnl || 0)}
+                                net={new Decimal(data.net_pnl || 0)}
+                                charges={new Decimal(data.charges || 0)}
                             />
                         </WidgetContainer>
                     </div>
@@ -225,9 +226,9 @@ export const Dashboard = () => {
                     <div key="avg_win_loss">
                         <WidgetContainer>
                             <WidgetAvgWinLoss
-                                avgWin={new Decimal(data.avg_win)}
-                                avgLoss={new Decimal(data.avg_loss)}
-                                ratio={new Decimal(data.avg_win_loss_ratio)}
+                                avgWin={new Decimal(data.avg_win || 0)}
+                                avgLoss={new Decimal(data.avg_loss || 0)}
+                                ratio={new Decimal(data.avg_win_loss_ratio || 0)}
                             />
                         </WidgetContainer>
                     </div>

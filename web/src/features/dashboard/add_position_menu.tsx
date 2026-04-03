@@ -2,7 +2,6 @@ import { FC, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 
 import {
-    Button,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -16,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants";
 import { Link } from "@/components/link";
+import { Button } from "@/s8ly";
 
 interface AddPositionMenuProps {
     sidebarOpen: boolean;

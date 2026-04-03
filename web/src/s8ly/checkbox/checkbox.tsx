@@ -8,7 +8,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
     return (
         <CheckboxPrimitive.Root
             className={cn(
-                "peer border-border-soft data-[state=checked]:bg-primary data-[state=checked]:text-foreground data-[state=checked]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-foreground aria-invalid:border-error-border focus-visible:ring-foreground! hover:border-border-hover size-4 shrink-0 rounded-[4px] border shadow-xs transition-all disabled:opacity-50",
+                "peer border-border-soft data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground aria-invalid:border-error-border focus-visible:ring-foreground! hover:border-border-hover size-4 shrink-0 rounded-[4px] border shadow-xs transition-all disabled:opacity-50",
                 className
             )}
             {...props}

@@ -1,5 +1,6 @@
-import { PageHeading, useDocumentTitle, Tabs, TabsList, TabsTrigger, TabsContent } from "netra";
+import { PageHeading, useDocumentTitle } from "netra";
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/s8ly";
 import { IconBrain } from "@/components/icons";
 import { AnalyticsTags } from "@/features/analytics/components/analytics_tags";
 import { AnalyticsTimeframes } from "@/features/analytics/components/analytics_timeframes";
