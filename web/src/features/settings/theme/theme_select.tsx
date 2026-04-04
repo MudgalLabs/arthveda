@@ -1,6 +1,6 @@
 import { Select, SelectOptionItem } from "@/s8ly";
 
-import { IconMoon, IconSun } from "@/components/icons";
+import { IconMonitor, IconMoon, IconSun } from "@/components/icons";
 import { Theme, useTheme } from "@/features/settings/theme/theme_context";
 
 const options: SelectOptionItem<Theme>[] = [
@@ -20,6 +20,14 @@ const options: SelectOptionItem<Theme>[] = [
         ),
         value: "light_theme",
     },
+    {
+        label: (
+            <span className="flex-x">
+                <IconMonitor size={16} /> System
+            </span>
+        ),
+        value: "system",
+    },
 ];
 
 export function ThemeSelect() {
@@ -29,8 +37,8 @@ export function ThemeSelect() {
         <Select
             options={options}
             classNames={{
-                trigger: "w-28!",
-                content: "w-28!",
+                trigger: "w-36!",
+                content: "w-36!",
             }}
             value={theme}
             onValueChange={(val: Theme) => setTheme(val)}

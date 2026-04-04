@@ -3,13 +3,14 @@ import { useLocalStorageState } from "netra";
 
 import { LocalStorageKeyTheme } from "@/lib/utils";
 
-export type Theme = "dark_theme" | "light_theme";
+export type Theme = "dark_theme" | "light_theme" | "system";
 
 interface ThemeContextType {
     theme: Theme;
     setTheme: (newTheme: Theme) => void;
     toggle: () => void;
     isDarkTheme: boolean;
+    resolvedTheme: Omit<Theme, "system">;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -17,29 +18,36 @@ const ThemeContext = createContext<ThemeContextType>({
     setTheme: () => {},
     toggle: () => {},
     isDarkTheme: false,
+    resolvedTheme: "dark_theme",
 });
 
-function getSystemTheme(): Theme {
-    if (typeof window === "undefined") return "dark_theme";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark_theme" : "light_theme";
-}
-
 export const ThemeProvider: FC<PropsWithChildren> = ({ children }) => {
-    const systemTheme = getSystemTheme();
-    const [theme, setTheme] = useLocalStorageState<Theme>(LocalStorageKeyTheme, systemTheme);
+    const [theme, setTheme] = useLocalStorageState<Theme>(LocalStorageKeyTheme, "system");
 
     const toggle = useCallback(() => {
-        setTheme((prev) => (prev === "dark_theme" ? "light_theme" : "dark_theme"));
+        setTheme((prev) => {
+            const resolved = resolveTheme(prev);
+            return resolved === "dark_theme" ? "light_theme" : "dark_theme";
+        });
+    }, []);
+
+    useEffect(() => {
+        const resolved = resolveTheme(theme);
+        applyTheme(resolved);
     }, [theme]);
 
     useEffect(() => {
-        const root = document.documentElement;
+        if (theme !== "system") return;
 
-        if (theme === "light_theme") {
-            root.classList.add("light");
-        } else {
-            root.classList.remove("light");
-        }
+        const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+        const handler = () => {
+            const resolved = getSystemTheme();
+            applyTheme(resolved);
+        };
+
+        media.addEventListener("change", handler);
+        return () => media.removeEventListener("change", handler);
     }, [theme]);
 
     const value: ThemeContextType = useMemo(
@@ -48,6 +56,7 @@ export const ThemeProvider: FC<PropsWithChildren> = ({ children }) => {
             setTheme,
             toggle,
             isDarkTheme: theme === "dark_theme",
+            resolvedTheme: resolveTheme(theme),
         }),
         [theme, setTheme, toggle]
     );
@@ -63,4 +72,24 @@ export function useTheme(): ThemeContextType {
     }
 
     return context;
+}
+
+function getSystemTheme(): Theme {
+    if (typeof window === "undefined") return "dark_theme";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark_theme" : "light_theme";
+}
+
+function resolveTheme(theme: Theme): Theme {
+    if (theme === "system") return getSystemTheme();
+    return theme;
+}
+
+function applyTheme(theme: Theme) {
+    const root = document.documentElement;
+
+    if (theme === "light_theme") {
+        root.classList.add("light");
+    } else {
+        root.classList.remove("light");
+    }
 }
