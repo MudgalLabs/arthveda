@@ -3,8 +3,6 @@ import {
     Popover,
     PopoverTrigger,
     PopoverContent,
-    Button,
-    Checkbox,
     IconPlus,
     useControlled,
     LoadingScreen,
@@ -16,6 +14,7 @@ import { Tag, TagGroup } from "@/lib/api/tag";
 import { useListTagGroups } from "@/hooks/api_hooks/tag";
 import { Link } from "@/components/link";
 import { ROUTES } from "@/constants";
+import { Button, Checkbox } from "@/s8ly";
 
 interface TagPickerProps {
     value?: Tag[];
