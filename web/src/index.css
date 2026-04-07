@@ -223,6 +223,10 @@
     --color-surface-3: hsl(213, 35%, 88%);
     --color-surface-4: hsl(213, 30%, 84%);
 
+    --color-overlay-bg: hsl(213, 35%, 96%);
+    --color-overlay-bg-hover: hsl(213, 35%, 92%);
+    --color-overlay-border: hsl(213, 25%, 84%);
+
     --color-input-bg: hsl(213, 40%, 96%);
     --color-input-border: hsl(213, 30%, 85%);
 
@@ -246,7 +250,7 @@
     --color-success-border: hsl(150, 50%, 75%);
     --color-success-border-2: rgba(34, 197, 94, 0.25);
     --color-success-foreground: hsl(150, 70%, 30%);
-    --color-success-foreground-2: hsl(150, 80%, 35%);
+    --color-success-foreground-2: hsl(150, 70%, 30%);
 
     --color-error-bg: hsl(0, 70%, 95%);
     --color-error-bg-2: rgba(239, 68, 68, 0.12);
@@ -276,13 +280,22 @@
     --color-muted: var(--color-muted);
     --color-muted-foreground: var(--color-muted-foreground);
 
+    --color-surface-0: var(--color-surface-0);
+    --color-surface-1: var(--color-surface-1);
+    --color-surface-2: var(--color-surface-2);
+    --color-surface-3: var(--color-surface-3);
+    --color-surface-4: var(--color-surface-4);
+
     --color-border: var(--color-border);
     --color-border-subtle: var(--color-border-subtle);
     --color-border-hover: var(--color-border-hover);
 
     --color-accent: var(--color-accent);
-
     --color-link: var(--color-link);
+
+    --color-overlay-bg: var(--color-overlay-bg);
+    --color-overlay-bg-hover: var(--color-overlay-hover);
+    --color-overlay-border: var(--color-overlay-border);
 
     /* SUCCESS */
     --color-success-bg: var(--color-success-bg);

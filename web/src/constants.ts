@@ -10,6 +10,7 @@ export const ROUTES = {
     onboardingImport: "/onboarding/import",
     onboardingMessage: "/onboarding/message",
     dashboard: "/dashboard",
+    insights: "/insights",
     // All routes related to Position.
     listPositions: "/positions",
     newPositions: "/positions/new",
@@ -18,7 +19,7 @@ export const ROUTES = {
     // But for ROUTES_PROTECTED and RouteHandler, we don't pass `id`.
     viewPosition: (id = "") => `/positions/${id}`,
     calendar: "/calendar",
-    analytics: "/analytics",
+    reports: "/reports",
 
     settings: "/settings",
     planAndBilling: "/settings/plan-and-billing",
@@ -36,12 +37,14 @@ export const ROUTES_PROTECTED = [
     ROUTES.onboardingImport,
     ROUTES.onboardingMessage,
     ROUTES.dashboard,
+    ROUTES.insights,
     ROUTES.listPositions,
     ROUTES.newPositions,
     ROUTES.importPositions,
     ROUTES.viewPosition(),
     ROUTES.calendar,
-    ROUTES.analytics,
+    ROUTES.reports,
+    ROUTES.settings,
     ROUTES.planAndBilling,
     ROUTES.brokerAccounts,
     ROUTES.feedbackAndSupport,

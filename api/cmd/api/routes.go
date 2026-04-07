@@ -175,14 +175,21 @@ func initRouter(a *app) http.Handler {
 			r.Post("/paddle", paddleWebhookHandler(a.service.SubscriptionService))
 		})
 
-		r.Route("/analytics", func(r chi.Router) {
+		r.Route("/reports", func(r chi.Router) {
 			r.Use(authMiddleware)
 			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
 
-			r.Get("/tags", getAnalyticsTagsHandler(a.service.AnalyticsService))
-			r.Get("/timeframes", getAnalyticsTimeframesHandler(a.service.AnalyticsService))
-			r.Get("/symbols", getAnalyticsSymbolsHandler(a.service.AnalyticsService))
-			r.Get("/instruments", getAnalyticsInstrumentsHandler(a.service.AnalyticsService))
+			r.Get("/tags", getAnalyticsTagsHandler(a.service.ReportService))
+			r.Get("/timeframes", getAnalyticsTimeframesHandler(a.service.ReportService))
+			r.Get("/symbols", getAnalyticsSymbolsHandler(a.service.ReportService))
+			r.Get("/instruments", getAnalyticsInstrumentsHandler(a.service.ReportService))
+		})
+
+		r.Route("/insights", func(r chi.Router) {
+			r.Use(authMiddleware)
+			r.Use(planEnforcerMiddleware(a.service.SubscriptionService))
+
+			r.Get("/", getInsightsHandler(a.service.InsightService))
 		})
 	})
 

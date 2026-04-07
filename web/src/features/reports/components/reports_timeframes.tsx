@@ -14,7 +14,7 @@ import {
     AnalyticsTimeDayOfTheWeekItem,
     AnalyticsTimeHoldingPeriodItem,
     AnalyticsTimeHourOfTheDayItem,
-} from "@/lib/api/analytics";
+} from "@/lib/api/report";
 
 function getAnalyticsTimeDayColumns(currencyCode: CurrencyCode): ColumnDef<AnalyticsTimeDayOfTheWeekItem>[] {
     return [
@@ -240,8 +240,8 @@ function cellClassName(cell: Cell<any, any>) {
     return rightAlignedColumns.includes(cell.column.id) ? "text-right tabular-nums" : "";
 }
 
-export function AnalyticsTimeframes() {
-    const { data, isLoading, error } = apiHooks.analytics.useGetAnalyticsTimeframes();
+export function ReportsTimeframes() {
+    const { data, isLoading, error } = apiHooks.report.useGetAnalyticsTimeframes();
 
     const dayOfTheWeekData = data?.data.day_of_the_week ?? [];
     const hourOfTheDayData = data?.data.hour_of_the_day ?? [];

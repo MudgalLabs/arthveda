@@ -5,7 +5,7 @@ import { useNotificationsUnreadCount } from "@bodhveda/react";
 import { useSidebar, Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent, IconCalendarSingle } from "netra";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
-import { IconBrain, IconCandlestick, IconDashboard } from "@/components/icons";
+import { IconCandlestick, IconClipboardList, IconDashboard, IconSparkles } from "@/components/icons";
 
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/constants";
@@ -18,11 +18,12 @@ import { TrialCountdown } from "@/components/trial_countdown";
 
 const SIDEBAR_ROUTES = [
     ROUTES.dashboard,
+    ROUTES.insights,
     ROUTES.listPositions,
     ROUTES.newPositions,
     ROUTES.importPositions,
     ROUTES.calendar,
-    ROUTES.analytics,
+    ROUTES.reports,
 ];
 
 export const Sidebar = () => {
@@ -86,6 +87,26 @@ export const Sidebar = () => {
                     />
                 </Link>
 
+                <Link to={ROUTES.insights} variant="unstyled">
+                    <SidebarItem
+                        label="Insights"
+                        icon={<IconSparkles size={20} />}
+                        open={isOpen}
+                        isActive={activeRoute === ROUTES.insights}
+                        onClick={() => handleClick(ROUTES.insights)}
+                    />
+                </Link>
+
+                <Link to={ROUTES.reports} variant="unstyled">
+                    <SidebarItem
+                        label="Reports"
+                        icon={<IconClipboardList size={20} />}
+                        open={isOpen}
+                        isActive={activeRoute === ROUTES.reports}
+                        onClick={() => handleClick(ROUTES.reports)}
+                    />
+                </Link>
+
                 <Link to={ROUTES.listPositions} variant="unstyled">
                     <SidebarItem
                         label="Positions"
@@ -103,16 +124,6 @@ export const Sidebar = () => {
                         open={isOpen}
                         isActive={activeRoute === ROUTES.calendar}
                         onClick={() => handleClick(ROUTES.calendar)}
-                    />
-                </Link>
-
-                <Link to={ROUTES.analytics} variant="unstyled">
-                    <SidebarItem
-                        label="Analytics"
-                        icon={<IconBrain size={20} />}
-                        open={isOpen}
-                        isActive={activeRoute === ROUTES.analytics}
-                        onClick={() => handleClick(ROUTES.analytics)}
                     />
                 </Link>
             </div>

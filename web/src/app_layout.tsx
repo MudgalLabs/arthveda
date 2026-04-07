@@ -20,7 +20,7 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
                 {/* Main content area */}
                 <div className="overflow-none min-w-0 flex-1 sm:p-2 sm:pl-0">
                     <div className="flex h-full min-w-0 justify-center">
-                        <div className="border-border-subtle w-full min-w-0 overflow-auto bg-[var(--color-surface-1)] px-3 py-2 sm:rounded-md sm:border-1">
+                        <div className="border-border-subtle bg-surface-1 w-full min-w-0 overflow-auto px-3 py-2 sm:rounded-md sm:border-1">
                             <div className="h-full min-w-full">{children}</div>
                         </div>
                     </div>

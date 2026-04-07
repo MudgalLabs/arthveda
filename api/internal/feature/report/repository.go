@@ -1,4 +1,4 @@
-package analytics
+package report
 
 import "github.com/jackc/pgx/v5/pgxpool"
 

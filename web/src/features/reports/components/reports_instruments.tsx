@@ -5,15 +5,15 @@ import Decimal from "decimal.js";
 
 import { apiHooks } from "@/hooks/api_hooks";
 import { CurrencyCode } from "@/lib/api/currency";
-import { InstrumentsPerformanceItem } from "@/lib/api/analytics";
+import { InstrumentsPerformanceItem } from "@/lib/api/report";
 import { decimalSortingFn, formatCurrency } from "@/lib/utils";
 import { PnL } from "@/components/pnl";
 import { DataTable } from "@/s8ly/data_table/data_table";
 import { DataTableSmart } from "@/s8ly/data_table/data_table_smart";
 import { useHomeCurrency } from "@/features/auth/auth_context";
 
-export function AnalyticsInstruments() {
-    const { data, isLoading, error } = apiHooks.analytics.useGetAnalyticsInstruments();
+export function ReportsInstruments() {
+    const { data, isLoading, error } = apiHooks.report.useGetAnalyticsInstruments();
     const homeCurrency = useHomeCurrency();
 
     const instrumentData = data?.data.performance ?? [];

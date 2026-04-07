@@ -13,7 +13,7 @@ import Decimal from "decimal.js";
 
 import { PnL } from "@/components/pnl";
 import { apiHooks } from "@/hooks/api_hooks";
-import { AnalyticsTagsSummaryItem } from "@/lib/api/analytics";
+import { AnalyticsTagsSummaryItem } from "@/lib/api/report";
 import WidgetBarPnLGraph from "@/features/dashboard/widget/widget_bar_pnl_graph";
 import WidgetCumulativePnLLineChart from "@/features/dashboard/widget/widget_cumulative_pnl_line_chart";
 import { ROUTES } from "@/constants";
@@ -214,15 +214,15 @@ function getAnalyticsTagColumns(homeCurrency: CurrencyCode): ColumnDef<Analytics
     ];
 }
 
-export function AnalyticsTags() {
+export function ReportsTags() {
     const [tableState, setTableState] = useLocalStorageState<DataTableState>(
-        ROUTES.analytics + "?tab=tags",
+        ROUTES.reports + "?tab=tags",
         DEFAULT_DATA_TABLE_STATE
     );
 
     const homeCurrency = useHomeCurrency();
 
-    const { data, isLoading, error } = apiHooks.analytics.useGetAnalyticsTags();
+    const { data, isLoading, error } = apiHooks.report.useGetAnalyticsTags();
 
     const summary = data?.data.summary ?? [];
     const summaryGroup = data?.data.summary_group ?? [];

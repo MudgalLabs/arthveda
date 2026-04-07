@@ -5,13 +5,13 @@ import {
     GetAnalyticsSymbolsResponse,
     GetAnalyticsTagsResponse,
     GetAnalyticsTimeframesResponse,
-} from "@/lib/api/analytics";
+} from "@/lib/api/report";
 import { ApiRes } from "@/lib/api/client";
 
 export function useGetAnalyticsTags() {
     return useQuery({
         queryKey: ["useGetAnalyticsTags"],
-        queryFn: () => api.analytics.getAnalyticsTags(),
+        queryFn: () => api.report.getAnalyticsTags(),
         select: (res) => res.data as ApiRes<GetAnalyticsTagsResponse>,
     });
 }
@@ -19,7 +19,7 @@ export function useGetAnalyticsTags() {
 export function useGetAnalyticsTimeframes() {
     return useQuery({
         queryKey: ["useGetAnalyticsTime"],
-        queryFn: () => api.analytics.getAnalyticsTimeframes(),
+        queryFn: () => api.report.getAnalyticsTimeframes(),
         select: (res) => res.data as ApiRes<GetAnalyticsTimeframesResponse>,
     });
 }
@@ -27,7 +27,7 @@ export function useGetAnalyticsTimeframes() {
 export function useGetAnalyticsSymbols() {
     return useQuery({
         queryKey: ["useGetAnalyticSymbols"],
-        queryFn: () => api.analytics.getAnalyticsSymbols(),
+        queryFn: () => api.report.getAnalyticsSymbols(),
         select: (res) => res.data as ApiRes<GetAnalyticsSymbolsResponse>,
     });
 }
@@ -35,7 +35,7 @@ export function useGetAnalyticsSymbols() {
 export function useGetAnalyticsInstruments() {
     return useQuery({
         queryKey: ["useGetAnalytiInstruments"],
-        queryFn: () => api.analytics.getAnalyticsInstruments(),
+        queryFn: () => api.report.getAnalyticsInstruments(),
         select: (res) => res.data as ApiRes<GetAnalyticsInstrumentsResponse>,
     });
 }

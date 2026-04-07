@@ -1,4 +1,4 @@
-package analytics
+package report
 
 import (
 	"arthveda/internal/common"
@@ -261,28 +261,40 @@ type dayOfTheWeekItem struct {
 	GrossRFactor   decimal.Decimal `json:"gross_r_factor"`
 }
 
-type hourOfTheDayItem struct {
-	Hour           common.Hour     `json:"hour"`
-	PositionsCount int             `json:"positions_count"`
-	GrossPnL       decimal.Decimal `json:"gross_pnl"`
-	Charges        decimal.Decimal `json:"charges"`
-	NetPnL         decimal.Decimal `json:"net_pnl"`
-	GrossRFactor   decimal.Decimal `json:"gross_r_factor"`
+type HourOfTheDayItem struct {
+	Hour           common.Hour `json:"hour"`
+	PositionsCount int         `json:"positions_count"`
+
+	GrossPnL     decimal.Decimal `json:"gross_pnl"`
+	Charges      decimal.Decimal `json:"charges"`
+	NetPnL       decimal.Decimal `json:"net_pnl"`
+	GrossRFactor decimal.Decimal `json:"gross_r_factor"`
+
+	AvgPnL       decimal.Decimal `json:"avg_pnl"`
+	WinningCount int             `json:"winning_count"`
+	LosingCount  int             `json:"losing_count"`
+	WinRate      float64         `json:"win_rate"`
 }
 
-type holdingPeriodItem struct {
+type HoldingPeriodItem struct {
 	Period         common.HoldingPeriod `json:"period"`
 	PositionsCount int                  `json:"positions_count"`
-	GrossPnL       decimal.Decimal      `json:"gross_pnl"`
-	Charges        decimal.Decimal      `json:"charges"`
-	NetPnL         decimal.Decimal      `json:"net_pnl"`
-	GrossRFactor   decimal.Decimal      `json:"gross_r_factor"`
+
+	GrossPnL     decimal.Decimal `json:"gross_pnl"`
+	Charges      decimal.Decimal `json:"charges"`
+	NetPnL       decimal.Decimal `json:"net_pnl"`
+	GrossRFactor decimal.Decimal `json:"gross_r_factor"`
+
+	AvgPnL       decimal.Decimal `json:"avg_pnl"`
+	WinningCount int             `json:"winning_count"`
+	LosingCount  int             `json:"losing_count"`
+	WinRate      float64         `json:"win_rate"`
 }
 
 type GetTimeframesResult struct {
 	DayOfTheWeek  []dayOfTheWeekItem  `json:"day_of_the_week"`
-	HourOfTheDay  []hourOfTheDayItem  `json:"hour_of_the_day"`
-	HoldingPeriod []holdingPeriodItem `json:"holding_period"`
+	HourOfTheDay  []HourOfTheDayItem  `json:"hour_of_the_day"`
+	HoldingPeriod []HoldingPeriodItem `json:"holding_period"`
 }
 
 func (s *Service) GetTimeframes(ctx context.Context, userID uuid.UUID, tz *time.Location, enforcer *subscription.PlanEnforcer) (*GetTimeframesResult, service.Error, error) {
@@ -365,13 +377,13 @@ func (s *Service) GetTimeframes(ctx context.Context, userID uuid.UUID, tz *time.
 	_, rangeEnd := position.GetRangeBasedOnTrades(positions)
 	positionsFiltered := position.FilterPositionsWithRealisingTradesUpTo(positions, rangeEnd, tz)
 
-	hourStats := make(map[common.Hour]*hourOfTheDayItem)
+	hourStats := make(map[common.Hour]*HourOfTheDayItem)
 	hourPositions := make(map[common.Hour]map[uuid.UUID]struct{})
-	holdingStats := make(map[common.HoldingPeriod]*holdingPeriodItem)
+	holdingStats := make(map[common.HoldingPeriod]*HoldingPeriodItem)
 
 	for _, pos := range positionsFiltered {
-		// Ignore the position if it's NOTE closed.
-		if pos.ClosedAt == nil || !pos.OpenQuantity.IsZero() {
+		// Ignore the position if it's NOT closed.
+		if pos.ClosedAt == nil || !pos.OpenQuantity.IsZero() || pos.Status == position.StatusOpen {
 			continue
 		}
 
@@ -380,39 +392,34 @@ func (s *Service) GetTimeframes(ctx context.Context, userID uuid.UUID, tz *time.
 			continue
 		}
 
-		for _, t := range pos.Trades {
-			if len(t.MatchedLots) == 0 {
-				continue
+		refTime := pos.OpenedAt.In(tz)
+		h := refTime.Hour()
+		hour := common.Hour(fmt.Sprintf("%02d_%02d", h, h+1))
+
+		if _, ok := hourStats[hour]; !ok {
+			hourStats[hour] = &HourOfTheDayItem{
+				Hour:           hour,
+				PositionsCount: 0,
+				GrossPnL:       decimal.Zero,
+				Charges:        decimal.Zero,
+				NetPnL:         decimal.Zero,
+				GrossRFactor:   decimal.Zero,
 			}
-
-			h := t.Time.In(tz).Hour()
-			hour := common.Hour(fmt.Sprintf("%02d_%02d", h, h+1))
-
-			if _, ok := hourStats[hour]; !ok {
-				hourStats[hour] = &hourOfTheDayItem{
-					Hour:         hour,
-					GrossPnL:     decimal.Zero,
-					Charges:      decimal.Zero,
-					NetPnL:       decimal.Zero,
-					GrossRFactor: decimal.Zero,
-				}
-				hourPositions[hour] = make(map[uuid.UUID]struct{})
-			}
-
-			entry := hourStats[hour]
-
-			entry.GrossPnL = entry.GrossPnL.Add(t.RealisedGrossPnL)
-			entry.Charges = entry.Charges.Add(t.ChargesAmount)
-			entry.NetPnL = entry.NetPnL.Add(t.RealisedNetPnL)
-			entry.GrossRFactor = entry.GrossRFactor.Add(t.GrossRFactor)
-
-			// Track unique position for this hour
-			hourPositions[hour][pos.ID] = struct{}{}
 		}
 
-		// Skip if the curren position is still open.
-		if pos.ClosedAt == nil || pos.Status == position.StatusOpen {
-			continue
+		hourEntry := hourStats[hour]
+
+		hourEntry.PositionsCount++
+		hourEntry.GrossPnL = hourEntry.GrossPnL.Add(pos.GrossPnLAmount)
+		hourEntry.Charges = hourEntry.Charges.Add(pos.TotalChargesAmount)
+		hourEntry.NetPnL = hourEntry.NetPnL.Add(pos.NetPnLAmount)
+		hourEntry.GrossRFactor = hourEntry.GrossRFactor.Add(pos.GrossRFactor)
+
+		switch pos.Status {
+		case position.StatusWin:
+			hourEntry.WinningCount++
+		case position.StatusLoss:
+			hourEntry.LosingCount++
 		}
 
 		duration := pos.ClosedAt.Sub(pos.OpenedAt)
@@ -424,7 +431,7 @@ func (s *Service) GetTimeframes(ctx context.Context, userID uuid.UUID, tz *time.
 		bucket := common.GetHoldingPeriodBucket(duration)
 
 		if _, ok := holdingStats[bucket]; !ok {
-			holdingStats[bucket] = &holdingPeriodItem{
+			holdingStats[bucket] = &HoldingPeriodItem{
 				Period:         bucket,
 				PositionsCount: 0,
 				GrossPnL:       decimal.Zero,
@@ -434,19 +441,49 @@ func (s *Service) GetTimeframes(ctx context.Context, userID uuid.UUID, tz *time.
 			}
 		}
 
-		entry := holdingStats[bucket]
+		holdingEntry := holdingStats[bucket]
 
-		entry.PositionsCount++
-		entry.GrossPnL = entry.GrossPnL.Add(pos.GrossPnLAmount)
-		entry.Charges = entry.Charges.Add(pos.TotalChargesAmount)
-		entry.NetPnL = entry.NetPnL.Add(pos.NetPnLAmount)
-		entry.GrossRFactor = entry.GrossRFactor.Add(pos.GrossRFactor)
+		if pos.NetPnLAmount.GreaterThan(decimal.Zero) {
+			holdingEntry.WinningCount++
+		} else if pos.NetPnLAmount.LessThan(decimal.Zero) {
+			holdingEntry.LosingCount++
+		}
 
+		holdingEntry.PositionsCount++
+		holdingEntry.GrossPnL = holdingEntry.GrossPnL.Add(pos.GrossPnLAmount)
+		holdingEntry.Charges = holdingEntry.Charges.Add(pos.TotalChargesAmount)
+		holdingEntry.NetPnL = holdingEntry.NetPnL.Add(pos.NetPnLAmount)
+		holdingEntry.GrossRFactor = holdingEntry.GrossRFactor.Add(pos.GrossRFactor)
+
+	}
+
+	for _, entry := range hourStats {
+		if entry.PositionsCount == 0 {
+			continue
+		}
+
+		entry.AvgPnL = entry.NetPnL.Div(decimal.NewFromInt(int64(entry.PositionsCount)))
+
+		total := entry.WinningCount + entry.LosingCount
+		if total > 0 {
+			entry.WinRate = float64(entry.WinningCount) / float64(total)
+		}
+	}
+
+	for _, h := range holdingStats {
+		if h.PositionsCount > 0 {
+			h.AvgPnL = h.NetPnL.Div(decimal.NewFromInt(int64(h.PositionsCount)))
+		}
+
+		total := h.WinningCount + h.LosingCount
+		if total > 0 {
+			h.WinRate = float64(h.WinningCount) / float64(total)
+		}
 	}
 
 	result := GetTimeframesResult{
 		DayOfTheWeek: make([]dayOfTheWeekItem, 0, 7),
-		HourOfTheDay: make([]hourOfTheDayItem, 0, 24),
+		HourOfTheDay: make([]HourOfTheDayItem, 0, 24),
 	}
 
 	orderedDays := []common.Day{
@@ -506,13 +543,13 @@ func (s *Service) GetTimeframes(ctx context.Context, userID uuid.UUID, tz *time.
 		common.HoldingOver365d,
 	}
 
-	result.HoldingPeriod = make([]holdingPeriodItem, 0, len(orderedBuckets))
+	result.HoldingPeriod = make([]HoldingPeriodItem, 0, len(orderedBuckets))
 
 	for _, bucket := range orderedBuckets {
 		if stats, ok := holdingStats[bucket]; ok {
 			result.HoldingPeriod = append(result.HoldingPeriod, *stats)
 		} else {
-			result.HoldingPeriod = append(result.HoldingPeriod, holdingPeriodItem{
+			result.HoldingPeriod = append(result.HoldingPeriod, HoldingPeriodItem{
 				Period:         bucket,
 				PositionsCount: 0,
 				GrossPnL:       decimal.Zero,

@@ -1,12 +1,12 @@
 import React, { lazy, Suspense } from "react";
 import { LoadingScreen } from "@/components/loading_screen";
 
-const Analytics = lazy(() => import("@/features/analytics/analytics"));
+const Reports = lazy(() => import("@/features/reports/reports"));
 
-const AnalyticsLazy: React.FC = () => (
+const ReportsLazy: React.FC = () => (
     <Suspense fallback={<LoadingScreen />}>
-        <Analytics />
+        <Reports />
     </Suspense>
 );
 
-export default AnalyticsLazy;
+export default ReportsLazy;

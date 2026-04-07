@@ -2,9 +2,11 @@ package position
 
 import (
 	"arthveda/internal/common"
+	"arthveda/internal/domain/subscription"
 	"arthveda/internal/domain/symbol"
 	"arthveda/internal/domain/types"
 	"arthveda/internal/feature/currency"
+
 	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
 	"arthveda/internal/logger"
@@ -921,9 +923,9 @@ func GetGeneralStats(positions []*Position) GeneralStats {
 		expectancy      decimal.Decimal
 		avgWinLossRatio decimal.Decimal
 
-		openTradesCount, settledTradesCount                   int
-		winTradesCount, lossTradesCount, breakevenTradesCount int
-		tradesWithRiskAmountCount                             int
+		openTradesCount, settledTradesCount                            int
+		winPositionsCount, lossPositionsCount, breakevenPositionsCount int
+		tradesWithRiskAmountCount                                      int
 
 		maxWinStreak, maxLossStreak int
 		currentWin, currentLoss     int
@@ -964,7 +966,7 @@ func GetGeneralStats(positions []*Position) GeneralStats {
 
 		// --- PnL-based classification ---
 		if p.NetPnLAmount.GreaterThan(decimal.Zero) {
-			winTradesCount++
+			winPositionsCount++
 
 			totalNetWinAmount = totalNetWinAmount.Add(p.NetPnLAmount)
 			avgWin = avgWin.Add(p.NetPnLAmount)
@@ -976,7 +978,7 @@ func GetGeneralStats(positions []*Position) GeneralStats {
 			currentWin++
 			currentLoss = 0
 		} else if p.NetPnLAmount.LessThan(decimal.Zero) {
-			lossTradesCount++
+			lossPositionsCount++
 
 			lossAbs := p.NetPnLAmount.Abs()
 			totalNetLossAmount = totalNetLossAmount.Add(lossAbs)
@@ -990,7 +992,7 @@ func GetGeneralStats(positions []*Position) GeneralStats {
 			currentWin = 0
 		} else {
 			// breakeven
-			breakevenTradesCount++
+			breakevenPositionsCount++
 			currentWin = 0
 			currentLoss = 0
 		}
@@ -1006,23 +1008,23 @@ func GetGeneralStats(positions []*Position) GeneralStats {
 		avgGrossRFactor = avgGrossRFactor.Div(div)
 	}
 
-	if winTradesCount > 0 {
-		div := decimal.NewFromInt(int64(winTradesCount))
+	if winPositionsCount > 0 {
+		div := decimal.NewFromInt(int64(winPositionsCount))
 		avgWin = avgWin.Div(div)
 		avgWinRFactor = avgWinRFactor.Div(div)
 		avgWinROI = avgWinROI.Div(div)
 	}
 
-	if lossTradesCount > 0 {
-		div := decimal.NewFromInt(int64(lossTradesCount))
+	if lossPositionsCount > 0 {
+		div := decimal.NewFromInt(int64(lossPositionsCount))
 		avgLoss = avgLoss.Div(div)
 		avgLossRFactor = avgLossRFactor.Div(div)
 		avgLossROI = avgLossROI.Div(div)
 	}
 
 	// --- Win rate ---
-	if (winTradesCount + lossTradesCount) > 0 {
-		winRate = (float64(winTradesCount) / float64(winTradesCount+lossTradesCount)) * 100
+	if (winPositionsCount + lossPositionsCount) > 0 {
+		winRate = (float64(winPositionsCount) / float64(winPositionsCount+lossPositionsCount)) * 100
 	}
 	lossRate := 100.0 - winRate
 
@@ -1067,10 +1069,10 @@ func GetGeneralStats(positions []*Position) GeneralStats {
 		WinStreak:  maxWinStreak,
 		LossStreak: maxLossStreak,
 
-		TotalTradesCount: winTradesCount + lossTradesCount + breakevenTradesCount,
-		WinsCount:        winTradesCount,
-		LossesCount:      lossTradesCount,
-		BreakevensCount:  breakevenTradesCount,
+		TotalTradesCount: winPositionsCount + lossPositionsCount + breakevenPositionsCount,
+		WinsCount:        winPositionsCount,
+		LossesCount:      lossPositionsCount,
+		BreakevensCount:  breakevenPositionsCount,
 
 		ProfitFactor:       profitFactor,
 		TotalNetWinAmount:  totalNetWinAmount,
@@ -1079,4 +1081,26 @@ func GetGeneralStats(positions []*Position) GeneralStats {
 		Expectancy:      expectancy,
 		AvgWinLossRatio: avgWinLossRatio,
 	}
+}
+
+func GetDefaultSearchPayload(userID uuid.UUID, enforcer *subscription.PlanEnforcer, tz *time.Location) SearchPayload {
+	yearAgo := time.Now().In(tz).AddDate(-1, 0, 0)
+	tradeTimeRange := &common.DateRangeFilter{}
+
+	if !enforcer.CanAccessAllPositions() {
+		tradeTimeRange.From = &yearAgo
+	}
+
+	searchPositionPayload := SearchPayload{
+		Filters: SearchFilter{
+			CreatedBy: &userID,
+			TradeTime: tradeTimeRange,
+		},
+		Sort: common.Sorting{
+			Field: "opened_at",
+			Order: common.SortOrderASC,
+		},
+	}
+
+	return searchPositionPayload
 }

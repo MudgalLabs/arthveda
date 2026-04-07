@@ -34,7 +34,7 @@ export interface GetAnalyticsTagsResponse {
 }
 
 export function getAnalyticsTags() {
-    return client.get<ApiRes<GetAnalyticsTagsResponse>>(API_ROUTES.analytics.tags);
+    return client.get<ApiRes<GetAnalyticsTagsResponse>>(API_ROUTES.report.tags);
 }
 
 export interface AnalyticsTimeDayOfTheWeekItem {
@@ -71,7 +71,7 @@ export interface GetAnalyticsTimeframesResponse {
 }
 
 export function getAnalyticsTimeframes() {
-    return client.get<ApiRes<GetAnalyticsTimeframesResponse>>(API_ROUTES.analytics.timeframes);
+    return client.get<ApiRes<GetAnalyticsTimeframesResponse>>(API_ROUTES.report.timeframes);
 }
 
 export interface SymbolsPerformanceItem {
@@ -95,7 +95,7 @@ export interface GetAnalyticsSymbolsResponse {
 }
 
 export function getAnalyticsSymbols() {
-    return client.get<ApiRes<GetAnalyticsSymbolsResponse>>(API_ROUTES.analytics.symbols);
+    return client.get<ApiRes<GetAnalyticsSymbolsResponse>>(API_ROUTES.report.symbols);
 }
 
 export interface InstrumentsPerformanceItem {
@@ -113,5 +113,5 @@ export interface GetAnalyticsInstrumentsResponse {
 }
 
 export function getAnalyticsInstruments() {
-    return client.get<ApiRes<GetAnalyticsInstrumentsResponse>>(API_ROUTES.analytics.instruments);
+    return client.get<ApiRes<GetAnalyticsInstrumentsResponse>>(API_ROUTES.report.instruments);
 }

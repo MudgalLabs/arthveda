@@ -1,10 +1,4 @@
 export const API_ROUTES = {
-    analytics: {
-        tags: "/v1/analytics/tags",
-        timeframes: "/v1/analytics/timeframes",
-        symbols: "/v1/analytics/symbols",
-        instruments: "/v1/analytics/instruments",
-    },
     auth: {
         signin: "/v1/auth/sign-in",
         signup: "/v1/auth/sign-up",
@@ -23,6 +17,9 @@ export const API_ROUTES = {
     dashboard: {
         get: "/v1/dashboard",
     },
+    insight: {
+        get: "/v1/insights",
+    },
     position: {
         create: "/v1/positions",
         get: (id: string) => `/v1/positions/${id}`,
@@ -32,6 +29,12 @@ export const API_ROUTES = {
         import: "/v1/positions/import",
         search: "/v1/positions/search",
         export: "/v1/positions/export",
+    },
+    report: {
+        tags: "/v1/reports/tags",
+        timeframes: "/v1/reports/timeframes",
+        symbols: "/v1/reports/symbols",
+        instruments: "/v1/reports/instruments",
     },
     subscription: {
         cancelSubscriptionAtPeriodEnd: "/v1/subscriptions/me/cancel-at-period-end",

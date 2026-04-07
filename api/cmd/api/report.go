@@ -1,13 +1,13 @@
 package main
 
 import (
-	"arthveda/internal/feature/analytics"
+	"arthveda/internal/feature/report"
 	"net/http"
 
 	"github.com/mudgallabs/tantra/httpx"
 )
 
-func getAnalyticsTagsHandler(service *analytics.Service) http.HandlerFunc {
+func getAnalyticsTagsHandler(service *report.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
@@ -24,7 +24,7 @@ func getAnalyticsTagsHandler(service *analytics.Service) http.HandlerFunc {
 	}
 }
 
-func getAnalyticsTimeframesHandler(service *analytics.Service) http.HandlerFunc {
+func getAnalyticsTimeframesHandler(service *report.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
@@ -41,7 +41,7 @@ func getAnalyticsTimeframesHandler(service *analytics.Service) http.HandlerFunc 
 	}
 }
 
-func getAnalyticsSymbolsHandler(service *analytics.Service) http.HandlerFunc {
+func getAnalyticsSymbolsHandler(service *report.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)
@@ -58,7 +58,7 @@ func getAnalyticsSymbolsHandler(service *analytics.Service) http.HandlerFunc {
 	}
 }
 
-func getAnalyticsInstrumentsHandler(service *analytics.Service) http.HandlerFunc {
+func getAnalyticsInstrumentsHandler(service *report.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserIDFromContext(ctx)

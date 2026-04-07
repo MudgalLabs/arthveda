@@ -7,6 +7,7 @@ import SignInLazy from "@/features/auth/sign_in/sign_in_lazy";
 
 // Protected
 import DashboardLazy from "@/features/dashboard/dashboard_lazy";
+import InsightsLazy from "@/features/insights/insights_lazy";
 import ListPositionsLazy from "@/features/position/list/list_positions_lazy";
 import ViewPositionLazy from "@/features/position/view/view_position_lazy";
 import NewPositionLazy from "@/features/position/new/new_position_lazy";
@@ -17,7 +18,7 @@ import PlanAndBillingLazy from "@/features/settings/plan_and_billing/plan_and_bi
 import NotificationPreferencesLazy from "@/features/settings/notification_preferences/notification_preferences_lazy";
 import SettingsLazy from "@/features/settings/settings_lazy";
 import TagsManagementLazy from "@/features/tags/tags_management_lazy";
-import AnalyticsLazy from "@/features/analytics/analytics_lazy";
+import ReportsLazy from "@/features/reports/reports_lazy";
 import OnboardingLazy from "@/features/onboarding/onboarding_lazy";
 import { OnboardingWelcome } from "@/features/onboarding/components/onboarding_welcome";
 import { OnboardingBroker } from "@/features/onboarding/components/onboarding_broker";
@@ -72,6 +73,10 @@ export const routes: Array<RouteObject> = [
         element: <DashboardLazy />,
     },
     {
+        path: ROUTES.insights,
+        element: <InsightsLazy />,
+    },
+    {
         path: ROUTES.listPositions,
         element: <ListPositionsLazy />,
     },
@@ -92,8 +97,8 @@ export const routes: Array<RouteObject> = [
         element: <CalendarLazy />,
     },
     {
-        path: ROUTES.analytics,
-        element: <AnalyticsLazy />,
+        path: ROUTES.reports,
+        element: <ReportsLazy />,
     },
     {
         path: ROUTES.brokerAccounts,

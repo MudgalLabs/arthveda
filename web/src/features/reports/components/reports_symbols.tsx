@@ -2,7 +2,7 @@ import { EfficiencyInfoTooltip } from "@/components/efficiency_info_tooltip";
 import { PnL } from "@/components/pnl";
 import { useHomeCurrency } from "@/features/auth/auth_context";
 import { apiHooks } from "@/hooks/api_hooks";
-import { SymbolsPerformanceItem } from "@/lib/api/analytics";
+import { SymbolsPerformanceItem } from "@/lib/api/report";
 import { CurrencyCode } from "@/lib/api/currency";
 import { decimalSortingFn, formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/s8ly/data_table/data_table";
@@ -13,8 +13,8 @@ import Decimal from "decimal.js";
 import { Card, ErrorMessage, LoadingScreen } from "netra";
 import { useState } from "react";
 
-export function AnalyticsSymbols() {
-    const { data, isLoading } = apiHooks.analytics.useGetAnalyticsSymbols();
+export function ReportsSymbols() {
+    const { data, isLoading } = apiHooks.report.useGetAnalyticsSymbols();
 
     if (isLoading) return <LoadingScreen />;
 

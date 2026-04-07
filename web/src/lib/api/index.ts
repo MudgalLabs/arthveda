@@ -2,13 +2,14 @@ import { AxiosError } from "axios";
 
 import { ApiRes } from "@/lib/api/client";
 import { toast } from "@/components/toast";
-import * as analytics from "@/lib/api/analytics";
 import * as auth from "@/lib/api/auth";
 import * as broker from "@/lib/api/broker";
 import * as calendar from "@/lib/api/calendar";
 import * as currency from "@/lib/api/currency";
 import * as dashboard from "@/lib/api/dashboard";
+import * as insight from "@/lib/api/insight";
 import * as position from "@/lib/api/position";
+import * as report from "@/lib/api/report";
 import * as subscription from "@/lib/api/subscription";
 import * as symbol from "@/lib/api/symbol";
 import * as tag from "@/lib/api/tag";
@@ -18,12 +19,13 @@ import * as userBrokerAccount from "@/lib/api/user_broker_account";
 import { useUpgradeModalStore } from "@/components/plan_limit_exceeded_modal";
 
 export const api = {
-    analytics,
+    report,
     auth,
     broker,
     calendar,
     currency,
     dashboard,
+    insight,
     position,
     subscription,
     symbol,

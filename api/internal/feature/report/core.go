@@ -1,4 +1,4 @@
-package analytics
+package report
 
 import "github.com/shopspring/decimal"
 

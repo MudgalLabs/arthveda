@@ -4,15 +4,16 @@ import (
 	"arthveda/internal/dbx"
 	"arthveda/internal/domain/subscription"
 	"arthveda/internal/env"
-	"arthveda/internal/feature/analytics"
 	"arthveda/internal/feature/broker"
 	"arthveda/internal/feature/calendar"
 	"arthveda/internal/feature/currency"
 	"arthveda/internal/feature/dashboard"
+	"arthveda/internal/feature/insight"
 	"arthveda/internal/feature/journal_entry"
 	"arthveda/internal/feature/journal_entry_content"
 	"arthveda/internal/feature/notification"
 	"arthveda/internal/feature/position"
+	"arthveda/internal/feature/report"
 	"arthveda/internal/feature/symbol"
 	"arthveda/internal/feature/tag"
 	"arthveda/internal/feature/trade"
@@ -54,7 +55,8 @@ type services struct {
 	UserIdentityService      *user_identity.Service
 	UserProfileService       *userprofile.Service
 	TagService               *tag.Service
-	AnalyticsService         *analytics.Service
+	ReportService            *report.Service
+	InsightService           *insight.Service
 }
 
 // Access to all repositories for reading.
@@ -69,7 +71,7 @@ type repositories struct {
 	UserIdentity      user_identity.Reader
 	UserProfile       userprofile.Reader
 	Tag               tag.Reader
-	Analytics         analytics.Reader
+	Analytics         report.Reader
 }
 
 func main() {
@@ -112,7 +114,7 @@ func main() {
 	userIdentityRepository := user_identity.NewRepository(db)
 	tagRepository := tag.NewRepository(db)
 	positionRepository := position.NewRepository(db, tradeRepository, tagRepository)
-	analyticsRepository := analytics.NewRepository(db)
+	analyticsRepository := report.NewRepository(db)
 
 	brokerService := broker.NewService(brokerRepository)
 	calendarService := calendar.NewService(positionRepository)
@@ -129,7 +131,8 @@ func main() {
 	tagService := tag.NewService(tagRepository)
 	positionService := position.NewService(brokerRepository, positionRepository, tradeRepository,
 		userBrokerAccountRepository, journalEntryService, uploadRepository, tagService, tagRepository)
-	analyticsService := analytics.NewService(positionRepository, tagRepository, calendarService)
+	reportService := report.NewService(positionRepository, tagRepository, calendarService)
+	insightService := insight.NewService(positionRepository, reportService)
 
 	services := services{
 		BrokerService:            brokerService,
@@ -144,7 +147,8 @@ func main() {
 		UserIdentityService:      userIdentityService,
 		UserProfileService:       userProfileService,
 		TagService:               tagService,
-		AnalyticsService:         analyticsService,
+		ReportService:            reportService,
+		InsightService:           insightService,
 	}
 
 	repositories := repositories{

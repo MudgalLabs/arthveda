@@ -1,30 +1,30 @@
 import { PageHeading, useDocumentTitle } from "netra";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/s8ly";
-import { IconBrain } from "@/components/icons";
-import { AnalyticsTags } from "@/features/analytics/components/analytics_tags";
-import { AnalyticsTimeframes } from "@/features/analytics/components/analytics_timeframes";
-import { AnalyticsSymbols } from "@/features/analytics/components/analytics_symbols";
+import { IconClipboardList } from "@/components/icons";
+import { ReportsTags } from "@/features/reports/components/reports_tags";
+import { ReportsTimeframes } from "@/features/reports/components/reports_timeframes";
+import { ReportsSymbols } from "@/features/reports/components/reports_symbols";
 import { useURLState } from "@/hooks/use_url_state";
-import { AnalyticsInstruments } from "@/features/analytics/components/analytics_instruments";
+import { ReportsInstruments } from "@/features/reports/components/reports_instruments";
 
-const enum AnalyticsTab {
+const enum ReportsTab {
     Symbols = "symbols",
     Instruments = "instruments",
     Tags = "tags",
     Timeframes = "timeframes",
 }
 
-export function Analytics() {
-    useDocumentTitle("Analytics • Arthveda");
+export function Reports() {
+    useDocumentTitle("Reports • Arthveda");
 
-    const [tab, setTab] = useURLState<string>("tab", AnalyticsTab.Symbols);
+    const [tab, setTab] = useURLState<string>("tab", ReportsTab.Symbols);
 
     return (
         <div className="flex h-full flex-col">
             <PageHeading>
-                <IconBrain size={18} />
-                <h1>Analytics</h1>
+                <IconClipboardList size={18} />
+                <h1>Reports</h1>
             </PageHeading>
 
             <Tabs defaultValue="trades" value={tab} onValueChange={setTab} className="pb-8">
@@ -38,23 +38,23 @@ export function Analytics() {
                 <div className="h-8" />
 
                 <TabsContent value="symbols">
-                    <AnalyticsSymbols />
+                    <ReportsSymbols />
                 </TabsContent>
 
                 <TabsContent value="instruments">
-                    <AnalyticsInstruments />
+                    <ReportsInstruments />
                 </TabsContent>
 
                 <TabsContent value="timeframes">
-                    <AnalyticsTimeframes />
+                    <ReportsTimeframes />
                 </TabsContent>
 
                 <TabsContent value="tags">
-                    <AnalyticsTags />
+                    <ReportsTags />
                 </TabsContent>
             </Tabs>
         </div>
     );
 }
 
-export default Analytics;
+export default Reports;

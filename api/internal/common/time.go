@@ -47,6 +47,61 @@ const (
 	Hour23_24 Hour = "23_24"
 )
 
+// "14_15" -> "2–3 PM"
+func FormatHour(hour Hour) string {
+	var h1, h2 int
+	fmt.Sscanf(string(hour), "%02d_%02d", &h1, &h2)
+
+	format := func(h int) (int, string) {
+		if h == 0 {
+			return 12, "AM"
+		}
+		if h < 12 {
+			return h, "AM"
+		}
+		if h == 12 {
+			return 12, "PM"
+		}
+		return h - 12, "PM"
+	}
+
+	fh1, p1 := format(h1)
+	fh2, _ := format(h2)
+
+	return fmt.Sprintf("%d–%d %s", fh1, fh2, p1)
+}
+
+func FormatHourRange(start, end Hour) string {
+	var s1, s2, e1, e2 int
+
+	fmt.Sscanf(string(start), "%02d_%02d", &s1, &s2)
+	fmt.Sscanf(string(end), "%02d_%02d", &e1, &e2)
+
+	format := func(h int) (int, string) {
+		if h == 0 {
+			return 12, "AM"
+		}
+		if h < 12 {
+			return h, "AM"
+		}
+		if h == 12 {
+			return 12, "PM"
+		}
+		return h - 12, "PM"
+	}
+
+	fs, ps := format(s1)
+	fe, pe := format(e2)
+
+	// Same period (AM-AM or PM-PM).
+	if ps == pe {
+		return fmt.Sprintf("%d–%d %s", fs, fe, ps)
+	}
+
+	// Cross period (rare but correct).
+	return fmt.Sprintf("%d %s – %d %s", fs, ps, fe, pe)
+}
+
 type HoldingPeriod string
 
 const (
@@ -81,6 +136,59 @@ func GetHoldingPeriodBucket(d time.Duration) HoldingPeriod {
 		return Holding30To365d
 	default:
 		return HoldingOver365d
+	}
+}
+
+func FormatHoldingPeriod(p HoldingPeriod) string {
+	switch p {
+	case HoldingUnder1m:
+		return "under 1 min"
+	case Holding1To5m:
+		return "1–5 min"
+	case Holding5To15m:
+		return "5–15 min"
+	case Holding15To60m:
+		return "15–60 min"
+	case Holding1To24h:
+		return "1–24 hours"
+	case Holding1To7d:
+		return "1–7 days"
+	case Holding7To30d:
+		return "7–30 days"
+	case Holding30To365d:
+		return "1–12 months"
+	case HoldingOver365d:
+		return "over 1 year"
+	default:
+		return string(p) // safe fallback
+	}
+}
+
+type HoldingCategory string
+
+const (
+	HoldingScalping HoldingCategory = "scalping"
+	HoldingIntraday HoldingCategory = "intraday"
+	HoldingSwing    HoldingCategory = "swing"
+	HoldingPosition HoldingCategory = "position"
+)
+
+func GetHoldingCategory(p HoldingPeriod) HoldingCategory {
+	switch p {
+	case HoldingUnder1m, Holding1To5m:
+		return HoldingScalping
+
+	case Holding5To15m, Holding15To60m, Holding1To24h:
+		return HoldingIntraday
+
+	case Holding1To7d, Holding7To30d:
+		return HoldingSwing
+
+	case Holding30To365d, HoldingOver365d:
+		return HoldingPosition
+
+	default:
+		return HoldingIntraday
 	}
 }
 
