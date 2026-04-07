@@ -15,6 +15,7 @@ import { AddPositionMenu } from "@/features/dashboard/add_position_menu";
 import { Branding } from "@/components/branding";
 import { NotificationsInbox } from "@/components/notification/notification_inbox";
 import { TrialCountdown } from "@/components/trial_countdown";
+import { Tag } from "@/s8ly";
 
 const SIDEBAR_ROUTES = [
     ROUTES.dashboard,
@@ -89,7 +90,14 @@ export const Sidebar = () => {
 
                 <Link to={ROUTES.insights} variant="unstyled">
                     <SidebarItem
-                        label="Insights"
+                        label={
+                            <span className="flex-x w-full justify-between">
+                                Insights{" "}
+                                <Tag variant="muted" size="small">
+                                    NEW
+                                </Tag>
+                            </span>
+                        }
                         icon={<IconSparkles size={20} />}
                         open={isOpen}
                         isActive={activeRoute === ROUTES.insights}
