@@ -60,8 +60,6 @@ export default function Insights() {
                 <h1>Insights</h1>
             </PageHeading>
 
-            <div className="h-4" />
-
             {content}
         </div>
     );
@@ -103,7 +101,7 @@ function InsightsSection({ insights }: { insights: Insight[] }) {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="mx-auto max-w-5xl space-y-6">
             <div className="grid grid-cols-2 gap-6">
                 <div className="flex items-center gap-2">
                     <span className="bg-success-foreground-2 h-2 w-2 rounded-full" />

@@ -4,6 +4,7 @@ import (
 	"arthveda/internal/common"
 	"arthveda/internal/feature/report"
 	"sort"
+	"strings"
 
 	"github.com/shopspring/decimal"
 )
@@ -46,18 +47,7 @@ func getTimeOfDayInsights(
 		trades = append(trades, h.PositionsCount)
 	}
 
-	medianTrades := 0
-
-	n := len(trades)
-	if n > 0 {
-		sort.Ints(trades)
-
-		if n%2 == 1 {
-			medianTrades = trades[n/2]
-		} else {
-			medianTrades = (trades[n/2-1] + trades[n/2]) / 2
-		}
-	}
+	medianTrades := calcMedian(trades)
 
 	// Skip insights generation.
 	if medianTrades == 0 {
@@ -426,50 +416,234 @@ func getHoldingDurationInsights(
 	durations []report.HoldingPeriodItem,
 	baseline decimal.Decimal,
 ) []insight {
-	var mostProfits *report.HoldingPeriodItem
-	var leastProfits *report.HoldingPeriodItem
+	insights := []insight{}
+
+	var trades []int
 
 	for i := range durations {
 		d := &durations[i]
 
-		if d.PositionsCount == 0 {
+		if d.PositionsCount < BASE_MIN_TRADES {
 			continue
 		}
 
-		if mostProfits == nil || d.NetPnL.GreaterThan(mostProfits.NetPnL) {
-			mostProfits = d
+		trades = append(trades, d.PositionsCount)
+	}
+
+	medianTrades := calcMedian(trades)
+
+	if medianTrades == 0 {
+		return insights
+	}
+
+	thresholds := buildThresholds(medianTrades)
+
+	var holdingOrder = []common.HoldingPeriod{
+		common.HoldingUnder1m,
+		common.Holding1To5m,
+		common.Holding5To15m,
+		common.Holding15To60m,
+		common.Holding1To24h,
+		common.Holding1To7d,
+		common.Holding7To30d,
+		common.Holding30To365d,
+		common.HoldingOver365d,
+	}
+
+	m := make(map[common.HoldingPeriod]*report.HoldingPeriodItem)
+
+	for i := range durations {
+		d := &durations[i]
+		m[d.Period] = d
+	}
+
+	var bestStart, bestEnd, currStart int = -1, -1, -1
+
+	bestScore := decimal.Zero
+	currScore := decimal.Zero
+
+	for i, period := range holdingOrder {
+		d, ok := m[period]
+
+		// Break if no data or too small
+		if !ok || d.PositionsCount < thresholds.NormalTrades {
+			if currStart != -1 {
+				if bestStart == -1 || currScore.GreaterThan(bestScore) {
+					bestStart = currStart
+					bestEnd = i - 1
+					bestScore = currScore
+				}
+				currStart = -1
+				currScore = decimal.Zero
+			}
+			continue
 		}
 
-		if leastProfits == nil || d.NetPnL.LessThan(leastProfits.NetPnL) {
-			leastProfits = d
+		// Check if profitable edge
+		if d.AvgPnL.GreaterThan(baseline) {
+			if currStart == -1 {
+				currStart = i
+				currScore = decimal.Zero
+			}
+
+			currScore = currScore.Add(d.AvgPnL.Sub(baseline))
+		} else {
+			if currStart != -1 {
+				if bestStart == -1 || currScore.GreaterThan(bestScore) {
+					bestStart = currStart
+					bestEnd = i - 1
+					bestScore = currScore
+				}
+				currStart = -1
+				currScore = decimal.Zero
+			}
 		}
 	}
 
-	insights := []insight{}
+	// tail case
+	if currStart != -1 {
+		if bestStart == -1 || currScore.GreaterThan(bestScore) {
+			bestStart = currStart
+			bestEnd = len(holdingOrder) - 1
+			bestScore = currScore
+		}
+	}
 
-	if mostProfits != nil {
-		label := common.FormatHoldingPeriod(mostProfits.Period)
-		category := common.GetHoldingCategory(mostProfits.Period)
+	if bestStart != -1 && bestEnd > bestStart && bestScore.GreaterThan(decimal.Zero) {
+		start := holdingOrder[bestStart]
+		end := holdingOrder[bestEnd]
+
+		titleLabel := common.FormatHoldingPeriodRange(start, end)
+
+		impactPct, coreLabel := getHoldingImpact(bestStart, bestEnd, holdingOrder, m)
+
+		desc := "This holding range contributes the most to your overall performance"
+		tokens := map[string]token{}
+
+		if impactPct > 0 && coreLabel != "" {
+			if impactPct >= 65 {
+				desc = "{impact} of your profits come from trades held for " + coreLabel
+
+				tokens["impact"] = token{
+					Value: impactPct,
+					Type:  "percentage",
+					Tone:  "positive",
+				}
+			} else {
+				desc = "Your profits are concentrated in trades held for {range}"
+
+				tokens["range"] = token{
+					Value: coreLabel,
+					Type:  "string",
+				}
+			}
+		}
+
+		cats := getHoldingCategoriesForRange(bestStart, bestEnd, holdingOrder, m)
+		actionLabel := formatHoldingCategories(cats)
 
 		insights = append(insights, insight{
 			Type:        "holding_duration",
 			Direction:   "positive",
-			Title:       "You make the most money holding for " + label,
-			Description: "This holding period contributes the most to your total PnL",
-			Action:      getHoldingAction(category, "positive"),
+			Title:       "Most of your profits come from trades held for " + titleLabel,
+			Description: desc,
+			Tokens:      tokens,
+			Action:      "Focus more on " + actionLabel + " trades",
 		})
 	}
 
-	if leastProfits != nil {
-		label := common.FormatHoldingPeriod(leastProfits.Period)
-		category := common.GetHoldingCategory(leastProfits.Period)
+	var weakStart, weakEnd, weakCurrStart int = -1, -1, -1
+
+	weakScore := decimal.Zero
+	weakCurrScore := decimal.Zero
+
+	for i, period := range holdingOrder {
+		d, ok := m[period]
+
+		// Break on weak data
+		if !ok || d.PositionsCount < thresholds.NormalTrades {
+			if weakCurrStart != -1 {
+				if weakStart == -1 || weakCurrScore.LessThan(weakScore) {
+					weakStart = weakCurrStart
+					weakEnd = i - 1
+					weakScore = weakCurrScore
+				}
+				weakCurrStart = -1
+				weakCurrScore = decimal.Zero
+			}
+			continue
+		}
+
+		// Weak zone = losing money
+		if d.NetPnL.LessThan(decimal.Zero) {
+			if weakCurrStart == -1 {
+				weakCurrStart = i
+				weakCurrScore = decimal.Zero
+			}
+
+			weakCurrScore = weakCurrScore.Add(d.NetPnL) // accumulate losses
+		} else {
+			if weakCurrStart != -1 {
+				if weakStart == -1 || weakCurrScore.LessThan(weakScore) {
+					weakStart = weakCurrStart
+					weakEnd = i - 1
+					weakScore = weakCurrScore
+				}
+				weakCurrStart = -1
+				weakCurrScore = decimal.Zero
+			}
+		}
+	}
+
+	// tail
+	if weakCurrStart != -1 {
+		if weakStart == -1 || weakCurrScore.LessThan(weakScore) {
+			weakStart = weakCurrStart
+			weakEnd = len(holdingOrder) - 1
+			weakScore = weakCurrScore
+		}
+	}
+
+	if weakStart != -1 && weakEnd > weakStart && weakScore.LessThan(decimal.Zero) {
+		start := holdingOrder[weakStart]
+		end := holdingOrder[weakEnd]
+
+		titleLabel := common.FormatHoldingPeriodRange(start, end)
+
+		desc := "Your performance drops in this holding range"
+		tokens := map[string]token{}
+
+		lossPct, coreLabel := getHoldingLossImpact(weakStart, weakEnd, holdingOrder, m)
+
+		if lossPct > 0 && coreLabel != "" {
+			if lossPct >= 65 {
+				desc = "{loss} of your losses come from trades held for " + coreLabel
+
+				tokens["loss"] = token{
+					Value: lossPct,
+					Type:  "percentage",
+					Tone:  "negative",
+				}
+			} else {
+				desc = "Most of your losses come from trades held for {range}"
+
+				tokens["range"] = token{
+					Value: coreLabel,
+					Type:  "string",
+				}
+			}
+		}
+
+		cats := getHoldingCategoriesForRange(weakStart, weakEnd, holdingOrder, m)
+		actionLabel := formatHoldingCategories(cats)
 
 		insights = append(insights, insight{
 			Type:        "holding_duration",
 			Direction:   "negative",
-			Title:       "You lose the most when holding for " + label,
-			Description: "Your trades lose money during this holding period and drag down your overall performance",
-			Action:      getHoldingAction(category, "negative"),
+			Title:       "You lose money on trades held for " + titleLabel,
+			Description: desc,
+			Tokens:      tokens,
+			Action:      "Reduce " + actionLabel + " trades",
 		})
 	}
 
@@ -505,4 +679,238 @@ func getHoldingAction(category common.HoldingCategory, direction string) string 
 	}
 
 	return ""
+}
+
+func getHoldingCategoriesForRange(
+	startIdx, endIdx int,
+	holdingOrder []common.HoldingPeriod,
+	m map[common.HoldingPeriod]*report.HoldingPeriodItem,
+) []common.HoldingCategory {
+
+	categoryScore := map[common.HoldingCategory]int{}
+	total := 0
+
+	for i := startIdx; i <= endIdx; i++ {
+		p := holdingOrder[i]
+
+		d, ok := m[p]
+		if !ok || d.PositionsCount == 0 {
+			continue
+		}
+
+		c := common.GetHoldingCategory(p)
+
+		categoryScore[c] += d.PositionsCount
+		total += d.PositionsCount
+	}
+
+	type pair struct {
+		cat   common.HoldingCategory
+		score int
+	}
+
+	var pairs []pair
+	for c, s := range categoryScore {
+		pairs = append(pairs, pair{c, s})
+	}
+
+	sort.Slice(pairs, func(i, j int) bool {
+		return pairs[i].score > pairs[j].score
+	})
+
+	var result []common.HoldingCategory
+
+	for _, p := range pairs {
+		share := float64(p.score) / float64(total)
+
+		if share >= 0.25 {
+			result = append(result, p.cat)
+		}
+	}
+
+	if len(result) == 0 && len(pairs) > 0 {
+		result = append(result, pairs[0].cat)
+	}
+
+	return result
+}
+
+func getHoldingImpact(
+	startIdx, endIdx int,
+	holdingOrder []common.HoldingPeriod,
+	m map[common.HoldingPeriod]*report.HoldingPeriodItem,
+) (float64, string) {
+
+	totalPnL := decimal.Zero
+
+	for i := startIdx; i <= endIdx; i++ {
+		d := m[holdingOrder[i]]
+		totalPnL = totalPnL.Add(d.NetPnL)
+	}
+
+	if totalPnL.LessThanOrEqual(decimal.Zero) {
+		return 0, ""
+	}
+
+	type bucket struct {
+		idx int
+		pnl decimal.Decimal
+	}
+
+	var buckets []bucket
+
+	for i := startIdx; i <= endIdx; i++ {
+		d := m[holdingOrder[i]]
+
+		if d.NetPnL.GreaterThan(decimal.Zero) {
+			buckets = append(buckets, bucket{i, d.NetPnL})
+		}
+	}
+
+	if len(buckets) == 0 {
+		return 0, ""
+	}
+
+	sort.Slice(buckets, func(i, j int) bool {
+		return buckets[i].pnl.GreaterThan(buckets[j].pnl)
+	})
+
+	corePnL := decimal.Zero
+	coreStart, coreEnd := -1, -1
+
+	for _, b := range buckets {
+		corePnL = corePnL.Add(b.pnl)
+
+		if coreStart == -1 || b.idx < coreStart {
+			coreStart = b.idx
+		}
+		if coreEnd == -1 || b.idx > coreEnd {
+			coreEnd = b.idx
+		}
+
+		share := corePnL.Div(totalPnL)
+
+		if share.GreaterThanOrEqual(decimal.NewFromFloat(0.7)) {
+			break
+		}
+	}
+
+	if coreStart == -1 || coreEnd == -1 {
+		return 0, ""
+	}
+
+	impactPct := corePnL.Div(totalPnL).Mul(decimal.NewFromInt(100))
+
+	label := common.FormatHoldingPeriodRange(
+		holdingOrder[coreStart],
+		holdingOrder[coreEnd],
+	)
+
+	return impactPct.InexactFloat64(), label
+}
+
+func getHoldingLossImpact(
+	startIdx, endIdx int,
+	holdingOrder []common.HoldingPeriod,
+	m map[common.HoldingPeriod]*report.HoldingPeriodItem,
+) (float64, string) {
+
+	totalLoss := decimal.Zero
+
+	for i := startIdx; i <= endIdx; i++ {
+		d := m[holdingOrder[i]]
+
+		if d.NetPnL.LessThan(decimal.Zero) {
+			totalLoss = totalLoss.Add(d.NetPnL.Abs())
+		}
+	}
+
+	if totalLoss.Equal(decimal.Zero) {
+		return 0, ""
+	}
+
+	type bucket struct {
+		idx  int
+		loss decimal.Decimal
+	}
+
+	var buckets []bucket
+
+	for i := startIdx; i <= endIdx; i++ {
+		d := m[holdingOrder[i]]
+
+		if d.NetPnL.LessThan(decimal.Zero) {
+			buckets = append(buckets, bucket{i, d.NetPnL.Abs()})
+		}
+	}
+
+	sort.Slice(buckets, func(i, j int) bool {
+		return buckets[i].loss.GreaterThan(buckets[j].loss)
+	})
+
+	coreLoss := decimal.Zero
+	coreStart, coreEnd := -1, -1
+
+	for _, b := range buckets {
+		coreLoss = coreLoss.Add(b.loss)
+
+		if coreStart == -1 || b.idx < coreStart {
+			coreStart = b.idx
+		}
+		if coreEnd == -1 || b.idx > coreEnd {
+			coreEnd = b.idx
+		}
+
+		share := coreLoss.Div(totalLoss)
+
+		if share.GreaterThanOrEqual(decimal.NewFromFloat(0.7)) {
+			break
+		}
+	}
+
+	if coreStart == -1 || coreEnd == -1 {
+		return 0, ""
+	}
+
+	lossPct := coreLoss.Div(totalLoss).Mul(decimal.NewFromInt(100))
+
+	label := common.FormatHoldingPeriodRange(
+		holdingOrder[coreStart],
+		holdingOrder[coreEnd],
+	)
+
+	return lossPct.InexactFloat64(), label
+}
+
+func formatHoldingCategories(cats []common.HoldingCategory) string {
+	if len(cats) == 1 {
+		return string(cats[0])
+	}
+	if len(cats) == 2 {
+		return string(cats[0]) + " and " + string(cats[1])
+	}
+
+	var parts []string
+	for _, c := range cats[:len(cats)-1] {
+		parts = append(parts, string(c))
+	}
+
+	return strings.Join(parts, ", ") + " and " + string(cats[len(cats)-1])
+}
+
+func calcMedian(trades []int) int {
+	medianTrades := 0
+
+	n := len(trades)
+	if n > 0 {
+		sort.Ints(trades)
+
+		if n%2 == 1 {
+			medianTrades = trades[n/2]
+		} else {
+			medianTrades = (trades[n/2-1] + trades[n/2]) / 2
+		}
+	}
+
+	return medianTrades
 }

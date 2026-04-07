@@ -164,6 +164,75 @@ func FormatHoldingPeriod(p HoldingPeriod) string {
 	}
 }
 
+func FormatHoldingPeriodRange(start, end HoldingPeriod) string {
+	s := holdingMetaMap[start]
+	e := holdingMetaMap[end]
+
+	// Case 1: same bucket → fallback to single label
+	if start == end {
+		return s.label
+	}
+
+	// Case 2: open-ended (start = under_1m, wide range)
+	if s.min == 0 && e.max != 0 {
+		return "less than " + formatHoldingDuration(e.max)
+	}
+
+	// Case 3: open-ended (end = over_365d)
+	if e.max == 0 {
+		return "more than " + formatHoldingDuration(s.min)
+	}
+
+	// Case 4: normal range
+	return fmt.Sprintf("%s to %s",
+		formatHoldingDuration(s.min),
+		formatHoldingDuration(e.max),
+	)
+}
+
+type holdingMeta struct {
+	min   time.Duration // inclusive
+	max   time.Duration // exclusive (0 = infinity)
+	label string        // clean label
+}
+
+var holdingMetaMap = map[HoldingPeriod]holdingMeta{
+	HoldingUnder1m:  {0, time.Minute, "less than 1 minute"},
+	Holding1To5m:    {time.Minute, 5 * time.Minute, "1–5 minutes"},
+	Holding5To15m:   {5 * time.Minute, 15 * time.Minute, "5–15 minutes"},
+	Holding15To60m:  {15 * time.Minute, time.Hour, "15–60 minutes"},
+	Holding1To24h:   {time.Hour, 24 * time.Hour, "1–24 hours"},
+	Holding1To7d:    {24 * time.Hour, 7 * 24 * time.Hour, "1–7 days"},
+	Holding7To30d:   {7 * 24 * time.Hour, 30 * 24 * time.Hour, "7–30 days"},
+	Holding30To365d: {30 * 24 * time.Hour, 365 * 24 * time.Hour, "30–365 days"},
+	HoldingOver365d: {365 * 24 * time.Hour, 0, "more than 1 year"},
+}
+
+func formatHoldingDuration(d time.Duration) string {
+	days := int(d.Hours() / 24)
+
+	switch {
+	case d < time.Hour:
+		mins := int(d.Minutes())
+		return plural(mins, "minute")
+
+	case d < 24*time.Hour:
+		hours := int(d.Hours())
+		return plural(hours, "hour")
+
+	case days < 30:
+		return plural(days, "day")
+
+	case days < 365:
+		months := days / 30
+		return plural(months, "month")
+
+	default:
+		years := days / 365
+		return plural(years, "year")
+	}
+}
+
 type HoldingCategory string
 
 const (
