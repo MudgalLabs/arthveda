@@ -1,15 +1,15 @@
 import { useMemo } from "react";
-import { ErrorMessage, LoadingScreen, PageHeading, useDocumentTitle, useIsMobile } from "netra";
+import { ErrorMessage, LoadingScreen, PageHeading, useDocumentTitle } from "netra";
 import Decimal from "decimal.js";
 
-import { IconBulb, IconSparkles } from "@/components/icons";
+import { IconSparkles } from "@/components/icons";
 import { apiHooks } from "@/hooks/api_hooks";
 import { Insight, InsightToken } from "@/lib/api/insight";
 import { Card, CardTitle } from "@/components/card";
 import { formatCurrency } from "@/lib/utils";
 import { CurrencyCode } from "@/lib/api/currency";
 import { useHomeCurrency } from "@/features/auth/auth_context";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/s8ly";
+import { Tabs, TabsList, TabsTrigger, TabsContent, Tag } from "@/s8ly";
 import { useURLState } from "@/hooks/use_url_state";
 
 export default function Insights() {
@@ -66,60 +66,36 @@ export default function Insights() {
 }
 
 function InsightsSection({ insights }: { insights: Insight[] }) {
-    const isMobile = useIsMobile();
-
     const goodInsights = insights.filter((i) => i.direction === "positive");
     const badInsights = insights.filter((i) => i.direction === "negative");
-    const pairs = pairInsights(goodInsights, badInsights);
 
-    if (isMobile) {
-        return (
-            <div className="space-y-8">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <span className="bg-text-destructive-2 h-2 w-2 rounded-full" />
-                        <h2 className="section-heading-muted">What's hurting</h2>
-                    </div>
+    return (
+        <div className="space-y-10">
+            <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <span className="bg-text-destructive-2 h-2 w-2 rounded-full" />
+                    <h2 className="section-heading-muted">What's hurting</h2>
+                </div>
 
+                <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {badInsights.map((insight) => (
                         <InsightCard key={insight.type} insight={insight} />
                     ))}
                 </div>
-
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <span className="bg-success-foreground-2 h-2 w-2 rounded-full" />
-                        <h2 className="section-heading-muted">What's working</h2>
-                    </div>
-
-                    {goodInsights.map((insight) => (
-                        <InsightCard key={insight.type} insight={insight} />
-                    ))}
-                </div>
             </div>
-        );
-    }
 
-    return (
-        <div className="mx-auto max-w-5xl space-y-6">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
                 <div className="flex items-center gap-2">
                     <span className="bg-success-foreground-2 h-2 w-2 rounded-full" />
                     <h2 className="section-heading-muted">What's working</h2>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <span className="bg-text-destructive-2 h-2 w-2 rounded-full" />
-                    <h2 className="section-heading-muted">What's hurting</h2>
+                <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {goodInsights.map((insight) => (
+                        <InsightCard key={insight.type} insight={insight} />
+                    ))}
                 </div>
             </div>
-
-            {pairs.map((pair, i) => (
-                <div key={i} className="grid grid-cols-2 gap-6">
-                    <div>{pair.good && <InsightCard insight={pair.good} />}</div>
-                    <div>{pair.bad && <InsightCard insight={pair.bad} />}</div>
-                </div>
-            ))}
         </div>
     );
 }
@@ -132,21 +108,20 @@ export function InsightCard({ insight }: { insight: Insight }) {
         <Card className="relative flex h-full flex-col overflow-hidden p-4">
             <div
                 className={`absolute top-0 left-0 h-full w-[3px] ${
-                    isPositive ? "bg-success-foreground-2/70" : "bg-text-destructive-2/70"
+                    isPositive ? "bg-success-foreground-2/50" : "bg-text-destructive-2/50"
                 }`}
             />
 
             <div className="flex-1 space-y-3">
-                <CardTitle className="leading-snug">{insight.title}</CardTitle>
+                <CardTitle className="line-clamp-2 leading-snug">{insight.title}</CardTitle>
 
-                <p className="text-text-muted text-sm leading-relaxed">
+                <p className="text-text-muted text-sm leading-6">
                     {renderDescription(insight.description, insight.tokens, homeCurrency)}
                 </p>
-            </div>
 
-            <div className="text-text-muted mt-3 flex items-center gap-1.5 text-xs">
-                <IconBulb size={14} />
-                <span>{insight.action}</span>
+                <Tag variant="muted" size="small">
+                    <span>{insight.action}</span>
+                </Tag>
             </div>
         </Card>
     );
@@ -197,13 +172,4 @@ export function formatToken(token: InsightToken, homeCurrency: CurrencyCode): st
         default:
             return String(token.value);
     }
-}
-
-function pairInsights(good: Insight[] = [], bad: Insight[] = []) {
-    const max = Math.max(good.length, bad.length);
-
-    return Array.from({ length: max }).map((_, i) => ({
-        good: good[i],
-        bad: bad[i],
-    }));
 }
