@@ -41,9 +41,10 @@ type token struct {
 }
 
 type Section struct {
-	Key      string    `json:"key"`   // "overview", "time_of_day"
-	Title    string    `json:"title"` // "Overview", "Time of Day"
-	Insights []insight `json:"insights"`
+	Key         string    `json:"key"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Insights    []insight `json:"insights"`
 }
 
 type GetResult struct {
@@ -67,18 +68,27 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 
 	timeOfDayInsights := getTimeOfDayInsights(timeframes.HourOfTheDay, baselineResult.Expectancy)
 	holdingDurationInsights := getHoldingDurationInsights(timeframes.HoldingPeriod, baselineResult.Expectancy)
+	psychologyInsights := getPsychologyInsights(allPositions)
 
 	return &GetResult{
 		Sections: []Section{
 			{
-				Key:      "time_of_day",
-				Title:    "Time of day",
-				Insights: timeOfDayInsights,
+				Key:         "time_of_day",
+				Title:       "Time of day",
+				Description: "See how your performance changes across different hours of the day.",
+				Insights:    timeOfDayInsights,
 			},
 			{
-				Key:      "holding_duration",
-				Title:    "Holding duration",
-				Insights: holdingDurationInsights,
+				Key:         "holding_duration",
+				Title:       "Holding duration",
+				Description: "See how long you should hold trades based on your past performance.",
+				Insights:    holdingDurationInsights,
+			},
+			{
+				Key:         "psychology",
+				Title:       "Psychology",
+				Description: "See how your behavior changes after wins and losses.",
+				Insights:    psychologyInsights,
 			},
 		},
 	}, service.ErrNone, nil

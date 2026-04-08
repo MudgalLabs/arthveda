@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { ErrorMessage, LoadingScreen, PageHeading, useDocumentTitle } from "netra";
 import Decimal from "decimal.js";
 
-import { IconSparkles } from "@/components/icons";
+import { IconBulb, IconSparkles } from "@/components/icons";
 import { apiHooks } from "@/hooks/api_hooks";
 import { Insight, InsightToken } from "@/lib/api/insight";
 import { Card, CardTitle } from "@/components/card";
@@ -42,10 +42,15 @@ export default function Insights() {
                     ))}
                 </TabsList>
 
-                <div className="h-6" />
+                <div className="h-4" />
 
                 {sections.map((section) => (
                     <TabsContent key={section.key} value={section.key}>
+                        <p className="text-muted-foreground flex-x mb-6 gap-x-1! text-sm">
+                            <IconBulb />
+                            {section.description}
+                        </p>
+
                         <InsightsSection insights={section.insights} />
                     </TabsContent>
                 ))}
@@ -71,31 +76,35 @@ function InsightsSection({ insights }: { insights: Insight[] }) {
 
     return (
         <div className="space-y-10">
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <span className="bg-text-destructive-2 h-2 w-2 rounded-full" />
-                    <h2 className="section-heading-muted">What's hurting</h2>
-                </div>
+            {badInsights.length > 0 && (
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <span className="bg-text-destructive-2 h-2 w-2 rounded-full" />
+                        <h2 className="section-heading-muted">What's hurting</h2>
+                    </div>
 
-                <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {badInsights.map((insight) => (
-                        <InsightCard key={insight.type} insight={insight} />
-                    ))}
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        {badInsights.map((insight) => (
+                            <InsightCard key={insight.type} insight={insight} />
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <span className="bg-success-foreground-2 h-2 w-2 rounded-full" />
-                    <h2 className="section-heading-muted">What's working</h2>
-                </div>
+            {goodInsights.length > 0 && (
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <span className="bg-success-foreground-2 h-2 w-2 rounded-full" />
+                        <h2 className="section-heading-muted">What's working</h2>
+                    </div>
 
-                <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {goodInsights.map((insight) => (
-                        <InsightCard key={insight.type} insight={insight} />
-                    ))}
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        {goodInsights.map((insight) => (
+                            <InsightCard key={insight.type} insight={insight} />
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
@@ -166,7 +175,7 @@ export function formatToken(token: InsightToken, homeCurrency: CurrencyCode): st
             });
 
         case "percentage":
-            return `${new Decimal(token.value).toFixed(1)}%`;
+            return `${new Decimal(token.value).toDecimalPlaces(0)}%`;
 
         case "text":
         default:

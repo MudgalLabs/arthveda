@@ -2,14 +2,20 @@ package insight
 
 import (
 	"arthveda/internal/common"
+	"arthveda/internal/feature/position"
 	"arthveda/internal/feature/report"
+	"math"
 	"sort"
 	"strings"
 
 	"github.com/shopspring/decimal"
 )
 
-const BASE_MIN_TRADES = 5
+const (
+	BASE_MIN_TRADES   = 5    // 5 trades
+	MIN_WINRATE_DELTA = 0.15 // 15%
+	MIN_PNL_DELTA     = 0.25 // 25%
+)
 
 type thresholds struct {
 	TinyTrades   int // Noise filter.
@@ -146,7 +152,7 @@ func getTimeOfDayInsights(
 	if mostProfits != nil && mostProfits.AvgPnL.GreaterThan(baseline) {
 		hourLabel := common.FormatHour(mostProfits.Hour)
 
-		desc := "This hour contributes the most to your total PnL"
+		desc := "Trades during this hour contribute the most to your overall PnL"
 
 		if tradeBest != nil && tradeBest.Hour != mostProfits.Hour {
 			desc += ", but your trades perform better at " + common.FormatHour(tradeBest.Hour)
@@ -155,7 +161,7 @@ func getTimeOfDayInsights(
 		insights = append(insights, insight{
 			Type:        "time_of_day",
 			Direction:   "positive",
-			Title:       "You make the most money at " + hourLabel,
+			Title:       "Your best hour is " + hourLabel,
 			Description: desc,
 			Action:      "Focus more on this hour",
 		})
@@ -167,9 +173,9 @@ func getTimeOfDayInsights(
 		insights = append(insights, insight{
 			Type:        "time_of_day",
 			Direction:   "negative",
-			Title:       "You lose the most at " + hourLabel,
-			Description: "Your trades lose money during this hour and drag down your overall performance",
-			Action:      "Consider avoiding this hour",
+			Title:       "Your weakest hour is " + hourLabel,
+			Description: "Trades during this hour consistently reduce your overall PnL",
+			Action:      "Avoid trading during this hour",
 		})
 	}
 
@@ -183,7 +189,7 @@ func getTimeOfDayInsights(
 
 		hourLabel := common.FormatHour(tradeBest.Hour)
 
-		desc := "Your trades perform {delta} better than your average during this hour"
+		desc := "Your average PnL per trade is {delta} higher during this hour"
 
 		if mostProfits != nil && mostProfits.Hour != tradeBest.Hour {
 			desc += ", but most of your profits come from " + common.FormatHour(mostProfits.Hour)
@@ -215,7 +221,7 @@ func getTimeOfDayInsights(
 
 		hourLabel := common.FormatHour(tradeWorst.Hour)
 
-		desc := "Your trades perform {delta} worse than your average during this hour"
+		desc := "Your average PnL per trade drops by {delta} during this hour"
 
 		if tradeBest != nil && tradeBest.Hour != tradeWorst.Hour {
 			desc += ", compared to stronger performance at " + common.FormatHour(tradeBest.Hour)
@@ -224,7 +230,7 @@ func getTimeOfDayInsights(
 		insights = append(insights, insight{
 			Type:        "time_of_day",
 			Direction:   "negative",
-			Title:       "Your trade quality drops at " + hourLabel,
+			Title:       "Your trade worst at " + hourLabel,
 			Description: desc,
 			Tokens: map[string]token{
 				"delta": {
@@ -240,7 +246,7 @@ func getTimeOfDayInsights(
 	if lowEfficiency != nil {
 		hourLabel := common.FormatHour(lowEfficiency.Hour)
 
-		desc := "You take many trades here, but your returns are weaker than your average"
+		desc := "You take more trades during this hour, but they underperform your average"
 
 		if tradeBest != nil && tradeBest.Hour != lowEfficiency.Hour {
 			desc += ", while you perform better at " + common.FormatHour(tradeBest.Hour)
@@ -258,7 +264,7 @@ func getTimeOfDayInsights(
 	if highEfficiency != nil {
 		hourLabel := common.FormatHour(highEfficiency.Hour)
 
-		desc := "You don’t trade much here, but your trades perform well"
+		desc := "You don’t trade much during this hour, but your trades perform better than average"
 
 		if mostProfits != nil && mostProfits.Hour != highEfficiency.Hour {
 			desc += ", while most of your trading happens at " + common.FormatHour(mostProfits.Hour)
@@ -336,7 +342,7 @@ func getTimeOfDayInsights(
 			Type:        "time_of_day",
 			Direction:   "positive",
 			Title:       "Most of your profits come from " + label,
-			Description: "This period contributes the bulk of your PnL",
+			Description: "Trades during this period contribute the majority of your PnL",
 			Action:      "Prioritize trading in this window",
 		})
 	}
@@ -404,7 +410,7 @@ func getTimeOfDayInsights(
 			Type:        "time_of_day",
 			Direction:   "negative",
 			Title:       "You give back profits during " + label,
-			Description: "Your performance drops during this period",
+			Description: "Trades during this period consistently reduce your overall PnL",
 			Action:      "Avoid trading in this window",
 		})
 	}
@@ -515,28 +521,34 @@ func getHoldingDurationInsights(
 
 		titleLabel := common.FormatHoldingPeriodRange(start, end)
 
+		broadPct := getHoldingBroadProfitShare(bestStart, bestEnd, holdingOrder, m)
 		impactPct, coreLabel := getHoldingImpact(bestStart, bestEnd, holdingOrder, m)
 
-		desc := "This holding range contributes the most to your overall performance"
-		tokens := map[string]token{}
+		desc := "Trades in this range contribute the most to your PnL"
 
-		if impactPct > 0 && coreLabel != "" {
-			if impactPct >= 65 {
-				desc = "{impact} of your profits come from trades held for " + coreLabel
+		tokens := map[string]token{
+			"broad": {
+				Value: broadPct,
+				Type:  "percentage",
+				Tone:  "positive",
+			},
+			"impact": {
+				Value: impactPct,
+				Type:  "percentage",
+				Tone:  "positive",
+			},
+			"range": {
+				Value: coreLabel,
+				Type:  "string",
+			},
+		}
 
-				tokens["impact"] = token{
-					Value: impactPct,
-					Type:  "percentage",
-					Tone:  "positive",
-				}
-			} else {
-				desc = "Your profits are concentrated in trades held for {range}"
-
-				tokens["range"] = token{
-					Value: coreLabel,
-					Type:  "string",
-				}
-			}
+		if broadPct > 0 && impactPct > 0 && coreLabel != "" {
+			desc = "{broad} of your profits come from this range, with {impact} concentrated in {range}"
+		} else if broadPct > 0 {
+			desc = "{broad} of your profits come from this range"
+		} else if impactPct > 0 && coreLabel != "" {
+			desc = "{impact} of your profits are concentrated in {range}"
 		}
 
 		cats := getHoldingCategoriesForRange(bestStart, bestEnd, holdingOrder, m)
@@ -545,7 +557,7 @@ func getHoldingDurationInsights(
 		insights = append(insights, insight{
 			Type:        "holding_duration",
 			Direction:   "positive",
-			Title:       "Most of your profits come from trades held for " + titleLabel,
+			Title:       "Your edge is in " + titleLabel + " trades",
 			Description: desc,
 			Tokens:      tokens,
 			Action:      "Focus more on " + actionLabel + " trades",
@@ -610,28 +622,34 @@ func getHoldingDurationInsights(
 
 		titleLabel := common.FormatHoldingPeriodRange(start, end)
 
-		desc := "Your performance drops in this holding range"
-		tokens := map[string]token{}
-
+		broadPct := getHoldingBroadLossShare(weakStart, weakEnd, holdingOrder, m)
 		lossPct, coreLabel := getHoldingLossImpact(weakStart, weakEnd, holdingOrder, m)
 
-		if lossPct > 0 && coreLabel != "" {
-			if lossPct >= 65 {
-				desc = "{loss} of your losses come from trades held for " + coreLabel
+		desc := "Trades in this range reduce your overall PnL"
 
-				tokens["loss"] = token{
-					Value: lossPct,
-					Type:  "percentage",
-					Tone:  "negative",
-				}
-			} else {
-				desc = "Most of your losses come from trades held for {range}"
+		tokens := map[string]token{
+			"broad": {
+				Value: broadPct,
+				Type:  "percentage",
+				Tone:  "negative",
+			},
+			"loss": {
+				Value: lossPct,
+				Type:  "percentage",
+				Tone:  "negative",
+			},
+			"range": {
+				Value: coreLabel,
+				Type:  "string",
+			},
+		}
 
-				tokens["range"] = token{
-					Value: coreLabel,
-					Type:  "string",
-				}
-			}
+		if broadPct > 0 && lossPct > 0 && coreLabel != "" {
+			desc = "{broad} of your losses come from this range, with {loss} concentrated in {range}"
+		} else if broadPct > 0 {
+			desc = "{broad} of your losses come from this range"
+		} else if lossPct > 0 && coreLabel != "" {
+			desc = "{loss} of your losses are concentrated in {range}"
 		}
 
 		cats := getHoldingCategoriesForRange(weakStart, weakEnd, holdingOrder, m)
@@ -640,10 +658,10 @@ func getHoldingDurationInsights(
 		insights = append(insights, insight{
 			Type:        "holding_duration",
 			Direction:   "negative",
-			Title:       "You lose money on trades held for " + titleLabel,
+			Title:       "You lose money in " + titleLabel + " trades",
 			Description: desc,
 			Tokens:      tokens,
-			Action:      "Reduce " + actionLabel + " trades",
+			Action:      "Be more selective with " + actionLabel + " trades",
 		})
 	}
 
@@ -882,6 +900,69 @@ func getHoldingLossImpact(
 	return lossPct.InexactFloat64(), label
 }
 
+func getHoldingBroadProfitShare(
+	startIdx, endIdx int,
+	holdingOrder []common.HoldingPeriod,
+	m map[common.HoldingPeriod]*report.HoldingPeriodItem,
+) float64 {
+
+	totalPnL := decimal.Zero
+	rangePnL := decimal.Zero
+
+	for i := range holdingOrder {
+		d, ok := m[holdingOrder[i]]
+		if !ok {
+			continue
+		}
+
+		if d.NetPnL.GreaterThan(decimal.Zero) {
+			totalPnL = totalPnL.Add(d.NetPnL)
+
+			if i >= startIdx && i <= endIdx {
+				rangePnL = rangePnL.Add(d.NetPnL)
+			}
+		}
+	}
+
+	if totalPnL.Equal(decimal.Zero) {
+		return 0
+	}
+
+	return rangePnL.Div(totalPnL).Mul(decimal.NewFromInt(100)).InexactFloat64()
+}
+
+func getHoldingBroadLossShare(
+	startIdx, endIdx int,
+	holdingOrder []common.HoldingPeriod,
+	m map[common.HoldingPeriod]*report.HoldingPeriodItem,
+) float64 {
+
+	totalLoss := decimal.Zero
+	rangeLoss := decimal.Zero
+
+	for i := range holdingOrder {
+		d, ok := m[holdingOrder[i]]
+		if !ok {
+			continue
+		}
+
+		if d.NetPnL.LessThan(decimal.Zero) {
+			loss := d.NetPnL.Abs()
+			totalLoss = totalLoss.Add(loss)
+
+			if i >= startIdx && i <= endIdx {
+				rangeLoss = rangeLoss.Add(loss)
+			}
+		}
+	}
+
+	if totalLoss.Equal(decimal.Zero) {
+		return 0
+	}
+
+	return rangeLoss.Div(totalLoss).Mul(decimal.NewFromInt(100)).InexactFloat64()
+}
+
 func formatHoldingCategories(cats []common.HoldingCategory) string {
 	if len(cats) == 1 {
 		return string(cats[0])
@@ -913,4 +994,173 @@ func calcMedian(trades []int) int {
 	}
 
 	return medianTrades
+}
+
+func getPsychologyInsights(allPositions []*position.Position) []insight {
+	insights := []insight{}
+
+	// 1. Filter only CLOSED positions
+	closed := make([]*position.Position, 0, len(allPositions))
+	for _, p := range allPositions {
+		if p.Status != position.StatusOpen && p.ClosedAt != nil {
+			closed = append(closed, p)
+		}
+	}
+
+	// Need at least 3 to compare sequences
+	if len(closed) < 3 {
+		return insights
+	}
+
+	// 2. Sort by ClosedAt ASC
+	sort.Slice(closed, func(i, j int) bool {
+		return closed[i].ClosedAt.Before(*closed[j].ClosedAt)
+	})
+
+	afterWin := make([]*position.Position, 0)
+	afterLoss := make([]*position.Position, 0)
+
+	for i := 1; i < len(closed); i++ {
+		prev := closed[i-1]
+		curr := closed[i]
+
+		if prev.NetPnLAmount.GreaterThan(decimal.Zero) {
+			afterWin = append(afterWin, curr)
+		} else if prev.NetPnLAmount.LessThan(decimal.Zero) {
+			afterLoss = append(afterLoss, curr)
+		}
+	}
+
+	if len(afterWin) < BASE_MIN_TRADES || len(afterLoss) < BASE_MIN_TRADES {
+		return insights
+	}
+
+	afterWinExp := position.GetGeneralStats(afterWin)
+	afterLossExp := position.GetGeneralStats(afterLoss)
+	baselineStats := position.GetGeneralStats(closed)
+
+	// Post-loss deviation.
+	lossWinRateDelta := common.PctChangeFloat(afterLossExp.WinRate, baselineStats.WinRate)
+	lossPnLDelta := common.PctChangeDecimal(afterLossExp.Expectancy, baselineStats.Expectancy)
+
+	// Post-win deviation.
+	winWinRateDelta := common.PctChangeFloat(afterWinExp.WinRate, baselineStats.WinRate)
+	winPnLDelta := common.PctChangeDecimal(afterWinExp.Expectancy, baselineStats.Expectancy)
+
+	// Guard: ignore pnl-based signals if baseline expectancy is too small.
+	if baselineStats.Expectancy.Abs().LessThan(decimal.NewFromFloat(1)) {
+		lossPnLDelta = decimal.Zero
+		winPnLDelta = decimal.Zero
+	}
+
+	isWinWinRateBad := winWinRateDelta < -MIN_WINRATE_DELTA
+	isWinPnLBad := winPnLDelta.LessThan(decimal.NewFromFloat(-MIN_PNL_DELTA))
+
+	isLossWinRateBad := lossWinRateDelta < -MIN_WINRATE_DELTA
+	isLossPnLBad := lossPnLDelta.LessThan(decimal.NewFromFloat(-MIN_PNL_DELTA))
+
+	var lossInsight *insight
+
+	if isLossWinRateBad || isLossPnLBad {
+		var desc string
+
+		if isLossWinRateBad && isLossPnLBad {
+			desc = "After a loss, your average PnL per trade drops by {pnl_delta} and your win rate drops by {winrate_delta}"
+		} else if isLossWinRateBad {
+			desc = "After a loss, your win rate drops by {winrate_delta}"
+		} else {
+			desc = "After a loss, your average PnL per trade drops by {pnl_delta}"
+		}
+
+		lossInsight = &insight{
+			Type:        "psychology",
+			Direction:   "negative",
+			Title:       "Performance drops after losses",
+			Description: desc,
+			Tokens: map[string]token{
+				"pnl_delta": {
+					Value: common.AbsDecimal(lossPnLDelta).Mul(decimal.NewFromInt(100)).InexactFloat64(),
+					Type:  "percentage",
+					Tone:  "negative",
+				},
+				"winrate_delta": {
+					Value: math.Abs(lossWinRateDelta * 100),
+					Type:  "percentage",
+					Tone:  "negative",
+				},
+			},
+			Action: "Take a pause after a loss before your next trade",
+		}
+
+	}
+
+	var winInsight *insight
+
+	if isWinWinRateBad || isWinPnLBad {
+		var desc string
+
+		if isWinWinRateBad && isWinPnLBad {
+			desc = "After a win, your average PnL per trade drops by {pnl_delta} and your win rate drops by {winrate_delta}"
+		} else if isWinWinRateBad {
+			desc = "After a win, your win rate drops by {winrate_delta}"
+		} else {
+			desc = "After a win, your average PnL per trade drops by {pnl_delta}"
+		}
+
+		winInsight = &insight{
+			Type:        "psychology",
+			Direction:   "negative",
+			Title:       "Performance drops after wins",
+			Description: desc,
+			Tokens: map[string]token{
+				"pnl_delta": {
+					Value: common.AbsDecimal(winPnLDelta).Mul(decimal.NewFromInt(100)).InexactFloat64(),
+					Type:  "percentage",
+					Tone:  "negative",
+				},
+				"winrate_delta": {
+					Value: math.Abs(winWinRateDelta * 100),
+					Type:  "percentage",
+					Tone:  "negative",
+				},
+			},
+			Action: "Stay disciplined after a win before your next trade",
+		}
+
+	}
+
+	if lossInsight == nil && winInsight == nil {
+		return insights
+	}
+
+	if lossInsight != nil && winInsight == nil {
+		insights = append(insights, *lossInsight)
+		return insights
+	}
+
+	if winInsight != nil && lossInsight == nil {
+		insights = append(insights, *winInsight)
+		return insights
+	}
+
+	lossPnLDeltaFloat := common.AbsDecimal(lossPnLDelta).InexactFloat64()
+	winPnLDeltaFloat := common.AbsDecimal(winPnLDelta).InexactFloat64()
+
+	lossSeverity := math.Max(
+		math.Abs(lossWinRateDelta),
+		lossPnLDeltaFloat,
+	)
+
+	winSeverity := math.Max(
+		math.Abs(winWinRateDelta),
+		winPnLDeltaFloat,
+	)
+
+	if winSeverity > lossSeverity {
+		insights = append(insights, *winInsight)
+	} else {
+		insights = append(insights, *lossInsight)
+	}
+
+	return insights
 }

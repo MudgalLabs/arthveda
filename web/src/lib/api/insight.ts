@@ -26,6 +26,7 @@ export interface Insight {
 export interface InsightSection {
     key: string;
     title: string;
+    description: string;
     insights: Insight[];
 }
 
