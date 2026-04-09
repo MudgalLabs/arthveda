@@ -421,6 +421,8 @@ func getTimeOfDayInsights(
 func getHoldingDurationInsights(
 	durations []report.HoldingPeriodItem,
 	baseline decimal.Decimal,
+	globalProfit decimal.Decimal,
+	globalLoss decimal.Decimal,
 ) []insight {
 	insights := []insight{}
 
@@ -472,7 +474,7 @@ func getHoldingDurationInsights(
 		d, ok := m[period]
 
 		// Break if no data or too small
-		if !ok || d.PositionsCount < thresholds.NormalTrades {
+		if !ok {
 			if currStart != -1 {
 				if bestStart == -1 || currScore.GreaterThan(bestScore) {
 					bestStart = currStart
@@ -515,14 +517,30 @@ func getHoldingDurationInsights(
 		}
 	}
 
-	if bestStart != -1 && bestEnd > bestStart && bestScore.GreaterThan(decimal.Zero) {
+	if bestStart != -1 && bestScore.GreaterThan(decimal.Zero) {
 		start := holdingOrder[bestStart]
 		end := holdingOrder[bestEnd]
 
-		titleLabel := common.FormatHoldingPeriodRange(start, end)
+		totalTrades := 0
+		for i := bestStart; i <= bestEnd; i++ {
+			d := m[holdingOrder[i]]
+			totalTrades += d.PositionsCount
+		}
 
-		broadPct := getHoldingBroadProfitShare(bestStart, bestEnd, holdingOrder, m)
-		impactPct, coreLabel := getHoldingImpact(bestStart, bestEnd, holdingOrder, m)
+		isHighConfidence := totalTrades >= thresholds.NormalTrades
+		isMediumConfidence := totalTrades >= BASE_MIN_TRADES && totalTrades < thresholds.NormalTrades
+		isLowConfidence := totalTrades < BASE_MIN_TRADES
+
+		titleLabel := common.FormatHoldingPeriodRange(start, end)
+		broadPct := getHoldingBroadProfitShare(bestStart, bestEnd, holdingOrder, m, globalProfit)
+		isRange := bestEnd > bestStart
+
+		var impactPct float64
+		var coreLabel string
+
+		if isRange {
+			impactPct, coreLabel = getHoldingImpact(bestStart, bestEnd, holdingOrder, m, globalProfit)
+		}
 
 		desc := "Trades in this range contribute the most to your PnL"
 
@@ -543,7 +561,12 @@ func getHoldingDurationInsights(
 			},
 		}
 
-		if broadPct > 0 && impactPct > 0 && coreLabel != "" {
+		hasRealConcentration :=
+			coreLabel != "" &&
+				coreLabel != titleLabel &&
+				impactPct < broadPct
+
+		if broadPct > 0 && hasRealConcentration {
 			desc = "{broad} of your profits come from this range, with {impact} concentrated in {range}"
 		} else if broadPct > 0 {
 			desc = "{broad} of your profits come from this range"
@@ -554,8 +577,18 @@ func getHoldingDurationInsights(
 		cats := getHoldingCategoriesForRange(bestStart, bestEnd, holdingOrder, m)
 		actionLabel := formatHoldingCategories(cats)
 
+		title := ""
+
+		if isHighConfidence {
+			title = "Your edge is in " + titleLabel + " trades"
+		} else if isMediumConfidence {
+			title = "You seem to perform well in " + titleLabel + " trades"
+		} else if isLowConfidence {
+			title = "Early signs of strength in " + titleLabel + " trades"
+		}
+
 		insights = append(insights, insight{
-			Type:        "holding_duration",
+			Type:        title,
 			Direction:   "positive",
 			Title:       "Your edge is in " + titleLabel + " trades",
 			Description: desc,
@@ -573,7 +606,7 @@ func getHoldingDurationInsights(
 		d, ok := m[period]
 
 		// Break on weak data
-		if !ok || d.PositionsCount < thresholds.NormalTrades {
+		if !ok {
 			if weakCurrStart != -1 {
 				if weakStart == -1 || weakCurrScore.LessThan(weakScore) {
 					weakStart = weakCurrStart
@@ -616,14 +649,31 @@ func getHoldingDurationInsights(
 		}
 	}
 
-	if weakStart != -1 && weakEnd > weakStart && weakScore.LessThan(decimal.Zero) {
+	if weakStart != -1 && weakScore.LessThan(decimal.Zero) {
 		start := holdingOrder[weakStart]
 		end := holdingOrder[weakEnd]
 
+		totalTrades := 0
+		for i := bestStart; i <= bestEnd; i++ {
+			d := m[holdingOrder[i]]
+			totalTrades += d.PositionsCount
+		}
+
+		isHighConfidence := totalTrades >= thresholds.NormalTrades
+		isMediumConfidence := totalTrades >= BASE_MIN_TRADES && totalTrades < thresholds.NormalTrades
+		isLowConfidence := totalTrades < BASE_MIN_TRADES
+
 		titleLabel := common.FormatHoldingPeriodRange(start, end)
 
-		broadPct := getHoldingBroadLossShare(weakStart, weakEnd, holdingOrder, m)
-		lossPct, coreLabel := getHoldingLossImpact(weakStart, weakEnd, holdingOrder, m)
+		broadPct := getHoldingBroadLossShare(weakStart, weakEnd, holdingOrder, m, globalLoss)
+
+		var lossPct float64
+		var coreLabel string
+		isRange := weakEnd > weakStart
+
+		if isRange {
+			lossPct, coreLabel = getHoldingLossImpact(weakStart, weakEnd, holdingOrder, m, globalLoss)
+		}
 
 		desc := "Trades in this range reduce your overall PnL"
 
@@ -644,7 +694,12 @@ func getHoldingDurationInsights(
 			},
 		}
 
-		if broadPct > 0 && lossPct > 0 && coreLabel != "" {
+		hasRealConcentration :=
+			coreLabel != "" &&
+				coreLabel != titleLabel &&
+				lossPct < broadPct
+
+		if broadPct > 0 && hasRealConcentration {
 			desc = "{broad} of your losses come from this range, with {loss} concentrated in {range}"
 		} else if broadPct > 0 {
 			desc = "{broad} of your losses come from this range"
@@ -655,10 +710,20 @@ func getHoldingDurationInsights(
 		cats := getHoldingCategoriesForRange(weakStart, weakEnd, holdingOrder, m)
 		actionLabel := formatHoldingCategories(cats)
 
+		title := ""
+
+		if isHighConfidence {
+			title = "Most of your losses come from " + titleLabel + " trades"
+		} else if isMediumConfidence {
+			title = "You tend to lose in " + titleLabel + " trades"
+		} else if isLowConfidence {
+			title = "Some losses are coming from " + titleLabel + " trades"
+		}
+
 		insights = append(insights, insight{
 			Type:        "holding_duration",
 			Direction:   "negative",
-			Title:       "You lose money in " + titleLabel + " trades",
+			Title:       title,
 			Description: desc,
 			Tokens:      tokens,
 			Action:      "Be more selective with " + actionLabel + " trades",
@@ -757,17 +822,19 @@ func getHoldingImpact(
 	startIdx, endIdx int,
 	holdingOrder []common.HoldingPeriod,
 	m map[common.HoldingPeriod]*report.HoldingPeriodItem,
+	globalProfit decimal.Decimal,
 ) (float64, string) {
+	if globalProfit.Equal(decimal.Zero) {
+		return 0, ""
+	}
 
-	totalPnL := decimal.Zero
+	rangePnL := decimal.Zero
 
 	for i := startIdx; i <= endIdx; i++ {
 		d := m[holdingOrder[i]]
-		totalPnL = totalPnL.Add(d.NetPnL)
-	}
-
-	if totalPnL.LessThanOrEqual(decimal.Zero) {
-		return 0, ""
+		if d.NetPnL.GreaterThan(decimal.Zero) {
+			rangePnL = rangePnL.Add(d.NetPnL)
+		}
 	}
 
 	type bucket struct {
@@ -806,7 +873,7 @@ func getHoldingImpact(
 			coreEnd = b.idx
 		}
 
-		share := corePnL.Div(totalPnL)
+		share := corePnL.Div(rangePnL)
 
 		if share.GreaterThanOrEqual(decimal.NewFromFloat(0.7)) {
 			break
@@ -817,7 +884,7 @@ func getHoldingImpact(
 		return 0, ""
 	}
 
-	impactPct := corePnL.Div(totalPnL).Mul(decimal.NewFromInt(100))
+	impactPct := corePnL.Div(globalProfit).Mul(decimal.NewFromInt(100))
 
 	label := common.FormatHoldingPeriodRange(
 		holdingOrder[coreStart],
@@ -831,19 +898,9 @@ func getHoldingLossImpact(
 	startIdx, endIdx int,
 	holdingOrder []common.HoldingPeriod,
 	m map[common.HoldingPeriod]*report.HoldingPeriodItem,
+	globalLoss decimal.Decimal,
 ) (float64, string) {
-
-	totalLoss := decimal.Zero
-
-	for i := startIdx; i <= endIdx; i++ {
-		d := m[holdingOrder[i]]
-
-		if d.NetPnL.LessThan(decimal.Zero) {
-			totalLoss = totalLoss.Add(d.NetPnL.Abs())
-		}
-	}
-
-	if totalLoss.Equal(decimal.Zero) {
+	if globalLoss.Equal(decimal.Zero) {
 		return 0, ""
 	}
 
@@ -879,7 +936,7 @@ func getHoldingLossImpact(
 			coreEnd = b.idx
 		}
 
-		share := coreLoss.Div(totalLoss)
+		share := coreLoss.Div(globalLoss)
 
 		if share.GreaterThanOrEqual(decimal.NewFromFloat(0.7)) {
 			break
@@ -890,7 +947,7 @@ func getHoldingLossImpact(
 		return 0, ""
 	}
 
-	lossPct := coreLoss.Div(totalLoss).Mul(decimal.NewFromInt(100))
+	lossPct := coreLoss.Div(globalLoss).Mul(decimal.NewFromInt(100))
 
 	label := common.FormatHoldingPeriodRange(
 		holdingOrder[coreStart],
@@ -904,9 +961,9 @@ func getHoldingBroadProfitShare(
 	startIdx, endIdx int,
 	holdingOrder []common.HoldingPeriod,
 	m map[common.HoldingPeriod]*report.HoldingPeriodItem,
+	globalProfit decimal.Decimal,
 ) float64 {
 
-	totalPnL := decimal.Zero
 	rangePnL := decimal.Zero
 
 	for i := range holdingOrder {
@@ -916,7 +973,6 @@ func getHoldingBroadProfitShare(
 		}
 
 		if d.NetPnL.GreaterThan(decimal.Zero) {
-			totalPnL = totalPnL.Add(d.NetPnL)
 
 			if i >= startIdx && i <= endIdx {
 				rangePnL = rangePnL.Add(d.NetPnL)
@@ -924,20 +980,19 @@ func getHoldingBroadProfitShare(
 		}
 	}
 
-	if totalPnL.Equal(decimal.Zero) {
+	if globalProfit.Equal(decimal.Zero) {
 		return 0
 	}
 
-	return rangePnL.Div(totalPnL).Mul(decimal.NewFromInt(100)).InexactFloat64()
+	return rangePnL.Div(globalProfit).Mul(decimal.NewFromInt(100)).InexactFloat64()
 }
 
 func getHoldingBroadLossShare(
 	startIdx, endIdx int,
 	holdingOrder []common.HoldingPeriod,
 	m map[common.HoldingPeriod]*report.HoldingPeriodItem,
+	globalLoss decimal.Decimal,
 ) float64 {
-
-	totalLoss := decimal.Zero
 	rangeLoss := decimal.Zero
 
 	for i := range holdingOrder {
@@ -948,7 +1003,6 @@ func getHoldingBroadLossShare(
 
 		if d.NetPnL.LessThan(decimal.Zero) {
 			loss := d.NetPnL.Abs()
-			totalLoss = totalLoss.Add(loss)
 
 			if i >= startIdx && i <= endIdx {
 				rangeLoss = rangeLoss.Add(loss)
@@ -956,11 +1010,11 @@ func getHoldingBroadLossShare(
 		}
 	}
 
-	if totalLoss.Equal(decimal.Zero) {
+	if globalLoss.Equal(decimal.Zero) {
 		return 0
 	}
 
-	return rangeLoss.Div(totalLoss).Mul(decimal.NewFromInt(100)).InexactFloat64()
+	return rangeLoss.Div(globalLoss).Mul(decimal.NewFromInt(100)).InexactFloat64()
 }
 
 func formatHoldingCategories(cats []common.HoldingCategory) string {

@@ -214,7 +214,7 @@ func formatHoldingDuration(d time.Duration) string {
 	switch {
 	case d < time.Hour:
 		mins := int(d.Minutes())
-		return plural(mins, "minute")
+		return plural(mins, "min")
 
 	case d < 24*time.Hour:
 		hours := int(d.Hours())

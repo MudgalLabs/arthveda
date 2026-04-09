@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mudgallabs/tantra/service"
+	"github.com/shopspring/decimal"
 )
 
 type Service struct {
@@ -67,7 +68,25 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 	}
 
 	timeOfDayInsights := getTimeOfDayInsights(timeframes.HourOfTheDay, baselineResult.Expectancy)
-	holdingDurationInsights := getHoldingDurationInsights(timeframes.HoldingPeriod, baselineResult.Expectancy)
+
+	var globalProfit decimal.Decimal
+	var globalLoss decimal.Decimal
+
+	for _, d := range timeframes.HoldingPeriod {
+		if d.NetPnL.GreaterThan(decimal.Zero) {
+			globalProfit = globalProfit.Add(d.NetPnL)
+		} else if d.NetPnL.LessThan(decimal.Zero) {
+			globalLoss = globalLoss.Add(d.NetPnL.Abs())
+		}
+	}
+
+	holdingDurationInsights := getHoldingDurationInsights(
+		timeframes.HoldingPeriod,
+		baselineResult.Expectancy,
+		globalProfit,
+		globalLoss,
+	)
+
 	psychologyInsights := getPsychologyInsights(allPositions)
 
 	return &GetResult{
