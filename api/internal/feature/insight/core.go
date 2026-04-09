@@ -654,7 +654,7 @@ func getHoldingDurationInsights(
 		end := holdingOrder[weakEnd]
 
 		totalTrades := 0
-		for i := bestStart; i <= bestEnd; i++ {
+		for i := weakStart; i <= weakEnd; i++ {
 			d := m[holdingOrder[i]]
 			totalTrades += d.PositionsCount
 		}
