@@ -1,7 +1,7 @@
 import { PageHeading, useDocumentTitle } from "netra";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/s8ly";
-import { IconClipboardList } from "@/components/icons";
+import { IconChartPie } from "@/components/icons";
 import { ReportsTags } from "@/features/reports/components/reports_tags";
 import { ReportsTimeframes } from "@/features/reports/components/reports_timeframes";
 import { ReportsSymbols } from "@/features/reports/components/reports_symbols";
@@ -23,7 +23,7 @@ export function Reports() {
     return (
         <div className="flex h-full flex-col">
             <PageHeading>
-                <IconClipboardList size={18} />
+                <IconChartPie size={18} />
                 <h1>Reports</h1>
             </PageHeading>
 

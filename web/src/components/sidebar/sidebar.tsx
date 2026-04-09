@@ -2,10 +2,19 @@ import { FC, ReactNode, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useNotificationsUnreadCount } from "@bodhveda/react";
 
-import { useSidebar, Popover, IconBell, Tooltip, PopoverTrigger, PopoverContent, IconCalendarSingle } from "netra";
+import {
+    useSidebar,
+    Popover,
+    IconBell,
+    Tooltip,
+    PopoverTrigger,
+    PopoverContent,
+    IconCalendarSingle,
+    IconChartPie,
+} from "netra";
 import { cn } from "@/lib/utils";
 import { Link } from "@/components/link";
-import { IconCandlestick, IconClipboardList, IconDashboard, IconSparkles } from "@/components/icons";
+import { IconCandlestick, IconDashboard, IconSparkles } from "@/components/icons";
 
 import { useIsMobile } from "@/hooks/use_is_mobile";
 import { ROUTES } from "@/constants";
@@ -108,7 +117,7 @@ export const Sidebar = () => {
                 <Link to={ROUTES.reports} variant="unstyled">
                     <SidebarItem
                         label="Reports"
-                        icon={<IconClipboardList size={20} />}
+                        icon={<IconChartPie size={20} />}
                         open={isOpen}
                         isActive={activeRoute === ROUTES.reports}
                         onClick={() => handleClick(ROUTES.reports)}

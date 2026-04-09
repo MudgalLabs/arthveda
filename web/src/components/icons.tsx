@@ -66,3 +66,4 @@ export { LuClipboardList as IconClipboardList } from "react-icons/lu";
 export { LuMoon as IconMoon } from "react-icons/lu";
 export { LuSun as IconSun } from "react-icons/lu";
 export { LuMonitor as IconMonitor } from "react-icons/lu";
+export { LuChartPie as IconChartPie } from "react-icons/lu";
