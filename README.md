@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./.github/screenshots/banner.png"  alt="arthveda banner" />
 
-### Trading journal for Indian markets
+### Turn trades into insights
 
 [Discord](https://discord.gg/RB89u64cWH) | [Website](https://arthveda.app) | [App](https://web.arthveda.app)
 
@@ -9,10 +9,12 @@
 
 # Arthveda
 
-[Arthveda](http://arthveda.app) is an trading journal for the Indian markets that offers seamless broker imports, reveals powerful analytics, and helps you improve.
+[Arthveda](http://arthveda.app) turns your trades into clear insights — so you know why you’re losing money or making it.
+
+Built for Indian traders. Works with Zerodha, Groww, Angel One and more.
 
 <p align="center">
-<img src="./.github/screenshots/dashboard.webp" alt="analytics dashboard" />
+<img src="./.github/screenshots/performance_hero.png" alt="arthveda performance dashboard" />
 </p>
 
 ## 📜 License

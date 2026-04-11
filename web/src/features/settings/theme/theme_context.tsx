@@ -31,6 +31,11 @@ export const ThemeProvider: FC<PropsWithChildren> = ({ children }) => {
         });
     }, []);
 
+    const isDarkTheme = useMemo(() => {
+        const resolved = resolveTheme(theme);
+        return resolved === "dark_theme";
+    }, [theme]);
+
     useEffect(() => {
         const resolved = resolveTheme(theme);
         applyTheme(resolved);
@@ -55,10 +60,10 @@ export const ThemeProvider: FC<PropsWithChildren> = ({ children }) => {
             theme,
             setTheme,
             toggle,
-            isDarkTheme: theme === "dark_theme",
+            isDarkTheme,
             resolvedTheme: resolveTheme(theme),
         }),
-        [theme, setTheme, toggle]
+        [theme, setTheme, toggle, isDarkTheme]
     );
 
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

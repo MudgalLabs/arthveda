@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { ErrorMessage, LoadingScreen, PageHeading, useDocumentTitle } from "netra";
 import Decimal from "decimal.js";
 
-import { IconBulb, IconSparkles } from "@/components/icons";
+import { IconSparkles } from "@/components/icons";
 import { apiHooks } from "@/hooks/api_hooks";
 import { Insight, InsightToken } from "@/lib/api/insight";
 import { Card, CardTitle } from "@/components/card";
@@ -45,11 +45,8 @@ export default function Insights() {
                 <div className="h-4" />
 
                 {sections.map((section) => (
-                    <TabsContent key={section.key} value={section.key}>
-                        <p className="text-muted-foreground flex-x mb-6 gap-x-1! text-sm">
-                            <IconBulb />
-                            {section.description}
-                        </p>
+                    <TabsContent key={section.key} value={section.key} className="pb-12">
+                        <p className="text-muted-foreground flex-x mb-6 gap-x-1! text-sm">{section.description}</p>
 
                         <InsightsSection insights={section.insights} />
                     </TabsContent>

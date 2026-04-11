@@ -31,7 +31,7 @@ export function Pricing(props: PricingProps) {
     const isIndia = tz === "Asia/Kolkata" || tz === "Asia/Calcutta";
 
     const currency = isIndia ? "INR" : "USD";
-    const monthlyPrice = isIndia ? 399 : 9;
+    const monthlyPrice = isIndia ? 299 : 9;
     const yearlyPrice = isIndia ? 1999 : 69;
 
     const discountPercentage = Math.round((1 - yearlyPrice / (monthlyPrice * 12)) * 100);

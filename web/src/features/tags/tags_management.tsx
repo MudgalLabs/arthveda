@@ -100,7 +100,7 @@ export default TagsManagement;
 const tagGroupColumns: ColumnDef<TagGroupWithTags>[] = [
     {
         accessorKey: "name",
-        header: ({ column }) => <DataTableColumnHeader title="Group name" column={column} />,
+        header: ({ column }) => <DataTableColumnHeader title="Tag group name" column={column} />,
         cell: ({ row }) => {
             return (
                 <div className="flex-x">

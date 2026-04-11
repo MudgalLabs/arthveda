@@ -168,7 +168,7 @@ export interface SimpleEditorProps {
 export function SimpleEditor(props: SimpleEditorProps) {
     const { initialContent, onChange } = props;
     const isMobile = useIsMobile();
-    const { theme: kind } = useTheme();
+    const { isDarkTheme } = useTheme();
     // const { height } = useWindowSize();
     const [mobileView, setMobileView] = React.useState<"main" | "highlighter" | "link">("main");
     const toolbarRef = React.useRef<HTMLDivElement>(null);
@@ -232,7 +232,7 @@ export function SimpleEditor(props: SimpleEditorProps) {
     }, [isMobile, mobileView]);
 
     return (
-        <div className={cn("simple-editor-wrapper", { dark: kind === "dark_theme" })}>
+        <div className={cn("simple-editor-wrapper", { dark: isDarkTheme })}>
             <EditorContext.Provider value={{ editor }}>
                 <Toolbar
                     ref={toolbarRef}
