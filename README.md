@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./.github/screenshots/banner.png" alt="arthveda banner" />
 
-### Find where you're losing money in your trades — and fix it.
+### Find why you're losing money in your trades — and fix it.
 
 [Discord](https://discord.gg/RB89u64cWH) | [Website](https://arthveda.app) | [App](https://web.arthveda.app)
 
@@ -11,7 +11,7 @@
 
 Arthveda is a trading journal and analytics platform for Indian traders.
 
-It shows where you're losing money in your trades, what’s working, and what to fix — so you can trade more profitably.
+It shows why you're losing money in your trades, what’s working, and what to fix — so you can trade more profitably.
 
 Works with Zerodha, Groww, Angel One and more.
 

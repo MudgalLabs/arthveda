@@ -15,7 +15,7 @@ import { useURLState } from "@/hooks/use_url_state";
 export default function Insights() {
     useDocumentTitle("Insights • Arthveda");
 
-    const [tab, setTab] = useURLState<string>("tab", "time_of_day");
+    const [tab, setTab] = useURLState<string>("tab", "timing");
 
     const { data, isLoading } = apiHooks.insight.useGetInsights();
 

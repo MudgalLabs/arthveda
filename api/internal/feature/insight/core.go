@@ -1050,7 +1050,7 @@ func calcMedian(trades []int) int {
 	return medianTrades
 }
 
-func getPsychologyInsights(allPositions []*position.Position) []insight {
+func getBehaviourInsights(allPositions []*position.Position) []insight {
 	insights := []insight{}
 
 	// 1. Filter only CLOSED positions

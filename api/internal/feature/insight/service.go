@@ -67,7 +67,10 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 		return nil, svcErr, err
 	}
 
+	var timingInsights []insight
+
 	timeOfDayInsights := getTimeOfDayInsights(timeframes.HourOfTheDay, baselineResult.Expectancy)
+	timingInsights = append(timingInsights, timeOfDayInsights...)
 
 	var globalProfit decimal.Decimal
 	var globalLoss decimal.Decimal
@@ -86,28 +89,23 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 		globalProfit,
 		globalLoss,
 	)
+	timingInsights = append(timingInsights, holdingDurationInsights...)
 
-	psychologyInsights := getPsychologyInsights(allPositions)
+	behaviourInsights := getBehaviourInsights(allPositions)
 
 	return &GetResult{
 		Sections: []Section{
 			{
-				Key:         "time_of_day",
-				Title:       "Time of day",
-				Description: "See how your performance changes across different hours of the day.",
-				Insights:    timeOfDayInsights,
+				Key:         "timing",
+				Title:       "Timing",
+				Description: "Find when you perform best and how long to hold your trades.",
+				Insights:    timingInsights,
 			},
 			{
-				Key:         "holding_duration",
-				Title:       "Holding duration",
-				Description: "See how long you should hold trades based on your past performance.",
-				Insights:    holdingDurationInsights,
-			},
-			{
-				Key:         "psychology",
-				Title:       "Psychology",
-				Description: "See how your behavior changes after wins and losses.",
-				Insights:    psychologyInsights,
+				Key:         "behaviour",
+				Title:       "Behaviour",
+				Description: "Spot patterns in your decisions after wins and losses.",
+				Insights:    behaviourInsights,
 			},
 		},
 	}, service.ErrNone, nil
