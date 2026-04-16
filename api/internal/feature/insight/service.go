@@ -67,7 +67,7 @@ func (s *Service) Get(ctx context.Context, userID uuid.UUID, tz *time.Location, 
 		return nil, svcErr, err
 	}
 
-	var timingInsights []insight
+	timingInsights := []insight{}
 
 	timeOfDayInsights := getTimeOfDayInsights(timeframes.HourOfTheDay, baselineResult.Expectancy)
 	timingInsights = append(timingInsights, timeOfDayInsights...)
