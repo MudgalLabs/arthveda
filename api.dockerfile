@@ -2,7 +2,7 @@ ARG TARGETOS=linux
 ARG TARGETARCH=amd64
 
 # Build stage
-FROM golang:1.24-alpine3.22 AS builder
+FROM golang:1.26-alpine3.22 AS builder
 
 # Install git and ca-certificates (needed for fetching dependencies)
 RUN apk add --no-cache git ca-certificates tzdata
